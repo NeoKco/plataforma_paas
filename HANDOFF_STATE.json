@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-16T23:40:25-04:00",
+  "updated_at": "2026-04-17T00:36:00-04:00",
   "handoff_status": "active",
-  "current_focus": "slice finance attachments en ieris-ltda ya cerrado; el foco vuelve al siguiente ajuste funcional de finance manteniendo la regla de revalidacion sobre slices cerrados y la disciplina repo-runtime",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, Mantenciones abiertas ya quedo cerrada y el ultimo incidente visible de Finance adjuntos se resolvio como problema de drift backend repo/runtime, no de tenant ni de frontend",
+  "current_focus": "slice finance summary ya cerrado: la cabecera distingue Resultado neto y Saldo total en cuentas, el cálculo de caja disponible ya vive en backend y el foco vuelve al siguiente ajuste fino de maintenance -> finance con la misma disciplina repo-runtime",
+  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, Mantenciones abiertas ya quedó cerrada, Finance adjuntos sigue sano y el resumen de cabecera de Finanzas ya fue promovido completo en backend, frontend y runtime",
   "active_modules": [
     "platform-core",
     "finance",
@@ -71,6 +71,7 @@
   ],
   "completed_recently": [
     "finance attachments en ieris-ltda vuelve a funcionar en production tras promover backend real a runtime y redeployar; validado con upload HTTP 200 y cleanup posterior del adjunto de prueba",
+    "finance summary ya distingue Resultado neto y Saldo total en cuentas; el cálculo de caja disponible fue movido a backend y quedó promovido en staging y production",
     "maintenance work orders y agenda ya normalizan scheduled_for al formato datetime-local al editar OT, evitando que Fecha y hora programada se vea vacía con datos existentes",
     "diagnóstico runtime real en production confirma que las OTs abiertas visibles de ieris-ltda (#345 y #1) ya salen del servicio backend con task_type_id=1 y assigned group/user correctos",
     "frontend production republicado de forma limpia eliminando bundles viejos antes de copiar el dist nuevo",

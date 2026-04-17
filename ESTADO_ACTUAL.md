@@ -2,9 +2,9 @@
 
 ## Última actualización
 
-- fecha: 2026-04-16
-- foco de iteración: cerrar correctamente el incidente de `finance -> adjuntos por transacción` en `ieris-ltda`, confirmar que el runtime productivo ya usa el storage compartido correcto y dejar la memoria viva alineada con la causa real repo/runtime
-- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, y `finance` volvió a permitir carga de adjuntos por transacción tras corregir un drift runtime en backend
+- fecha: 2026-04-17
+- foco de iteración: cerrar correctamente el subcorte `finance -> resumen de cabecera`, mover `Saldo total en cuentas` al backend, separar `Resultado neto` y dejar la memoria viva alineada al estado final ya promovido
+- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, `finance` volvió a permitir carga de adjuntos por transacción tras corregir un drift runtime en backend y la cabecera financiera ya separa `Resultado neto` de `Saldo total en cuentas`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -46,15 +46,17 @@
 - `MaintenanceHistoryPage` quedó blindada para OTs antiguas o tenants con payload histórico parcial:
   - usa `finance_summary` con fallback seguro
   - evita crash aunque una fila histórica no traiga ese bloque
-- la tarjeta superior `Balance` de `Finanzas` dejó de mostrar `total_income - total_expense` como si fuera caja disponible
-  - ahora el frontend muestra `Saldo total en cuentas`
-  - usa la suma de `Balances por cuenta`
+- la cabecera de `Finanzas` ya distingue dos lecturas correctas:
+  - `Resultado neto` = `ingresos - egresos`
+  - `Saldo total en cuentas` = suma backend de saldos visibles por cuenta
+- `Saldo total en cuentas` ya no se compone solo en frontend:
+  - ahora lo calcula backend en `FinanceTransactionService.get_summary()`
   - excluye cuentas con balance oculto
   - si hay múltiples monedas visibles, suma solo las cuentas en moneda base y deja hint explícito
 - frontend runtime verificado en ambos ambientes con bundles nuevos:
-  - `MaintenanceHistoryPage-CdHJKpQP.js`
-  - `MaintenanceInstallationsPage-CjIp0KB9.js`
-  - `MaintenanceReportsPage-B4R_FsLR.js`
+  - `FinanceTransactionsPage-CCySqCy2.js`
+  - `MaintenanceWorkOrdersPage-B8uqEDuN.js`
+  - `index-C2X3sCDT.js`
 - el problema visible de `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda` quedó resuelto:
   - backend y DB ya persistían bien `task_type_id`
   - el fallo era runtime frontend/caché
@@ -69,6 +71,13 @@
 
 - [transaction_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py) repara automáticamente la secuencia `finance_transactions` cuando detecta colisión PK
 - [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) aplica la misma autocorrección en `stage_system_transaction`, que es la ruta real usada por `maintenance -> finance`
+- [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) ahora expone en `get_summary()`:
+  - `net_result`
+  - `total_account_balance`
+  - manteniendo `balance` solo como alias backward-compatible del neto
+- [transaction.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/schemas/transaction.py) extiende `FinanceSummaryData` con:
+  - `net_result`
+  - `total_account_balance`
 - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ahora:
   - procesa solo tenants `active` por defecto
   - no aborta toda la corrida si un tenant falla
@@ -88,10 +97,18 @@
 - [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py) serializa snapshots financieros vinculados para consumo del frontend
 - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ya reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde la transacción financiera vinculada cuando existe
   - además, al cerrar la OT desde el mismo modal, ahora envía la configuración financiera elegida dentro del mismo `PATCH /status`, para que el balance por cuenta y la categoría nazcan correctamente en Finanzas
-- [FinanceTransactionsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx) ya no usa la tarjeta `Balance` como `ingresos - egresos`
-  - renombra la lectura a `Saldo total en cuentas`
-  - toma la suma de `accountBalances`
-  - si detecta monedas visibles mixtas, limita el total a la moneda base y lo declara en el hint
+- [FinanceTransactionsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx) ahora usa:
+  - `Resultado neto` desde `summary.net_result`
+  - `Saldo total en cuentas` desde `summary.total_account_balance`
+  - manteniendo el hint visual de monedas mixtas a partir de `accountBalances`
+- [TenantFinancePageLegacy.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/finance/TenantFinancePageLegacy.tsx) deja de mostrar una tarjeta `Balance` ambigua y pasa a `Resultado neto`
+- validación de promoción del slice:
+  - `deploy_backend_staging.sh` -> `527 tests OK`
+  - `deploy_backend_production.sh` -> `527 tests OK`
+  - `bash deploy/build_frontend.sh` -> `OK`
+  - frontend publicado en:
+    - `/opt/platform_paas_staging/frontend/dist`
+    - `/opt/platform_paas/frontend/dist`
 - [work_order_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/work_order_service.py) ahora prioriza `payload.finance_sync` al completar una OT y solo cae al auto-sync por política si el cierre no trae configuración financiera explícita
 - [common.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/common.py) extiende `MaintenanceStatusUpdateRequest` con `finance_sync`
 - [workOrdersService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/workOrdersService.ts) soporta `finance_sync` en `PATCH /status`

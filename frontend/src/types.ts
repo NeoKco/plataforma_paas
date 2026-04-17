@@ -1160,6 +1160,8 @@ export type TenantFinanceSummaryData = {
   total_income: number;
   total_expense: number;
   balance: number;
+  net_result: number;
+  total_account_balance: number;
   total_entries: number;
 };
 

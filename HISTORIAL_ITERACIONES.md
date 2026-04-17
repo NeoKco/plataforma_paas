@@ -1,5 +1,46 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-17 - Cierre del subcorte finance summary: Resultado neto + Saldo total en cuentas desde backend
+
+- objetivo:
+  - corregir la semántica de la cabecera de `Finanzas` para que el operador distinga claramente entre neto operativo y caja disponible
+  - dejar de depender solo de composición frontend para el total de saldos por cuenta
+  - promover el cambio completo a `staging` y `production`
+- cambios principales:
+  - [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) extiende `get_summary()` y pasa a entregar:
+    - `net_result`
+    - `total_account_balance`
+    - `balance` solo como alias backward-compatible del neto
+  - [transaction.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/schemas/transaction.py) extiende `FinanceSummaryData` con ambos campos nuevos
+  - [FinanceTransactionsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/finance/pages/FinanceTransactionsPage.tsx) deja la cabecera así:
+    - `Resultado neto`
+    - `Saldo total en cuentas`
+  - [TenantFinancePageLegacy.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/finance/TenantFinancePageLegacy.tsx) renombra la lectura legacy a `Resultado neto`
+  - `Saldo total en cuentas` se calcula en backend con la misma semántica de balances por cuenta:
+    - respeta `opening_balance`
+    - suma ingresos
+    - resta egresos
+    - contempla transferencias
+    - excluye cuentas con `is_balance_hidden`
+    - si hay monedas visibles mixtas, suma solo las cuentas en moneda base
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_finance_flow backend.app.tests.test_finance_transaction_core` -> `80 tests OK`
+  - `bash deploy/deploy_backend_staging.sh` -> `527 tests OK`
+  - `bash deploy/deploy_backend_production.sh` -> `527 tests OK`
+  - `bash deploy/build_frontend.sh` -> `OK`
+  - publicación frontend en:
+    - `/opt/platform_paas_staging/frontend/dist`
+    - `/opt/platform_paas/frontend/dist`
+  - readiness local del build:
+    - `EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `Finanzas` ya no mezcla bajo una misma etiqueta dos lecturas diferentes
+  - la caja disponible queda representada por `Saldo total en cuentas`
+  - el neto operativo queda representado por `Resultado neto`
+  - el cálculo de saldo total ya vive en backend y no depende solo del estado frontend
+- siguiente paso:
+  - seguir con el siguiente ajuste fino de `maintenance -> finance`, especialmente la UX de líneas que sí/no salen a egreso y la evaluación de un cierre atómico `close-with-costs`
+
 ## 2026-04-16 - Cierre del incidente finance attachments en ieris-ltda por drift repo/runtime
 
 - objetivo:

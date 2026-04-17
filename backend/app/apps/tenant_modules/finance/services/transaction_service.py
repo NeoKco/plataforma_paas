@@ -885,7 +885,7 @@ class FinanceService:
             raise ValueError("Una o mas transacciones financieras no existen")
         return transactions
 
-    def get_summary(self, tenant_db: Session) -> dict[str, float]:
+    def get_summary(self, tenant_db: Session) -> dict[str, float | int]:
         entries = self.transaction_repository.list_all(tenant_db)
         total_income = sum(
             entry.amount
@@ -899,11 +899,15 @@ class FinanceService:
             if getattr(entry, "transaction_type", getattr(entry, "movement_type", None))
             == "expense"
         )
+        net_result = total_income - total_expense
+        total_account_balance = self._get_visible_total_account_balance(tenant_db)
 
         return {
             "total_income": total_income,
             "total_expense": total_expense,
-            "balance": total_income - total_expense,
+            "balance": net_result,
+            "net_result": net_result,
+            "total_account_balance": total_account_balance,
             "total_entries": len(entries),
         }
 
@@ -1001,17 +1005,49 @@ class FinanceService:
 
         for transaction in self.transaction_repository.list_all(tenant_db):
             amount = float(transaction.amount)
-            if transaction.transaction_type == "income" and transaction.account_id:
-                balances[transaction.account_id] = balances.get(transaction.account_id, 0.0) + amount
-            elif transaction.transaction_type == "expense" and transaction.account_id:
-                balances[transaction.account_id] = balances.get(transaction.account_id, 0.0) - amount
-            elif transaction.transaction_type == "transfer":
-                if transaction.account_id:
-                    balances[transaction.account_id] = balances.get(transaction.account_id, 0.0) - amount
-                if transaction.target_account_id:
-                    balances[transaction.target_account_id] = balances.get(transaction.target_account_id, 0.0) + amount
+            transaction_type = getattr(
+                transaction,
+                "transaction_type",
+                getattr(transaction, "movement_type", None),
+            )
+            account_id = getattr(transaction, "account_id", None)
+            target_account_id = getattr(transaction, "target_account_id", None)
+            if transaction_type == "income" and account_id:
+                balances[account_id] = balances.get(account_id, 0.0) + amount
+            elif transaction_type == "expense" and account_id:
+                balances[account_id] = balances.get(account_id, 0.0) - amount
+            elif transaction_type == "transfer":
+                if account_id:
+                    balances[account_id] = balances.get(account_id, 0.0) - amount
+                if target_account_id:
+                    balances[target_account_id] = balances.get(target_account_id, 0.0) + amount
 
         return balances
+
+    def _get_visible_total_account_balance(self, tenant_db: Session) -> float:
+        accounts = self.account_repository.list_all(tenant_db, include_inactive=True)
+        visible_accounts = [account for account in accounts if not account.is_balance_hidden]
+        if not visible_accounts:
+            return 0.0
+
+        balances = self.get_account_balances(tenant_db)
+        visible_currency_ids = {account.currency_id for account in visible_accounts}
+
+        if len(visible_currency_ids) > 1:
+            base_currency = self._get_base_currency_or_raise(tenant_db)
+            return round(
+                sum(
+                    balances.get(account.id, 0.0)
+                    for account in visible_accounts
+                    if account.currency_id == base_currency.id
+                ),
+                2,
+            )
+
+        return round(
+            sum(balances.get(account.id, 0.0) for account in visible_accounts),
+            2,
+        )
 
     def _get_current_month_start(self) -> datetime:
         now = datetime.now(timezone.utc)

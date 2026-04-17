@@ -4,6 +4,21 @@ Resumen curado de hitos del módulo `finance`.
 
 ## 2026-04
 
+### Cabecera financiera separada: Resultado neto + Saldo total en cuentas
+
+- la cabecera de `Finanzas` ya no mezcla caja disponible con neto operativo
+- se separan dos lecturas:
+  - `Resultado neto` = `ingresos - egresos`
+  - `Saldo total en cuentas` = suma de saldos visibles por cuenta
+- el cálculo de `Saldo total en cuentas` ya no depende solo del frontend:
+  - backend lo expone desde `FinanceTransactionService.get_summary()`
+  - excluye cuentas ocultas
+  - si hay monedas visibles mixtas, suma solo las cuentas en moneda base
+- frontend tenant y vista legacy ya consumen esta nueva semántica sin usar `Balance` ambiguo
+- el slice quedó promovido y validado en:
+  - `staging`
+  - `production`
+
 ### Incidente cerrado: adjuntos por transacción en runtime productivo
 
 - se corrigió un incidente real en `ieris-ltda` donde subir adjuntos a transacciones devolvía `500 Internal Server Error`

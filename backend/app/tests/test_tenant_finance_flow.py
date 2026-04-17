@@ -115,17 +115,35 @@ class TenantFinanceServiceTestCase(unittest.TestCase):
             SimpleNamespace(movement_type="expense", amount=250.0),
             SimpleNamespace(movement_type="expense", amount=100.0),
         ]
+        accounts = [
+            SimpleNamespace(id=1, currency_id=10, opening_balance=100.0, is_balance_hidden=False),
+            SimpleNamespace(id=2, currency_id=10, opening_balance=50.0, is_balance_hidden=True),
+        ]
 
         class FakeEntryRepository:
             def list_all(self, tenant_db):
                 return entries
 
-        service = FinanceService(entry_repository=FakeEntryRepository())
+        class FakeAccountRepository:
+            def list_all(self, tenant_db, include_inactive=True):
+                return accounts
+
+        class FakeCurrencyRepository:
+            def list_all(self, tenant_db, include_inactive=True):
+                return [SimpleNamespace(id=10, is_base=True)]
+
+        service = FinanceService(
+            entry_repository=FakeEntryRepository(),
+            account_repository=FakeAccountRepository(),
+            currency_repository=FakeCurrencyRepository(),
+        )
         summary = service.get_summary(object())
 
         self.assertEqual(summary["total_income"], 1000.0)
         self.assertEqual(summary["total_expense"], 350.0)
         self.assertEqual(summary["balance"], 650.0)
+        self.assertEqual(summary["net_result"], 650.0)
+        self.assertEqual(summary["total_account_balance"], 100.0)
 
     def test_create_entry_rejects_when_plan_limit_is_reached(self) -> None:
         class FakeEntryRepository:
@@ -2540,6 +2558,8 @@ class TenantFinanceRouteOrderTestCase(unittest.TestCase):
             "total_income": 1000.0,
             "total_expense": 400.0,
             "balance": 600.0,
+            "net_result": 600.0,
+            "total_account_balance": 750.0,
             "total_entries": 3,
         }
 
@@ -2553,6 +2573,8 @@ class TenantFinanceRouteOrderTestCase(unittest.TestCase):
             )
 
         self.assertEqual(response.data.balance, 600.0)
+        self.assertEqual(response.data.net_result, 600.0)
+        self.assertEqual(response.data.total_account_balance, 750.0)
 
     def test_finance_summary_returns_controlled_schema_error_on_missing_column(self) -> None:
         failing_error = ProgrammingError(

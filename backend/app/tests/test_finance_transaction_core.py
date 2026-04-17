@@ -59,6 +59,7 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         currency_id: int,
         opening_balance: float = 0,
         sort_order: int = 10,
+        is_balance_hidden: bool = False,
     ) -> FinanceAccount:
         account = FinanceAccount(
             name=name,
@@ -66,6 +67,7 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
             account_type="cash",
             currency_id=currency_id,
             opening_balance=opening_balance,
+            is_balance_hidden=is_balance_hidden,
             is_active=True,
             sort_order=sort_order,
         )
@@ -1023,6 +1025,74 @@ class FinanceTransactionCoreTestCase(unittest.TestCase):
         )
         self.assertTrue(detail_transaction.is_voided)
         self.assertTrue(any(event.event_type == "transaction.voided" for event in audit_events))
+
+    def test_get_summary_reports_net_result_and_visible_total_account_balance(self) -> None:
+        clp = self._seed_currency(code="CLP", is_base=True, sort_order=10)
+        usd = self._seed_currency(code="USD", is_base=False, sort_order=20)
+        efectivo = self._seed_account(
+            name="Efectivo",
+            code="CASH",
+            currency_id=clp.id,
+            opening_balance=100.0,
+        )
+        banco_usd = self._seed_account(
+            name="Banco USD",
+            code="BANK_USD",
+            currency_id=usd.id,
+            opening_balance=50.0,
+        )
+        oculta = self._seed_account(
+            name="Oculta",
+            code="HIDDEN",
+            currency_id=clp.id,
+            opening_balance=75.0,
+            is_balance_hidden=True,
+        )
+
+        self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=efectivo.id,
+                currency_id=clp.id,
+                amount=200.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Cobro",
+            ),
+            created_by_user_id=1,
+        )
+        self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="expense",
+                account_id=efectivo.id,
+                currency_id=clp.id,
+                amount=40.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Pago",
+            ),
+            created_by_user_id=1,
+        )
+        self.service.create_transaction(
+            tenant_db=self.db,
+            payload=FinanceTransactionCreateRequest(
+                transaction_type="income",
+                account_id=oculta.id,
+                currency_id=clp.id,
+                amount=25.0,
+                transaction_at=datetime.now(timezone.utc),
+                description="Ingreso oculto",
+            ),
+            created_by_user_id=1,
+        )
+
+        summary = self.service.get_summary(self.db)
+
+        self.assertEqual(summary["total_income"], 225.0)
+        self.assertEqual(summary["total_expense"], 40.0)
+        self.assertEqual(summary["balance"], 185.0)
+        self.assertEqual(summary["net_result"], 185.0)
+        self.assertEqual(summary["total_account_balance"], 260.0)
 
     def test_rejects_void_for_loan_derived_transactions(self) -> None:
         usd = self._seed_currency(code="USD", is_base=True, sort_order=10)

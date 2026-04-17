@@ -71,7 +71,7 @@ export function TenantFinancePage() {
       totalEntries: summary?.total_entries || 0,
       totalIncome: summary?.total_income || 0,
       totalExpense: summary?.total_expense || 0,
-      balance: summary?.balance || 0,
+      netResult: (summary?.net_result ?? summary?.balance ?? 0),
     };
   }, [summary]);
 
@@ -238,11 +238,11 @@ export function TenantFinancePage() {
           hint={language === "es" ? "Acumulado visible" : "Visible accumulated"}
         />
         <MetricCard
-          label={language === "es" ? "Balance" : "Balance"}
+          label={language === "es" ? "Resultado neto" : "Net result"}
           icon="balance"
           tone="info"
-          value={formatMoney(overview.balance)}
-          hint={language === "es" ? "Resultado actual" : "Current result"}
+          value={formatMoney(overview.netResult)}
+          hint={language === "es" ? "Ingresos menos egresos visibles" : "Visible income minus expenses"}
         />
       </div>
 

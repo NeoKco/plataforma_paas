@@ -201,26 +201,6 @@ export function FinanceTransactionsPage() {
     [accountBalances]
   );
   const hasMixedVisibleAccountCurrencies = accountBalanceCurrencyIds.length > 1;
-  const totalAccountBalance = useMemo(() => {
-    if (!accountBalances.length) {
-      return 0;
-    }
-    if (hasMixedVisibleAccountCurrencies) {
-      const baseCurrencyId = baseCurrency?.id ?? null;
-      return accountBalances.reduce((total, item) => {
-        if (item.is_balance_hidden || item.currency_id !== baseCurrencyId) {
-          return total;
-        }
-        return total + item.balance;
-      }, 0);
-    }
-    return accountBalances.reduce((total, item) => {
-      if (item.is_balance_hidden) {
-        return total;
-      }
-      return total + item.balance;
-    }, 0);
-  }, [accountBalances, baseCurrency?.id, hasMixedVisibleAccountCurrencies]);
   const totalAccountBalanceHint = hasMixedVisibleAccountCurrencies
     ? language === "es"
       ? `Suma visible solo en moneda base (${baseCurrency?.code || "base"}). Revisa Balances por cuenta para otras monedas.`
@@ -1446,11 +1426,18 @@ export function FinanceTransactionsPage() {
         />
         <MetricCard
           icon="balance"
+          label={language === "es" ? "Resultado neto" : "Net result"}
+          tone="default"
+          value={formatMoney((summary?.net_result ?? summary?.balance ?? 0), baseCurrency?.code, language)}
+          hint={language === "es" ? "Ingresos menos egresos visibles" : "Visible income minus expenses"}
+        />
+        <MetricCard
+          icon="accounts"
           label={
             language === "es" ? "Saldo total en cuentas" : "Total account balance"
           }
           tone="info"
-          value={formatMoney(totalAccountBalance || 0, baseCurrency?.code, language)}
+          value={formatMoney(summary?.total_account_balance ?? 0, baseCurrency?.code, language)}
           hint={totalAccountBalanceHint}
         />
       </div>

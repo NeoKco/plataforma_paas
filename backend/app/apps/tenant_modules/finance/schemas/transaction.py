@@ -210,6 +210,8 @@ class FinanceSummaryData(BaseModel):
     total_income: float
     total_expense: float
     balance: float
+    net_result: float
+    total_account_balance: float
     total_entries: int
 
 
