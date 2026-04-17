@@ -2074,6 +2074,13 @@ export function MaintenanceCostingModal({
                       ? "Aquí la plantilla solo copia valores base al resumen real. Después puedes ajustar traslado, materiales, cobro o agregar líneas manuales para detallar el cierre real."
                       : "Here the template only copies base values into the real summary. You can then adjust travel, materials, charged amount, or add manual lines to detail the real close."}
                   </div>
+                  {actualUsesLines ? (
+                    <div className="alert alert-secondary mt-3 mb-0">
+                      {language === "es"
+                        ? `Egreso efectivo desde líneas: ${actualLineSelectionSummary.included_total.toFixed(2)}. Excluido del egreso: ${actualLineSelectionSummary.excluded_total.toFixed(2)}.`
+                        : `Expense synced from lines: ${actualLineSelectionSummary.included_total.toFixed(2)}. Excluded from expense: ${actualLineSelectionSummary.excluded_total.toFixed(2)}.`}
+                    </div>
+                  ) : null}
                   {costingDetail?.actual?.applied_cost_template_name_snapshot ? (
                     <div className="maintenance-history-entry__meta mt-2">
                       {language === "es"
@@ -2231,6 +2238,13 @@ export function MaintenanceCostingModal({
                           ? "Aunque la política siga manual, este formulario ya propone la misma cuenta, categoría, moneda y toggles resueltos por backend para no volver a configurarlos en cada OT."
                           : "Even if the policy remains manual, this form already suggests the same account, category, currency, and toggles resolved by the backend so they do not need to be reconfigured on every work order."}
                       {financeSuggestionHint ? <div className="mt-2">{financeSuggestionHint}</div> : null}
+                      {financeSyncForm.sync_expense ? (
+                        <div className="mt-2">
+                          {language === "es"
+                            ? `Egreso que se sincronizará: ${actualLineSelectionSummary.included_total.toFixed(2)} · Excluido: ${actualLineSelectionSummary.excluded_total.toFixed(2)}`
+                            : `Expense to sync: ${actualLineSelectionSummary.included_total.toFixed(2)} · Excluded: ${actualLineSelectionSummary.excluded_total.toFixed(2)}`}
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                   <div className="row g-3 mt-1">
