@@ -47,11 +47,6 @@ export function MaintenanceModuleNav() {
       icon: "tenant-history" as const,
     },
     {
-      to: "/tenant-portal/maintenance/calendar",
-      label: pickLocalizedText(language, { es: "Agenda", en: "Calendar" }),
-      icon: "overview" as const,
-    },
-    {
       to: "/tenant-portal/maintenance/reports",
       label: pickLocalizedText(language, { es: "Reportes", en: "Reports" }),
       icon: "reports" as const,

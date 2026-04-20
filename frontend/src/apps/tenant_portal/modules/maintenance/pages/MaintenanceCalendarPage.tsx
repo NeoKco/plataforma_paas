@@ -248,7 +248,13 @@ function isMembershipActive(member: {
   return true;
 }
 
-export function MaintenanceCalendarPage() {
+type MaintenanceCalendarPageProps = {
+  renderAsGlobalAgenda?: boolean;
+};
+
+export function MaintenanceCalendarPage({
+  renderAsGlobalAgenda = false,
+}: MaintenanceCalendarPageProps) {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
@@ -794,13 +800,33 @@ export function MaintenanceCalendarPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "Mantenciones" : "Maintenance"}
+        eyebrow={
+          renderAsGlobalAgenda
+            ? language === "es"
+              ? "Agenda"
+              : "Agenda"
+            : language === "es"
+              ? "Mantenciones"
+              : "Maintenance"
+        }
         icon="planning"
-        title={language === "es" ? "Agenda técnica" : "Technical calendar"}
+        title={
+          renderAsGlobalAgenda
+            ? language === "es"
+              ? "Agenda operativa"
+              : "Operational agenda"
+            : language === "es"
+              ? "Agenda técnica"
+              : "Technical calendar"
+        }
         description={
-          language === "es"
-            ? "Calendario visual de mantenciones abiertas. Desde aquí puedes programar trabajo nuevo sobre cliente, dirección e instalación reales."
-            : "Visual calendar for open maintenance work. From here you can schedule new work on a real client, address, and installation."
+          renderAsGlobalAgenda
+            ? language === "es"
+              ? "Punto único de agenda del portal tenant. Hoy concentra la operación de Mantenciones y queda lista para sumar otros módulos."
+              : "Single agenda entry point for the tenant portal. It currently concentrates Maintenance operations and is ready to add other modules."
+            : language === "es"
+              ? "Calendario visual de mantenciones abiertas. Desde aquí puedes programar trabajo nuevo sobre cliente, dirección e instalación reales."
+              : "Visual calendar for open maintenance work. From here you can schedule new work on a real client, address, and installation."
         }
         actions={
           <AppToolbar compact>
@@ -826,7 +852,7 @@ export function MaintenanceCalendarPage() {
           </AppToolbar>
         }
       />
-      <MaintenanceModuleNav />
+      {!renderAsGlobalAgenda ? <MaintenanceModuleNav /> : null}
 
       {noClientsAvailable ? (
         <div className="alert alert-warning mb-0">

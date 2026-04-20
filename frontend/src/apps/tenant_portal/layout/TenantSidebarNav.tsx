@@ -33,6 +33,12 @@ export function TenantSidebarNav() {
       visible: isTenantPortalSectionVisible(tenantInfo, "finance"),
     },
     {
+      to: "/tenant-portal/agenda",
+      label: language === "es" ? "Agenda" : "Agenda",
+      icon: "planning" as AppIconName,
+      visible: isTenantPortalSectionVisible(tenantInfo, "agenda"),
+    },
+    {
       to: "/tenant-portal/maintenance",
       label: language === "es" ? "Mantenciones" : "Maintenance",
       icon: "maintenance" as AppIconName,

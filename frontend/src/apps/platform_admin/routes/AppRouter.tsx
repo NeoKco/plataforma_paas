@@ -181,6 +181,13 @@ const router = createBrowserRouter([
         children: financeTenantPortalRoutes,
       },
       {
+        path: "agenda",
+        lazy: async () => {
+          const module = await import("../../tenant_portal/pages/agenda/TenantAgendaPage");
+          return { Component: module.TenantAgendaPage };
+        },
+      },
+      {
         path: "maintenance",
         children: maintenanceTenantPortalRoutes,
       },

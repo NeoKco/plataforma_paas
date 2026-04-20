@@ -5,6 +5,7 @@ export type TenantPortalModuleSection =
   | "users"
   | "business-core"
   | "finance"
+  | "agenda"
   | "maintenance";
 
 const SECTION_MODULE_KEYS: Record<
@@ -15,6 +16,7 @@ const SECTION_MODULE_KEYS: Record<
   users: ["all", "users"],
   "business-core": ["all", "core"],
   finance: ["all", "finance"],
+  agenda: ["all", "maintenance"],
   "maintenance": ["all", "maintenance"],
 };
 
