@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-19
-- foco de iteración: cerrar el slice atómico `maintenance -> finance` con `close-with-costs`, promover frontend/backend al runtime real y alinear la memoria viva al siguiente subcorte del roadmap
-- estado general: `production` quedó promovido y sano para `close-with-costs`; `staging` tiene backend/frontend actualizados para este slice, pero el último verify post-deploy volvió a exponer drift tenant-local de credenciales DB en `condominio-demo`, por lo que todavía requiere rerun de convergencia para quedar nuevamente al mismo nivel que `production`
+- foco de iteración: cerrar el saneamiento multi-tenant por ambiente, dejar `production` y `staging` operativos en `4/4` tenants activos y mover el roadmap al siguiente frente de hardening transversal
+- estado general: `production` y `staging` quedaron nuevamente convergidos y auditados en verde para los 4 tenants activos; el incidente visible de `ieris-ltda` en `Platform Admin -> Tenants` se resolvió rotando credenciales DB tenant rotas y reejecutando convergencia completa en ambos ambientes
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -34,13 +34,19 @@
 - `empresa-demo` funcionó antes que `ieris-ltda` porque ya había sido reparado/backfilleado; `ieris-ltda` seguía con drift técnico en su BD tenant
 - la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
 - `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
-- `staging` volvió a quedar verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica tras reparar credenciales DB tenant de `condominio-demo` e `ieris-ltda`
-- el último redeploy backend de `staging` volvió a exponer drift tenant-local en `condominio-demo`:
-  - `sync_active_tenant_schemas.py` durante el verify quedó en `processed=4, synced=3, failed=1`
-  - `seed_missing_tenant_defaults.py --apply` quedó en `processed=4, changed=1, failed=1`
-  - `repair_maintenance_finance_sync.py --all-active --limit 100` quedó en `processed=4, failed=1`
-  - `audit_active_tenant_convergence.py --all-active --limit 100` quedó en `processed=4, failed=1`
-  - el slice sí quedó publicado en código/UI; lo pendiente es rerun de convergencia del tenant roto
+- `staging` también quedó nuevamente verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
+- incidente cerrado de `ieris-ltda` y `condominio-demo`:
+  - el fallo visible en `Platform Admin -> Tenants` y en `tenant-portal/login` no era de frontend ni de lifecycle
+  - la causa real fue drift tenant-local de credenciales DB técnicas
+  - se rotaron credenciales desde el servicio canónico en ambos ambientes
+  - luego se reejecutó:
+    - `sync_active_tenant_schemas.py`
+    - `seed_missing_tenant_defaults.py --apply`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100`
+    - `audit_active_tenant_convergence.py --all-active --limit 100`
+  - resultado final:
+    - `production`: `processed=4, warnings=0, failed=0`
+    - `staging`: `processed=4, warnings=0, failed=0`
 - el slice nuevo de `maintenance -> finance` ya quedó promovido en ambos ambientes:
   - el modal de costeo reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde las transacciones financieras ya vinculadas
   - al reabrir una OT ya sincronizada no vuelve a defaults ciegos del tenant, sino al snapshot real de Finanzas
@@ -216,6 +222,10 @@
   - metadata de rotación en control
 - `ieris-ltda` en `staging` fue reparado creando y validando el secreto DB runtime que faltaba, quedando otra vez auditable junto al resto de tenants activos
 - `condominio-demo` en `production` también fue reparado rotando credenciales DB tenant desde el mismo servicio antes del rerun final de convergencia
+- cierre adicional 2026-04-19:
+  - `condominio-demo` e `ieris-ltda` volvieron a quedar reparados en `production`
+  - `condominio-demo` e `ieris-ltda` volvieron a quedar reparados en `staging`
+  - esto confirma que el frente abierto ya no es un bug funcional de módulos, sino el hardening del lifecycle técnico de convergencia post-deploy
 - validación directa en `production` para `ieris-ltda`:
   - defaults efectivos: ingreso `account_id=1`, egreso `account_id=1`, categorías `39/40`
   - existen ingresos/egresos sincronizados desde mantenciones cerradas

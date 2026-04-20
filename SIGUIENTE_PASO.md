@@ -2,19 +2,10 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino real de `maintenance -> finance`; el slice atómico `close-with-costs`, `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda`, el incidente `finance -> adjuntos por transacción`, la corrección de cabecera `Resultado neto` + `Saldo total en cuentas` y la salud visible del vínculo financiero en `Historial técnico` ya quedaron cerrados en `production` y no requieren más trabajo salvo nueva regresión reproducible
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, y los cuatro tenants activos vuelven a auditar en verde en ambos ambientes
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
-
-## Decisión previa obligatoria
-
-- rerun de convergencia en `staging` antes de abrir otro corte que dependa de ese ambiente:
-  - reparar credencial DB tenant de `condominio-demo`
-  - rerun:
-    - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
-    - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
-    - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
 
 ## Próximo paso correcto
 
@@ -27,12 +18,16 @@
   - convergencia `production`
   - auditoría `production`
   - documentación viva cerrada
-- siguiente subcorte funcional recomendado:
-  - endurecer todavía más la UX del cierre financiero de mantenciones:
-    - que el operador vea de forma inequívoca qué líneas entran al egreso
-    - que se refleje mejor el impacto por cuenta/categoría antes de cerrar
-    - que se vea el resultado neto esperado antes de confirmar el cierre
-  - revisar si conviene mostrar badges de completitud operativa en `Historial técnico` cuando una mantención antigua aún no tiene `visitas`, `logs` o datos de cierre homogéneos
+- siguiente frente recomendado del roadmap:
+  - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
+  - objetivos concretos del siguiente corte:
+    - detectar automáticamente drift de credenciales DB tenant antes de que rompa `Platform Admin -> Tenants` o `tenant-portal/login`
+    - dejar runbook/script único de reparación para rotación DB tenant por ambiente
+    - endurecer el gate post-deploy para diferenciar claramente:
+      - servicio sano
+      - tenant roto por drift
+      - tenant convergido
+    - mejorar la visibilidad operativa del estado tenant en la consola admin sin depender de errores genéricos `Internal server error`
 - mantener como regla ya cerrada del lifecycle tenant:
   - no borrar tenant archivado/unprovisioned sin export portable completado del mismo tenant
   - no tratar `functional_data_only` como restauración `1:1`
@@ -61,7 +56,10 @@
 
 - `staging` y `production` mantienen auditoría activa sin fallos críticos en tenants activos después del nuevo cambio
 - el nuevo slice queda probado al menos en ambos ambientes reales afectados
-- el nuevo subcorte de `maintenance -> finance` se verifica al menos en `empresa-demo` y `ieris-ltda` sobre runtime real
+- el siguiente corte de hardening deja explícito:
+  - cómo se detecta drift tenant-local
+  - cómo se repara por ambiente
+  - cómo se diferencia operativamente entre incidente de runtime, incidente de datos tenant y problema de frontend/caché
 - documentación de release deja explícito que:
   - repo != runtime
   - deploy != convergencia completa

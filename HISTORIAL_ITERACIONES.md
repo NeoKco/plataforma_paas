@@ -1,5 +1,52 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-19 - Saneamiento multi-tenant por ambiente para dejar todos los tenants activos operativos
+
+- objetivo:
+  - corregir el incidente visible en `Platform Admin -> Tenants` y `tenant-portal/login` donde `ieris-ltda` aparecía como no disponible por problema operativo
+  - revisar todos los tenants activos reales y no solo el tenant reportado
+  - dejar `production` y `staging` otra vez en `4/4` tenants activos auditados en verde
+- diagnóstico:
+  - `production` auditado inicialmente con:
+    - `condominio-demo`: `password authentication failed`
+    - `ieris-ltda`: `password authentication failed`
+    - resumen: `processed=4`, `warnings=0`, `failed=2`
+  - `staging` auditado inicialmente con el mismo patrón:
+    - `condominio-demo`: `password authentication failed`
+    - `ieris-ltda`: `password authentication failed`
+    - resumen: `processed=4`, `warnings=0`, `failed=2`
+  - la causa real no era un bug funcional de `maintenance` o `finance`, sino drift tenant-local de credenciales DB técnicas
+- cambios y acciones ejecutadas:
+  - rotación de credenciales DB tenant desde el servicio canónico [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) en `production` para:
+    - `condominio-demo`
+    - `ieris-ltda`
+  - rerun completo en `production`:
+    - `sync_active_tenant_schemas.py --limit 100`
+    - `seed_missing_tenant_defaults.py --apply`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100`
+    - `audit_active_tenant_convergence.py --all-active --limit 100`
+  - rotación equivalente en `staging` para:
+    - `condominio-demo`
+    - `ieris-ltda`
+  - rerun completo en `staging` con el mismo set de scripts
+- validaciones:
+  - `production` final:
+    - `sync_active_tenant_schemas.py` -> `processed=4`, `synced=4`, `failed=0`
+    - `seed_missing_tenant_defaults.py --apply` -> `processed=4`, `changed=3`, `failed=0`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4`, `failed=0`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+  - `staging` final:
+    - `sync_active_tenant_schemas.py` -> `processed=4`, `synced=4`, `failed=0`
+    - `seed_missing_tenant_defaults.py --apply` -> `processed=4`, `changed=3`, `failed=0`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4`, `failed=0`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+- resultado:
+  - `condominio-demo`, `empresa-bootstrap`, `empresa-demo` e `ieris-ltda` vuelven a quedar operativos en ambos ambientes
+  - el incidente reportado por el usuario en `ieris-ltda` queda cerrado
+  - el siguiente frente del roadmap ya no es corregir tenants caídos, sino endurecer el hardening transversal de convergencia post-deploy
+- siguiente paso:
+  - abrir el siguiente corte del roadmap en `platform-core` para automatizar mejor la detección y recuperación de drift tenant-local
+
 ## 2026-04-19 - Cierre del slice atómico maintenance -> finance con close-with-costs
 
 - objetivo:

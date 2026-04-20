@@ -1,5 +1,25 @@
 # Platform Core Changelog
 
+## 2026-04-19
+
+- se cierra un saneamiento multi-tenant real sobre ambos ambientes para recuperar tenants activos caídos por drift de credenciales DB técnicas:
+  - `production`:
+    - `condominio-demo`
+    - `ieris-ltda`
+  - `staging`:
+    - `condominio-demo`
+    - `ieris-ltda`
+- la corrección se hizo desde el servicio canónico [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) rotando credenciales DB tenant y luego reejecutando convergencia completa por ambiente:
+  - `sync_active_tenant_schemas.py`
+  - `seed_missing_tenant_defaults.py --apply`
+  - `repair_maintenance_finance_sync.py --all-active --limit 100`
+  - `audit_active_tenant_convergence.py --all-active --limit 100`
+- resultado final validado:
+  - `production`: `processed=4`, `warnings=0`, `failed=0`
+  - `staging`: `processed=4`, `warnings=0`, `failed=0`
+- queda reforzada la conclusión operativa:
+  - el siguiente frente del roadmap debe endurecer la detección y recuperación de drift tenant-local antes de que se refleje en la UI como `Internal server error` o `tenant no disponible`
+
 ## 2026-04-14
 
 - se agrega [copy_selected_business_core_maintenance_data.py](/home/felipe/platform_paas/backend/app/scripts/copy_selected_business_core_maintenance_data.py) como utilidad operativa para copiar selectivamente entre tenants:
