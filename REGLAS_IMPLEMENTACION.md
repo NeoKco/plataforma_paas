@@ -386,6 +386,47 @@ Referencia canónica:
 
 - `docs/architecture/sred-development.md`
 
+## Regla 21. Gobernanza de datos y `SRED` aplican a toda la PaaS
+
+No aplican solo a módulos nuevos ni solo a trabajo funcional visible.
+
+Aplican a:
+
+- `platform-core`
+- `business-core`
+- `maintenance`
+- `finance`
+- `agenda`
+- defaults, seeds, imports y exports
+- convergencia multi-tenant
+- deploy, staging y production
+- hardening, recovery y operación técnica
+
+Si el trabajo cambia comportamiento real o continuidad operativa, entra en gobernanza y `SRED`.
+
+## Regla 22. Slice relevante = ownership + spec mínima antes de tocar código
+
+Antes de implementar un slice relevante debe existir, como mínimo:
+
+- ownership explícito del dato en `docs/architecture/data-ownership-matrix.md`
+- spec mínima siguiendo `docs/architecture/slice-spec-template.md`
+
+Si el cambio no puede describirse con esas dos piezas, todavía no está listo para implementarse.
+
+## Regla 23. No cerrar mejoras transversales sin impacto institucionalizado
+
+Si una mejora se declara “para toda la PaaS”, no basta con que el código exista.
+
+Debe quedar institucionalizada en:
+
+- reglas centrales
+- documentación de arquitectura
+- prompt maestro / continuidad
+- checklist de cierre
+- roadmap si cambia prioridad o definición de cierre
+
+Si no quedó integrada ahí, sigue siendo una mejora local, no un estándar real del proyecto.
+
 ## Checklist corto antes de cerrar cualquier iteración
 
 El checklist corto oficial ya vive en:

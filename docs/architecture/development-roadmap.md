@@ -42,9 +42,15 @@ Objetivo:
 Resultado actual:
 
 - existe una fuente canonica en [Gobernanza de implementacion](./implementation-governance.md)
+- existe una [Matriz de ownership de datos](./data-ownership-matrix.md) como resumen operativo por dominio
+- existe una [Plantilla oficial de spec por slice](./slice-spec-template.md) para abrir cambios relevantes sin improvisar alcance ni evidencia
 - la estructura por slice ya queda amarrada a backend, frontend, docs y E2E
 - onboarding, indices y runbooks ya apuntan a ese marco comun
 - `empresa-bootstrap` queda institucionalizado como tenant baseline para E2E browser tenant
+
+Condicion de mantenimiento de este cierre:
+
+- todo frente nuevo o endurecido debe seguir gobernanza de datos + `SRED` de forma transversal, no solo en módulos funcionales
 
 ## Prioridad de producto antes de nuevos modulos
 

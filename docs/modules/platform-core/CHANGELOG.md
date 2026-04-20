@@ -2,6 +2,23 @@
 
 ## 2026-04-20
 
+- se institucionaliza la gobernanza de datos + `SRED` como estándar transversal de toda la PaaS:
+  - se agrega [data-ownership-matrix.md](/home/felipe/platform_paas/docs/architecture/data-ownership-matrix.md) para dejar ownership explícito, escritura permitida, consumo permitido, defaults/seeds y política de baja por dominio
+  - se agrega [slice-spec-template.md](/home/felipe/platform_paas/docs/architecture/slice-spec-template.md) como spec mínima oficial por slice relevante
+  - la obligación queda integrada en:
+    - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+    - [data-governance.md](/home/felipe/platform_paas/docs/architecture/data-governance.md)
+    - [sred-development.md](/home/felipe/platform_paas/docs/architecture/sred-development.md)
+    - [module-build-standard.md](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+    - [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)
+    - [PROJECT_CONTEXT.md](/home/felipe/platform_paas/PROJECT_CONTEXT.md)
+    - [PROMPT_MAESTRO_MODULO.md](/home/felipe/platform_paas/PROMPT_MAESTRO_MODULO.md)
+    - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
+    - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
+- resultado:
+  - ownership y cierre de cambios transversales dejan de depender solo de memoria narrativa
+  - cualquier slice relevante ya puede ejecutarse bajo el criterio formal `ownership + spec + evidence + docs`
+
 - se revalida el incidente tenant reportado desde `Platform Admin -> Tenants` y `tenant-portal/login`:
   - la alarma inicial sobre `ieris-ltda` no correspondía a un tenant roto en runtime
   - el falso negativo vino de ejecutar scripts del repo contra `.env` runtime sin `set -a`, dejando `TENANT_SECRETS_FILE` sin exportar y apuntando implícitamente al archivo local del repo

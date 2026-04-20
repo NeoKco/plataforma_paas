@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: revalidación y saneamiento multi-tenant real por ambiente para dejar todos los tenants activos operativos, y cierre documental de la falsa alarma sobre `ieris-ltda`
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; además `staging` y `production` vuelven a quedar auditados en verde para todos los tenants activos
+- foco de iteración: institucionalización transversal de gobernanza de datos + `SRED` para toda la PaaS, dejando ownership explícito por dominio y spec mínima obligatoria para slices relevantes
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; además `staging` y `production` vuelven a quedar auditados en verde para todos los tenants activos y la PaaS ya tiene base formal de gobernanza/ownership/spec aplicable a todos los dominios
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -31,6 +31,26 @@
   - debe converger tenants activos afectados
   - debe validarse con pruebas proporcionales
   - debe documentarse en la memoria viva del repo
+- desde este corte, la gobernanza de datos y `SRED` dejan de ser criterio implícito y pasan a ser estándar formal de toda la PaaS:
+  - ownership explícito por dominio en [data-ownership-matrix.md](/home/felipe/platform_paas/docs/architecture/data-ownership-matrix.md)
+  - spec mínima oficial por slice relevante en [slice-spec-template.md](/home/felipe/platform_paas/docs/architecture/slice-spec-template.md)
+  - obligación integrada en:
+    - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
+    - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
+    - [PROJECT_CONTEXT.md](/home/felipe/platform_paas/PROJECT_CONTEXT.md)
+    - [PROMPT_MAESTRO_MODULO.md](/home/felipe/platform_paas/PROMPT_MAESTRO_MODULO.md)
+    - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+    - [data-governance.md](/home/felipe/platform_paas/docs/architecture/data-governance.md)
+    - [sred-development.md](/home/felipe/platform_paas/docs/architecture/sred-development.md)
+    - [module-build-standard.md](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+    - [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)
+- cobertura explícita de este estándar:
+  - `platform-core`
+  - `business-core`
+  - `maintenance`
+  - `finance`
+  - `agenda`
+  - defaults, seeds, imports, exports, portabilidad, convergencia multi-tenant y promoción por ambiente
 - `empresa-demo` funcionó antes que `ieris-ltda` porque ya había sido reparado/backfilleado; `ieris-ltda` seguía con drift técnico en su BD tenant
 - la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
 - `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
@@ -113,6 +133,9 @@
   - la página reutiliza hoy la agenda/calendario de `Mantenciones` como primera fuente operativa
   - `MaintenanceModuleNav` ya no incluye el botón `Agenda`
   - el módulo queda preparado para sumar eventos de otros dominios en siguientes cortes
+- el proyecto ya no depende solo de memoria narrativa para ordenar slices transversales:
+  - cualquier cambio relevante debe poder mapearse en la matriz de ownership
+  - y debe poder describirse con la spec mínima oficial antes de ejecutar
 
 ## Qué ya quedó hecho
 

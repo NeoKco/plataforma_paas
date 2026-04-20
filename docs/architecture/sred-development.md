@@ -40,6 +40,8 @@ Fuentes canónicas:
 - [SIGUIENTE_PASO.md](../../SIGUIENTE_PASO.md)
 - roadmap y changelog del módulo
 - [Gobernanza de datos](./data-governance.md)
+- [Matriz de ownership de datos](./data-ownership-matrix.md)
+- [Plantilla oficial de spec por slice](./slice-spec-template.md)
 
 ## R. Rules and Review
 
@@ -109,6 +111,27 @@ Pero es especialmente obligatorio cuando el cambio:
 - cambia UX visible
 - toca seeds, migraciones o portabilidad
 - toca deploy, staging o production
+
+No hay excepción por tratarse de:
+
+- hardening técnico
+- cambios de infraestructura con impacto en runtime
+- convergencia multi-tenant
+- reparación de datos
+- polish visible de un módulo ya existente
+
+Si el cambio altera comportamiento real o continuidad operativa, entra en `SRED`.
+
+## Artefactos mínimos para ejecutar SRED
+
+Para slices relevantes, `SRED` debe dejar como mínimo:
+
+- ownership explícito en la matriz de datos
+- spec mínima por slice
+- evidencia proporcional al riesgo
+- actualización de memoria viva y documentos canónicos
+
+Sin esos cuatro artefactos, `SRED` queda invocado solo en teoría.
 
 ## Preguntas de control rápidas
 

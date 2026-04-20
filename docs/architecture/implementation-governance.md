@@ -17,7 +17,9 @@ Debe leerse junto con:
 - [CHECKLIST_CIERRE_ITERACION.md](../../CHECKLIST_CIERRE_ITERACION.md)
 - [PLANTILLA_ACTUALIZACION_ESTADO.md](../../PLANTILLA_ACTUALIZACION_ESTADO.md)
 - [Gobernanza de datos](./data-governance.md)
+- [Matriz de ownership de datos](./data-ownership-matrix.md)
 - [SRED Driven Development](./sred-development.md)
+- [Plantilla oficial de spec por slice](./slice-spec-template.md)
 - [Estandar de construccion de modulos](./module-build-standard.md)
 - [Convencion modular por slice](./module-slice-convention.md)
 - [Estructura raiz del proyecto](./project-structure.md)
@@ -69,6 +71,26 @@ Por eso el estándar de cierre exige:
 - auditoría activa por tenant
 - documentación explícita del estado resultante
 
+## Aplicacion transversal a toda la PaaS
+
+La gobernanza de implementacion y `SRED` aplican a toda la PaaS, no solo a modulos nuevos.
+
+Eso incluye:
+
+- `platform-core`
+- `business-core`
+- `maintenance`
+- `finance`
+- `agenda`
+- seeds, defaults e imports
+- portabilidad y recovery
+- deploy, staging y production
+- E2E y validaciones operativas
+
+Regla derivada:
+
+- ningun frente puede declararse fuera de gobernanza o `SRED` por ser tecnico, transversal o de infraestructura
+
 ## Regla de Revalidación sobre slices cerrados
 
 Cuando un usuario reporta un problema sobre un cambio ya declarado correcto:
@@ -104,6 +126,11 @@ Antes de escribir codigo, debe quedar claro:
 - si afecta contratos API o migraciones
 - si cambia UX operativa visible
 - que pruebas y documentos se deberan actualizar
+
+Además, cualquier slice relevante debe poder describirse con dos piezas mínimas:
+
+- ownership explícito en la [Matriz de ownership de datos](./data-ownership-matrix.md)
+- spec mínima siguiendo la [Plantilla oficial de spec por slice](./slice-spec-template.md)
 
 Si el cambio no calza limpio en un modulo existente, primero hay que aclarar la frontera del dominio en `docs/architecture/` o `docs/modules/<modulo>/`.
 
@@ -191,6 +218,7 @@ Toda revision de cambio deberia recorrer este checklist.
 - `build` frontend limpio cuando el cambio toca UI
 - smoke o `--list` E2E actualizado cuando el flujo visible cambia
 - documentacion y `CHANGELOG` actualizados
+- spec y ownership actualizados si el cambio movio datos, contratos o alcance real
 
 ## Minimo obligatorio segun tipo de cambio
 
@@ -257,6 +285,14 @@ Todo modulo nuevo o endurecido debe respetar esta expectativa minima.
 ## Handoff para otra IA
 
 Todo cierre relevante debe dejar a otra IA con capacidad real de continuar sin releer todo el repositorio.
+
+Como mínimo, otra IA debe poder reconstruir:
+
+- qué slice se abrió
+- qué spec mínima se siguió
+- qué ownership de datos se respetó
+- qué evidencia realmente se ejecutó
+- en qué ambientes y tenants quedó convergido
 
 Minimo esperado:
 

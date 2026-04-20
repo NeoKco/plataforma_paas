@@ -113,6 +113,17 @@ La prioridad actual es:
 3. abrir nuevos frentes funcionales solo con estado, roadmap y handoff explícitos
 4. dejar backlog explícito para lo residual en vez de mezclarlo con el frente activo
 
+Además, ya no basta con tener reglas sueltas de continuidad.
+
+El proyecto ya asume como estándar transversal:
+
+- gobernanza de datos para toda la PaaS
+- `SRED` como criterio de cierre
+- ownership explícito por dominio
+- spec mínima por slice relevante
+
+Eso aplica tanto a módulos de negocio como a frentes técnicos, deploy, convergencia y operación multi-tenant.
+
 ## Estrategia vigente de continuidad entre IAs
 
 La continuidad entre sesiones debe apoyarse en dos capas:
@@ -203,7 +214,9 @@ y cuando aplique:
 
 - `docs/architecture/implementation-governance.md`
 - `docs/architecture/data-governance.md`
+- `docs/architecture/data-ownership-matrix.md`
 - `docs/architecture/sred-development.md`
+- `docs/architecture/slice-spec-template.md`
 - `docs/architecture/module-build-standard.md`
 - `docs/modules/index.md`
 

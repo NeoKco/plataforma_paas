@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; `Agenda` ya quedó promovida como módulo lateral propio del portal tenant y el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, con los cuatro tenants activos auditando en verde en ambos ambientes
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; `Agenda` ya quedó promovida como módulo lateral propio del portal tenant, el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, con los cuatro tenants activos auditando en verde en ambos ambientes, y desde ahora la PaaS completa queda gobernada por ownership explícito + spec mínima + cierre `SRED`
 - mantener como regla de diagnóstico tenant:
   - si se van a ejecutar scripts del repo contra `/opt/platform_paas/.env` o `/opt/platform_paas_staging/.env.staging`, usar `set -a` antes de `source`
   - no volver a aceptar auditorías tenant con `TENANT_SECRETS_FILE` no exportado, porque pueden producir falsos negativos como el que se observó inicialmente sobre `ieris-ltda`
@@ -14,6 +14,10 @@
   - entrada propia en la barra lateral
   - fuente actual: calendario operativo de `maintenance`
   - siguiente evolución natural: agregar fuentes de otros módulos cuando existan contratos reales
+- gobernanza transversal ya institucionalizada:
+  - usar [data-ownership-matrix.md](/home/felipe/platform_paas/docs/architecture/data-ownership-matrix.md) para cualquier cambio que toque datos, ownership o integraciones entre módulos
+  - usar [slice-spec-template.md](/home/felipe/platform_paas/docs/architecture/slice-spec-template.md) para cualquier slice relevante, transversal o de riesgo operativo real
+  - no volver a cerrar cambios grandes solo con criterio implícito; ahora el estándar oficial es `ownership + spec + evidence + docs`
 
 ## Próximo paso correcto
 
@@ -37,6 +41,7 @@
       - tenant convergido
     - mejorar la visibilidad operativa del estado tenant en la consola admin sin depender de errores genéricos `Internal server error`
     - dejar explícito qué módulos aportan eventos a la nueva `Agenda` general y cómo se habilitan tenant-side sin volver a duplicar navegación por módulo
+    - ejecutar ese frente ya usando la nueva spec mínima oficial y dejando ownership explícito del dato técnico que se toca
 - mantener como regla ya cerrada del lifecycle tenant:
   - no borrar tenant archivado/unprovisioned sin export portable completado del mismo tenant
   - no tratar `functional_data_only` como restauración `1:1`
@@ -65,6 +70,9 @@
 
 - `staging` y `production` mantienen auditoría activa sin fallos críticos en tenants activos después del nuevo cambio
 - el nuevo slice queda probado al menos en ambos ambientes reales afectados
+- si el slice es relevante o transversal:
+  - la matriz de ownership quedó actualizada o validada
+  - la spec mínima del slice quedó creada o referenciada
 - el siguiente corte de hardening deja explícito:
   - cómo se detecta drift tenant-local
   - cómo se repara por ambiente

@@ -14,7 +14,9 @@ Debe leerse junto con:
 
 - [Gobernanza de implementacion](./implementation-governance.md)
 - [Gobernanza de datos](./data-governance.md)
+- [Matriz de ownership de datos](./data-ownership-matrix.md)
 - [SRED Driven Development](./sred-development.md)
+- [Plantilla oficial de spec por slice](./slice-spec-template.md)
 - [Convencion modular por slice](./module-slice-convention.md)
 - [Estandar de botones CRUD](./crud-button-standard.md)
 - [UX operativa de platform admin](./platform-admin-operational-ux.md)
@@ -44,6 +46,8 @@ Antes de escribir codigo, el modulo debe tener al menos:
 - reglas de negocio visibles
 - dependencias con otros cores o modulos
 - documentos canonicos en `docs/modules/<modulo>/`
+- ownership explícito del dato principal
+- spec mínima del primer slice relevante
 
 El set documental minimo es:
 
@@ -53,6 +57,11 @@ El set documental minimo es:
 - `ROADMAP.md`
 - `CHANGELOG.md`
 - `API_REFERENCE.md` cuando aplique
+
+Además, el punto de partida transversal obligatorio para cualquier módulo o slice relevante es:
+
+- [Matriz de ownership de datos](./data-ownership-matrix.md)
+- [Plantilla oficial de spec por slice](./slice-spec-template.md)
 
 ## Estructura Esperada
 

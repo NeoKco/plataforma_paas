@@ -15,6 +15,7 @@ Su objetivo es dejar explícito:
 Debe leerse junto con:
 
 - [Gobernanza de implementacion](./implementation-governance.md)
+- [Matriz de ownership de datos](./data-ownership-matrix.md)
 - [Mapa de dominios del PaaS](./domain-map.md)
 - [Modelo multi-tenant](./multi-tenant-model.md)
 - [Estandar de construccion de modulos](./module-build-standard.md)
@@ -26,6 +27,23 @@ La regla central es esta:
 - cada dato crítico debe tener un dominio dueño
 - cada integración entre módulos debe respetar esa propiedad
 - ningún módulo debe duplicar una verdad compartida solo por conveniencia de UI
+
+## Cobertura obligatoria
+
+Esta gobernanza no aplica solo a módulos de negocio.
+
+Debe aplicarse a toda la PaaS:
+
+- `platform-core`
+- `business-core`
+- `maintenance`
+- `finance`
+- `agenda`
+- defaults, seeds, imports y exports
+- convergencia multi-tenant
+- staging, production y recovery operativo
+
+Si un cambio toca datos y queda fuera de esta gobernanza, el cambio no está bien cerrado.
 
 ## Clasificación base de datos
 
@@ -91,6 +109,10 @@ Ejemplos:
 ## Regla de ownership por dominio
 
 Cada dominio es dueño de su verdad principal.
+
+La vista operativa resumida del ownership vive en:
+
+- [Matriz de ownership de datos](./data-ownership-matrix.md)
 
 ### `platform-core`
 
@@ -255,6 +277,19 @@ Cuando un cambio toca datos críticos, debe dejar evidencia proporcional:
 - smoke visible si cambia flujo UI
 - runbook si cambia recuperación, seed, sync o portabilidad
 - changelog y roadmap del dominio
+
+## Regla de diseño mínimo antes de tocar datos
+
+Todo cambio relevante sobre datos debe poder responder, antes de implementación:
+
+- qué dominio es dueño del dato
+- qué dominio escribe
+- qué dominio consume
+- qué defaults o seeds pueden alterarlo
+- qué política de baja o archivo aplica
+- cómo se valida convergencia por tenant
+
+Si no puede responderse eso, la gobernanza todavía no quedó suficientemente definida.
 
 ## Preguntas de control
 

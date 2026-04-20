@@ -29,6 +29,7 @@ No cerrar una iteración hasta responder `sí` a todo esto:
 - ¿el cambio quedó promovido en todos los ambientes afectados o quedó explícito qué ambiente falta?
 - ¿los tenants afectados quedaron convergidos o quedó explícito cuál sigue con drift y por qué?
 - si el trabajo nació como reporte sobre un slice ya cerrado, ¿primero se trató como revalidación y no como reapertura automática?
+- si el cambio fue relevante o transversal, ¿quedó ownership explícito y spec mínima del slice?
 
 ## Actualización mínima del root
 
@@ -84,6 +85,8 @@ Usar como formato guía:
 - revisar `REGLAS_IMPLEMENTACION.md`
 - revisar `PROMPT_MAESTRO_MODULO.md`
 - revisar `docs/architecture/implementation-governance.md`
+- revisar `docs/architecture/data-ownership-matrix.md`
+- revisar `docs/architecture/slice-spec-template.md`
 
 ### Si hubo cambio de datos, defaults o integración entre módulos
 
@@ -100,6 +103,11 @@ Antes de cerrar, confirmar:
 - `R`: las reglas y la revisión aplicable quedaron cubiertas
 - `E`: la evidencia ejecutada es proporcional al riesgo
 - `D`: la documentación viva quedó al día
+
+Para cambios relevantes, además:
+
+- ¿la spec mínima del slice quedó explícita?
+- ¿el ownership del dato afectado quedó claro?
 
 ## Cierre esperado
 

@@ -1,5 +1,49 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Institucionalización transversal de gobernanza de datos + SRED para toda la PaaS
+
+- objetivo:
+  - dejar explícito y operativo que `Gobernanza de datos` y `SRED` aplican a toda la PaaS, no solo a módulos nuevos o a slices puntuales
+  - convertir ownership de datos y spec mínima por slice en parte obligatoria del estándar de implementación
+  - facilitar que cualquier otra IA o sesión futura continúe trabajo transversal sin ambigüedad sobre ownership, scope ni criterios de cierre
+- cambios y acciones ejecutadas:
+  - se agrega [data-ownership-matrix.md](/home/felipe/platform_paas/docs/architecture/data-ownership-matrix.md) como matriz operativa por dominio:
+    - dueño del dato
+    - escritura permitida
+    - consumo permitido
+    - defaults/seeds relevantes
+    - política de baja
+  - se agrega [slice-spec-template.md](/home/felipe/platform_paas/docs/architecture/slice-spec-template.md) como plantilla oficial mínima de spec por slice relevante
+  - se actualiza el marco transversal en:
+    - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+    - [data-governance.md](/home/felipe/platform_paas/docs/architecture/data-governance.md)
+    - [sred-development.md](/home/felipe/platform_paas/docs/architecture/sred-development.md)
+    - [module-build-standard.md](/home/felipe/platform_paas/docs/architecture/module-build-standard.md)
+    - [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)
+    - [index.md](/home/felipe/platform_paas/docs/architecture/index.md)
+  - se integran estas reglas en la capa operativa viva del proyecto:
+    - [PROJECT_CONTEXT.md](/home/felipe/platform_paas/PROJECT_CONTEXT.md)
+    - [PROMPT_MAESTRO_MODULO.md](/home/felipe/platform_paas/PROMPT_MAESTRO_MODULO.md)
+    - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
+    - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
+- validaciones:
+  - revisión de consistencia de enlaces y referencias cruzadas entre arquitectura, contexto y reglas operativas
+  - validación posterior de memoria viva y `HANDOFF_STATE.json`
+- resultado:
+  - la PaaS deja de depender solo de memoria narrativa y pasa a tener:
+    - ownership explícito por dominio
+    - spec mínima oficial por slice relevante
+    - criterio `SRED` aplicado como estándar transversal
+  - esto queda aplicable a:
+    - `platform-core`
+    - `business-core`
+    - `maintenance`
+    - `finance`
+    - `agenda`
+    - defaults, seeds, imports, exports, portabilidad, convergencia multi-tenant y promoción por ambiente
+- siguiente paso:
+  - ejecutar el próximo frente del roadmap (`hardening` transversal de convergencia post-deploy y observabilidad tenant) ya bajo este estándar formal
+
 ## 2026-04-20 - Revalidación tenant real por ambiente y cierre del falso negativo sobre ieris-ltda
 
 - objetivo:

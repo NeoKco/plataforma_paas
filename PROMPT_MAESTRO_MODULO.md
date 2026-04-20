@@ -28,7 +28,9 @@ Además, debes usar como fuente secundaria obligatoria la documentación canóni
 
 - `docs/architecture/implementation-governance.md`
 - `docs/architecture/data-governance.md`
+- `docs/architecture/data-ownership-matrix.md`
 - `docs/architecture/sred-development.md`
+- `docs/architecture/slice-spec-template.md`
 - `docs/architecture/module-build-standard.md`
 - `docs/architecture/module-slice-convention.md`
 - `docs/architecture/project-structure.md`
@@ -45,6 +47,7 @@ Además, debes usar como fuente secundaria obligatoria la documentación canóni
 - `ESTADO_ACTUAL.md`, `SIGUIENTE_PASO.md` y `HANDOFF_STATE.json` mandan para el foco vigente
 - `docs/architecture/*` manda para estándares y decisiones transversales
 - `docs/architecture/data-governance.md` manda para ownership, defaults, seeds, portabilidad y contratos de datos
+- `docs/architecture/data-ownership-matrix.md` manda para identificar dueño, escritores y consumidores del dato cuando el cambio toca varios dominios
 - `docs/modules/<modulo>/*` manda para fronteras, roadmap y UX del módulo
 
 ## Restricciones
@@ -64,6 +67,7 @@ Además, debes usar como fuente secundaria obligatoria la documentación canóni
 - usa `CHECKLIST_CIERRE_ITERACION.md` como control corto obligatorio antes de cerrar
 - usa `PLANTILLA_ACTUALIZACION_ESTADO.md` como formato obligatorio para actualizar estado
 - si el cambio toca datos, seeds, imports, defaults o integración entre módulos, debes revisar también `docs/architecture/data-governance.md`
+- si el cambio es relevante, transversal o toca datos/contratos, debes usar también `docs/architecture/slice-spec-template.md` como paquete mínimo de diseño antes de ejecutar
 - para cierres relevantes, usa el criterio `SRED` definido en `docs/architecture/sred-development.md`
 - si la iteración afecta salida a producción, también debes revisar y actualizar `PAQUETE_RELEASE_OPERADOR.md` si corresponde
 
