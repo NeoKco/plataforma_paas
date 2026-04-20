@@ -53,6 +53,12 @@ class MaintenanceFinanceSyncRequest(BaseModel):
     notes: str | None = None
 
 
+class MaintenanceCloseWithCostsRequest(BaseModel):
+    actual_cost: MaintenanceCostActualWriteRequest
+    completion_note: str | None = None
+    finance_sync: MaintenanceFinanceSyncRequest | None = None
+
+
 class MaintenanceFinanceSyncDefaultsData(BaseModel):
     maintenance_finance_sync_mode: str
     maintenance_finance_auto_sync_income: bool

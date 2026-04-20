@@ -16,6 +16,7 @@ from app.apps.tenant_modules.maintenance.schemas.cost_template import (
 from app.apps.tenant_modules.maintenance.schemas.costing import (
     MaintenanceCostActualItemResponse,
     MaintenanceCostActualWriteRequest,
+    MaintenanceCloseWithCostsRequest,
     MaintenanceCostEstimateItemResponse,
     MaintenanceCostEstimateWriteRequest,
     MaintenanceFinanceTransactionSnapshotResponse,
@@ -109,6 +110,7 @@ __all__ = [
     "MaintenanceCostTemplatesResponse",
     "MaintenanceCostActualItemResponse",
     "MaintenanceCostActualWriteRequest",
+    "MaintenanceCloseWithCostsRequest",
     "MaintenanceCostEstimateItemResponse",
     "MaintenanceCostEstimateWriteRequest",
     "MaintenanceFinanceTransactionSnapshotResponse",

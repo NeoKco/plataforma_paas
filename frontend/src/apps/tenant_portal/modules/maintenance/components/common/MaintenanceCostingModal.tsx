@@ -22,6 +22,7 @@ import {
   type TenantFinanceCurrency,
 } from "../../../finance/services/currenciesService";
 import {
+  closeTenantMaintenanceWorkOrderWithCosts,
   getTenantMaintenanceFinanceSyncDefaults,
   getTenantMaintenanceWorkOrderCosting,
   syncTenantMaintenanceWorkOrderToFinance,
@@ -38,7 +39,6 @@ import {
   getTenantMaintenanceCostTemplates,
   type TenantMaintenanceCostTemplate,
 } from "../../services/costTemplatesService";
-import { updateTenantMaintenanceWorkOrderStatus } from "../../services/workOrdersService";
 import { useTenantAuth } from "../../../../../../store/tenant-auth-context";
 
 type MaintenanceCostEstimateFormState = {
@@ -1416,17 +1416,27 @@ export function MaintenanceCostingModal({
           }
         : null;
 
-      const costingResponse = await updateTenantMaintenanceWorkOrderCostActual(accessToken, currentWorkOrder.id, {
-        labor_cost: normalizeNumericInput(actualForm.labor_cost),
-        travel_cost: normalizeNumericInput(actualForm.travel_cost),
-        materials_cost: normalizeNumericInput(actualForm.materials_cost),
-        external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
-        overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
-        actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
-        applied_template_id: appliedActualTemplateId ? Number(appliedActualTemplateId) : null,
-        notes: normalizeNullable(actualForm.notes),
-        lines: normalizeLineWritePayload(actualLines),
-      });
+      const costingResponse = await closeTenantMaintenanceWorkOrderWithCosts(
+        accessToken,
+        currentWorkOrder.id,
+        {
+          actual_cost: {
+            labor_cost: normalizeNumericInput(actualForm.labor_cost),
+            travel_cost: normalizeNumericInput(actualForm.travel_cost),
+            materials_cost: normalizeNumericInput(actualForm.materials_cost),
+            external_services_cost: normalizeNumericInput(actualForm.external_services_cost),
+            overhead_cost: normalizeNumericInput(actualForm.overhead_cost),
+            actual_price_charged: normalizeNumericInput(actualForm.actual_price_charged),
+            applied_template_id: appliedActualTemplateId
+              ? Number(appliedActualTemplateId)
+              : null,
+            notes: normalizeNullable(actualForm.notes),
+            lines: normalizeLineWritePayload(actualLines),
+          },
+          completion_note: normalizeNullable(completionNote),
+          finance_sync: selectedFinanceSyncPayload,
+        }
+      );
       setCostingDetail(costingResponse.data);
       setActualForm(buildDefaultCostActualForm(costingResponse.data.actual));
       setActualLines(buildDefaultCostLines(costingResponse.data.actual_lines));
@@ -1458,20 +1468,12 @@ export function MaintenanceCostingModal({
         );
       }
 
-      const statusResponse = await updateTenantMaintenanceWorkOrderStatus(
-        accessToken,
-        currentWorkOrder.id,
-        "completed",
-        normalizeNullable(completionNote),
-        selectedFinanceSyncPayload
-      );
-
       onFeedback?.(
         language === "es"
           ? "Costo real guardado, mantención cerrada y sincronización financiera aplicada desde el cierre"
           : "Actual cost saved, maintenance closed, and finance sync applied from the close action"
       );
-      await onCompleted?.(statusResponse.data.id);
+      await onCompleted?.(currentWorkOrder.id);
       onClose();
     } catch (rawError) {
       setError(rawError as ApiError);

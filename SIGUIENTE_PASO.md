@@ -2,14 +2,19 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino real de `maintenance -> finance`; el slice de `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda`, el incidente `finance -> adjuntos por transacción`, la corrección de cabecera `Resultado neto` + `Saldo total en cuentas` y la salud visible del vínculo financiero en `Historial técnico` ya quedaron cerrados de punta a punta y no requieren más trabajo salvo nueva regresión reproducible
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y seguir con el siguiente ajuste fino real de `maintenance -> finance`; el slice atómico `close-with-costs`, `Mantenciones abiertas -> Tipo de tarea` en `ieris-ltda`, el incidente `finance -> adjuntos por transacción`, la corrección de cabecera `Resultado neto` + `Saldo total en cuentas` y la salud visible del vínculo financiero en `Historial técnico` ya quedaron cerrados en `production` y no requieren más trabajo salvo nueva regresión reproducible
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
 
 ## Decisión previa obligatoria
 
-- ninguna; la arquitectura de convergencia ya quedó definida y validada en `staging` y `production`
+- rerun de convergencia en `staging` antes de abrir otro corte que dependa de ese ambiente:
+  - reparar credencial DB tenant de `condominio-demo`
+  - rerun:
+    - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
+    - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
+    - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
 
 ## Próximo paso correcto
 
@@ -23,10 +28,10 @@
   - auditoría `production`
   - documentación viva cerrada
 - siguiente subcorte funcional recomendado:
-  - evaluar si conviene un endpoint atómico `close-with-costs` para evitar cualquier drift futuro entre `cost-actual`, `status` y `finance_sync`
   - endurecer todavía más la UX del cierre financiero de mantenciones:
     - que el operador vea de forma inequívoca qué líneas entran al egreso
     - que se refleje mejor el impacto por cuenta/categoría antes de cerrar
+    - que se vea el resultado neto esperado antes de confirmar el cierre
   - revisar si conviene mostrar badges de completitud operativa en `Historial técnico` cuando una mantención antigua aún no tiene `visitas`, `logs` o datos de cierre homogéneos
 - mantener como regla ya cerrada del lifecycle tenant:
   - no borrar tenant archivado/unprovisioned sin export portable completado del mismo tenant

@@ -219,6 +219,7 @@ class FinanceService:
         summary: str = "Transaccion financiera creada",
         audit_payload: dict | None = None,
         allow_accountless: bool = False,
+        commit: bool = True,
         max_entries: int | None = None,
         max_monthly_entries: int | None = None,
         max_monthly_entries_by_type: dict[str, int] | None = None,
@@ -242,9 +243,10 @@ class FinanceService:
             audit_payload=audit_payload,
             allow_accountless=allow_accountless,
         )
-        tenant_db.commit()
-        tenant_db.refresh(transaction)
-        self._attach_tag_ids(tenant_db, [transaction])
+        if commit:
+            tenant_db.commit()
+            tenant_db.refresh(transaction)
+            self._attach_tag_ids(tenant_db, [transaction])
         return transaction
 
     def stage_system_transaction(
@@ -321,6 +323,7 @@ class FinanceService:
         *,
         actor_user_id: int | None = None,
         allow_accountless: bool = False,
+        commit: bool = True,
     ) -> FinanceTransaction:
         transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
         self._raise_if_missing_or_voided(transaction)
@@ -340,24 +343,46 @@ class FinanceService:
             normalized_tag_ids,
         )
         transaction.updated_by_user_id = actor_user_id
-        saved = self.transaction_repository.persist(tenant_db, transaction)
-        self.transaction_audit_repository.save_event(
-            tenant_db,
-            transaction_id=saved.id,
-            event_type="transaction.updated",
-            actor_user_id=actor_user_id,
-            summary="Transaccion financiera actualizada",
-            payload={
-                "transaction_type": transaction_values["transaction_type"],
-                "account_id": transaction_values["account_id"],
-                "target_account_id": transaction_values["target_account_id"],
-                "currency_id": transaction_values["currency_id"],
-                "amount": transaction_values["amount"],
-                "tag_ids": normalized_tag_ids,
-            },
+        if commit:
+            saved = self.transaction_repository.persist(tenant_db, transaction)
+            self.transaction_audit_repository.save_event(
+                tenant_db,
+                transaction_id=saved.id,
+                event_type="transaction.updated",
+                actor_user_id=actor_user_id,
+                summary="Transaccion financiera actualizada",
+                payload={
+                    "transaction_type": transaction_values["transaction_type"],
+                    "account_id": transaction_values["account_id"],
+                    "target_account_id": transaction_values["target_account_id"],
+                    "currency_id": transaction_values["currency_id"],
+                    "amount": transaction_values["amount"],
+                    "tag_ids": normalized_tag_ids,
+                },
+            )
+            setattr(saved, "tag_ids", normalized_tag_ids)
+            return saved
+
+        tenant_db.add(transaction)
+        tenant_db.flush()
+        tenant_db.add(
+            self.transaction_audit_repository.build_event(
+                transaction_id=transaction.id,
+                event_type="transaction.updated",
+                actor_user_id=actor_user_id,
+                summary="Transaccion financiera actualizada",
+                payload={
+                    "transaction_type": transaction_values["transaction_type"],
+                    "account_id": transaction_values["account_id"],
+                    "target_account_id": transaction_values["target_account_id"],
+                    "currency_id": transaction_values["currency_id"],
+                    "amount": transaction_values["amount"],
+                    "tag_ids": normalized_tag_ids,
+                },
+            )
         )
-        setattr(saved, "tag_ids", normalized_tag_ids)
-        return saved
+        setattr(transaction, "tag_ids", normalized_tag_ids)
+        return transaction
 
     def list_entries(self, tenant_db: Session) -> list[FinanceTransaction]:
         entries = self.transaction_repository.list_all(tenant_db)

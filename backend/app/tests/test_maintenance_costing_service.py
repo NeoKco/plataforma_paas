@@ -21,12 +21,14 @@ from app.apps.tenant_modules.maintenance.models import (  # noqa: E402
     MaintenanceCostEstimate,
     MaintenanceCostLine,
     MaintenanceCostTemplate,
+    MaintenanceDueItem,
     MaintenanceSchedule,
     MaintenanceScheduleCostLine,
     MaintenanceWorkOrder,
 )
 from app.apps.tenant_modules.maintenance.schemas import (  # noqa: E402
     MaintenanceCostActualWriteRequest,
+    MaintenanceCloseWithCostsRequest,
     MaintenanceCostEstimateWriteRequest,
     MaintenanceFinanceSyncRequest,
 )
@@ -91,6 +93,9 @@ class _FakeTenantDb:
         return None
 
     def refresh(self, _item):
+        return None
+
+    def rollback(self):
         return None
 
 
@@ -317,6 +322,63 @@ class MaintenanceCostingServiceTestCase(unittest.TestCase):
         actual = detail["actual"]
         self.assertEqual(actual.applied_cost_template_id, 4)
         self.assertEqual(actual.applied_cost_template_name_snapshot, "Plantilla cierre estándar")
+
+    def test_close_with_costs_is_atomic_for_work_order_due_item_and_schedule(self) -> None:
+        completed_at_before = datetime(2026, 4, 18, 10, 0, tzinfo=timezone.utc)
+        work_order = SimpleNamespace(
+            id=77,
+            title="Mantención SST",
+            maintenance_status="scheduled",
+            completed_at=None,
+            cancelled_at=None,
+            due_item_id=9,
+            schedule_id=12,
+        )
+        due_item = SimpleNamespace(id=9, due_status="scheduled", resolution_note=None)
+        schedule = SimpleNamespace(
+            id=12,
+            last_executed_at=completed_at_before,
+            next_due_at=completed_at_before,
+            frequency_value=12,
+            frequency_unit="months",
+        )
+        tenant_db = _FakeTenantDb(
+            {
+                MaintenanceWorkOrder: work_order,
+                MaintenanceDueItem: due_item,
+                MaintenanceSchedule: schedule,
+                MaintenanceCostLine: [],
+            }
+        )
+        service = MaintenanceCostingService(finance_service=Mock())
+        service.maybe_auto_sync_by_tenant_policy = Mock(return_value=None)
+
+        detail = service.close_with_costs(
+            tenant_db,
+            77,
+            MaintenanceCloseWithCostsRequest(
+                actual_cost=MaintenanceCostActualWriteRequest(
+                    labor_cost=15000,
+                    travel_cost=5000,
+                    materials_cost=1000,
+                    actual_price_charged=30000,
+                    notes="Cierre operativo",
+                ),
+                completion_note="Trabajo completado en terreno",
+                finance_sync=None,
+            ),
+            actor_user_id=5,
+        )
+
+        self.assertEqual(work_order.maintenance_status, "completed")
+        self.assertIsNotNone(work_order.completed_at)
+        self.assertEqual(due_item.due_status, "completed")
+        self.assertEqual(due_item.resolution_note, "Trabajo completado en terreno")
+        self.assertEqual(schedule.last_executed_at, work_order.completed_at)
+        self.assertGreater(schedule.next_due_at, work_order.completed_at)
+        self.assertEqual(detail["work_order"].id, 77)
+        self.assertIsNotNone(detail["actual"])
+        service.maybe_auto_sync_by_tenant_policy.assert_called_once()
 
     def test_sync_to_finance_creates_income_and_expense_transactions(self) -> None:
         work_order = SimpleNamespace(

@@ -1,5 +1,25 @@
 # Maintenance Changelog
 
+## 2026-04-19
+
+- `Cerrar con costos` ya usa un cierre atómico backend:
+  - guarda costo real
+  - marca la OT como `completed`
+  - actualiza `due_item` y `schedule`
+  - sincroniza ingreso/egreso en Finanzas dentro de la misma transacción
+- backend agrega:
+  - `MaintenanceCloseWithCostsRequest`
+  - `POST /tenant/maintenance/work-orders/{id}/close-with-costs`
+  - soporte `commit=False` en la capa financiera para reutilizar una única transacción SQL
+- frontend tenant:
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) deja de encadenar múltiples requests y usa una sola llamada atómica para `Cerrar con costos`
+- validación:
+  - `PYTHONPATH=/home/felipe/platform_paas/backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_maintenance_costing_service` -> `15 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+  - backend publicado en `staging` y `production`
+  - frontend publicado en `staging` y `production`
+  - `production` quedó convergido; `staging` requiere rerun de convergencia por drift tenant-local en `condominio-demo`
+
 ## 2026-04-17
 
 - `Historial técnico` ya deja visible la salud real del vínculo financiero por mantención:

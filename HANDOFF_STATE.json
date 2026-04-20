@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-17T15:35:00-04:00",
+  "updated_at": "2026-04-19T23:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "slice maintenance -> finance ya cerrado hasta salud visible del vínculo financiero en Historial técnico; el siguiente paso correcto del roadmap es evaluar un close-with-costs atómico y endurecer el preview de impacto financiero antes del cierre",
-  "project_phase": "staging y production siguen convergidos y auditados para tenants activos; maintenance -> finance permanece estable, Mantenciones abiertas ya quedó cerrada y validada en runtime, Finance adjuntos sigue sano y la cabecera financiera ya separa Resultado neto de Saldo total en cuentas",
+  "current_focus": "slice maintenance -> finance ya cerró close-with-costs en production; el siguiente paso correcto del roadmap es reparar otra vez la convergencia de staging y luego endurecer el preview de impacto financiero antes del cierre",
+  "project_phase": "production quedó promovido y convergido para close-with-costs; staging tiene backend/frontend actualizados para el slice, pero el último deploy volvió a exponer drift tenant-local en condominio-demo y requiere rerun de convergencia",
   "active_modules": [
     "platform-core",
     "finance",

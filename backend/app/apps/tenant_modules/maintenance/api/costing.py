@@ -9,6 +9,7 @@ from app.apps.tenant_modules.maintenance.dependencies import (
 from app.apps.tenant_modules.maintenance.schemas import (
     MaintenanceCostActualItemResponse,
     MaintenanceCostActualWriteRequest,
+    MaintenanceCloseWithCostsRequest,
     MaintenanceCostEstimateItemResponse,
     MaintenanceCostEstimateWriteRequest,
     MaintenanceFinanceTransactionSnapshotResponse,
@@ -216,6 +217,30 @@ def sync_maintenance_work_order_to_finance(
     return MaintenanceCostingMutationResponse(
         success=True,
         message="Sincronización con finance ejecutada correctamente",
+        requested_by=build_maintenance_requested_by(current_user),
+        data=_build_data(detail),
+    )
+
+
+@router.post("/{work_order_id}/close-with-costs", response_model=MaintenanceCostingMutationResponse)
+def close_maintenance_work_order_with_costs(
+    work_order_id: int,
+    payload: MaintenanceCloseWithCostsRequest,
+    current_user=Depends(require_maintenance_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> MaintenanceCostingMutationResponse:
+    try:
+        detail = costing_service.close_with_costs(
+            tenant_db,
+            work_order_id,
+            payload,
+            actor_user_id=current_user["user_id"],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return MaintenanceCostingMutationResponse(
+        success=True,
+        message="Mantención cerrada con costos y sincronización financiera aplicados",
         requested_by=build_maintenance_requested_by(current_user),
         data=_build_data(detail),
     )

@@ -1,5 +1,33 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-19 - Cierre del slice atómico maintenance -> finance con close-with-costs
+
+- objetivo:
+  - eliminar el drift residual entre guardar costo real, cerrar la OT y sincronizar Finanzas
+  - dejar un flujo único para `Cerrar con costos` dentro del módulo de `maintenance`
+- cambios principales:
+  - [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) ahora soporta `commit=False` en `create_transaction(...)` y `update_transaction(...)`
+  - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) agrega `close_with_costs(...)` y propaga `commit=False` / `trigger_auto_sync=False` en pasos intermedios
+  - [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/costing.py) agrega `MaintenanceCloseWithCostsRequest`
+  - [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py) expone `POST /tenant/maintenance/work-orders/{id}/close-with-costs`
+  - [costingService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/costingService.ts) agrega `closeTenantMaintenanceWorkOrderWithCosts(...)`
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) pasa a usar una sola llamada atómica al confirmar `Cerrar con costos`
+- validaciones:
+  - `PYTHONPATH=/home/felipe/platform_paas/backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_maintenance_costing_service` -> `15 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+  - backend `staging`: `deploy_backend_staging.sh` -> `527 tests OK` con warning de convergencia por `condominio-demo`
+  - backend `production`: `deploy_backend_production.sh` -> `527 tests OK`
+  - frontend publicado en:
+    - `/opt/platform_paas_staging/frontend/dist`
+    - `/opt/platform_paas/frontend/dist`
+- resultado:
+  - `Cerrar con costos` ya no depende de defaults ciegos ni de requests separados para guardar costo, cerrar OT y sincronizar Finanzas
+  - `production` queda sano y promovido para este slice
+  - `staging` queda con código/UI correctos, pero pendiente de rerun de convergencia tenant-local antes de dar el ambiente por cerrado otra vez
+- siguiente paso:
+  - reparar `condominio-demo` en `staging` y rerun de convergencia
+  - luego endurecer el preview financiero previo al cierre
+
 ## 2026-04-17 - Cierre del subcorte maintenance -> finance: salud visible del vínculo financiero y UX más clara de egreso
 
 - objetivo:

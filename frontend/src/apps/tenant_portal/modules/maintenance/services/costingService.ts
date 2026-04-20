@@ -135,6 +135,12 @@ export type TenantMaintenanceFinanceSyncRequest = {
   notes: string | null;
 };
 
+export type TenantMaintenanceCloseWithCostsRequest = {
+  actual_cost: TenantMaintenanceCostActualWriteRequest;
+  completion_note: string | null;
+  finance_sync: TenantMaintenanceFinanceSyncRequest | null;
+};
+
 export type TenantMaintenanceFinanceSyncDefaults = {
   maintenance_finance_sync_mode: string;
   maintenance_finance_auto_sync_income: boolean;
@@ -204,6 +210,21 @@ export function syncTenantMaintenanceWorkOrderToFinance(
 ) {
   return apiRequest<TenantMaintenanceCostingResponse>(
     `/tenant/maintenance/work-orders/${workOrderId}/finance-sync`,
+    {
+      method: "POST",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function closeTenantMaintenanceWorkOrderWithCosts(
+  accessToken: string,
+  workOrderId: number,
+  payload: TenantMaintenanceCloseWithCostsRequest
+) {
+  return apiRequest<TenantMaintenanceCostingResponse>(
+    `/tenant/maintenance/work-orders/${workOrderId}/close-with-costs`,
     {
       method: "POST",
       token: accessToken,

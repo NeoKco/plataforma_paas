@@ -2,9 +2,9 @@
 
 ## Última actualización
 
-- fecha: 2026-04-17
-- foco de iteración: cerrar correctamente el subcorte `maintenance -> finance` ya promovido, dejar explícita la salud del vínculo financiero en `Historial técnico`, confirmar en runtime el cierre de `Mantenciones abiertas -> Tipo de tarea` y alinear la memoria viva al siguiente slice real del roadmap
-- estado general: `production` y `staging` siguen alineados para `maintenance -> finance`, `finance` y `platform-core`; además, `maintenance` ya permite editar `tipo de tarea`, `grupo` y `responsable`, `finance` volvió a permitir carga de adjuntos por transacción tras corregir un drift runtime en backend, la cabecera financiera ya separa `Resultado neto` de `Saldo total en cuentas` y `Historial técnico` ya distingue si el vínculo con Finanzas quedó sincronizado, conciliado, anulado o incompleto
+- fecha: 2026-04-19
+- foco de iteración: cerrar el slice atómico `maintenance -> finance` con `close-with-costs`, promover frontend/backend al runtime real y alinear la memoria viva al siguiente subcorte del roadmap
+- estado general: `production` quedó promovido y sano para `close-with-costs`; `staging` tiene backend/frontend actualizados para este slice, pero el último verify post-deploy volvió a exponer drift tenant-local de credenciales DB en `condominio-demo`, por lo que todavía requiere rerun de convergencia para quedar nuevamente al mismo nivel que `production`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -35,6 +35,12 @@
 - la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
 - `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
 - `staging` volvió a quedar verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica tras reparar credenciales DB tenant de `condominio-demo` e `ieris-ltda`
+- el último redeploy backend de `staging` volvió a exponer drift tenant-local en `condominio-demo`:
+  - `sync_active_tenant_schemas.py` durante el verify quedó en `processed=4, synced=3, failed=1`
+  - `seed_missing_tenant_defaults.py --apply` quedó en `processed=4, changed=1, failed=1`
+  - `repair_maintenance_finance_sync.py --all-active --limit 100` quedó en `processed=4, failed=1`
+  - `audit_active_tenant_convergence.py --all-active --limit 100` quedó en `processed=4, failed=1`
+  - el slice sí quedó publicado en código/UI; lo pendiente es rerun de convergencia del tenant roto
 - el slice nuevo de `maintenance -> finance` ya quedó promovido en ambos ambientes:
   - el modal de costeo reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde las transacciones financieras ya vinculadas
   - al reabrir una OT ya sincronizada no vuelve a defaults ciegos del tenant, sino al snapshot real de Finanzas
@@ -53,6 +59,22 @@
     - conciliada
     - anulada
     - incompleta por falta de cuenta/categoría
+- el cierre financiero de mantenciones ya tiene una variante atómica real:
+  - [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) ahora soporta `commit=False` en `create_transaction(...)` y `update_transaction(...)`
+  - [costing_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/costing_service.py) agrega `close_with_costs(...)`
+  - [costing.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/api/costing.py) expone `POST /tenant/maintenance/work-orders/{id}/close-with-costs`
+  - [MaintenanceCostingModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceCostingModal.tsx) ya usa ese endpoint para `Cerrar con costos`
+  - validación focalizada:
+    - `PYTHONPATH=/home/felipe/platform_paas/backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_maintenance_costing_service` -> `15 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - promoción:
+    - backend `production` -> `527 tests OK`
+    - frontend publicado en `/opt/platform_paas/frontend/dist`
+    - frontend publicado en `/opt/platform_paas_staging/frontend/dist`
+  - assets efectivos publicados en ambos ambientes:
+    - `index-DTgrr2q8.js`
+    - `index-Ci9PWeRu.css`
+    - `workOrdersService-DSBpMe93.js`
 - la cabecera de `Finanzas` ya distingue dos lecturas correctas:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de saldos visibles por cuenta
@@ -363,10 +385,14 @@
   - convergencia
   - auditoría
   - promoción a `production`
-- seguir afinando el slice `maintenance -> finance` ya sobre una base convergida, especialmente:
+- seguir afinando el slice `maintenance -> finance` ya sobre una base promovida, especialmente:
   - hints/UX de selección de egreso
   - estrategia explícita para corregir transacciones históricas que quedaron creadas antes del fix con `account/category = null`
-  - evaluar si conviene un endpoint atómico `close-with-costs` para evitar drift futuro entre guardar costo real, cerrar OT y sincronizar Finanzas
+  - preview explícito del impacto financiero antes de cerrar:
+    - qué líneas van a egreso
+    - en qué cuenta/categoría cae cada movimiento
+    - qué resultado neto deja la mantención
+  - rerun de convergencia en `staging` antes de abrir otro corte que dependa de ese ambiente
 - seguir endureciendo la visibilidad de drift runtime vs repo para que futuras incidencias no dependan de investigación manual
 - mantener republicación controlada del frontend cuando cambien bundles o contratos del payload para evitar errores de caché o shape inconsistente
 

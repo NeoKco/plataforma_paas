@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -23,10 +23,12 @@ from app.apps.tenant_modules.maintenance.models import (
     MaintenanceCostEstimate,
     MaintenanceCostLine,
     MaintenanceCostTemplate,
+    MaintenanceDueItem,
     MaintenanceSchedule,
     MaintenanceScheduleCostLine,
     MaintenanceWorkOrder,
 )
+from app.apps.tenant_modules.maintenance.repositories import MaintenanceStatusLogRepository
 
 
 class MaintenanceCostingService:
@@ -42,8 +44,15 @@ class MaintenanceCostingService:
         "overhead": "overhead_cost",
     }
 
-    def __init__(self, finance_service: FinanceService | None = None) -> None:
+    def __init__(
+        self,
+        finance_service: FinanceService | None = None,
+        status_log_repository: MaintenanceStatusLogRepository | None = None,
+    ) -> None:
         self.finance_service = finance_service or FinanceService()
+        self.status_log_repository = (
+            status_log_repository or MaintenanceStatusLogRepository()
+        )
         self.tenant_data_service = TenantDataService()
 
     def get_costing_detail(self, tenant_db: Session, work_order_id: int) -> dict:
@@ -196,6 +205,8 @@ class MaintenanceCostingService:
         payload,
         *,
         actor_user_id: int | None = None,
+        commit: bool = True,
+        trigger_auto_sync: bool = True,
     ) -> dict:
         work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
         line_payloads = self._normalize_line_payloads(payload.lines)
@@ -245,8 +256,11 @@ class MaintenanceCostingService:
             line_payloads,
             actor_user_id=actor_user_id,
         )
-        tenant_db.commit()
-        tenant_db.refresh(actual)
+        if commit:
+            tenant_db.commit()
+            tenant_db.refresh(actual)
+        else:
+            tenant_db.flush()
         estimate = self._get_estimate(tenant_db, work_order_id)
         detail = {
             "work_order": work_order,
@@ -255,11 +269,13 @@ class MaintenanceCostingService:
             "estimate_lines": self._get_cost_lines(tenant_db, work_order_id, cost_stage="estimate"),
             "actual_lines": actual_lines,
         }
-        self.maybe_auto_sync_by_tenant_policy(
-            tenant_db,
-            work_order_id,
-            actor_user_id=actor_user_id,
-        )
+        if trigger_auto_sync:
+            self.maybe_auto_sync_by_tenant_policy(
+                tenant_db,
+                work_order_id,
+                actor_user_id=actor_user_id,
+                commit=commit,
+            )
         refreshed_detail = self.get_costing_detail(tenant_db, work_order_id)
         return refreshed_detail if refreshed_detail.get("actual") is not None else detail
 
@@ -297,6 +313,7 @@ class MaintenanceCostingService:
         payload,
         *,
         actor_user_id: int | None = None,
+        commit: bool = True,
     ) -> dict:
         work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
         actual = self._get_actual(tenant_db, work_order_id)
@@ -377,6 +394,7 @@ class MaintenanceCostingService:
                     FinanceTransactionUpdateRequest(**income_payload.model_dump()),
                     actor_user_id=actor_user_id,
                     allow_accountless=resolved_income_account_id is None,
+                    commit=commit,
                 )
             else:
                 transaction = self.finance_service.create_transaction(
@@ -388,6 +406,7 @@ class MaintenanceCostingService:
                     summary="Ingreso sincronizado desde maintenance",
                     audit_payload={"work_order_id": work_order.id},
                     allow_accountless=resolved_income_account_id is None,
+                    commit=commit,
                 )
                 actual.income_transaction_id = transaction.id
 
@@ -425,6 +444,7 @@ class MaintenanceCostingService:
                     FinanceTransactionUpdateRequest(**expense_payload.model_dump()),
                     actor_user_id=actor_user_id,
                     allow_accountless=resolved_expense_account_id is None,
+                    commit=commit,
                 )
             else:
                 transaction = self.finance_service.create_transaction(
@@ -436,14 +456,18 @@ class MaintenanceCostingService:
                     summary="Egreso sincronizado desde maintenance",
                     audit_payload={"work_order_id": work_order.id},
                     allow_accountless=resolved_expense_account_id is None,
+                    commit=commit,
                 )
                 actual.expense_transaction_id = transaction.id
 
         actual.finance_synced_at = datetime.now(timezone.utc)
         actual.updated_by_user_id = actor_user_id
         tenant_db.add(actual)
-        tenant_db.commit()
-        tenant_db.refresh(actual)
+        if commit:
+            tenant_db.commit()
+            tenant_db.refresh(actual)
+        else:
+            tenant_db.flush()
         return {
             "work_order": work_order,
             "estimate": estimate,
@@ -458,6 +482,7 @@ class MaintenanceCostingService:
         work_order_id: int,
         *,
         actor_user_id: int | None = None,
+        commit: bool = True,
     ) -> dict | None:
         work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
         if getattr(work_order, "maintenance_status", None) != "completed":
@@ -513,9 +538,99 @@ class MaintenanceCostingService:
                     },
                 )(),
                 actor_user_id=actor_user_id,
+                commit=commit,
             )
         except ValueError:
             return None
+
+    def close_with_costs(
+        self,
+        tenant_db: Session,
+        work_order_id: int,
+        payload,
+        *,
+        actor_user_id: int | None = None,
+    ) -> dict:
+        work_order = self._get_work_order_or_raise(tenant_db, work_order_id)
+        if work_order.maintenance_status in {"completed", "cancelled"}:
+            raise ValueError("La mantencion ya está cerrada")
+
+        try:
+            self.upsert_cost_actual(
+                tenant_db,
+                work_order_id,
+                payload.actual_cost,
+                actor_user_id=actor_user_id,
+                commit=False,
+                trigger_auto_sync=False,
+            )
+
+            previous_status = work_order.maintenance_status
+            completion_note = self._normalize_text(payload.completion_note)
+            completed_at = datetime.now(timezone.utc)
+            work_order.maintenance_status = "completed"
+            work_order.completed_at = completed_at
+            work_order.cancelled_at = None
+            tenant_db.add(work_order)
+
+            self.status_log_repository.create(
+                tenant_db,
+                work_order_id=work_order.id,
+                from_status=previous_status,
+                to_status="completed",
+                note=completion_note,
+                changed_by_user_id=actor_user_id,
+            )
+
+            if work_order.due_item_id:
+                due_item = (
+                    tenant_db.query(MaintenanceDueItem)
+                    .filter(MaintenanceDueItem.id == work_order.due_item_id)
+                    .first()
+                )
+                if due_item is not None:
+                    due_item.due_status = "completed"
+                    if completion_note:
+                        due_item.resolution_note = completion_note
+                    tenant_db.add(due_item)
+
+            if work_order.schedule_id:
+                schedule = (
+                    tenant_db.query(MaintenanceSchedule)
+                    .filter(MaintenanceSchedule.id == work_order.schedule_id)
+                    .first()
+                )
+                if schedule is not None:
+                    schedule.last_executed_at = completed_at
+                    schedule.next_due_at = self._add_frequency(
+                        completed_at,
+                        schedule.frequency_value,
+                        schedule.frequency_unit,
+                    )
+                    tenant_db.add(schedule)
+
+            if payload.finance_sync is not None:
+                self.sync_to_finance(
+                    tenant_db,
+                    work_order.id,
+                    payload.finance_sync,
+                    actor_user_id=actor_user_id,
+                    commit=False,
+                )
+            else:
+                self.maybe_auto_sync_by_tenant_policy(
+                    tenant_db,
+                    work_order.id,
+                    actor_user_id=actor_user_id,
+                    commit=False,
+                )
+
+            tenant_db.commit()
+            tenant_db.refresh(work_order)
+            return self.get_costing_detail(tenant_db, work_order_id)
+        except Exception:
+            tenant_db.rollback()
+            raise
 
     def seed_estimate_from_schedule(
         self,
@@ -901,3 +1016,35 @@ class MaintenanceCostingService:
         if client_label:
             parts.append(client_label)
         return " · ".join(parts)
+
+    def _add_frequency(
+        self,
+        value: datetime,
+        frequency_value: int,
+        frequency_unit: str,
+    ) -> datetime:
+        unit = (frequency_unit or "months").strip().lower()
+        if unit == "days":
+            return value + timedelta(days=frequency_value)
+        if unit == "weeks":
+            return value + timedelta(weeks=frequency_value)
+        if unit == "months":
+            return self._shift_months(value, frequency_value)
+        if unit == "years":
+            return self._shift_months(value, frequency_value * 12)
+        return value + timedelta(days=frequency_value)
+
+    def _shift_months(self, value: datetime, months: int) -> datetime:
+        month_index = value.month - 1 + months
+        year = value.year + month_index // 12
+        month = month_index % 12 + 1
+        day = min(value.day, self._days_in_month(year, month))
+        return value.replace(year=year, month=month, day=day)
+
+    def _days_in_month(self, year: int, month: int) -> int:
+        if month == 2:
+            is_leap = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+            return 29 if is_leap else 28
+        if month in {4, 6, 9, 11}:
+            return 30
+        return 31
