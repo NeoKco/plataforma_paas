@@ -31,6 +31,11 @@ Además, debes usar como fuente secundaria obligatoria la documentación canóni
 - `docs/architecture/data-ownership-matrix.md`
 - `docs/architecture/sred-development.md`
 - `docs/architecture/slice-spec-template.md`
+- `docs/architecture/adr/README.md`
+- `docs/architecture/api-contract-standard.md`
+- `docs/architecture/schema-and-migration-policy.md`
+- `docs/architecture/environment-policy.md`
+- `docs/architecture/e2e-test-data-policy.md`
 - `docs/architecture/module-build-standard.md`
 - `docs/architecture/module-slice-convention.md`
 - `docs/architecture/project-structure.md`
@@ -68,6 +73,11 @@ Además, debes usar como fuente secundaria obligatoria la documentación canóni
 - usa `PLANTILLA_ACTUALIZACION_ESTADO.md` como formato obligatorio para actualizar estado
 - si el cambio toca datos, seeds, imports, defaults o integración entre módulos, debes revisar también `docs/architecture/data-governance.md`
 - si el cambio es relevante, transversal o toca datos/contratos, debes usar también `docs/architecture/slice-spec-template.md` como paquete mínimo de diseño antes de ejecutar
+- si el cambio toca arquitectura cerrada, debes revisar también los ADR vigentes en `docs/architecture/adr/`
+- si el cambio toca contratos entre frontend/backend o entre módulos, debes revisar `docs/architecture/api-contract-standard.md`
+- si el cambio toca tablas, migraciones, backfills, seeds o convergencia estructural, debes revisar `docs/architecture/schema-and-migration-policy.md`
+- si el cambio toca deploy, staging, production, runtime o promoción entre ambientes, debes revisar `docs/architecture/environment-policy.md`
+- si el cambio toca Playwright, datos de prueba, tenants de prueba o limpieza post-test, debes revisar `docs/architecture/e2e-test-data-policy.md`
 - para cierres relevantes, usa el criterio `SRED` definido en `docs/architecture/sred-development.md`
 - si la iteración afecta salida a producción, también debes revisar y actualizar `PAQUETE_RELEASE_OPERADOR.md` si corresponde
 

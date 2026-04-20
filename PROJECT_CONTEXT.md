@@ -217,7 +217,22 @@ y cuando aplique:
 - `docs/architecture/data-ownership-matrix.md`
 - `docs/architecture/sred-development.md`
 - `docs/architecture/slice-spec-template.md`
+- `docs/architecture/adr/README.md`
+- `docs/architecture/api-contract-standard.md`
+- `docs/architecture/schema-and-migration-policy.md`
+- `docs/architecture/environment-policy.md`
+- `docs/architecture/e2e-test-data-policy.md`
 - `docs/architecture/module-build-standard.md`
+
+Eso significa que la continuidad mínima del proyecto ya no depende solo de reglas generales.
+
+También depende de:
+
+- ADRs para decisiones arquitectónicas cerradas
+- estándar de contratos API para cambios entre frontend/backend y módulos
+- política de schema/migraciones para cualquier cambio estructural
+- política de entornos para distinguir `dev`, `staging` y `production`
+- política E2E y datos de prueba para no ensuciar tenants ni producción
 - `docs/modules/index.md`
 
 ### Estado modular
