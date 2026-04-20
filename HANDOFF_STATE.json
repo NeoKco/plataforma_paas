@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T18:33:00-04:00",
+  "updated_at": "2026-04-20T18:39:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; dentro del frente de hardening transversal sobre convergencia post-deploy y observabilidad tenant, el gate backend ya distingue drift crítico recuperable de `notes` no críticas y el siguiente paso correcto pasa a decidir cómo tratar automáticamente `missing_core_defaults` y `missing_finance_defaults:usage`",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; dentro del frente de hardening transversal sobre convergencia post-deploy y observabilidad tenant, el falso `missing_core_defaults` ya quedó corregido y el drift cross-env de credenciales tenant ya puede cerrarse con sincronización explícita de secrets; el siguiente paso correcto pasa a decidir el tratamiento definitivo de `missing_finance_defaults:usage`",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
   "active_modules": [
     "platform-core",
@@ -77,6 +77,12 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "tenant_db_bootstrap_service ahora canoniza code en BusinessFunctionProfile y BusinessTaskType cuando el tenant legacy ya coincide por name con el catálogo default",
+    "repair_tenant_operational_drift.py agrega --sync-env-file para replicar la credencial DB tenant válida hacia otro .env/.tenant-secrets.env sin volver a rotar",
+    "tests locales revalidados: tenant_db_bootstrap_service + tenant_operational_drift_scripts -> 10 tests OK",
+    "staging publicado con el backfill de codes legacy y vuelve a audit_active_tenant_convergence processed=4 warnings=0 failed=0",
+    "production publicado con el backfill de codes legacy; desaparece missing_core_defaults y la auditoría baja a tenants_with_notes=1 antes de reaparecer el drift cruzado de condominio-demo",
+    "condominio-demo ya no requiere doble rotación entre carriles: la credencial válida de staging fue sincronizada hacia /opt/platform_paas/.tenant-secrets.env y production vuelve a processed=4 warnings=0 failed=0 tenants_with_notes=2",
     "audit_active_tenant_convergence.py ahora resume tenants_with_notes y notes_by_reason para distinguir convergencia incompleta no crítica de fallo duro",
     "verify_backend_deploy.sh ahora captura la salida del audit activo, imprime NOTICE cuando el ambiente queda sano con notes y deja el comando canónico de repair_tenant_operational_drift.py cuando el drift es recuperable",
     "backend.app.tests.test_tenant_operational_drift_scripts ampliado y revalidado con 5 tests OK",
@@ -228,7 +234,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si missing_core_defaults y missing_finance_defaults:usage deben seguir como notes no críticas, auto-repararse mejor durante convergencia o escalar a otra señal operativa, y si el gate debe limitarse a sugerir repair o habilitar una auto-reparación controlada",
+  "next_decision_required": "decidir el tratamiento definitivo de missing_finance_defaults:usage ahora que ya quedó aislado como única note residual real, y si --sync-env-file debe seguir siendo una acción manual explícita o convertirse en flujo guiado para carriles que comparten rol PostgreSQL",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

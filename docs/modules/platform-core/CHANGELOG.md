@@ -2,6 +2,21 @@
 
 ## 2026-04-20
 
+- se corrige el falso `missing_core_defaults` en tenants legacy:
+  - [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) ahora canoniza `code` cuando encuentra perfiles o tipos de tarea legacy por `name`
+  - esto elimina notas falsas en tenants que ya tenían el catálogo funcional pero arrastraban códigos placeholder
+  - validación runtime:
+    - `staging` vuelve a `processed=4`, `warnings=0`, `failed=0` sin notes
+    - `production` baja de `tenants_with_notes=3` a `tenants_with_notes=2`
+    - las dos notes restantes son solo `missing_finance_defaults:usage`
+- se agrega sincronización explícita de secreto tenant entre carriles sin nueva rotación:
+  - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) suma `--sync-env-file`
+  - se usó para copiar la credencial válida de `condominio-demo` desde `staging` hacia `/opt/platform_paas/.tenant-secrets.env`
+  - con eso se cerró el ping-pong donde rotar en un carril invalidaba el otro
+  - resultado final:
+    - `staging`: `processed=4`, `warnings=0`, `failed=0`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`
+
 - `verify_backend_deploy.sh` ahora distingue mejor ambiente sano con notas vs tenant roto por drift:
   - cuando `audit_active_tenant_convergence.py` devuelve `failed=0` y `warnings=0` pero deja `tenants_with_notes > 0`, el gate imprime `NOTICE` y no mezcla ese caso con fallo duro
   - cuando el audit falla por razón recuperable (`invalid_db_credentials`, `schema_incomplete`), el gate imprime el comando canónico exacto para ejecutar [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) en el ambiente afectado

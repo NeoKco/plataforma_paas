@@ -1,5 +1,38 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Backfill de `code` legacy en business-core y sincronización cross-env del secreto tenant
+
+- objetivo:
+  - eliminar `notes` falsas de `missing_core_defaults` en tenants legacy
+  - cerrar el drift cruzado donde rotar la credencial tenant en un carril invalidaba el otro
+- diagnóstico:
+  - en `production`, `empresa-bootstrap` seguía auditando `missing_core_defaults` aunque el catálogo existía
+  - inspección real muestra perfiles y tipos con `name` correcto pero `code` legacy (`LEGACY-*`)
+  - además, rotar `condominio-demo` en un carril invalidaba el otro porque el rol PostgreSQL es compartido y solo se actualizaba un `TENANT_SECRETS_FILE`
+- cambios y acciones ejecutadas:
+  - [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) ahora canoniza `code` al encontrar filas legacy por `name`
+  - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) agrega `--sync-env-file`
+  - se amplían tests:
+    - [test_tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_db_bootstrap_service.py)
+    - [test_tenant_operational_drift_scripts.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_operational_drift_scripts.py)
+  - uso real del helper:
+    - `staging` sincroniza la credencial válida de `condominio-demo` hacia `/opt/platform_paas/.tenant-secrets.env` sin volver a rotar
+- validaciones:
+  - local:
+    - `backend.app.tests.test_tenant_db_bootstrap_service` + `backend.app.tests.test_tenant_operational_drift_scripts` -> `10 tests OK`
+    - `py_compile` del script nuevo -> `OK`
+  - `staging`:
+    - deploy backend publicado con `528 tests OK`
+    - auditoría final -> `processed=4`, `warnings=0`, `failed=0`
+  - `production`:
+    - deploy backend publicado con `528 tests OK`
+    - auditoría final -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'missing_finance_defaults:usage': 2}`
+- resultado:
+  - `missing_core_defaults` deja de contaminar tenants legacy que ya tenían el catálogo funcional
+  - la deriva cruzada de credenciales entre `staging` y `production` queda cerrada sin nueva rotación doble
+- siguiente paso:
+  - decidir el tratamiento operativo definitivo de `missing_finance_defaults:usage`
+
 ## 2026-04-20 - Gate post-deploy endurecido para distinguir `failed` críticos de `notes` no críticas
 
 - objetivo:

@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy para distinguir operativamente `failed` críticos de `notes` no críticas y dejar sugerencia canónica de reparación por tenant cuando el drift sea recuperable
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; ambos ambientes vuelven a quedar auditados en verde para sus 4 tenants activos y `production` ya distingue explícitamente `tenants_with_notes` sin mezclarlo con fallos duros
+- foco de iteración: hardening transversal de convergencia post-deploy para separar ruido legacy de `business-core`, distinguir `failed` críticos de `notes` no críticas y sincronizar credenciales tenant entre carriles sin nueva rotación cuando el rol PostgreSQL es compartido
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; `staging` queda 4/4 limpio y `production` queda 4/4 con solo dos `notes` reales de `finance`, sin drift cruzado de credenciales entre carriles
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -92,6 +92,13 @@
   - validación real observada:
     - `staging` dejó `WARNING` + comando sugerido para `condominio-demo`
     - `production` dejó `NOTICE` con `tenants_with_notes=3` y `notes_by_reason`
+- corrección adicional ya promovida sobre esos `notes`:
+  - [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) ya backfillea `code` canónico en perfiles y tipos de tarea legacy cuando el match es por `name`
+  - eso limpia el falso `missing_core_defaults` en tenants existentes como `empresa-bootstrap` y `empresa-demo`
+  - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya permite `--sync-env-file` para copiar el secreto válido hacia otro carril sin nueva rotación
+  - resultado final:
+    - `staging`: `processed=4`, `warnings=0`, `failed=0`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'missing_finance_defaults:usage': 2}`
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
   - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura
@@ -188,6 +195,10 @@
 
 ## Qué ya quedó hecho
 
+- [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) canoniza `code` en filas legacy de:
+  - `BusinessFunctionProfile`
+  - `BusinessTaskType`
+- [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya puede replicar la credencial tenant válida hacia otro archivo de secrets con `--sync-env-file`
 - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya distingue en salida operativa:
   - drift recuperable con comando sugerido por tenant
   - ambiente sano con `tenants_with_notes`

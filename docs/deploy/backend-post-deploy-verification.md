@@ -103,6 +103,25 @@ Además, desde este corte el gate deja dos lecturas operativas separadas:
 - `WARNING` con sugerencia de comando cuando detecta drift recuperable por `invalid_db_credentials` o `schema_incomplete`
 - `NOTICE` cuando el ambiente queda sano pero todavía arrastra `notes` no críticas de defaults o convergencia parcial
 
+Si la reparación se ejecuta en un solo carril y el mismo tenant se invalida en el otro:
+
+- no asumir dos incidentes distintos
+- comprobar si ambos ambientes comparten el mismo rol PostgreSQL tenant
+- si ya existe una credencial válida en uno de los carriles, sincronizarla al otro `TENANT_SECRETS_FILE` con:
+
+```bash
+set -a
+source /opt/platform_paas_staging/.env.staging
+set +a
+export PYTHONPATH=/opt/platform_paas_staging/backend
+./platform_paas_venv/bin/python backend/app/scripts/repair_tenant_operational_drift.py \
+  --tenant-slug <slug> \
+  --sync-env-file /opt/platform_paas/.tenant-secrets.env \
+  --skip-schema-sync \
+  --skip-seed-defaults \
+  --skip-maintenance-finance-repair
+```
+
 ## Modo estricto vs no estricto
 
 Por defecto:

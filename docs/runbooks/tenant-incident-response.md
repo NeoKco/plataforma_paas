@@ -81,6 +81,8 @@ Uso recomendado por tenant:
 
 1. `repair_tenant_operational_drift.py --tenant-slug <slug> --audit-only`
 2. si el pre-audit falla por `invalid_db_credentials`, usar `repair_tenant_operational_drift.py --tenant-slug <slug> --auto-rotate-if-invalid-credentials`
+3. si el mismo slug existe en otro carril del mismo host y ya hay una credencial válida en un ambiente, sincronizar el secreto hacia el carril hermano sin volver a rotar:
+   `repair_tenant_operational_drift.py --tenant-slug <slug> --sync-env-file /ruta/al/.tenant-secrets.env --skip-schema-sync --skip-seed-defaults --skip-maintenance-finance-repair`
 
 ## Paso 5. Si el problema es credencial DB tenant
 
@@ -107,6 +109,12 @@ Orden oficial:
 7. `audit_active_tenant_convergence.py --all-active --limit 100`
 
 Si el audit termina con `failed=0` y `warnings=0` pero muestra `tenants_with_notes > 0`, tratarlo como convergencia incompleta no crítica, no como incidente duro de runtime.
+
+Si al rotar en `staging` se rompe `production` o viceversa:
+
+- asumir primero que el rol PostgreSQL puede estar compartido entre carriles
+- no volver a rotar dos veces por reflejo
+- preferir sincronizar el `TENANT_DB_PASSWORD__<SLUG>` válido hacia el `TENANT_SECRETS_FILE` del otro ambiente
 
 ## Paso 7. Confirmar cierre real
 

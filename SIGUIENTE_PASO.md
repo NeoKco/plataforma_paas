@@ -19,6 +19,13 @@
   - `verify_backend_deploy.sh` ahora distingue `tenant roto por drift recuperable` vs `ambiente sano con notes`
   - `staging` mostró el caso de drift recuperable con comando sugerido para `condominio-demo`
   - `production` mostró el caso `tenants_with_notes=3` con `NOTICE` no crítico
+- subcorte adicional ya cerrado en runtime:
+  - el falso `missing_core_defaults` de tenants legacy quedó corregido backfilleando `code` canónico por `name`
+  - `repair_tenant_operational_drift.py` ya puede sincronizar el secreto válido de un tenant hacia el carril hermano con `--sync-env-file`
+  - eso cerró el ping-pong de `condominio-demo` entre `staging` y `production`
+  - estado final:
+    - `staging`: `processed=4`, `warnings=0`, `failed=0`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -64,8 +71,8 @@
 - siguiente frente recomendado del roadmap:
   - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
   - objetivos concretos del siguiente corte:
-    - decidir si `missing_core_defaults` y `missing_finance_defaults:usage` deben quedar como `notes` permanentes, auto-remediarse mejor o endurecerse a otro nivel de señal
-    - decidir si `verify_backend_deploy.sh` debe solo sugerir el comando canónico o también ofrecer una ruta opcional de auto-reparación controlada
+    - decidir el tratamiento final de `missing_finance_defaults:usage`, porque ya quedó aislado como única `note` residual real
+    - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano
       - tenant roto por drift
