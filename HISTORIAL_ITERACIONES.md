@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Separación operativa entre `legacy_finance_base_currency` y `finance_base_currency_mismatch`
+
+- objetivo:
+  - dejar de tratar como el mismo problema a tenants con base legacy `USD` y tenants con desalineación entre `finance_currencies.is_base` y `finance_settings.base_currency_code`
+  - sacar evidencia mínima por tenant para decidir reparación vs migración guiada
+- cambios y acciones ejecutadas:
+  - se agrega [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) como auditor específico de solo lectura para moneda base legacy/mismatch
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ahora distingue:
+    - `legacy_finance_base_currency:USD`
+    - `finance_base_currency_mismatch:CLP!=USD`
+  - [test_legacy_finance_base_currency_audit.py](/home/felipe/platform_paas/backend/app/tests/test_legacy_finance_base_currency_audit.py) y [test_tenant_operational_drift_scripts.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_operational_drift_scripts.py) cubren ambas lecturas
+- validaciones:
+  - local:
+    - `backend.app.tests.test_legacy_finance_base_currency_audit` + `backend.app.tests.test_tenant_operational_drift_scripts` + `backend.app.tests.test_tenant_db_bootstrap_service` -> `16 tests OK`
+    - `py_compile` -> `OK`
+  - `staging`:
+    - deploy backend publicado con `528 tests OK`
+    - `audit_legacy_finance_base_currency.py --all-active --limit 100` -> `warnings=2`, `notes_by_reason={'finance_base_currency_mismatch:CLP!=USD': 1, 'legacy_finance_base_currency:USD': 1}`
+  - `production`:
+    - deploy backend publicado con `528 tests OK`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'finance_base_currency_mismatch:CLP!=USD': 1, 'legacy_finance_base_currency:USD': 1}`
+    - `audit_legacy_finance_base_currency.py --all-active --limit 100` -> `warnings=2`, `recommendations={'manual_migration_review': 1, 'no_action': 2, 'repair_base_currency_mismatch': 1}`
+- resultado:
+  - `condominio-demo` deja de verse como legacy `USD` y pasa a quedar explícitamente como `finance_base_currency_mismatch:CLP!=USD`
+  - `empresa-bootstrap` queda aislado como único caso legacy `USD` real con uso financiero
+- siguiente paso:
+  - decidir si `condominio-demo` requiere reparación operativa de metadata/configuración de moneda base
+  - decidir la estrategia de migración o convivencia para `empresa-bootstrap`
+
 ## 2026-04-20 - Reclasificación de `finance` legacy para dejar de intentar seeds inútiles post-deploy
 
 - objetivo:

@@ -2,6 +2,17 @@
 
 ## 2026-04-20
 
+- se separa la deuda residual de `finance` en dos señales distintas en vez de mezclar ambos tenants como legacy `USD`:
+  - se agrega [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) para auditar por tenant base efectiva, setting, uso y recomendación operativa
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ahora distingue `finance_base_currency_mismatch:CLP!=USD` de `legacy_finance_base_currency:USD`
+  - validación runtime:
+    - `staging`: `audit_legacy_finance_base_currency.py --all-active --limit 100` -> `warnings=2`, `notes_by_reason={'finance_base_currency_mismatch:CLP!=USD': 1, 'legacy_finance_base_currency:USD': 1}`
+    - `production`: `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'finance_base_currency_mismatch:CLP!=USD': 1, 'legacy_finance_base_currency:USD': 1}`
+    - `production`: `audit_legacy_finance_base_currency.py --all-active --limit 100` -> `recommendations={'manual_migration_review': 1, 'no_action': 2, 'repair_base_currency_mismatch': 1}`
+  - conclusión operativa:
+    - `condominio-demo` deja de verse como tenant legacy `USD` y queda explícitamente como caso de `base currency mismatch`
+    - `empresa-bootstrap` queda como único tenant legacy `USD` real con uso financiero
+
 - se reclasifica la última `note` residual de finance para no mezclar deuda legacy con defaults faltantes:
   - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ya no pide seed cuando el tenant tiene uso financiero y lo único pendiente es base legacy `USD`
   - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora informa `legacy_finance_base_currency:USD` en vez de `missing_finance_defaults:usage`

@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy para reclasificar correctamente la deuda legacy de `finance` y dejar explícito que ya no es un problema de seed faltante, sino una decisión pendiente de migración/compatibilidad
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; `staging` queda 4/4 limpio y `production` queda 4/4 con solo dos `notes` legacy explícitas `legacy_finance_base_currency:USD`, sin drift cruzado de credenciales entre carriles
+- foco de iteración: hardening transversal de convergencia post-deploy para separar correctamente la deuda residual de `finance` entre caso legacy real y caso de metadata desalineada, y dejar evidencia mínima por tenant antes de tocar datos
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; `staging` sigue 4/4 limpio en convergencia crítica y `production` queda 4/4 con dos `notes` explícitas ya separadas: `finance_base_currency_mismatch:CLP!=USD` en `condominio-demo` y `legacy_finance_base_currency:USD` en `empresa-bootstrap`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -102,7 +102,12 @@
 - reclasificación final de `finance` ya promovida:
   - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ya no intenta resembrar `finance` cuando el tenant tiene uso y solo conserva base legacy `USD`
   - la auditoría ya no informa `missing_finance_defaults:usage` para ese caso
-  - el estado pendiente se expresa ahora como `legacy_finance_base_currency:USD`
+  - además, ahora distingue explícitamente el desalineamiento entre base efectiva y setting tenant como `finance_base_currency_mismatch:CLP!=USD`
+  - resultado runtime actualizado:
+    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'finance_base_currency_mismatch:CLP!=USD': 1, 'legacy_finance_base_currency:USD': 1}`
+    - `audit_legacy_finance_base_currency.py --all-active --limit 100` confirma:
+      - `condominio-demo` -> `repair_base_currency_mismatch`
+      - `empresa-bootstrap` -> `manual_migration_review`
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
   - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura

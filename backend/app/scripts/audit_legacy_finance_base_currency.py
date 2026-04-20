@@ -102,11 +102,11 @@ def assess_legacy_finance_base_currency(tenant_db) -> dict:
     elif not has_usage and base_currency_code in {None, "USD"} and base_setting_code in {None, "USD"}:
         recommendation = "promote_clp_without_usage"
         status = "warning"
-    elif audit_note is not None and has_usage and base_currency_code == "USD":
-        recommendation = "manual_migration_review"
-        status = "warning"
     elif base_currency_code != base_setting_code:
         recommendation = "repair_base_currency_mismatch"
+        status = "warning"
+    elif audit_note is not None and has_usage and base_currency_code == "USD":
+        recommendation = "manual_migration_review"
         status = "warning"
     else:
         recommendation = "manual_review"

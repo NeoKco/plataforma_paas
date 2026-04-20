@@ -123,6 +123,17 @@ Si el audit muestra `legacy_finance_base_currency:USD`:
 - el seed post-deploy ya no intenta corregirlo automáticamente
 - el siguiente paso correcto es decidir una migración guiada de moneda base o aceptar la convivencia legacy
 
+Si el audit muestra `finance_base_currency_mismatch:CLP!=USD`:
+
+- no tratarlo como el mismo caso legacy `USD`
+- significa que `finance_currencies.is_base` y `finance_settings.base_currency_code` ya no apuntan a la misma base
+- correr antes el auditor específico [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) para ver:
+  - moneda base efectiva
+  - setting declarado
+  - uso real por moneda
+  - recomendación operativa por tenant
+- el siguiente paso correcto pasa a ser reparar metadata/configuración o preparar una transición guiada, no resembrar defaults
+
 ## Paso 7. Confirmar cierre real
 
 No dar el incidente por cerrado sin:

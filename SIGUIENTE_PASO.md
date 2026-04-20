@@ -29,10 +29,12 @@
 - subcorte adicional ya cerrado en runtime:
   - `missing_finance_defaults:usage` ya no se usa para tenants con uso financiero y base legacy `USD`
   - `seed_missing_tenant_defaults.py` deja de intentar un seed inútil en ese caso
-  - la auditoría lo expresa ahora como `legacy_finance_base_currency:USD`
+  - una revalidación adicional separó luego dos casos reales distintos:
+    - `finance_base_currency_mismatch:CLP!=USD` en `condominio-demo`
+    - `legacy_finance_base_currency:USD` en `empresa-bootstrap`
   - validación final:
     - `staging` -> `changed=0`, sin `notes`
-    - `production` -> `changed=0`, `notes_by_reason={'legacy_finance_base_currency:USD': 2}`
+    - `production` -> `changed=0`, `notes_by_reason={'finance_base_currency_mismatch:CLP!=USD': 1, 'legacy_finance_base_currency:USD': 1}`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -78,7 +80,8 @@
 - siguiente frente recomendado del roadmap:
   - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
   - objetivos concretos del siguiente corte:
-    - decidir el tratamiento final de `legacy_finance_base_currency:USD`, porque ya quedó aislado como única `note` residual real
+    - decidir si `condominio-demo` requiere reparación operativa del desalineamiento `finance_base_currency_mismatch:CLP!=USD` o una transición guiada más amplia
+    - decidir el tratamiento final de `legacy_finance_base_currency:USD` en `empresa-bootstrap`, que ya quedó aislado como único caso legacy real
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

@@ -216,13 +216,41 @@ class LegacyFinanceBaseCurrencyAuditTestCase(unittest.TestCase):
                     is_active=True,
                 )
             )
+            db.flush()
+            db.add(
+                FinanceAccount(
+                    name="Caja USD",
+                    code="CAJA_USD_MISMATCH",
+                    account_type="cash",
+                    currency_id=usd.id,
+                    opening_balance=0,
+                    is_active=True,
+                    sort_order=10,
+                )
+            )
+            db.add_all(
+                [
+                    FinanceCategory(
+                        name="Ingreso General",
+                        category_type="income",
+                        is_active=True,
+                        sort_order=10,
+                    ),
+                    FinanceCategory(
+                        name="Mantenciones y servicios",
+                        category_type="expense",
+                        is_active=True,
+                        sort_order=20,
+                    ),
+                ]
+            )
             db.commit()
 
             result = assess_legacy_finance_base_currency(db)
 
             self.assertEqual(result["status"], "warning")
             self.assertEqual(result["recommendation"], "repair_base_currency_mismatch")
-            self.assertIsNone(result["audit_note"])
+            self.assertEqual(result["audit_note"], "finance_base_currency_mismatch:USD!=CLP")
         finally:
             db.close()
 

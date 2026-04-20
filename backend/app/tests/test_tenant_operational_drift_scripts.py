@@ -39,7 +39,7 @@ class TenantOperationalDriftScriptsTestCase(unittest.TestCase):
                 query.all.return_value[1].name = "Mantenciones y servicios"
                 return query
             if model_name == "FinanceCurrency":
-                query.filter.return_value.first.return_value = Mock(is_active=True)
+                query.filter.return_value.first.return_value = Mock(is_active=True, code="USD")
                 return query
             if model_name == "FinanceSetting":
                 query.filter.return_value.first.return_value = Mock(
@@ -55,6 +55,53 @@ class TenantOperationalDriftScriptsTestCase(unittest.TestCase):
         self.assertFalse(status["needs_seed"])
         self.assertEqual(status["seed_reason"], "legacy_base_currency_with_usage")
         self.assertEqual(status["audit_note"], "legacy_finance_base_currency:USD")
+
+    def test_get_finance_defaults_status_reports_base_currency_mismatch_with_usage(self) -> None:
+        fake_db = Mock()
+
+        finance_currency_calls = {"count": 0}
+
+        def query_side_effect(model):
+            query = Mock()
+            model_name = getattr(model, "__name__", None)
+            if model_name is None:
+                model_name = getattr(getattr(model, "class_", None), "__name__", None)
+
+            if model_name == "FinanceTransaction":
+                query.first.return_value = object()
+                return query
+            if model_name in {"FinanceBudget", "FinanceAccount"}:
+                query.first.return_value = None
+                return query
+            if model_name == "FinanceCategory":
+                query.all.return_value = [
+                    Mock(name="Ingreso General"),
+                    Mock(name="Mantenciones y servicios"),
+                ]
+                query.all.return_value[0].name = "Ingreso General"
+                query.all.return_value[1].name = "Mantenciones y servicios"
+                return query
+            if model_name == "FinanceCurrency":
+                finance_currency_calls["count"] += 1
+                if finance_currency_calls["count"] == 1:
+                    query.filter.return_value.first.return_value = Mock(is_active=True, code="CLP")
+                else:
+                    query.filter.return_value.first.return_value = Mock(is_active=True, code="CLP")
+                return query
+            if model_name == "FinanceSetting":
+                query.filter.return_value.first.return_value = Mock(
+                    setting_value="USD"
+                )
+                return query
+            raise AssertionError(model_name)
+
+        fake_db.query.side_effect = query_side_effect
+
+        status = get_finance_defaults_status(fake_db, force=False)
+
+        self.assertFalse(status["needs_seed"])
+        self.assertEqual(status["seed_reason"], "base_currency_mismatch")
+        self.assertEqual(status["audit_note"], "finance_base_currency_mismatch:CLP!=USD")
 
     def test_sync_tenant_db_password_to_env_files_writes_secret(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

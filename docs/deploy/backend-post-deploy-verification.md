@@ -22,6 +22,7 @@ Esta guía define la verificación correcta después de desplegar backend en un 
 - [backend/app/scripts/repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
 - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
 - [backend/app/scripts/repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py)
+- [backend/app/scripts/audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py)
 
 ## Qué valida hoy
 
@@ -108,6 +109,23 @@ Desde este corte, una `note` como `legacy_finance_base_currency:USD` significa a
 - el tenant tiene uso financiero y conserva `USD` como base legacy
 - el gate ya no intenta resembrar `finance` inútilmente en cada deploy
 - la decisión pendiente pasa a ser de migración/compatibilidad, no de convergencia básica
+
+Si el audit deja `finance_base_currency_mismatch:CLP!=USD`:
+
+- no tratarlo como tenant legacy `USD`
+- significa que la base efectiva en `finance_currencies` y el `base_currency_code` del setting ya no coinciden
+- antes de tocar datos, correr el auditor específico:
+
+```bash
+set -a
+source /opt/platform_paas/.env
+set +a
+export PYTHONPATH=/opt/platform_paas/backend
+./platform_paas_venv/bin/python backend/app/scripts/audit_legacy_finance_base_currency.py \
+  --tenant-slug <slug>
+```
+
+- la decisión pendiente pasa a ser de reparación de metadata/configuración o transición guiada, no de seed faltante
 
 Si la reparación se ejecuta en un solo carril y el mismo tenant se invalida en el otro:
 
