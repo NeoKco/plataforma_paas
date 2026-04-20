@@ -1,5 +1,36 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Cierre metadata-only de `condominio-demo` para `finance_base_currency_mismatch`
+
+- objetivo:
+  - confirmar si `condominio-demo` requería migración monetaria real o solo reparación de metadata
+  - cerrar el mismatch sin tocar datos financieros cuando el auditor lo marque como seguro
+- cambios y acciones ejecutadas:
+  - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora resume también:
+    - `non_base_transaction_summary`
+    - `exchange_rates`
+    - recomendación refinada `repair_base_currency_setting_only`
+  - se agrega [repair_finance_base_currency_mismatch.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_base_currency_mismatch.py) para alinear `base_currency_code` con la base efectiva solo cuando el auditor lo considera `metadata-only`
+  - se agregan tests:
+    - [test_repair_finance_base_currency_mismatch.py](/home/felipe/platform_paas/backend/app/tests/test_repair_finance_base_currency_mismatch.py)
+    - ampliación de [test_legacy_finance_base_currency_audit.py](/home/felipe/platform_paas/backend/app/tests/test_legacy_finance_base_currency_audit.py)
+- validaciones:
+  - local:
+    - `backend.app.tests.test_repair_finance_base_currency_mismatch` + `test_legacy_finance_base_currency_audit` + `test_tenant_operational_drift_scripts` + `test_tenant_db_bootstrap_service` -> `19 tests OK`
+    - `py_compile` -> `OK`
+  - `staging`:
+    - `audit_legacy_finance_base_currency.py --tenant-slug condominio-demo` -> `recommendation=repair_base_currency_setting_only`, `exchange_rates=[1.0]`, sin faltantes de `exchange_rate` ni `amount_in_base_currency`
+    - `repair_finance_base_currency_mismatch.py --tenant-slug condominio-demo --apply` -> `USD -> CLP`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+  - `production`:
+    - revalidación con `audit_legacy_finance_base_currency.py --tenant-slug condominio-demo` -> `recommendation=no_action`
+    - auditoría final -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=1`, `notes_by_reason={'legacy_finance_base_currency:USD': 1}`
+- resultado:
+  - `condominio-demo` deja de ser deuda activa de `finance`
+  - `empresa-bootstrap` queda como único tenant residual con base legacy `USD`
+- siguiente paso:
+  - decidir la estrategia de migración o convivencia para `empresa-bootstrap`
+
 ## 2026-04-20 - Separación operativa entre `legacy_finance_base_currency` y `finance_base_currency_mismatch`
 
 - objetivo:

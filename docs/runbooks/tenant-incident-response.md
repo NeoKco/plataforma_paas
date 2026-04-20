@@ -132,7 +132,8 @@ Si el audit muestra `finance_base_currency_mismatch:CLP!=USD`:
   - setting declarado
   - uso real por moneda
   - recomendación operativa por tenant
-- el siguiente paso correcto pasa a ser reparar metadata/configuración o preparar una transición guiada, no resembrar defaults
+- si la recomendación sale `repair_base_currency_setting_only`, usar [repair_finance_base_currency_mismatch.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_base_currency_mismatch.py) para alinear `base_currency_code` sin tocar transacciones
+- si no, el siguiente paso correcto pasa a ser preparar una transición guiada o revisión manual, no resembrar defaults
 
 ## Paso 7. Confirmar cierre real
 

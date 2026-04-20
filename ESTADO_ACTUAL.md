@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy para separar correctamente la deuda residual de `finance` entre caso legacy real y caso de metadata desalineada, y dejar evidencia mínima por tenant antes de tocar datos
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; `staging` sigue 4/4 limpio en convergencia crítica y `production` queda 4/4 con dos `notes` explícitas ya separadas: `finance_base_currency_mismatch:CLP!=USD` en `condominio-demo` y `legacy_finance_base_currency:USD` en `empresa-bootstrap`
+- foco de iteración: hardening transversal de convergencia post-deploy para cerrar el caso `metadata-only` de `finance` y dejar como única deuda residual el tenant legacy real de base `USD`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; `staging` sigue 4/4 limpio en convergencia crítica y `production` queda 4/4 con una sola `note` residual real: `legacy_finance_base_currency:USD` en `empresa-bootstrap`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -98,7 +98,7 @@
   - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya permite `--sync-env-file` para copiar el secreto válido hacia otro carril sin nueva rotación
   - resultado final:
     - `staging`: `processed=4`, `warnings=0`, `failed=0`
-    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'legacy_finance_base_currency:USD': 2}`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2` y la reclasificación posterior termina separando esas dos `notes` en `finance_base_currency_mismatch:CLP!=USD` y `legacy_finance_base_currency:USD`
 - reclasificación final de `finance` ya promovida:
   - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ya no intenta resembrar `finance` cuando el tenant tiene uso y solo conserva base legacy `USD`
   - la auditoría ya no informa `missing_finance_defaults:usage` para ese caso
@@ -211,6 +211,7 @@
 - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) distingue ya entre:
   - seed faltante real
   - `legacy_finance_base_currency:USD` con uso financiero
+  - `finance_base_currency_mismatch:CLP!=USD` cuando la base efectiva y el setting divergen
 - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya distingue en salida operativa:
   - drift recuperable con comando sugerido por tenant
   - ambiente sano con `tenants_with_notes`

@@ -144,6 +144,10 @@ class LegacyFinanceBaseCurrencyAuditTestCase(unittest.TestCase):
             self.assertEqual(result["base_currency_code"], "USD")
             self.assertEqual(result["base_setting_code"], "USD")
             self.assertEqual(result["transaction_counts_by_currency"], {"USD": 1})
+            self.assertEqual(
+                result["non_base_transaction_summary"]["missing_exchange_rate_count"],
+                0,
+            )
         finally:
             db.close()
 
@@ -249,8 +253,89 @@ class LegacyFinanceBaseCurrencyAuditTestCase(unittest.TestCase):
             result = assess_legacy_finance_base_currency(db)
 
             self.assertEqual(result["status"], "warning")
-            self.assertEqual(result["recommendation"], "repair_base_currency_mismatch")
+            self.assertEqual(result["recommendation"], "repair_base_currency_setting_only")
             self.assertEqual(result["audit_note"], "finance_base_currency_mismatch:USD!=CLP")
+        finally:
+            db.close()
+
+    def test_assess_reports_manual_review_when_mismatch_has_non_base_transactions_without_exchange_rate(self) -> None:
+        db = self._db()
+        try:
+            usd = FinanceCurrency(
+                code="USD",
+                name="US Dollar",
+                symbol="$",
+                decimal_places=2,
+                is_base=False,
+                is_active=True,
+                sort_order=10,
+            )
+            clp = FinanceCurrency(
+                code="CLP",
+                name="Peso Chileno",
+                symbol="$",
+                decimal_places=0,
+                is_base=True,
+                is_active=True,
+                sort_order=20,
+            )
+            db.add_all([usd, clp])
+            db.flush()
+            db.add(
+                FinanceSetting(
+                    setting_key="base_currency_code",
+                    setting_value="USD",
+                    is_active=True,
+                )
+            )
+            db.add_all(
+                [
+                    FinanceCategory(
+                        name="Ingreso General",
+                        category_type="income",
+                        is_active=True,
+                        sort_order=10,
+                    ),
+                    FinanceCategory(
+                        name="Mantenciones y servicios",
+                        category_type="expense",
+                        is_active=True,
+                        sort_order=20,
+                    ),
+                ]
+            )
+            db.add(
+                FinanceTransaction(
+                    transaction_type="income",
+                    account_id=None,
+                    target_account_id=None,
+                    category_id=None,
+                    beneficiary_id=None,
+                    person_id=None,
+                    project_id=None,
+                    currency_id=usd.id,
+                    amount=100,
+                    amount_in_base_currency=None,
+                    exchange_rate=None,
+                    description="Ingreso inconsistente",
+                    is_reconciled=False,
+                    is_voided=False,
+                )
+            )
+            db.commit()
+
+            result = assess_legacy_finance_base_currency(db)
+
+            self.assertEqual(result["status"], "warning")
+            self.assertEqual(result["recommendation"], "manual_migration_review")
+            self.assertEqual(
+                result["non_base_transaction_summary"]["missing_exchange_rate_count"],
+                1,
+            )
+            self.assertEqual(
+                result["non_base_transaction_summary"]["missing_base_amount_count"],
+                1,
+            )
         finally:
             db.close()
 

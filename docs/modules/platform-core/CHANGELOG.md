@@ -2,6 +2,17 @@
 
 ## 2026-04-20
 
+- se cierra el caso `metadata-only` de `condominio-demo` en finance:
+  - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora expone `non_base_transaction_summary` y puede recomendar `repair_base_currency_setting_only`
+  - se agrega [repair_finance_base_currency_mismatch.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_base_currency_mismatch.py) para alinear `base_currency_code` con la base efectiva solo cuando la evidencia es segura
+  - validación runtime:
+    - `staging`: `audit_legacy_finance_base_currency.py --tenant-slug condominio-demo` -> `recommendation=repair_base_currency_setting_only`
+    - `staging`: `repair_finance_base_currency_mismatch.py --tenant-slug condominio-demo --apply` -> `USD -> CLP`
+    - `production`: `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=1`, `notes_by_reason={'legacy_finance_base_currency:USD': 1}`
+  - conclusión operativa:
+    - `condominio-demo` deja de ser deuda activa
+    - `empresa-bootstrap` queda como único caso legacy `USD` real
+
 - se separa la deuda residual de `finance` en dos señales distintas en vez de mezclar ambos tenants como legacy `USD`:
   - se agrega [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) para auditar por tenant base efectiva, setting, uso y recomendación operativa
   - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ahora distingue `finance_base_currency_mismatch:CLP!=USD` de `legacy_finance_base_currency:USD`

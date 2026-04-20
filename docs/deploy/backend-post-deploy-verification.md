@@ -23,6 +23,7 @@ Esta guía define la verificación correcta después de desplegar backend en un 
 - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
 - [backend/app/scripts/repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py)
 - [backend/app/scripts/audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py)
+- [backend/app/scripts/repair_finance_base_currency_mismatch.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_base_currency_mismatch.py)
 
 ## Qué valida hoy
 
@@ -126,6 +127,25 @@ export PYTHONPATH=/opt/platform_paas/backend
 ```
 
 - la decisión pendiente pasa a ser de reparación de metadata/configuración o transición guiada, no de seed faltante
+
+Si el auditor específico devuelve `recommendation=repair_base_currency_setting_only`, la reparación canónica pasa a ser:
+
+```bash
+set -a
+source /opt/platform_paas/.env
+set +a
+export PYTHONPATH=/opt/platform_paas/backend
+./platform_paas_venv/bin/python backend/app/scripts/repair_finance_base_currency_mismatch.py \
+  --tenant-slug <slug> \
+  --apply
+```
+
+Después, revalidar con:
+
+```bash
+./platform_paas_venv/bin/python backend/app/scripts/audit_active_tenant_convergence.py \
+  --all-active --limit 100
+```
 
 Si la reparación se ejecuta en un solo carril y el mismo tenant se invalida en el otro:
 

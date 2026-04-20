@@ -72,9 +72,53 @@ def _list_currency_counter(tenant_db, model, field_name: str) -> dict[str, int]:
     return dict(sorted(counter.items()))
 
 
+def _summarize_non_base_transactions(
+    tenant_db,
+    *,
+    currency_by_id: dict[int, str],
+    base_currency_id: int | None,
+) -> dict:
+    query = (
+        tenant_db.query(FinanceTransaction)
+        .filter(FinanceTransaction.is_voided.is_(False))
+        .order_by(FinanceTransaction.id.asc())
+    )
+
+    total = 0
+    missing_exchange_rate = 0
+    missing_base_amount = 0
+    exchange_rates: set[float] = set()
+    currencies: Counter[str] = Counter()
+    sample_ids: list[int] = []
+
+    for item in query.all():
+        if base_currency_id is not None and item.currency_id == base_currency_id:
+            continue
+        total += 1
+        currencies[currency_by_id.get(item.currency_id, f"unknown:{item.currency_id}")] += 1
+        if item.exchange_rate is None or item.exchange_rate <= 0:
+            missing_exchange_rate += 1
+        else:
+            exchange_rates.add(round(float(item.exchange_rate), 6))
+        if item.amount_in_base_currency is None:
+            missing_base_amount += 1
+        if len(sample_ids) < 10:
+            sample_ids.append(item.id)
+
+    return {
+        "count": total,
+        "missing_exchange_rate_count": missing_exchange_rate,
+        "missing_base_amount_count": missing_base_amount,
+        "exchange_rates": sorted(exchange_rates),
+        "currencies": dict(sorted(currencies.items())),
+        "sample_transaction_ids": sample_ids,
+    }
+
+
 def assess_legacy_finance_base_currency(tenant_db) -> dict:
     currencies = tenant_db.query(FinanceCurrency).all()
     base_currency = next((item for item in currencies if item.is_base), None)
+    currency_by_id = {item.id: item.code.strip().upper() for item in currencies}
     base_setting = (
         tenant_db.query(FinanceSetting)
         .filter(FinanceSetting.setting_key == "base_currency_code")
@@ -95,6 +139,11 @@ def assess_legacy_finance_base_currency(tenant_db) -> dict:
     )
     account_counts = _list_currency_counter(tenant_db, FinanceAccount, "currency_id")
     transaction_counts = _list_currency_counter(tenant_db, FinanceTransaction, "currency_id")
+    non_base_transaction_summary = _summarize_non_base_transactions(
+        tenant_db,
+        currency_by_id=currency_by_id,
+        base_currency_id=base_currency.id if base_currency is not None else None,
+    )
 
     if base_currency_code == "CLP" and base_setting_code == "CLP" and audit_note is None:
         recommendation = "no_action"
@@ -103,7 +152,13 @@ def assess_legacy_finance_base_currency(tenant_db) -> dict:
         recommendation = "promote_clp_without_usage"
         status = "warning"
     elif base_currency_code != base_setting_code:
-        recommendation = "repair_base_currency_mismatch"
+        if (
+            non_base_transaction_summary["missing_exchange_rate_count"] == 0
+            and non_base_transaction_summary["missing_base_amount_count"] == 0
+        ):
+            recommendation = "repair_base_currency_setting_only"
+        else:
+            recommendation = "manual_migration_review"
         status = "warning"
     elif audit_note is not None and has_usage and base_currency_code == "USD":
         recommendation = "manual_migration_review"
@@ -120,6 +175,7 @@ def assess_legacy_finance_base_currency(tenant_db) -> dict:
         "base_setting_code": base_setting_code,
         "account_counts_by_currency": account_counts,
         "transaction_counts_by_currency": transaction_counts,
+        "non_base_transaction_summary": non_base_transaction_summary,
         "recommendation": recommendation,
     }
 
@@ -165,7 +221,7 @@ def main() -> int:
             print(
                 "{slug}: status={status} base_currency={base_currency} setting={setting} "
                 "has_usage={has_usage} note={note} recommendation={recommendation} "
-                "accounts={accounts} transactions={transactions}".format(
+                "accounts={accounts} transactions={transactions} non_base={non_base}".format(
                     slug=tenant.slug,
                     status=result["status"],
                     base_currency=result["base_currency_code"],
@@ -175,6 +231,7 @@ def main() -> int:
                     recommendation=result["recommendation"],
                     accounts=result["account_counts_by_currency"],
                     transactions=result["transaction_counts_by_currency"],
+                    non_base=result["non_base_transaction_summary"],
                 )
             )
 
