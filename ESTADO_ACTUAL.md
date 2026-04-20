@@ -62,6 +62,7 @@
   - check de memoria viva en [check_memory_viva_sync.py](/home/felipe/platform_paas/backend/app/scripts/check_memory_viva_sync.py)
   - gate de release en [check_release_governance.sh](/home/felipe/platform_paas/deploy/check_release_governance.sh)
   - runbook canónico de incidentes tenant en [tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md)
+  - prompt canónico de arranque multi-sesión en [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md)
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
   - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura

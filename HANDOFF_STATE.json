@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T12:10:00-04:00",
+  "updated_at": "2026-04-20T12:22:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal y ahora también enforcement mínimo para continuidad entre sesiones/IA: ADRs vigentes, check de memoria viva, gate de release y runbook canónico de incidentes tenant; el siguiente frente correcto sigue siendo hardening transversal de convergencia post-deploy y observabilidad tenant",
-  "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos y política E2E aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal y ahora también enforcement mínimo para continuidad entre sesiones/IA: ADRs vigentes, prompt maestro de sesión, check de memoria viva, gate de release y runbook canónico de incidentes tenant; el siguiente frente correcto sigue siendo hardening transversal de convergencia post-deploy y observabilidad tenant",
+  "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
   "active_modules": [
     "platform-core",
     "finance",
@@ -91,6 +91,7 @@
     "check_memory_viva_sync.py agregado para detectar incoherencias entre cambios relevantes y memoria viva",
     "check_release_governance.sh agregado como gate mínimo de release y cierre de slice relevante",
     "tenant-incident-response.md agregado como runbook canónico para distinguir runtime, schema, credenciales y drift tenant antes de reabrir slices funcionales",
+    "PROMPT_MAESTRO_SESION.md agregado como prompt maestro canónico de continuidad entre sesiones e IAs y enlazado desde PROJECT_CONTEXT.md y PROMPT_MAESTRO_MODULO.md",
     "production recuperado a 4/4 tenants activos auditados en verde tras rotar credenciales DB técnicas de condominio-demo e ieris-ltda y reejecutar convergencia completa",
     "staging recuperado a 4/4 tenants activos auditados en verde tras rotar credenciales DB técnicas de condominio-demo e ieris-ltda y reejecutar convergencia completa",
     "maintenance history finance summary ya distingue si el vínculo financiero quedó conciliado, anulado o incompleto; el estado ya quedó visible en Historial técnico y promovido a staging y production",
@@ -252,6 +253,7 @@
   ],
   "key_files_to_read_first": [
     "PROJECT_CONTEXT.md",
+    "PROMPT_MAESTRO_SESION.md",
     "SESION_ACTIVA.md",
     "PROMPT_MAESTRO_MODULO.md",
     "REGLAS_IMPLEMENTACION.md",

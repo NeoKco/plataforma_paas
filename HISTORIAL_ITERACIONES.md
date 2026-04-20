@@ -8,6 +8,9 @@
 - cambios y acciones ejecutadas:
   - se formalizan ADRs vigentes en:
     - [docs/architecture/adr/README.md](/home/felipe/platform_paas/docs/architecture/adr/README.md)
+  - se agrega prompt maestro canónico de arranque:
+    - [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md)
+  - [PROJECT_CONTEXT.md](/home/felipe/platform_paas/PROJECT_CONTEXT.md) y [PROMPT_MAESTRO_MODULO.md](/home/felipe/platform_paas/PROMPT_MAESTRO_MODULO.md) enlazan ya ese prompt como entrada oficial de continuidad
   - se agrega verificación de memoria viva:
     - [check_memory_viva_sync.py](/home/felipe/platform_paas/backend/app/scripts/check_memory_viva_sync.py)
   - se agrega gate de release normativo/técnico:
