@@ -1,5 +1,42 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Paquete normativo adicional para continuidad entre sesiones e IAs
+
+- objetivo:
+  - complementar la institucionalización previa de `Gobernanza de datos + SRED` con normas concretas de construcción, arquitectura, contratos, entornos y pruebas
+  - dejar un marco reutilizable para que otra IA o sesión futura pueda continuar sin depender solo de memoria viva
+- cambios y acciones ejecutadas:
+  - se agrega el estándar de ADRs:
+    - [docs/architecture/adr/README.md](/home/felipe/platform_paas/docs/architecture/adr/README.md)
+    - [docs/architecture/adr/TEMPLATE.md](/home/felipe/platform_paas/docs/architecture/adr/TEMPLATE.md)
+  - se agrega [api-contract-standard.md](/home/felipe/platform_paas/docs/architecture/api-contract-standard.md) como política formal de contratos API
+  - se agrega [schema-and-migration-policy.md](/home/felipe/platform_paas/docs/architecture/schema-and-migration-policy.md) como política de cambios estructurales, migraciones y backfills
+  - se agrega [environment-policy.md](/home/felipe/platform_paas/docs/architecture/environment-policy.md) como política explícita para `development`, `staging` y `production`
+  - se agrega [e2e-test-data-policy.md](/home/felipe/platform_paas/docs/architecture/e2e-test-data-policy.md) como norma de tenants permitidos/prohibidos, naming y cleanup de pruebas
+  - se enlaza el paquete desde:
+    - [docs/architecture/index.md](/home/felipe/platform_paas/docs/architecture/index.md)
+    - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+    - [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)
+    - [PROJECT_CONTEXT.md](/home/felipe/platform_paas/PROJECT_CONTEXT.md)
+    - [PROMPT_MAESTRO_MODULO.md](/home/felipe/platform_paas/PROMPT_MAESTRO_MODULO.md)
+    - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
+    - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
+- validaciones:
+  - revisión de referencias cruzadas entre reglas, contexto, roadmap y arquitectura
+  - limpieza de numeración duplicada en `REGLAS_IMPLEMENTACION.md`
+- resultado:
+  - la PaaS ya tiene un paquete normativo completo para continuidad:
+    - ownership
+    - spec mínima
+    - ADRs
+    - contratos API
+    - política de migraciones
+    - política de entornos
+    - política E2E/datos de prueba
+  - otra sesión o IA ya puede retomar con menos ambigüedad sobre cómo construir, cerrar y promover cambios
+- siguiente paso:
+  - usar este paquete normativo como base del frente siguiente del roadmap: hardening post-deploy, convergencia tenant y observabilidad
+
 ## 2026-04-20 - Institucionalización transversal de gobernanza de datos + SRED para toda la PaaS
 
 - objetivo:

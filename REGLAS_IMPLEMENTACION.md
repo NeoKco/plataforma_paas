@@ -258,6 +258,15 @@ Usar la estructura explícita de `PLANTILLA_ACTUALIZACION_ESTADO.md`.
 
 ## Regla 17. No cerrar una iteración sin declarar bloqueos reales
 
+Si una iteración no quedó totalmente cerrada, debe declararse explícitamente:
+
+- qué quedó pendiente
+- por qué quedó pendiente
+- si el bloqueo es técnico, operativo o de entorno
+- cuál es el siguiente paso correcto
+
+No dejar cierres ambiguos.
+
 ## Regla 18. Slice cerrado + reporte nuevo = revalidación, no reapertura automática
 
 Si un tema ya estaba cerrado y reaparece un reporte:
@@ -294,7 +303,7 @@ hasta que ocurra una de estas dos cosas:
 
 La memoria viva debe reflejar estado resuelto, no hipótesis intermedias.
 
-## Regla 18. Cambio correcto = promoción completa por ambiente y tenant
+## Regla 20. Cambio correcto = promoción completa por ambiente y tenant
 
 Si una modificación se declara correcta y válida para la PaaS, no basta con dejarla funcionando en `development` o en un solo tenant.
 
@@ -324,16 +333,7 @@ si todavía no quedó claro:
 - qué tenants quedaron convergidos
 - qué evidencia lo demuestra
 
-Si algo no pudo completarse, no dejarlo ambiguo.
-
-Hay que dejar explícito:
-
-- qué faltó
-- por qué faltó
-- si el bloqueo es técnico, operativo o de entorno
-- cuál es el siguiente paso correcto
-
-## Regla 18. El root debe ser suficiente para retomar
+## Regla 21. El root debe ser suficiente para retomar
 
 Una IA nueva debe poder entender desde el root, sin buscar demasiado:
 
@@ -345,7 +345,7 @@ Una IA nueva debe poder entender desde el root, sin buscar demasiado:
 
 Si eso no ocurre, hay que mejorar estos archivos antes de seguir abriendo trabajo nuevo.
 
-## Regla 19. Cambios de datos críticos deben respetar gobernanza de datos
+## Regla 22. Cambios de datos críticos deben respetar gobernanza de datos
 
 Si el cambio toca:
 
@@ -358,6 +358,7 @@ Si el cambio toca:
 
 entonces debe revisarse:
 
+- `docs/architecture/data-ownership-matrix.md`
 - `docs/architecture/data-governance.md`
 
 No corresponde cerrar ese cambio sin explicitar:
@@ -373,7 +374,7 @@ Regla operativa explícita para tenants:
 - si se destruye infraestructura o registro tenant, debe existir evidencia recuperable antes del borrado
 - la consola y la API deben exigir esa evidencia; no basta una advertencia visual
 
-## Regla 20. El cierre recomendado sigue `SRED`
+## Regla 23. El cierre recomendado sigue `SRED`
 
 Para cambios relevantes, el orden esperado es:
 
@@ -386,7 +387,7 @@ Referencia canónica:
 
 - `docs/architecture/sred-development.md`
 
-## Regla 21. Gobernanza de datos y `SRED` aplican a toda la PaaS
+## Regla 24. Gobernanza de datos y `SRED` aplican a toda la PaaS
 
 No aplican solo a módulos nuevos ni solo a trabajo funcional visible.
 
@@ -404,7 +405,7 @@ Aplican a:
 
 Si el trabajo cambia comportamiento real o continuidad operativa, entra en gobernanza y `SRED`.
 
-## Regla 22. Slice relevante = ownership + spec mínima antes de tocar código
+## Regla 25. Slice relevante = ownership + spec mínima antes de tocar código
 
 Antes de implementar un slice relevante debe existir, como mínimo:
 
@@ -413,7 +414,7 @@ Antes de implementar un slice relevante debe existir, como mínimo:
 
 Si el cambio no puede describirse con esas dos piezas, todavía no está listo para implementarse.
 
-## Regla 23. No cerrar mejoras transversales sin impacto institucionalizado
+## Regla 26. No cerrar mejoras transversales sin impacto institucionalizado
 
 Si una mejora se declara “para toda la PaaS”, no basta con que el código exista.
 
@@ -426,6 +427,57 @@ Debe quedar institucionalizada en:
 - roadmap si cambia prioridad o definición de cierre
 
 Si no quedó integrada ahí, sigue siendo una mejora local, no un estándar real del proyecto.
+
+## Regla 27. Toda decisión transversal aceptada debe dejar ADR o referencia equivalente
+
+Si una decisión cambia arquitectura, contratos, gobernanza o continuidad operativa de la PaaS, debe quedar registrada en:
+
+- un ADR en `docs/architecture/adr/`
+- o una referencia canónica equivalente si todavía no corresponde un ADR formal
+
+No dejar decisiones grandes solo en conversación o en commits.
+
+## Regla 28. Todo cambio de contrato debe respetar el estándar API
+
+Si se toca un endpoint, request, response, semántica de error o side effect:
+
+- revisar `docs/architecture/api-contract-standard.md`
+- asegurar compatibilidad o documentar ruptura explícita
+- dejar claro ownership y efectos colaterales
+
+## Regla 29. Todo cambio estructural debe respetar política de schema y migraciones
+
+Si el cambio toca tablas, columnas, constraints, seeds estructurales o backfills:
+
+- revisar `docs/architecture/schema-and-migration-policy.md`
+- no cerrar el cambio sin migración o justificación explícita
+- contemplar tenants existentes, no solo bootstrap nuevo
+
+## Regla 30. El entorno correcto forma parte de la evidencia correcta
+
+Todo cambio relevante debe respetar `docs/architecture/environment-policy.md`.
+
+Eso incluye:
+
+- propósito de `development`
+- propósito de `staging`
+- propósito de `production`
+- reglas de promoción por ambiente
+- restricciones de pruebas y datos
+
+`repo` correcto no equivale a `runtime` correcto.
+
+## Regla 31. E2E y datos de prueba deben respetar política explícita
+
+Toda prueba E2E, smoke o dato temporal debe respetar `docs/architecture/e2e-test-data-policy.md`.
+
+Esto incluye:
+
+- tenants permitidos
+- tenants prohibidos
+- nomenclatura de artefactos
+- limpieza obligatoria
+- prohibición de contaminar tenants operativos reales
 
 ## Checklist corto antes de cerrar cualquier iteración
 

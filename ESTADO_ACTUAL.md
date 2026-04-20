@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: institucionalización transversal de gobernanza de datos + `SRED` para toda la PaaS, dejando ownership explícito por dominio y spec mínima obligatoria para slices relevantes
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; además `staging` y `production` vuelven a quedar auditados en verde para todos los tenants activos y la PaaS ya tiene base formal de gobernanza/ownership/spec aplicable a todos los dominios
+- foco de iteración: institucionalización transversal de gobernanza de datos + `SRED` para toda la PaaS, extendida ahora con un paquete normativo formal de ADRs, contratos API, migraciones, entornos y política E2E
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; además `staging` y `production` vuelven a quedar auditados en verde para todos los tenants activos y la PaaS ya tiene base formal de gobernanza/ownership/spec + normas de construcción reutilizables en cualquier sesión o IA
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -51,6 +51,15 @@
   - `finance`
   - `agenda`
   - defaults, seeds, imports, exports, portabilidad, convergencia multi-tenant y promoción por ambiente
+- paquete normativo adicional ya institucionalizado:
+  - ADRs en `docs/architecture/adr/`
+  - estándar de contratos en [api-contract-standard.md](/home/felipe/platform_paas/docs/architecture/api-contract-standard.md)
+  - política estructural en [schema-and-migration-policy.md](/home/felipe/platform_paas/docs/architecture/schema-and-migration-policy.md)
+  - política de entornos en [environment-policy.md](/home/felipe/platform_paas/docs/architecture/environment-policy.md)
+  - política E2E/datos de prueba en [e2e-test-data-policy.md](/home/felipe/platform_paas/docs/architecture/e2e-test-data-policy.md)
+- resultado del paquete normativo:
+  - las decisiones transversales ya no dependen solo de changelog o memoria viva
+  - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura
 - `empresa-demo` funcionó antes que `ieris-ltda` porque ya había sido reparado/backfilleado; `ieris-ltda` seguía con drift técnico en su BD tenant
 - la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
 - `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica

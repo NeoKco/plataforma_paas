@@ -18,6 +18,23 @@
 - resultado:
   - ownership y cierre de cambios transversales dejan de depender solo de memoria narrativa
   - cualquier slice relevante ya puede ejecutarse bajo el criterio formal `ownership + spec + evidence + docs`
+- se agrega un segundo paquete normativo para que la construcción del software quede reutilizable también con otras sesiones o IAs:
+  - [docs/architecture/adr/README.md](/home/felipe/platform_paas/docs/architecture/adr/README.md) y [docs/architecture/adr/TEMPLATE.md](/home/felipe/platform_paas/docs/architecture/adr/TEMPLATE.md) como estándar de decisiones arquitectónicas persistentes
+  - [api-contract-standard.md](/home/felipe/platform_paas/docs/architecture/api-contract-standard.md) como política oficial de contratos backend/frontend
+  - [schema-and-migration-policy.md](/home/felipe/platform_paas/docs/architecture/schema-and-migration-policy.md) como política obligatoria de cambios estructurales y backfills
+  - [environment-policy.md](/home/felipe/platform_paas/docs/architecture/environment-policy.md) como norma formal de `development`, `staging` y `production`
+  - [e2e-test-data-policy.md](/home/felipe/platform_paas/docs/architecture/e2e-test-data-policy.md) como restricción explícita de tenants, naming y cleanup para pruebas
+  - el paquete queda enlazado desde:
+    - [docs/architecture/index.md](/home/felipe/platform_paas/docs/architecture/index.md)
+    - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+    - [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)
+    - [PROJECT_CONTEXT.md](/home/felipe/platform_paas/PROJECT_CONTEXT.md)
+    - [PROMPT_MAESTRO_MODULO.md](/home/felipe/platform_paas/PROMPT_MAESTRO_MODULO.md)
+    - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
+    - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
+- resultado adicional:
+  - la PaaS ya no solo tiene ownership y spec; ahora también tiene norma explícita de decisiones, contratos, migraciones, entornos y datos E2E
+  - otra IA o sesión futura puede continuar usando un paquete normativo más completo, no solo memoria viva
 
 - se revalida el incidente tenant reportado desde `Platform Admin -> Tenants` y `tenant-portal/login`:
   - la alarma inicial sobre `ieris-ltda` no correspondía a un tenant roto en runtime

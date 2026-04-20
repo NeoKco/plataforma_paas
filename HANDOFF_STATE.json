@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T13:10:00-04:00",
+  "updated_at": "2026-04-20T01:24:13-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya queda institucionalizada con gobernanza de datos + SRED como estándar transversal: ownership explícito por dominio, spec mínima oficial por slice relevante y cierre obligatorio con evidencia/documentación; con esa base, el siguiente frente correcto del roadmap sigue siendo hardening transversal de convergencia post-deploy y observabilidad tenant",
-  "project_phase": "ambos ambientes siguen convergidos y auditados en verde para los tenants activos; además el proyecto ya cuenta con ownership matrix y slice spec template aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia",
+  "current_focus": "La PaaS ya queda institucionalizada con gobernanza de datos + SRED como estándar transversal y ahora suma un paquete normativo completo de ADRs, contratos API, migraciones, entornos y política E2E; con esa base, el siguiente frente correcto del roadmap sigue siendo hardening transversal de convergencia post-deploy y observabilidad tenant",
+  "project_phase": "ambos ambientes siguen convergidos y auditados en verde para los tenants activos; además el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos y política E2E aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia",
   "active_modules": [
     "platform-core",
     "finance",
@@ -63,6 +63,7 @@
     "el proyecto ya tiene gobernanza de datos explicita y el criterio oficial de cierre relevante puede expresarse como SRED: Spec, Rules, Evidence, Documentation",
     "la gobernanza de datos y SRED ya no son criterio implícito: ahora son estándar transversal formal de toda la PaaS",
     "todo slice relevante o transversal debe poder mapearse en la matriz de ownership y debe usar la spec mínima oficial antes de ejecutarse",
+    "la continuidad del proyecto con otras sesiones o IAs ahora también queda normada con ADRs, estándar de contratos API, política de schema/migraciones, política de entornos y política E2E/datos de prueba",
     "si hay costos reales > 0 y se sincroniza el ingreso, el egreso debe generarse siempre",
     "las líneas de costo deben poder excluirse del egreso",
     "auto_on_close no puede persistirse con ingreso y egreso automáticos ambos apagados",

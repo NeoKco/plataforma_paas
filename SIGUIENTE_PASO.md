@@ -17,6 +17,11 @@
 - gobernanza transversal ya institucionalizada:
   - usar [data-ownership-matrix.md](/home/felipe/platform_paas/docs/architecture/data-ownership-matrix.md) para cualquier cambio que toque datos, ownership o integraciones entre módulos
   - usar [slice-spec-template.md](/home/felipe/platform_paas/docs/architecture/slice-spec-template.md) para cualquier slice relevante, transversal o de riesgo operativo real
+  - usar ADRs en `docs/architecture/adr/` cuando la decisión cambie arquitectura o continuidad operativa
+  - respetar [api-contract-standard.md](/home/felipe/platform_paas/docs/architecture/api-contract-standard.md) en cambios de request/response/errores/side effects
+  - respetar [schema-and-migration-policy.md](/home/felipe/platform_paas/docs/architecture/schema-and-migration-policy.md) en cambios estructurales o backfills
+  - respetar [environment-policy.md](/home/felipe/platform_paas/docs/architecture/environment-policy.md) para distinguir correctamente `development`, `staging` y `production`
+  - respetar [e2e-test-data-policy.md](/home/felipe/platform_paas/docs/architecture/e2e-test-data-policy.md) para no contaminar tenants operativos con pruebas
   - no volver a cerrar cambios grandes solo con criterio implícito; ahora el estándar oficial es `ownership + spec + evidence + docs`
 
 ## Próximo paso correcto
@@ -41,7 +46,7 @@
       - tenant convergido
     - mejorar la visibilidad operativa del estado tenant en la consola admin sin depender de errores genéricos `Internal server error`
     - dejar explícito qué módulos aportan eventos a la nueva `Agenda` general y cómo se habilitan tenant-side sin volver a duplicar navegación por módulo
-    - ejecutar ese frente ya usando la nueva spec mínima oficial y dejando ownership explícito del dato técnico que se toca
+    - ejecutar ese frente ya usando la nueva spec mínima oficial, el ownership explícito del dato técnico que se toca y el paquete normativo nuevo de ADR/API/schema/env/E2E
 - mantener como regla ya cerrada del lifecycle tenant:
   - no borrar tenant archivado/unprovisioned sin export portable completado del mismo tenant
   - no tratar `functional_data_only` como restauración `1:1`
