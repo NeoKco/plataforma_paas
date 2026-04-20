@@ -1,5 +1,37 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-19 - Agenda tenant-side separada de Mantenciones y promovida como módulo lateral propio
+
+- objetivo:
+  - sacar `Agenda` del subnav interno de `Mantenciones`
+  - dejar `Agenda` como módulo más dentro de la barra lateral tenant
+  - mantener la agenda actual operativa usando como primera fuente el calendario de `maintenance`, sin duplicar lógica
+- cambios y acciones ejecutadas:
+  - [TenantSidebarNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/layout/TenantSidebarNav.tsx) agrega la entrada lateral `Agenda`
+  - [module-visibility.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/utils/module-visibility.ts) incorpora la sección `agenda`, visible hoy cuando `maintenance` está habilitado
+  - [AppRouter.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/routes/AppRouter.tsx) agrega la ruta tenant-side `tenant-portal/agenda`
+  - [TenantAgendaPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/agenda/TenantAgendaPage.tsx) crea la página wrapper de agenda general
+  - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx) soporta `renderAsGlobalAgenda` para reutilizar el calendario de mantenciones en modo transversal
+  - [MaintenanceModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceModuleNav.tsx) elimina `Agenda` del submódulo `maintenance`
+- validaciones:
+  - `cd frontend && npm run build` -> `OK`
+  - build production:
+    - `API_BASE_URL=https://orkestia.ddns.net RUN_NPM_INSTALL=false bash deploy/build_frontend.sh` -> `OK`
+  - build staging:
+    - `API_BASE_URL=http://192.168.7.42:8081 ALLOW_STAGING_API=1 RUN_NPM_INSTALL=false bash deploy/build_frontend.sh` -> `OK`
+  - publicación real en runtimes:
+    - `production`: `/opt/platform_paas/frontend/dist`
+    - `staging`: `/opt/platform_paas_staging/frontend/dist`
+  - assets publicados verificados:
+    - `TenantAgendaPage-*.js`
+    - `MaintenanceCalendarPage-*.js`
+- resultado:
+  - `Agenda` ya aparece como módulo lateral propio del portal tenant
+  - `Mantenciones` ya no expone `Agenda` dentro de su navegación interna
+  - la agenda general queda lista para sumar eventos de otros módulos más adelante sin volver a mover la navegación principal
+- siguiente paso:
+  - seguir el roadmap central sobre hardening transversal y observabilidad tenant
+
 ## 2026-04-19 - Saneamiento multi-tenant por ambiente para dejar todos los tenants activos operativos
 
 - objetivo:

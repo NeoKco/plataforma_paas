@@ -2,10 +2,15 @@
 
 ## Prioridad vigente
 
-- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, y los cuatro tenants activos vuelven a auditar en verde en ambos ambientes
+- sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; `Agenda` ya quedó promovida como módulo lateral propio del portal tenant y el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, con los cuatro tenants activos auditando en verde en ambos ambientes
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
+- en `tenant_portal`, `Agenda` ya quedó separada de `Mantenciones`:
+  - ruta propia `tenant-portal/agenda`
+  - entrada propia en la barra lateral
+  - fuente actual: calendario operativo de `maintenance`
+  - siguiente evolución natural: agregar fuentes de otros módulos cuando existan contratos reales
 
 ## Próximo paso correcto
 
@@ -28,6 +33,7 @@
       - tenant roto por drift
       - tenant convergido
     - mejorar la visibilidad operativa del estado tenant en la consola admin sin depender de errores genéricos `Internal server error`
+    - dejar explícito qué módulos aportan eventos a la nueva `Agenda` general y cómo se habilitan tenant-side sin volver a duplicar navegación por módulo
 - mantener como regla ya cerrada del lifecycle tenant:
   - no borrar tenant archivado/unprovisioned sin export portable completado del mismo tenant
   - no tratar `functional_data_only` como restauración `1:1`

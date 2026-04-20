@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-19T23:35:00-04:00",
+  "updated_at": "2026-04-19T23:58:00-04:00",
   "handoff_status": "active",
-  "current_focus": "production y staging quedaron nuevamente convergidos en 4/4 tenants activos tras reparar drift de credenciales DB en condominio-demo e ieris-ltda; el siguiente paso correcto del roadmap es hardening transversal de convergencia post-deploy y observabilidad tenant",
-  "project_phase": "ambos ambientes quedaron promovidos y auditados en verde para los tenants activos; el frente inmediato ya no es reparar tenants caídos sino endurecer la detección y recuperación de drift tenant-local",
+  "current_focus": "Agenda ya quedó promovida como módulo lateral propio del portal tenant en staging y production, reutilizando el calendario operativo de maintenance como primera fuente; el siguiente paso correcto del roadmap vuelve a ser hardening transversal de convergencia post-deploy y observabilidad tenant",
+  "project_phase": "ambos ambientes siguen convergidos y auditados en verde para los tenants activos; el último slice funcional separó Agenda de Mantenciones a nivel de navegación tenant-side y el frente inmediato vuelve a ser endurecer la detección y recuperación de drift tenant-local",
   "active_modules": [
     "platform-core",
     "finance",
@@ -68,8 +68,14 @@
     "un cambio correcto para la PaaS no se considera cerrado si solo funciona en repo, en un tenant o en un ambiente; debe quedar promovido, convergido, auditado, probado y documentado en todos los ambientes/tenants afectados",
     "no se puede borrar definitivamente un tenant archivado/unprovisioned sin export portable completado del mismo tenant y confirmacion explicita del slug",
     "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales"
+    ,
+    "Agenda tenant-side deja de colgar de Mantenciones y pasa a ser una entrada lateral propia del portal; hoy se alimenta del calendario operativo de maintenance y queda lista para sumar otros modulos despues"
   ],
   "completed_recently": [
+    "Agenda ya aparece como modulo lateral propio del portal tenant y deja de mostrarse dentro del nav interno de Mantenciones",
+    "TenantAgendaPage agregado sobre la ruta tenant-portal/agenda reutilizando MaintenanceCalendarPage en modo global",
+    "frontend production publicado con la nueva Agenda tenant-side y assets TenantAgendaPage/MaintenanceCalendarPage verificados",
+    "frontend staging publicado con la nueva Agenda tenant-side y assets TenantAgendaPage/MaintenanceCalendarPage verificados",
     "production recuperado a 4/4 tenants activos auditados en verde tras rotar credenciales DB técnicas de condominio-demo e ieris-ltda y reejecutar convergencia completa",
     "staging recuperado a 4/4 tenants activos auditados en verde tras rotar credenciales DB técnicas de condominio-demo e ieris-ltda y reejecutar convergencia completa",
     "maintenance history finance summary ya distingue si el vínculo financiero quedó conciliado, anulado o incompleto; el estado ya quedó visible en Historial técnico y promovido a staging y production",
@@ -195,7 +201,7 @@
     "validar en empresa-demo el flujo nominal con una OT nueva post-fix",
     "falta observabilidad explícita de finance_sync_error en maintenance_cost_actuals"
   ],
-  "next_decision_required": "confirmar validación UI en empresa-demo con una OT nueva",
+  "next_decision_required": "abrir el siguiente corte del roadmap sobre hardening transversal de convergencia post-deploy y observabilidad tenant",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

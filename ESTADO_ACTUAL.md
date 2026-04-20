@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-19
-- foco de iteración: cerrar el saneamiento multi-tenant por ambiente, dejar `production` y `staging` operativos en `4/4` tenants activos y mover el roadmap al siguiente frente de hardening transversal
-- estado general: `production` y `staging` quedaron nuevamente convergidos y auditados en verde para los 4 tenants activos; el incidente visible de `ieris-ltda` en `Platform Admin -> Tenants` se resolvió rotando credenciales DB tenant rotas y reejecutando convergencia completa en ambos ambientes
+- foco de iteración: mover `Agenda` fuera del submódulo `Mantenciones` y dejarla como módulo lateral propio del portal tenant, publicado en `staging` y `production`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; la navegación específica del módulo `maintenance` ya no expone la pestaña `Agenda`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -102,6 +102,12 @@
     - `Tipo de tarea` se cambia correctamente
     - en `Mantenciones abiertas` viene por defecto `mantencion`
     - ese comportamiento ahora es el esperado y correcto
+- `Agenda` tenant-side ya dejó de colgar de `Mantenciones` y pasa a ser módulo lateral propio:
+  - nueva ruta `tenant-portal/agenda`
+  - entrada visible en la barra lateral tenant
+  - la página reutiliza hoy la agenda/calendario de `Mantenciones` como primera fuente operativa
+  - `MaintenanceModuleNav` ya no incluye el botón `Agenda`
+  - el módulo queda preparado para sumar eventos de otros dominios en siguientes cortes
 
 ## Qué ya quedó hecho
 
@@ -156,6 +162,11 @@
 - [work_order_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/services/work_order_service.py) ahora prioriza `payload.finance_sync` al completar una OT y solo cae al auto-sync por política si el cierre no trae configuración financiera explícita
 - [common.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/maintenance/schemas/common.py) extiende `MaintenanceStatusUpdateRequest` con `finance_sync`
 - [workOrdersService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/services/workOrdersService.ts) soporta `finance_sync` en `PATCH /status`
+- [TenantSidebarNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/layout/TenantSidebarNav.tsx) ya expone `Agenda` como módulo lateral propio del portal tenant
+- [TenantAgendaPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/agenda/TenantAgendaPage.tsx) agrega la envoltura tenant-side de agenda general
+- [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx) soporta modo global `renderAsGlobalAgenda` para mostrar la agenda como entrada transversal del portal
+- [MaintenanceModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceModuleNav.tsx) elimina la pestaña `Agenda` del submódulo `maintenance`
+- [module-visibility.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/utils/module-visibility.ts) agrega la sección `agenda`, actualmente visible cuando `maintenance` está habilitado
 - [repair_maintenance_finance_dimensions.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_dimensions.py) fue reejecutado en ambos ambientes para completar cuentas/categorías faltantes en transacciones históricas de mantenciones
 - la regla de promoción completa quedó escrita en:
   - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)

@@ -2,6 +2,15 @@
 
 ## 2026-04-19
 
+- `Agenda` deja de vivir dentro del nav interno de `Mantenciones` y pasa a ser una entrada lateral propia del portal tenant
+- se agrega [TenantAgendaPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/agenda/TenantAgendaPage.tsx) para reutilizar el calendario operativo de `maintenance` en modo general
+- [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx) soporta `renderAsGlobalAgenda`
+- [MaintenanceModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceModuleNav.tsx) elimina `Agenda` del submódulo `maintenance`
+- [TenantSidebarNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/layout/TenantSidebarNav.tsx) agrega la navegación lateral tenant-side para `Agenda`
+- validación:
+  - `cd frontend && npm run build` -> `OK`
+  - frontend publicado en `staging` y `production`
+
 - `Cerrar con costos` ya usa un cierre atómico backend:
   - guarda costo real
   - marca la OT como `completed`
