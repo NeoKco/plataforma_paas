@@ -32,8 +32,8 @@ from app.common.policies.tenant_plan_policy_service import (  # noqa: E402
 )
 from app.common.db.control_database import ControlSessionLocal  # noqa: E402
 from app.scripts.seed_missing_tenant_defaults import (  # noqa: E402
+    get_finance_defaults_status,
     _needs_core_seed,
-    _needs_finance_seed,
 )
 
 
@@ -186,8 +186,16 @@ def _audit_single_tenant(tenant) -> dict:
         needs_core_seed = should_check_core_defaults and _needs_core_seed(tenant_db)
         needs_finance_seed = False
         finance_seed_reason: str | None = None
+        finance_audit_note: str | None = None
         if should_check_finance_defaults:
-            needs_finance_seed, finance_seed_reason = _needs_finance_seed(tenant_db, force=False)
+            finance_status = get_finance_defaults_status(tenant_db, force=False)
+            needs_finance_seed = bool(finance_status["needs_seed"])
+            finance_seed_reason = str(finance_status["seed_reason"])
+            finance_audit_note = (
+                str(finance_status["audit_note"])
+                if finance_status["audit_note"] is not None
+                else None
+            )
         unsynced_work_order_ids = _find_unsynced_work_order_ids(tenant_db)
         history_payload_ok, history_error = _audit_history_payload(tenant_db)
 
@@ -197,6 +205,8 @@ def _audit_single_tenant(tenant) -> dict:
             notes.append("missing_core_defaults")
         if needs_finance_seed:
             notes.append(f"missing_finance_defaults:{finance_seed_reason}")
+        elif finance_audit_note:
+            notes.append(finance_audit_note)
         if unsynced_work_order_ids:
             critical_issues.append(
                 f"unsynced_completed_work_orders:{len(unsynced_work_order_ids)}"

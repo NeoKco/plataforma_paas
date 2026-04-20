@@ -103,6 +103,12 @@ Además, desde este corte el gate deja dos lecturas operativas separadas:
 - `WARNING` con sugerencia de comando cuando detecta drift recuperable por `invalid_db_credentials` o `schema_incomplete`
 - `NOTICE` cuando el ambiente queda sano pero todavía arrastra `notes` no críticas de defaults o convergencia parcial
 
+Desde este corte, una `note` como `legacy_finance_base_currency:USD` significa algo distinto a un seed faltante:
+
+- el tenant tiene uso financiero y conserva `USD` como base legacy
+- el gate ya no intenta resembrar `finance` inútilmente en cada deploy
+- la decisión pendiente pasa a ser de migración/compatibilidad, no de convergencia básica
+
 Si la reparación se ejecuta en un solo carril y el mismo tenant se invalida en el otro:
 
 - no asumir dos incidentes distintos

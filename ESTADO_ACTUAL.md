@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy para separar ruido legacy de `business-core`, distinguir `failed` críticos de `notes` no críticas y sincronizar credenciales tenant entre carriles sin nueva rotación cuando el rol PostgreSQL es compartido
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; `staging` queda 4/4 limpio y `production` queda 4/4 con solo dos `notes` reales de `finance`, sin drift cruzado de credenciales entre carriles
+- foco de iteración: hardening transversal de convergencia post-deploy para reclasificar correctamente la deuda legacy de `finance` y dejar explícito que ya no es un problema de seed faltante, sino una decisión pendiente de migración/compatibilidad
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; `staging` queda 4/4 limpio y `production` queda 4/4 con solo dos `notes` legacy explícitas `legacy_finance_base_currency:USD`, sin drift cruzado de credenciales entre carriles
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -98,7 +98,11 @@
   - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya permite `--sync-env-file` para copiar el secreto válido hacia otro carril sin nueva rotación
   - resultado final:
     - `staging`: `processed=4`, `warnings=0`, `failed=0`
-    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'missing_finance_defaults:usage': 2}`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'legacy_finance_base_currency:USD': 2}`
+- reclasificación final de `finance` ya promovida:
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ya no intenta resembrar `finance` cuando el tenant tiene uso y solo conserva base legacy `USD`
+  - la auditoría ya no informa `missing_finance_defaults:usage` para ese caso
+  - el estado pendiente se expresa ahora como `legacy_finance_base_currency:USD`
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
   - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura
@@ -199,6 +203,9 @@
   - `BusinessFunctionProfile`
   - `BusinessTaskType`
 - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya puede replicar la credencial tenant válida hacia otro archivo de secrets con `--sync-env-file`
+- [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) distingue ya entre:
+  - seed faltante real
+  - `legacy_finance_base_currency:USD` con uso financiero
 - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya distingue en salida operativa:
   - drift recuperable con comando sugerido por tenant
   - ambiente sano con `tenants_with_notes`

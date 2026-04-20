@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
 
 from app.scripts.audit_active_tenant_convergence import (
     build_audit_summary,
@@ -10,9 +11,51 @@ from app.scripts.repair_tenant_operational_drift import (
     should_rotate_db_credentials,
     sync_tenant_db_password_to_env_files,
 )
+from app.scripts.seed_missing_tenant_defaults import get_finance_defaults_status
 
 
 class TenantOperationalDriftScriptsTestCase(unittest.TestCase):
+    def test_get_finance_defaults_status_marks_legacy_base_currency_with_usage_as_note_only(self) -> None:
+        fake_db = Mock()
+
+        def query_side_effect(model):
+            query = Mock()
+            model_name = getattr(model, "__name__", None)
+            if model_name is None:
+                model_name = getattr(getattr(model, "class_", None), "__name__", None)
+
+            if model_name == "FinanceTransaction":
+                query.first.return_value = object()
+                return query
+            if model_name in {"FinanceBudget", "FinanceAccount"}:
+                query.first.return_value = None
+                return query
+            if model_name == "FinanceCategory":
+                query.all.return_value = [
+                    Mock(name="Ingreso General"),
+                    Mock(name="Mantenciones y servicios"),
+                ]
+                query.all.return_value[0].name = "Ingreso General"
+                query.all.return_value[1].name = "Mantenciones y servicios"
+                return query
+            if model_name == "FinanceCurrency":
+                query.filter.return_value.first.return_value = Mock(is_active=True)
+                return query
+            if model_name == "FinanceSetting":
+                query.filter.return_value.first.return_value = Mock(
+                    setting_value="USD"
+                )
+                return query
+            raise AssertionError(model_name)
+
+        fake_db.query.side_effect = query_side_effect
+
+        status = get_finance_defaults_status(fake_db, force=False)
+
+        self.assertFalse(status["needs_seed"])
+        self.assertEqual(status["seed_reason"], "legacy_base_currency_with_usage")
+        self.assertEqual(status["audit_note"], "legacy_finance_base_currency:USD")
+
     def test_sync_tenant_db_password_to_env_files_writes_secret(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             target = Path(temp_dir) / ".tenant-secrets.env"

@@ -48,6 +48,8 @@ DEFAULT_FINANCE_SENTINELS = {
     "Empresa - Alimentacion",
 }
 
+LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX = "legacy_finance_base_currency"
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -94,7 +96,7 @@ def _needs_core_seed(db) -> bool:
     return bool(missing_profiles or missing_tasks)
 
 
-def _needs_finance_seed(db, *, force: bool) -> tuple[bool, str]:
+def get_finance_defaults_status(db, *, force: bool) -> dict[str, str | bool | None]:
     has_usage = _has_finance_usage(db)
     categories = db.query(FinanceCategory).all()
     category_names = {item.name.strip() for item in categories}
@@ -110,13 +112,51 @@ def _needs_finance_seed(db, *, force: bool) -> tuple[bool, str]:
         .first()
     )
     clp_ok = clp is not None and clp.is_active
-    base_ok = base_setting is not None and base_setting.setting_value.strip().upper() == "CLP"
+    base_currency_code = (
+        base_setting.setting_value.strip().upper()
+        if base_setting is not None and base_setting.setting_value
+        else None
+    )
+    base_ok = base_currency_code == "CLP"
 
     if has_usage:
-        return (missing_sentinel or not clp_ok or not base_ok), "usage"
+        if missing_sentinel or not clp_ok:
+            return {
+                "needs_seed": True,
+                "seed_reason": "usage",
+                "audit_note": None,
+            }
+        if not base_ok:
+            return {
+                "needs_seed": False,
+                "seed_reason": "legacy_base_currency_with_usage",
+                "audit_note": (
+                    f"{LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX}:{base_currency_code or 'unknown'}"
+                ),
+            }
+        return {
+            "needs_seed": False,
+            "seed_reason": "usage_complete",
+            "audit_note": None,
+        }
+
     if categories and not force:
-        return False, "skip_categories_no_usage"
-    return (missing_sentinel or not clp_ok or not base_ok or not categories), "no_usage"
+        return {
+            "needs_seed": False,
+            "seed_reason": "skip_categories_no_usage",
+            "audit_note": None,
+        }
+
+    return {
+        "needs_seed": (missing_sentinel or not clp_ok or not base_ok or not categories),
+        "seed_reason": "no_usage",
+        "audit_note": None,
+    }
+
+
+def _needs_finance_seed(db, *, force: bool) -> tuple[bool, str]:
+    status = get_finance_defaults_status(db, force=force)
+    return bool(status["needs_seed"]), str(status["seed_reason"])
 
 
 def main() -> int:

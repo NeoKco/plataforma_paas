@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Reclasificación de `finance` legacy para dejar de intentar seeds inútiles post-deploy
+
+- objetivo:
+  - dejar de tratar como defaults faltantes a tenants con uso financiero que solo conservan base legacy `USD`
+  - convertir esa condición en una `note` explícita de compatibilidad/migración
+- cambios y acciones ejecutadas:
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) distingue ahora entre:
+    - faltante real de baseline
+    - `legacy_finance_base_currency:USD`
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) usa esa nueva semántica en vez de `missing_finance_defaults:usage`
+  - se amplía [test_tenant_operational_drift_scripts.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_operational_drift_scripts.py)
+- validaciones:
+  - local:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` + `backend.app.tests.test_tenant_db_bootstrap_service` -> `11 tests OK`
+    - `py_compile` -> `OK`
+  - `staging`:
+    - deploy backend publicado con `528 tests OK`
+    - `seed_missing_tenant_defaults.py --apply` -> `processed=4`, `changed=0`, `failed=0`
+    - auditoría final -> `processed=4`, `warnings=0`, `failed=0`
+  - `production`:
+    - deploy backend publicado con `528 tests OK`
+    - `seed_missing_tenant_defaults.py --apply` -> `processed=4`, `changed=0`, `failed=0`
+    - auditoría final -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'legacy_finance_base_currency:USD': 2}`
+- resultado:
+  - el deploy ya no intenta resembrar `finance` cuando el tenant solo conserva base legacy `USD`
+  - la deuda residual queda expresada como decisión de migración/compatibilidad y no como seed faltante
+- siguiente paso:
+  - decidir si esos tenants deben migrarse a base `CLP`, mantenerse legacy o exponer una acción operativa explícita para esa transición
+
 ## 2026-04-20 - Backfill de `code` legacy en business-core y sincronización cross-env del secreto tenant
 
 - objetivo:

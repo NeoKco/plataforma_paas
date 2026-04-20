@@ -26,6 +26,13 @@
   - estado final:
     - `staging`: `processed=4`, `warnings=0`, `failed=0`
     - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`
+- subcorte adicional ya cerrado en runtime:
+  - `missing_finance_defaults:usage` ya no se usa para tenants con uso financiero y base legacy `USD`
+  - `seed_missing_tenant_defaults.py` deja de intentar un seed inútil en ese caso
+  - la auditoría lo expresa ahora como `legacy_finance_base_currency:USD`
+  - validación final:
+    - `staging` -> `changed=0`, sin `notes`
+    - `production` -> `changed=0`, `notes_by_reason={'legacy_finance_base_currency:USD': 2}`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -71,7 +78,7 @@
 - siguiente frente recomendado del roadmap:
   - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
   - objetivos concretos del siguiente corte:
-    - decidir el tratamiento final de `missing_finance_defaults:usage`, porque ya quedó aislado como única `note` residual real
+    - decidir el tratamiento final de `legacy_finance_base_currency:USD`, porque ya quedó aislado como única `note` residual real
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

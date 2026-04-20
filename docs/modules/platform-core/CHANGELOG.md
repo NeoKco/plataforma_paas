@@ -2,6 +2,18 @@
 
 ## 2026-04-20
 
+- se reclasifica la última `note` residual de finance para no mezclar deuda legacy con defaults faltantes:
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ya no pide seed cuando el tenant tiene uso financiero y lo único pendiente es base legacy `USD`
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora informa `legacy_finance_base_currency:USD` en vez de `missing_finance_defaults:usage`
+  - validación runtime:
+    - `staging`: `seed_missing_tenant_defaults.py --apply` -> `changed=0`
+    - `staging`: `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+    - `production`: `seed_missing_tenant_defaults.py --apply` -> `changed=0`
+    - `production`: `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'legacy_finance_base_currency:USD': 2}`
+  - conclusión operativa:
+    - ya no queda un problema de convergencia básica en `finance`
+    - queda una decisión pendiente de migración/compatibilidad para tenants legacy con base `USD`
+
 - se corrige el falso `missing_core_defaults` en tenants legacy:
   - [tenant_db_bootstrap_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/tenant_db_bootstrap_service.py) ahora canoniza `code` cuando encuentra perfiles o tipos de tarea legacy por `name`
   - esto elimina notas falsas en tenants que ya tenían el catálogo funcional pero arrastraban códigos placeholder

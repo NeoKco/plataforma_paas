@@ -116,6 +116,13 @@ Si al rotar en `staging` se rompe `production` o viceversa:
 - no volver a rotar dos veces por reflejo
 - preferir sincronizar el `TENANT_DB_PASSWORD__<SLUG>` válido hacia el `TENANT_SECRETS_FILE` del otro ambiente
 
+Si el audit muestra `legacy_finance_base_currency:USD`:
+
+- no tratarlo como `missing defaults`
+- significa que el tenant ya tiene uso financiero y sigue operando con base legacy `USD`
+- el seed post-deploy ya no intenta corregirlo automáticamente
+- el siguiente paso correcto es decidir una migración guiada de moneda base o aceptar la convivencia legacy
+
 ## Paso 7. Confirmar cierre real
 
 No dar el incidente por cerrado sin:
