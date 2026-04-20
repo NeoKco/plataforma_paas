@@ -14,6 +14,7 @@ Esta seccion agrupa procedimientos operativos y pasos repetibles para trabajar c
 - [Flujo diario de trabajo](./daily-workflow.md): rutina corta para arrancar, validar cambios, decidir pruebas manuales y cerrar el dia sin perder orden.
 - [Catalogo de variables de entorno backend](./backend-env-catalog.md): resumen por categoria de las variables de runtime y operacion del backend.
 - [Demo data y seeds de desarrollo](./demo-data.md): carga reproducible de tenants y datos de ejemplo para demos y validacion manual.
+- [Respuesta a incidentes tenant](./tenant-incident-response.md): diagnóstico y recuperación canónica cuando un tenant parece roto por schema, credenciales, runtime o drift.
 - [Ciclo basico de tenants](./tenant-basic-cycle.md): alta, catalogo, filtros, identidad basica y archivo operativo desde `platform_admin`.
 - [Ciclo basico de usuarios de plataforma](./platform-users-cycle.md): alta, edicion, activacion y reset de contraseña de operadores de la consola central.
 - [Ciclo de vida de la cuenta raiz](./platform-root-account-lifecycle.md): nacimiento, conservacion y recuperacion del `superadmin` sin depender de seeds.

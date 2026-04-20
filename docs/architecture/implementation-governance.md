@@ -20,6 +20,11 @@ Debe leerse junto con:
 - [Matriz de ownership de datos](./data-ownership-matrix.md)
 - [SRED Driven Development](./sred-development.md)
 - [Plantilla oficial de spec por slice](./slice-spec-template.md)
+- [ADRs del proyecto](./adr/README.md)
+- [Estandar de contratos API](./api-contract-standard.md)
+- [Política de schema y migraciones](./schema-and-migration-policy.md)
+- [Política de entornos](./environment-policy.md)
+- [Política E2E y datos de prueba](./e2e-test-data-policy.md)
 - [Estandar de construccion de modulos](./module-build-standard.md)
 - [Convencion modular por slice](./module-slice-convention.md)
 - [Estructura raiz del proyecto](./project-structure.md)
@@ -70,6 +75,12 @@ Por eso el estándar de cierre exige:
 - convergencia post-deploy
 - auditoría activa por tenant
 - documentación explícita del estado resultante
+
+Paquete mínimo de enforcement asociado:
+
+- [check_release_governance.sh](../../deploy/check_release_governance.sh)
+- [check_memory_viva_sync.py](../../backend/app/scripts/check_memory_viva_sync.py)
+- [Respuesta a incidentes tenant](../runbooks/tenant-incident-response.md)
 
 ## Aplicacion transversal a toda la PaaS
 
@@ -133,6 +144,22 @@ Además, cualquier slice relevante debe poder describirse con dos piezas mínima
 - spec mínima siguiendo la [Plantilla oficial de spec por slice](./slice-spec-template.md)
 
 Si el cambio no calza limpio en un modulo existente, primero hay que aclarar la frontera del dominio en `docs/architecture/` o `docs/modules/<modulo>/`.
+
+## Enforcement mínimo obligatorio
+
+La gobernanza ya no se considera solo declarativa. Debe tener verificación operativa.
+
+Antes de cerrar un slice relevante o promover un release:
+
+- ejecutar [check_release_governance.sh](../../deploy/check_release_governance.sh)
+- confirmar que la memoria viva acompaña los cambios relevantes de código o runtime
+- confirmar que `HANDOFF_STATE.json` sigue válido
+- usar [Respuesta a incidentes tenant](../runbooks/tenant-incident-response.md) cuando la duda sea de runtime, tenant drift, credenciales técnicas o caché
+
+Corolarios:
+
+- código correcto sin memoria viva sincronizada no se considera cierre correcto
+- incidente tenant no autoriza reabrir un slice funcional hasta distinguir runtime, schema, credenciales o caché
 
 ## Reglas de Implementacion
 

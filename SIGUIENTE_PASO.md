@@ -27,6 +27,9 @@
   - respetar [environment-policy.md](/home/felipe/platform_paas/docs/architecture/environment-policy.md) para distinguir correctamente `development`, `staging` y `production`
   - respetar [e2e-test-data-policy.md](/home/felipe/platform_paas/docs/architecture/e2e-test-data-policy.md) para no contaminar tenants operativos con pruebas
   - no volver a cerrar cambios grandes solo con criterio implícito; ahora el estándar oficial es `ownership + spec + evidence + docs`
+  - pasar el gate [check_release_governance.sh](/home/felipe/platform_paas/deploy/check_release_governance.sh) antes de dar por cerrado cualquier slice relevante
+  - usar [check_memory_viva_sync.py](/home/felipe/platform_paas/backend/app/scripts/check_memory_viva_sync.py) como verificación explícita de coherencia entre cambios relevantes y memoria viva
+  - usar [tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md) como runbook canónico para incidentes tenant antes de reabrir slices funcionales cerrados
 
 ## Próximo paso correcto
 
@@ -39,6 +42,10 @@
   - convergencia `production`
   - auditoría `production`
   - documentación viva cerrada
+- aplicar el siguiente frente ya con el paquete de enforcement activo:
+  - ADR vigente o nuevo si la decisión es transversal
+  - gate de release en verde
+  - runbook de incidente tenant como referencia diagnóstica oficial
 - siguiente frente recomendado del roadmap:
   - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
   - objetivos concretos del siguiente corte:

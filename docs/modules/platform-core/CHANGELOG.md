@@ -2,6 +2,19 @@
 
 ## 2026-04-20
 
+- se endurece la capa normativa y de continuidad del PaaS con enforcement explícito:
+  - se agregan ADRs aceptados:
+    - [0001-domain-data-ownership-and-cross-module-writes.md](/home/felipe/platform_paas/docs/architecture/adr/0001-domain-data-ownership-and-cross-module-writes.md)
+    - [0002-release-requires-promotion-convergence-and-audit.md](/home/felipe/platform_paas/docs/architecture/adr/0002-release-requires-promotion-convergence-and-audit.md)
+    - [0003-agenda-como-modulo-transversal-del-tenant.md](/home/felipe/platform_paas/docs/architecture/adr/0003-agenda-como-modulo-transversal-del-tenant.md)
+  - se agrega [check_memory_viva_sync.py](/home/felipe/platform_paas/backend/app/scripts/check_memory_viva_sync.py) para fallar si hay cambios relevantes de código o runtime sin actualización de memoria viva
+  - se agrega [check_release_governance.sh](/home/felipe/platform_paas/deploy/check_release_governance.sh) como gate corto reusable para releases y cierres relevantes
+  - se agrega [tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md) como runbook canónico para distinguir caché, runtime, schema, credenciales técnicas y drift tenant
+  - estos artefactos quedan amarrados a índices, checklist y gobernanza para que otra IA o sesión no dependa del chat
+- resultado:
+  - la PaaS ya no depende solo de políticas declarativas; ahora existe un paquete mínimo de enforcement para continuidad entre sesiones e IAs
+  - el cierre de slices y releases ya puede validarse contra memoria viva sincronizada, ADRs aceptados y runbook de recuperación tenant
+
 - revalidación adicional de tenants activos:
   - `staging` se confirma sano `4/4`
   - `production` mostraba drift real solo en `condominio-demo`

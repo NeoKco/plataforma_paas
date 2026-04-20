@@ -44,6 +44,9 @@ Resultado actual:
 - existe una fuente canonica en [Gobernanza de implementacion](./implementation-governance.md)
 - existe una [Matriz de ownership de datos](./data-ownership-matrix.md) como resumen operativo por dominio
 - existe una [Plantilla oficial de spec por slice](./slice-spec-template.md) para abrir cambios relevantes sin improvisar alcance ni evidencia
+- existe un set inicial de ADRs aceptados en [ADRs del proyecto](./adr/README.md) para congelar decisiones transversales ya cerradas
+- existe un gate operativo de release en [check_release_governance.sh](../../deploy/check_release_governance.sh) respaldado por [check_memory_viva_sync.py](../../backend/app/scripts/check_memory_viva_sync.py)
+- existe un runbook canónico de recuperación en [Respuesta a incidentes tenant](../runbooks/tenant-incident-response.md)
 - la estructura por slice ya queda amarrada a backend, frontend, docs y E2E
 - onboarding, indices y runbooks ya apuntan a ese marco comun
 - `empresa-bootstrap` queda institucionalizado como tenant baseline para E2E browser tenant

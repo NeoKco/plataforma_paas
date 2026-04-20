@@ -5,6 +5,7 @@ Este directorio centraliza la documentacion funcional, tecnica y operativa del p
 ## Indice General
 
 - [Arquitectura](./architecture/index.md): vision estructural del sistema, organizacion del repositorio y decisiones de base.
+- [ADRs](./architecture/adr/README.md): decisiones arquitectónicas aceptadas para continuidad entre developers e IAs.
 - [API](./api/index.md): documentacion de endpoints y contratos HTTP.
 - [Install](./install/): pasos y notas del proceso de instalacion inicial.
 - [Deploy](./deploy/index.md): guias de despliegue y configuracion de entornos.
@@ -59,6 +60,11 @@ La regla práctica es esta:
 - [Gobernanza de implementacion](./architecture/implementation-governance.md)
 - [Gobernanza de datos](./architecture/data-governance.md)
 - [SRED Driven Development](./architecture/sred-development.md)
+- [ADRs del proyecto](./architecture/adr/README.md)
+- [Estandar de contratos API](./architecture/api-contract-standard.md)
+- [Política de schema y migraciones](./architecture/schema-and-migration-policy.md)
+- [Política de entornos](./architecture/environment-policy.md)
+- [Política E2E y datos de prueba](./architecture/e2e-test-data-policy.md)
 - [Estandar de botones CRUD](./architecture/crud-button-standard.md)
 - [Flujo actual del backend](./architecture/backend-current-flow.md)
 - [Cierre del backend base](./architecture/backend-closure-status.md)
@@ -80,6 +86,7 @@ La regla práctica es esta:
 - [Flujo visual del instalador](./install/installer-visual-flow.md)
 - [Contratos backend estables para frontend](./api/frontend-contract-stability.md)
 - [Bootstrap inicial de plataforma](./runbooks/platform-bootstrap.md)
+- [Respuesta a incidentes tenant](./runbooks/tenant-incident-response.md)
 - [Implementacion backend platform](./runbooks/platform-backend-implementation.md)
 - [Implementacion backend tenant](./runbooks/tenant-backend-implementation.md)
 - [Implementacion modulo finance](./runbooks/finance-module-implementation.md)

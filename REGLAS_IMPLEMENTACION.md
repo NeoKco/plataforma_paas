@@ -14,6 +14,11 @@ Siempre dejar contexto suficiente en archivos del proyecto.
 
 Si una tarea cambia el estado real del proyecto, debe quedar reflejada en documentación viva.
 
+Verificación mínima asociada:
+
+- correr `bash deploy/check_release_governance.sh` cuando haya cambios relevantes en código o runtime
+- usar ese gate como prueba rápida de que la memoria viva acompaña el trabajo real
+
 ## Regla 2. No abrir trabajo nuevo sin leer el contexto canónico
 
 Antes de tocar código, revisar al menos:
@@ -47,6 +52,10 @@ Si hay que cambiarla:
 - documentar el motivo
 - actualizar el archivo afectado
 - dejar claro qué reemplaza a qué
+
+Si la decisión era transversal o costosa de revertir:
+
+- revisar si corresponde abrir ADR en `docs/architecture/adr/`
 
 ## Regla 5. Todo cambio visible debe actualizar documentación
 
@@ -129,6 +138,7 @@ entonces también debe revisarse:
 - documentación de deploy
 - checklist de aceptación
 - compatibilidad con producción real
+- runbook de incidentes tenant si el cambio puede afectar convergencia o credenciales técnicas
 
 ## Regla 12. `.env` debe ser válido como archivo dotenv real
 
@@ -158,6 +168,7 @@ Según el cambio, ejecutar lo que corresponda:
 - preflight backend
 - preflight frontend
 - gate post-deploy
+- `bash deploy/check_release_governance.sh`
 
 ## Regla 14. No tocar sin necesidad estos frentes sensibles
 
@@ -192,6 +203,12 @@ La actualización de estado no debe hacerse con formato libre:
 deben alinearse usando:
 
 - `PLANTILLA_ACTUALIZACION_ESTADO.md`
+
+Si el problema reportado es sobre un slice ya cerrado:
+
+- tratar primero el caso como revalidación de runtime
+- usar mensajes como `Comprobando que lo último realizado corresponde y quedó bien`
+- no reabrir documentalmente el slice antes de confirmar causa real
 
 ## Regla 16. Protocolo obligatorio de actualización de archivos raíz
 

@@ -73,6 +73,7 @@ Usar como formato guía:
 - revisar `infra/env/`, `infra/nginx/`, `infra/systemd/` si aplica
 - revisar `docs/deploy/*`
 - revisar `PAQUETE_RELEASE_OPERADOR.md`
+- ejecutar `bash deploy/check_release_governance.sh`
 - validar `health` y smoke corto post-deploy
 - validar también si el cambio quedó realmente reflejado en:
   - `staging/test`
@@ -87,6 +88,8 @@ Usar como formato guía:
 - revisar `docs/architecture/implementation-governance.md`
 - revisar `docs/architecture/data-ownership-matrix.md`
 - revisar `docs/architecture/slice-spec-template.md`
+- revisar si corresponde abrir o actualizar un ADR en `docs/architecture/adr/`
+- revisar `docs/runbooks/tenant-incident-response.md` si el cambio afecta runtime, entornos, convergencia o diagnóstico tenant
 
 ### Si hubo cambio de datos, defaults o integración entre módulos
 
@@ -108,6 +111,7 @@ Para cambios relevantes, además:
 
 - ¿la spec mínima del slice quedó explícita?
 - ¿el ownership del dato afectado quedó claro?
+- ¿el gate `deploy/check_release_governance.sh` quedó en verde?
 
 ## Cierre esperado
 

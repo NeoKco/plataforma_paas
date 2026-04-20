@@ -1,5 +1,38 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Enforcement mínimo del paquete normativo para continuidad entre sesiones e IAs
+
+- objetivo:
+  - dejar de depender solo de normas documentales y agregar enforcement operativo mínimo sobre gobernanza, `SRED` y continuidad multi-sesión
+  - asegurar que otra IA o sesión futura no tenga que inferir desde cero cuándo un slice está realmente cerrado
+- cambios y acciones ejecutadas:
+  - se formalizan ADRs vigentes en:
+    - [docs/architecture/adr/README.md](/home/felipe/platform_paas/docs/architecture/adr/README.md)
+  - se agrega verificación de memoria viva:
+    - [check_memory_viva_sync.py](/home/felipe/platform_paas/backend/app/scripts/check_memory_viva_sync.py)
+  - se agrega gate de release normativo/técnico:
+    - [check_release_governance.sh](/home/felipe/platform_paas/deploy/check_release_governance.sh)
+  - se agrega runbook canónico para incidentes tenant:
+    - [tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md)
+  - se enlaza este enforcement en:
+    - [docs/index.md](/home/felipe/platform_paas/docs/index.md)
+    - [docs/architecture/index.md](/home/felipe/platform_paas/docs/architecture/index.md)
+    - [docs/runbooks/index.md](/home/felipe/platform_paas/docs/runbooks/index.md)
+    - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+    - [REGLAS_IMPLEMENTACION.md](/home/felipe/platform_paas/REGLAS_IMPLEMENTACION.md)
+    - [CHECKLIST_CIERRE_ITERACION.md](/home/felipe/platform_paas/CHECKLIST_CIERRE_ITERACION.md)
+    - [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)
+    - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- validaciones:
+  - primera corrida de `python3 backend/app/scripts/check_memory_viva_sync.py` detecta, correctamente, que faltaba cerrar la memoria viva
+  - primera corrida de `bash deploy/check_release_governance.sh` falla por la misma causa, confirmando que el gate estaba activo y funcionando
+  - tras actualizar la memoria viva, ambos checks quedan listos para rerun como evidencia final de coherencia
+- resultado:
+  - la PaaS ya no solo tiene normas de arquitectura/construcción; ahora también tiene un enforcement mínimo explícito para continuidad entre sesiones e IAs
+  - un slice relevante ya no debería considerarse cerrado si el repo, la memoria viva y el gate de release no cuentan la misma historia
+- siguiente paso:
+  - usar este paquete de enforcement como base del siguiente frente del roadmap: hardening post-deploy y observabilidad tenant
+
 ## 2026-04-20 - Revalidación adicional de tenants activos y corrección final del drift real en production
 
 - objetivo:

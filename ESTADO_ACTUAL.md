@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: institucionalización transversal de gobernanza de datos + `SRED` para toda la PaaS, extendida ahora con un paquete normativo formal de ADRs, contratos API, migraciones, entornos y política E2E
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; además `staging` y `production` vuelven a quedar auditados en verde para todos los tenants activos y la PaaS ya tiene base formal de gobernanza/ownership/spec + normas de construcción reutilizables en cualquier sesión o IA
+- foco de iteración: endurecimiento transversal del marco normativo de la PaaS para que gobernanza de datos + `SRED` + ADRs + contratos API + migraciones + entornos + E2E ya no sean solo criterio documental, sino también enforcement operativo mínimo de release y continuidad
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; además `staging` y `production` vuelven a quedar auditados en verde para todos los tenants activos y la PaaS ya tiene base formal de gobernanza/ownership/spec + enforcement mínimo de construcción reutilizable en cualquier sesión o IA
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -57,9 +57,19 @@
   - política estructural en [schema-and-migration-policy.md](/home/felipe/platform_paas/docs/architecture/schema-and-migration-policy.md)
   - política de entornos en [environment-policy.md](/home/felipe/platform_paas/docs/architecture/environment-policy.md)
   - política E2E/datos de prueba en [e2e-test-data-policy.md](/home/felipe/platform_paas/docs/architecture/e2e-test-data-policy.md)
+- enforcement mínimo ya agregado sobre ese paquete:
+  - ADRs vigentes explicitados en [docs/architecture/adr/README.md](/home/felipe/platform_paas/docs/architecture/adr/README.md)
+  - check de memoria viva en [check_memory_viva_sync.py](/home/felipe/platform_paas/backend/app/scripts/check_memory_viva_sync.py)
+  - gate de release en [check_release_governance.sh](/home/felipe/platform_paas/deploy/check_release_governance.sh)
+  - runbook canónico de incidentes tenant en [tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md)
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
   - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura
+  - un slice relevante ya no debería poder cerrarse sin pasar por:
+    - ownership y spec
+    - promoción y convergencia
+    - evidencia viva consistente
+    - gate documental/técnico de release
 - `empresa-demo` funcionó antes que `ieris-ltda` porque ya había sido reparado/backfilleado; `ieris-ltda` seguía con drift técnico en su BD tenant
 - la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
 - `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica

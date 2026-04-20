@@ -54,3 +54,9 @@ Si una decision transversal ya fue aceptada en un ADR:
 
 - no reabrirla implicitamente
 - si debe cambiarse, crear un ADR nuevo que la reemplace o la marque como `superseded`
+
+## ADRs vigentes
+
+- [0001-domain-data-ownership-and-cross-module-writes.md](./0001-domain-data-ownership-and-cross-module-writes.md): fija ownership de datos por dominio y prohíbe escrituras cruzadas sin contrato explícito.
+- [0002-release-requires-promotion-convergence-and-audit.md](./0002-release-requires-promotion-convergence-and-audit.md): declara que un release correcto exige promoción, convergencia tenant, auditoría y documentación viva.
+- [0003-agenda-como-modulo-transversal-del-tenant.md](./0003-agenda-como-modulo-transversal-del-tenant.md): consolida `Agenda` como módulo lateral transversal del tenant con fuente inicial en `maintenance`.

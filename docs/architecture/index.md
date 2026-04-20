@@ -29,6 +29,11 @@ Esta seccion agrupa la documentacion de arquitectura del proyecto: estructura de
 - [Matriz de ownership de datos](./data-ownership-matrix.md): resumen operativo por dominio para saber qué módulo es dueño de cada dato crítico, quién puede escribirlo y cómo debe darse de baja.
 - [SRED Driven Development](./sred-development.md): método corto oficial para cerrar cambios con `Spec`, `Rules`, `Evidence` y `Documentation`.
 - [Plantilla oficial de spec por slice](./slice-spec-template.md): formato mínimo para abrir cambios relevantes sin improvisar alcance, ownership, evidencia y criterio de salida.
+- [ADRs del proyecto](./adr/README.md): decisiones arquitectónicas ya aceptadas para no reabrir fronteras o reglas cerradas por otra IA.
+- [Estandar de contratos API](./api-contract-standard.md): política oficial para cambios de request/response y side effects entre frontend, backend y módulos.
+- [Política de schema y migraciones](./schema-and-migration-policy.md): reglas obligatorias para migraciones, backfills, seeds y convergencia estructural.
+- [Política de entornos](./environment-policy.md): separación oficial entre `development`, `staging` y `production`.
+- [Política E2E y datos de prueba](./e2e-test-data-policy.md): norma para tenants de prueba, naming, limpieza y restricciones operativas.
 - [Estandar de construccion de modulos](./module-build-standard.md): forma oficial de cerrar dominios y CRUDs con lectura primero, alta bajo demanda, validaciones, modales y documentacion viva.
 - [Estandar de botones CRUD](./crud-button-standard.md): naming, jerarquia visual y comportamiento oficial para `Nuevo`, `Registrar`, `Ver`, `Editar`, `Eliminar` y acciones operativas secundarias.
 - [Estandar documental por modulo](./module-slice-convention.md): misma convención, incluyendo la obligación de publicar `README`, `USER_GUIDE`, `DEV_GUIDE`, `ROADMAP` y `CHANGELOG` en `docs/modules/<modulo>/`.

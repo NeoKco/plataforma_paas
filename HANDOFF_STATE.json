@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T02:02:00-04:00",
+  "updated_at": "2026-04-20T12:10:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal para continuidad entre sesiones/IA, y tras la revalidación adicional todos los tenants activos vuelven a quedar operativos en staging y production; el siguiente frente correcto sigue siendo hardening transversal de convergencia post-deploy y observabilidad tenant",
-  "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos y política E2E aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal y ahora también enforcement mínimo para continuidad entre sesiones/IA: ADRs vigentes, check de memoria viva, gate de release y runbook canónico de incidentes tenant; el siguiente frente correcto sigue siendo hardening transversal de convergencia post-deploy y observabilidad tenant",
+  "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos y política E2E aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
   "active_modules": [
     "platform-core",
     "finance",
@@ -72,7 +72,9 @@
     "no se puede borrar definitivamente un tenant archivado/unprovisioned sin export portable completado del mismo tenant y confirmacion explicita del slug",
     "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales",
     "Agenda tenant-side deja de colgar de Mantenciones y pasa a ser una entrada lateral propia del portal; hoy se alimenta del calendario operativo de maintenance y queda lista para sumar otros modulos despues",
-    "si se ejecutan scripts del repo usando .env runtime, siempre se debe usar set -a antes de source; si TENANT_SECRETS_FILE no queda exportado, la auditoria tenant puede dar falsos negativos"
+    "si se ejecutan scripts del repo usando .env runtime, siempre se debe usar set -a antes de source; si TENANT_SECRETS_FILE no queda exportado, la auditoria tenant puede dar falsos negativos",
+    "los slices transversales o de riesgo ya no deben cerrarse solo con criterio documental; deben pasar ADR/spec cuando corresponda, check de memoria viva y gate de release",
+    "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
     "revalidacion tenant real por ambiente cerrada: el falso negativo inicial sobre ieris-ltda vino de TENANT_SECRETS_FILE no exportado al ejecutar scripts del repo contra .env runtime",
@@ -85,6 +87,10 @@
     "data-ownership-matrix.md agregado como matriz operativa de ownership, escritura, consumo, defaults y política de baja por dominio",
     "slice-spec-template.md agregado como spec mínima oficial para slices relevantes y frentes transversales",
     "governance docs, project context, prompt maestro, reglas y checklist actualizados para exigir ownership explícito + spec mínima + cierre SRED en toda la PaaS",
+    "ADRs 0001-0003 ya quedaron explicitados como vigentes en docs/architecture/adr/README.md",
+    "check_memory_viva_sync.py agregado para detectar incoherencias entre cambios relevantes y memoria viva",
+    "check_release_governance.sh agregado como gate mínimo de release y cierre de slice relevante",
+    "tenant-incident-response.md agregado como runbook canónico para distinguir runtime, schema, credenciales y drift tenant antes de reabrir slices funcionales",
     "production recuperado a 4/4 tenants activos auditados en verde tras rotar credenciales DB técnicas de condominio-demo e ieris-ltda y reejecutar convergencia completa",
     "staging recuperado a 4/4 tenants activos auditados en verde tras rotar credenciales DB técnicas de condominio-demo e ieris-ltda y reejecutar convergencia completa",
     "maintenance history finance summary ya distingue si el vínculo financiero quedó conciliado, anulado o incompleto; el estado ya quedó visible en Historial técnico y promovido a staging y production",
@@ -206,11 +212,8 @@
     "deploy_backend_staging.sh validado nuevamente con 523 tests OK para el corte maintenance -> finance defaults",
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
-  "blocking_issues": [
-    "validar en empresa-demo el flujo nominal con una OT nueva post-fix",
-    "falta observabilidad explícita de finance_sync_error en maintenance_cost_actuals"
-  ],
-  "next_decision_required": "abrir el siguiente corte del roadmap sobre hardening transversal de convergencia post-deploy y observabilidad tenant",
+  "blocking_issues": [],
+  "next_decision_required": "abrir el siguiente corte del roadmap sobre hardening transversal de convergencia post-deploy y observabilidad tenant, ya usando el nuevo paquete de enforcement normativo",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
@@ -255,6 +258,10 @@
     "CHECKLIST_CIERRE_ITERACION.md",
     "ESTADO_ACTUAL.md",
     "SIGUIENTE_PASO.md",
+    "docs/architecture/adr/README.md",
+    "docs/architecture/data-ownership-matrix.md",
+    "docs/architecture/slice-spec-template.md",
+    "docs/runbooks/tenant-incident-response.md",
     "docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md",
     "docs/runbooks/tenant-data-portability.md",
     "docs/deploy/environment-strategy.md",
