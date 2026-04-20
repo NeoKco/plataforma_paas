@@ -1,5 +1,39 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Gate post-deploy endurecido para distinguir `failed` críticos de `notes` no críticas
+
+- objetivo:
+  - evitar que el post-deploy mezcle convergencia incompleta no crítica con incidentes duros de tenant
+  - dejar sugerencia operativa inmediata cuando el drift tenant-local sea recuperable
+- cambios y acciones ejecutadas:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) agrega resumen de:
+    - `tenants_with_notes`
+    - `notes_by_reason`
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ahora:
+    - captura la salida del audit activo
+    - imprime `NOTICE` si el ambiente queda sano pero con `notes`
+    - imprime el comando canónico de [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) si el fallo es recuperable
+  - se amplía [test_tenant_operational_drift_scripts.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_operational_drift_scripts.py) para cubrir el resumen nuevo
+- validaciones:
+  - local:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` -> `5 tests OK`
+    - `py_compile` scripts backend -> `OK`
+    - `bash -n deploy/verify_backend_deploy.sh` -> `OK`
+  - `staging`:
+    - deploy backend publicado con `528 tests OK`
+    - el gate dejó `WARNING` con comando sugerido para `condominio-demo`
+    - luego `repair_tenant_operational_drift.py --tenant-slug condominio-demo --auto-rotate-if-invalid-credentials`
+    - auditoría final -> `processed=4`, `warnings=0`, `failed=0`
+  - `production`:
+    - deploy backend publicado con `528 tests OK`
+    - el gate dejó `NOTICE` con `tenants_with_notes=3` y `notes_by_reason`
+    - auditoría final -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=3`
+- resultado:
+  - el post-deploy ya distingue explícitamente entre tenant roto y ambiente sano con notas no críticas
+  - el operador ya no necesita reconstruir manualmente el comando de reparación cuando el drift es recuperable
+- siguiente paso:
+  - decidir el tratamiento futuro de `missing_core_defaults` y `missing_finance_defaults:usage` dentro del gate y la convergencia
+
 ## 2026-04-20 - Hardening tenant-local publicado con clasificación explícita y reparación canónica por slug
 
 - objetivo:

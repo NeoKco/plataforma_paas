@@ -38,6 +38,7 @@ Luego valida capa tenant:
 - reparación `maintenance -> finance` para OT cerradas sin movimientos
 - auditoría crítica por tenant activo
 - clasificación de fallos tenant por causa operativa (`invalid_db_credentials`, `db_unreachable`, `schema_incomplete`, `unknown_error`)
+- resumen explícito de tenants convergidos con notas no críticas (`tenants_with_notes`, `notes_by_reason`)
 
 ## Uso básico
 
@@ -96,6 +97,11 @@ export PYTHONPATH=/opt/platform_paas/backend
   --tenant-slug <slug> \
   --auto-rotate-if-invalid-credentials
 ```
+
+Además, desde este corte el gate deja dos lecturas operativas separadas:
+
+- `WARNING` con sugerencia de comando cuando detecta drift recuperable por `invalid_db_credentials` o `schema_incomplete`
+- `NOTICE` cuando el ambiente queda sano pero todavía arrastra `notes` no críticas de defaults o convergencia parcial
 
 ## Modo estricto vs no estricto
 

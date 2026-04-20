@@ -54,6 +54,7 @@ Objetivo:
 - identificar qué tenants están realmente rotos
 - evitar atribuir el problema al tenant equivocado
 - clasificar rápido la causa operativa cuando un tenant falla
+- distinguir aparte si el ambiente quedó sano pero todavía arrastra `notes` no críticas
 - causas clasificadas hoy:
   - `invalid_db_credentials`
   - `db_unreachable`
@@ -104,6 +105,8 @@ Orden oficial:
 5. `seed_missing_tenant_defaults.py --apply`
 6. `repair_maintenance_finance_sync.py --all-active --limit 100`
 7. `audit_active_tenant_convergence.py --all-active --limit 100`
+
+Si el audit termina con `failed=0` y `warnings=0` pero muestra `tenants_with_notes > 0`, tratarlo como convergencia incompleta no crítica, no como incidente duro de runtime.
 
 ## Paso 7. Confirmar cierre real
 

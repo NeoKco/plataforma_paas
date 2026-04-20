@@ -15,6 +15,10 @@
   - `repair_tenant_operational_drift.py` ya quedó publicado y validado desde `/opt/platform_paas_staging` y `/opt/platform_paas`
   - durante la promoción el script nuevo volvió a detectar y cerró drift real de `condominio-demo` en ambos ambientes
   - ambos ambientes terminan otra vez con `processed=4`, `warnings=0`, `failed=0`
+- subcorte adicional ya cerrado en runtime:
+  - `verify_backend_deploy.sh` ahora distingue `tenant roto por drift recuperable` vs `ambiente sano con notes`
+  - `staging` mostró el caso de drift recuperable con comando sugerido para `condominio-demo`
+  - `production` mostró el caso `tenants_with_notes=3` con `NOTICE` no crítico
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -60,8 +64,8 @@
 - siguiente frente recomendado del roadmap:
   - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
   - objetivos concretos del siguiente corte:
-    - decidir si `verify_backend_deploy.sh` debe seguir solo clasificando el drift tenant-local o también sugerir/encadenar el comando canónico de reparación por slug
-    - convertir las `notes` no críticas de defaults faltantes en señal operativa más explícita para no mezclar convergencia incompleta con fallo duro
+    - decidir si `missing_core_defaults` y `missing_finance_defaults:usage` deben quedar como `notes` permanentes, auto-remediarse mejor o endurecerse a otro nivel de señal
+    - decidir si `verify_backend_deploy.sh` debe solo sugerir el comando canónico o también ofrecer una ruta opcional de auto-reparación controlada
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano
       - tenant roto por drift

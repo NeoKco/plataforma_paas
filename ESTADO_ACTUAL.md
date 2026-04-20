@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy y observabilidad tenant para detectar antes el drift tenant-local y dejar recuperación canónica por slug además del paquete normativo ya institucionalizado
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y además el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; ambos ambientes vuelven a quedar auditados en verde para sus 4 tenants activos
+- foco de iteración: hardening transversal de convergencia post-deploy para distinguir operativamente `failed` críticos de `notes` no críticas y dejar sugerencia canónica de reparación por tenant cuando el drift sea recuperable
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; ambos ambientes vuelven a quedar auditados en verde para sus 4 tenants activos y `production` ya distingue explícitamente `tenants_with_notes` sin mezclarlo con fallos duros
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -84,6 +84,14 @@
   - resultado final por ambiente:
     - `staging`: `processed=4`, `warnings=0`, `failed=0`
     - `production`: `processed=4`, `warnings=0`, `failed=0`
+- endurecimiento adicional del gate post-deploy ya promovido:
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ahora imprime sugerencia canónica de reparación cuando el audit detecta drift recuperable
+  - el mismo gate ya separa explícitamente:
+    - tenant roto por drift recuperable
+    - ambiente sano con `notes` de convergencia incompleta no crítica
+  - validación real observada:
+    - `staging` dejó `WARNING` + comando sugerido para `condominio-demo`
+    - `production` dejó `NOTICE` con `tenants_with_notes=3` y `notes_by_reason`
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
   - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura
@@ -180,6 +188,12 @@
 
 ## Qué ya quedó hecho
 
+- [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya distingue en salida operativa:
+  - drift recuperable con comando sugerido por tenant
+  - ambiente sano con `tenants_with_notes`
+- [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) resume también:
+  - `tenants_with_notes`
+  - `notes_by_reason`
 - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora clasifica fallos tenant-locales por razón operativa explícita:
   - `invalid_db_credentials`
   - `db_unreachable`

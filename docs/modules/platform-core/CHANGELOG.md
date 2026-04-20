@@ -2,6 +2,16 @@
 
 ## 2026-04-20
 
+- `verify_backend_deploy.sh` ahora distingue mejor ambiente sano con notas vs tenant roto por drift:
+  - cuando `audit_active_tenant_convergence.py` devuelve `failed=0` y `warnings=0` pero deja `tenants_with_notes > 0`, el gate imprime `NOTICE` y no mezcla ese caso con fallo duro
+  - cuando el audit falla por razón recuperable (`invalid_db_credentials`, `schema_incomplete`), el gate imprime el comando canónico exacto para ejecutar [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) en el ambiente afectado
+  - validación runtime:
+    - `staging` expuso otra vez drift recuperable de `condominio-demo` y dejó la sugerencia operativa explícita
+    - `production` quedó sano y mostró el caso `tenants_with_notes=3` con `NOTICE` no crítico
+  - cierre final:
+    - `staging`: `processed=4`, `warnings=0`, `failed=0`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=3`
+
 - se endurece el diagnóstico y la recuperación tenant-local post-deploy:
   - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora clasifica fallos operativos en `invalid_db_credentials`, `db_unreachable`, `schema_incomplete` y `unknown_error`
   - se agrega [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) como flujo canónico por tenant:
