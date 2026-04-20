@@ -46,6 +46,35 @@ EXPECTED_FINANCE_SUMMARY_KEYS = {
 }
 
 
+def classify_tenant_operational_error(exc: Exception) -> str:
+    detail = str(exc).lower()
+
+    if (
+        "password authentication failed" in detail
+        or "autentificación password falló" in detail
+        or "authentication failed" in detail
+    ):
+        return "invalid_db_credentials"
+
+    if (
+        "connection refused" in detail
+        or "could not connect to server" in detail
+        or "timeout expired" in detail
+        or "server closed the connection unexpectedly" in detail
+    ):
+        return "db_unreachable"
+
+    if (
+        "undefinedtable" in detail
+        or "no such table" in detail
+        or "relation" in detail
+        and "does not exist" in detail
+    ):
+        return "schema_incomplete"
+
+    return "unknown_error"
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
@@ -185,6 +214,7 @@ def main() -> int:
         processed = 0
         warnings = 0
         failed = 0
+        failed_by_reason: dict[str, int] = {}
 
         for tenant in tenants:
             processed += 1
@@ -192,7 +222,11 @@ def main() -> int:
                 result = _audit_single_tenant(tenant)
             except Exception as exc:  # pragma: no cover - operational fallback
                 failed += 1
-                print(f"{tenant.slug}: failed ({exc})")
+                failure_reason = classify_tenant_operational_error(exc)
+                failed_by_reason[failure_reason] = (
+                    failed_by_reason.get(failure_reason, 0) + 1
+                )
+                print(f"{tenant.slug}: failed reason={failure_reason} detail=({exc})")
                 continue
 
             if result["status"] != "ok":
@@ -210,7 +244,7 @@ def main() -> int:
             if result["notes"]:
                 print(f"{result['tenant_slug']}: notes={result['notes']}")
 
-        print(
+        summary = (
             "Tenant convergence audit summary: processed={processed}, warnings={warnings}, "
             "failed={failed}".format(
                 processed=processed,
@@ -218,6 +252,9 @@ def main() -> int:
                 failed=failed,
             )
         )
+        if failed_by_reason:
+            summary += f", failed_by_reason={failed_by_reason}"
+        print(summary)
         return 0 if warnings == 0 and failed == 0 else 1
     finally:
         control_db.close()
