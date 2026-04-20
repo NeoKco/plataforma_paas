@@ -98,15 +98,18 @@
   - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya permite `--sync-env-file` para copiar el secreto válido hacia otro carril sin nueva rotación
   - resultado final:
     - `staging`: `processed=4`, `warnings=0`, `failed=0`
-    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2` y la reclasificación posterior termina separando esas dos `notes` en `finance_base_currency_mismatch:CLP!=USD` y `legacy_finance_base_currency:USD`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`; la reclasificación posterior separó primero las `notes` y luego cerró `condominio-demo`, dejando solo una residual
 - reclasificación final de `finance` ya promovida:
   - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) ya no intenta resembrar `finance` cuando el tenant tiene uso y solo conserva base legacy `USD`
   - la auditoría ya no informa `missing_finance_defaults:usage` para ese caso
   - además, ahora distingue explícitamente el desalineamiento entre base efectiva y setting tenant como `finance_base_currency_mismatch:CLP!=USD`
+  - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora resume también transacciones no base y puede recomendar `repair_base_currency_setting_only`
+  - [repair_finance_base_currency_mismatch.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_base_currency_mismatch.py) ya existe como reparación canónica cuando el drift es solo metadata
   - resultado runtime actualizado:
-    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=2`, `notes_by_reason={'finance_base_currency_mismatch:CLP!=USD': 1, 'legacy_finance_base_currency:USD': 1}`
+    - `staging`: `condominio-demo` se alinea `USD -> CLP` en `base_currency_code` y queda `processed=4`, `warnings=0`, `failed=0`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=1`, `notes_by_reason={'legacy_finance_base_currency:USD': 1}`
     - `audit_legacy_finance_base_currency.py --all-active --limit 100` confirma:
-      - `condominio-demo` -> `repair_base_currency_mismatch`
+      - `condominio-demo` -> `no_action`
       - `empresa-bootstrap` -> `manual_migration_review`
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
@@ -212,6 +215,10 @@
   - seed faltante real
   - `legacy_finance_base_currency:USD` con uso financiero
   - `finance_base_currency_mismatch:CLP!=USD` cuando la base efectiva y el setting divergen
+- [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) resume también:
+  - `non_base_transaction_summary`
+  - `repair_base_currency_setting_only` cuando el mismatch no exige migración monetaria
+- [repair_finance_base_currency_mismatch.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_base_currency_mismatch.py) alinea `base_currency_code` con la base efectiva solo si el auditor lo declara seguro
 - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya distingue en salida operativa:
   - drift recuperable con comando sugerido por tenant
   - ambiente sano con `tenants_with_notes`

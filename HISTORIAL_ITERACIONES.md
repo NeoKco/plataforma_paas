@@ -25,6 +25,7 @@
   - `production`:
     - revalidación con `audit_legacy_finance_base_currency.py --tenant-slug condominio-demo` -> `recommendation=no_action`
     - auditoría final -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=1`, `notes_by_reason={'legacy_finance_base_currency:USD': 1}`
+    - `audit_legacy_finance_base_currency.py --all-active --limit 100` -> `warnings=1`, `recommendations={'manual_migration_review': 1, 'no_action': 3}`
 - resultado:
   - `condominio-demo` deja de ser deuda activa de `finance`
   - `empresa-bootstrap` queda como único tenant residual con base legacy `USD`

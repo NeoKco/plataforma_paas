@@ -82,6 +82,7 @@
   - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
   - objetivos concretos del siguiente corte:
     - decidir el tratamiento final de `legacy_finance_base_currency:USD` en `empresa-bootstrap`, que ya quedó aislado como único caso residual real
+    - decidir si conviene dejar un flujo guiado explícito para migrar de base legacy `USD` a `CLP` con evidencia previa de cuentas/transacciones y sin mezclarlo con repairs metadata-only
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

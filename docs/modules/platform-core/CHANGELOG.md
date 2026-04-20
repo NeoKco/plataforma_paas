@@ -9,6 +9,7 @@
     - `staging`: `audit_legacy_finance_base_currency.py --tenant-slug condominio-demo` -> `recommendation=repair_base_currency_setting_only`
     - `staging`: `repair_finance_base_currency_mismatch.py --tenant-slug condominio-demo --apply` -> `USD -> CLP`
     - `production`: `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=1`, `notes_by_reason={'legacy_finance_base_currency:USD': 1}`
+    - `production`: `audit_legacy_finance_base_currency.py --all-active --limit 100` -> `recommendations={'manual_migration_review': 1, 'no_action': 3}`
   - conclusión operativa:
     - `condominio-demo` deja de ser deuda activa
     - `empresa-bootstrap` queda como único caso legacy `USD` real
