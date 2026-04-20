@@ -121,7 +121,14 @@ Si el audit muestra `legacy_finance_base_currency:USD`:
 - no tratarlo como `missing defaults`
 - significa que el tenant ya tiene uso financiero y sigue operando con base legacy `USD`
 - el seed post-deploy ya no intenta corregirlo automáticamente
-- el siguiente paso correcto es decidir una migración guiada de moneda base o aceptar la convivencia legacy
+- correr además [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) para ver:
+  - `migration_readiness`
+  - `legacy_base_transaction_summary`
+  - `loan_counts_by_currency`
+  - `exchange_rate_pair_summary`
+- si `migration_readiness.status=blocked`, no tocar runtime automáticamente:
+  - significa que aún falta política de revalorización histórica y/o criterio explícito para cuentas y préstamos
+  - el siguiente paso correcto es decidir una migración guiada formal o aceptar la convivencia legacy
 
 Si el audit muestra `finance_base_currency_mismatch:CLP!=USD`:
 

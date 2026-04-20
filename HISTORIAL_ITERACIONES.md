@@ -1,5 +1,43 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Readiness real de `empresa-bootstrap` para base legacy `USD`
+
+- objetivo:
+  - bajar el único tenant residual `legacy_finance_base_currency:USD` al mismo nivel de evidencia operativa que `condominio-demo`
+  - confirmar si existe margen para auto-migración o si el caso debe quedar explícitamente bloqueado hasta definir una transición guiada
+- cambios y acciones ejecutadas:
+  - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora agrega:
+    - `legacy_base_transaction_summary`
+    - `loan_counts_by_currency`
+    - `migration_readiness`
+    - `exchange_rate_pair_summary`
+  - se amplía [test_legacy_finance_base_currency_audit.py](/home/felipe/platform_paas/backend/app/tests/test_legacy_finance_base_currency_audit.py) para cubrir:
+    - debt real de cuentas/transacciones/préstamos legacy
+    - soporte de pares `USD<->CLP`
+    - activación de `migration_readiness` solo en el caso legacy real, no en mismatches metadata-only
+- validaciones:
+  - local:
+    - `backend.app.tests.test_legacy_finance_base_currency_audit` + `test_repair_finance_base_currency_mismatch` + `test_tenant_operational_drift_scripts` + `test_tenant_db_bootstrap_service` -> `20 tests OK`
+    - `py_compile` sobre `audit_legacy_finance_base_currency.py` y `repair_finance_base_currency_mismatch.py` -> `OK`
+  - `staging`:
+    - Comprobando que lo último realizado corresponde y quedó bien...
+    - `audit_legacy_finance_base_currency.py --tenant-slug empresa-bootstrap` -> `recommendation=manual_migration_review`, `readiness.status=blocked`
+  - `production`:
+    - Comprobando que lo último realizado corresponde y quedó bien...
+    - `audit_legacy_finance_base_currency.py --tenant-slug empresa-bootstrap` -> `recommendation=manual_migration_review`, `readiness.status=blocked`
+- resultado:
+  - `empresa-bootstrap` queda confirmado como caso bloqueado para auto-migración `USD -> CLP`
+  - evidencia runtime consistente en ambos ambientes:
+    - `accounts={'USD': 4}`
+    - `loans={'USD': 110}`
+    - `transactions={'USD': 495}`
+    - `exchange_rate_pair_summary={'pair': 'USD<->CLP', 'direct_count': 3, 'reverse_count': 0}`
+  - conclusión cerrada:
+    - tener tasas `USD -> CLP` no basta
+    - sigue faltando definir política de revalorización histórica y tratamiento de cuentas/préstamos antes de cualquier transición
+- siguiente paso:
+  - decidir si `empresa-bootstrap` queda explícitamente en convivencia legacy o si se diseña un flujo guiado con inputs operativos formales
+
 ## 2026-04-20 - Cierre metadata-only de `condominio-demo` para `finance_base_currency_mismatch`
 
 - objetivo:

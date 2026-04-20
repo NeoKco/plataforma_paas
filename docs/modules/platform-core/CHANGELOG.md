@@ -2,6 +2,26 @@
 
 ## 2026-04-20
 
+- se endurece la evidencia operativa del único tenant residual `legacy_finance_base_currency:USD`:
+  - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora agrega:
+    - `legacy_base_transaction_summary`
+    - `loan_counts_by_currency`
+    - `migration_readiness`
+    - `exchange_rate_pair_summary`
+  - validación local:
+    - `backend.app.tests.test_legacy_finance_base_currency_audit` + `test_repair_finance_base_currency_mismatch` + `test_tenant_operational_drift_scripts` + `test_tenant_db_bootstrap_service` -> `20 tests OK`
+  - validación runtime:
+    - `staging`: `audit_legacy_finance_base_currency.py --tenant-slug empresa-bootstrap` -> `manual_migration_review`, `readiness.status=blocked`
+    - `production`: mismo resultado
+    - evidencia concreta en ambos ambientes:
+      - `accounts={'USD': 4}`
+      - `loans={'USD': 110}`
+      - `transactions={'USD': 495}`
+      - `exchange_rate_pair_summary={'pair': 'USD<->CLP', 'direct_count': 3, 'reverse_count': 0}`
+  - conclusión operativa:
+    - `empresa-bootstrap` ya no queda en una duda abstracta
+    - la auto-migración `USD -> CLP` queda explícitamente bloqueada hasta definir política de revalorización histórica y tratamiento de cuentas/préstamos
+
 - se cierra el caso `metadata-only` de `condominio-demo` en finance:
   - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora expone `non_base_transaction_summary` y puede recomendar `repair_base_currency_setting_only`
   - se agrega [repair_finance_base_currency_mismatch.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_base_currency_mismatch.py) para alinear `base_currency_code` con la base efectiva solo cuando la evidencia es segura

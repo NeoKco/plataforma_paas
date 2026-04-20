@@ -36,6 +36,23 @@
   - validación final:
     - `staging` -> `changed=0`, sin `notes`
     - `production` -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=1`, `notes_by_reason={'legacy_finance_base_currency:USD': 1}`
+- subcorte adicional ya cerrado en runtime:
+  - `audit_legacy_finance_base_currency.py` ahora no deja a `empresa-bootstrap` en una etiqueta genérica de `manual_migration_review`; también expone `migration_readiness`, deuda por moneda y `operator_inputs`
+  - revalidación real en `staging` y `production` sobre `empresa-bootstrap`:
+    - `status=warning`
+    - `recommendation=manual_migration_review`
+    - `readiness.status=blocked`
+    - `accounts={'USD': 4}`
+    - `loans={'USD': 110}`
+    - `transactions={'USD': 495}`
+    - `exchange_rate_pair_summary={'pair': 'USD<->CLP', 'direct_count': 3, 'reverse_count': 0}`
+  - conclusión cerrada de este subcorte:
+    - no corresponde una auto-migración `USD -> CLP`
+    - el caso queda explícitamente bloqueado hasta definir:
+      - `historical_usd_to_clp_rate_policy`
+      - `migration_effective_at`
+      - `account_currency_policy`
+      - `loan_currency_policy`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -81,8 +98,9 @@
 - siguiente frente recomendado del roadmap:
   - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
   - objetivos concretos del siguiente corte:
-    - decidir el tratamiento final de `legacy_finance_base_currency:USD` en `empresa-bootstrap`, que ya quedó aislado como único caso residual real
-    - decidir si conviene dejar un flujo guiado explícito para migrar de base legacy `USD` a `CLP` con evidencia previa de cuentas/transacciones y sin mezclarlo con repairs metadata-only
+    - decidir el tratamiento final de `legacy_finance_base_currency:USD` en `empresa-bootstrap`, que ya quedó aislado como único caso residual real y además como `blocked` para auto-migración
+    - decidir si conviene dejar un flujo guiado explícito para migrar de base legacy `USD` a `CLP` con política formal de revalorización histórica y sin mezclarlo con repairs metadata-only
+    - si no se va a migrar en este ciclo, dejar explícita la convivencia legacy aceptada con señal operativa visible y runbook asociado
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano
