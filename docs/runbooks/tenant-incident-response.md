@@ -53,6 +53,12 @@ Objetivo:
 
 - identificar qué tenants están realmente rotos
 - evitar atribuir el problema al tenant equivocado
+- clasificar rápido la causa operativa cuando un tenant falla
+- causas clasificadas hoy:
+  - `invalid_db_credentials`
+  - `db_unreachable`
+  - `schema_incomplete`
+  - `unknown_error`
 
 ## Paso 4. Diferenciar causa tenant-local
 
@@ -68,12 +74,19 @@ Herramientas canónicas:
 - [sync_active_tenant_schemas.py](/home/felipe/platform_paas/backend/app/scripts/sync_active_tenant_schemas.py)
 - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
 - [repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
+- [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py)
+
+Uso recomendado por tenant:
+
+1. `repair_tenant_operational_drift.py --tenant-slug <slug> --audit-only`
+2. si el pre-audit falla por `invalid_db_credentials`, usar `repair_tenant_operational_drift.py --tenant-slug <slug> --auto-rotate-if-invalid-credentials`
 
 ## Paso 5. Si el problema es credencial DB tenant
 
 Ruta recomendada:
 
-- rotar credencial técnica del tenant desde el servicio canónico (`TenantService.rotate_tenant_db_credentials(...)`) o desde la consola si ya existe la acción operativa visible
+- preferir el flujo canónico por tenant: `repair_tenant_operational_drift.py --tenant-slug <slug> --auto-rotate-if-invalid-credentials`
+- si hace falta intervención manual, rotar credencial técnica del tenant desde el servicio canónico (`TenantService.rotate_tenant_db_credentials(...)`) o desde la consola si ya existe la acción operativa visible
 
 Después:
 
@@ -84,10 +97,13 @@ Después:
 
 Orden oficial:
 
-1. `sync_active_tenant_schemas.py`
-2. `seed_missing_tenant_defaults.py --apply`
-3. `repair_maintenance_finance_sync.py --all-active --limit 100`
-4. `audit_active_tenant_convergence.py --all-active --limit 100`
+1. `repair_tenant_operational_drift.py --tenant-slug <slug> --audit-only`
+2. si el tenant falla por credencial inválida o drift tenant-local, usar `repair_tenant_operational_drift.py --tenant-slug <slug> --auto-rotate-if-invalid-credentials`
+3. si se trabaja manualmente o de forma masiva, seguir esta secuencia:
+4. `sync_active_tenant_schemas.py`
+5. `seed_missing_tenant_defaults.py --apply`
+6. `repair_maintenance_finance_sync.py --all-active --limit 100`
+7. `audit_active_tenant_convergence.py --all-active --limit 100`
 
 ## Paso 7. Confirmar cierre real
 

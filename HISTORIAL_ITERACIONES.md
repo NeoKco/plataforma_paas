@@ -1,5 +1,49 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Hardening tenant-local publicado con clasificación explícita y reparación canónica por slug
+
+- objetivo:
+  - endurecer la convergencia post-deploy con una lectura más explícita del motivo de falla por tenant
+  - dejar una herramienta única de reparación tenant-local que no obligue a recomponer manualmente la secuencia de rotación + convergencia + auditoría
+- cambios y acciones ejecutadas:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora clasifica fallos como:
+    - `invalid_db_credentials`
+    - `db_unreachable`
+    - `schema_incomplete`
+    - `unknown_error`
+  - se agrega [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) para ejecutar por tenant:
+    - `pre_audit`
+    - rotación DB opcional
+    - `schema_sync`
+    - `seed_defaults`
+    - `repair maintenance -> finance`
+    - `final_audit`
+  - se agrega [test_tenant_operational_drift_scripts.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_operational_drift_scripts.py)
+  - validación segura inicial en `staging`:
+    - `repair_tenant_operational_drift.py --tenant-slug empresa-bootstrap --audit-only`
+  - promoción runtime:
+    - backend sincronizado a `/opt/platform_paas_staging/backend`
+    - backend sincronizado a `/opt/platform_paas/backend`
+    - backend `production` redeployado con `528 tests OK`
+- revalidación y cierre real:
+  - el backend publicado volvió a exponer drift real de `condominio-demo` en `staging` y `production`
+  - se trató como incidente tenant-local y no como reapertura de slices funcionales cerrados
+  - reparación aplicada en ambos ambientes usando el script nuevo ya publicado:
+    - `repair_tenant_operational_drift.py --tenant-slug condominio-demo --auto-rotate-if-invalid-credentials`
+- validaciones:
+  - local:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` -> `4 tests OK`
+    - `py_compile` sobre scripts -> `OK`
+  - `staging`:
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+  - `production`:
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+- resultado:
+  - la PaaS ya tiene clasificación explícita del drift tenant-local dentro de la auditoría activa
+  - también tiene herramienta canónica por slug para cerrar el incidente sin recomponer manualmente toda la secuencia
+- siguiente paso:
+  - decidir si el gate post-deploy debe quedarse en modo clasificación + warning o sugerir/encadenar reparación canónica cuando el fallo sea recuperable
+
 ## 2026-04-20 - `Tenants` promovido con postura operativa tenant y cierre real por convergencia
 
 - objetivo:

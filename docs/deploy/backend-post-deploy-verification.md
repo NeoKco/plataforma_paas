@@ -21,6 +21,7 @@ Esta guía define la verificación correcta después de desplegar backend en un 
 - [backend/app/scripts/seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py)
 - [backend/app/scripts/repair_maintenance_finance_sync.py](/home/felipe/platform_paas/backend/app/scripts/repair_maintenance_finance_sync.py)
 - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py)
+- [backend/app/scripts/repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py)
 
 ## Qué valida hoy
 
@@ -36,6 +37,7 @@ Luego valida capa tenant:
 - seed de defaults faltantes (`core`/`finance`) cuando corresponde
 - reparación `maintenance -> finance` para OT cerradas sin movimientos
 - auditoría crítica por tenant activo
+- clasificación de fallos tenant por causa operativa (`invalid_db_credentials`, `db_unreachable`, `schema_incomplete`, `unknown_error`)
 
 ## Uso básico
 
@@ -82,6 +84,18 @@ Esto corrige dos problemas reales del proyecto:
 
 - que un cambio exista en código pero no haya sido convergido por tenant
 - que un tenant quede roto aunque el servicio general esté sano
+
+Si el gate deja un tenant fallando por drift puntual, la herramienta canónica de recuperación por tenant es:
+
+```bash
+set -a
+source /opt/platform_paas/.env
+set +a
+export PYTHONPATH=/opt/platform_paas/backend
+./platform_paas_venv/bin/python backend/app/scripts/repair_tenant_operational_drift.py \
+  --tenant-slug <slug> \
+  --auto-rotate-if-invalid-credentials
+```
 
 ## Modo estricto vs no estricto
 

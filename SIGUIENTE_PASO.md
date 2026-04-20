@@ -10,6 +10,11 @@
 - mantener como regla de diagnóstico tenant:
   - si se van a ejecutar scripts del repo contra `/opt/platform_paas/.env` o `/opt/platform_paas_staging/.env.staging`, usar `set -a` antes de `source`
   - no volver a aceptar auditorías tenant con `TENANT_SECRETS_FILE` no exportado, porque pueden producir falsos negativos como el que se observó inicialmente sobre `ieris-ltda`
+- subcorte nuevo ya cerrado en runtime:
+  - `audit_active_tenant_convergence.py` ahora clasifica `invalid_db_credentials`, `db_unreachable`, `schema_incomplete` y `unknown_error`
+  - `repair_tenant_operational_drift.py` ya quedó publicado y validado desde `/opt/platform_paas_staging` y `/opt/platform_paas`
+  - durante la promoción el script nuevo volvió a detectar y cerró drift real de `condominio-demo` en ambos ambientes
+  - ambos ambientes terminan otra vez con `processed=4`, `warnings=0`, `failed=0`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -55,15 +60,12 @@
 - siguiente frente recomendado del roadmap:
   - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
   - objetivos concretos del siguiente corte:
-    - detectar automáticamente drift de credenciales DB tenant antes de que rompa `Platform Admin -> Tenants` o `tenant-portal/login`
-    - dejar runbook/script único de reparación para rotación DB tenant por ambiente
+    - decidir si `verify_backend_deploy.sh` debe seguir solo clasificando el drift tenant-local o también sugerir/encadenar el comando canónico de reparación por slug
+    - convertir las `notes` no críticas de defaults faltantes en señal operativa más explícita para no mezclar convergencia incompleta con fallo duro
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano
       - tenant roto por drift
-      - tenant convergido
-    - decidir si la siguiente profundización visible cae en:
-      - más síntesis/acciones operativas dentro de `Tenants`
-      - o endurecimiento del gate/script de reparación tenant por ambiente
+      - tenant convergido con notas
     - dejar explícito qué módulos aportan eventos a la nueva `Agenda` general y cómo se habilitan tenant-side sin volver a duplicar navegación por módulo
     - ejecutar ese frente ya usando la nueva spec mínima oficial, el ownership explícito del dato técnico que se toca y el paquete normativo nuevo de ADR/API/schema/env/E2E
 - mantener como regla ya cerrada del lifecycle tenant:
@@ -100,6 +102,7 @@
 - el siguiente corte de hardening deja explícito:
   - cómo se detecta drift tenant-local
   - cómo se repara por ambiente
+  - cómo se distinguen `failed` críticos vs `notes` no críticas en la auditoría
   - cómo se diferencia operativamente entre incidente de runtime, incidente de datos tenant y problema de frontend/caché
 - documentación de release deja explícito que:
   - repo != runtime

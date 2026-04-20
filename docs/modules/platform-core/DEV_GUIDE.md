@@ -85,6 +85,9 @@ Documentación base:
   - indisponibilidad estructurada de `module usage`
 - esa síntesis no reemplaza la evidencia runtime ni la auditoría multi-tenant; solo evita diagnosticar a ciegas desde la consola
 - spec del corte visible en [TENANT_OPERATIONAL_POSTURE_SLICE.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_OPERATIONAL_POSTURE_SLICE.md)
+- el hardening operativo tenant-side ya tiene además herramienta canónica de reparación por slug:
+  - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py)
+  - usar primero [tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md) y no reabrir slices funcionales mientras el problema siga clasificado como drift runtime/schema/credenciales/defaults
 
 ## Cómo extender este bloque
 

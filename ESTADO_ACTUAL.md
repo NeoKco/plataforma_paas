@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: endurecimiento transversal del marco normativo de la PaaS para que gobernanza de datos + `SRED` + ADRs + contratos API + migraciones + entornos + E2E ya no sean solo criterio documental, sino también enforcement operativo mínimo de release y continuidad
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; además `staging` y `production` vuelven a quedar auditados en verde para todos los tenants activos y la PaaS ya tiene base formal de gobernanza/ownership/spec + enforcement mínimo de construcción reutilizable en cualquier sesión o IA
+- foco de iteración: hardening transversal de convergencia post-deploy y observabilidad tenant para detectar antes el drift tenant-local y dejar recuperación canónica por slug además del paquete normativo ya institucionalizado
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y además el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; ambos ambientes vuelven a quedar auditados en verde para sus 4 tenants activos
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -74,6 +74,16 @@
     - `production` publicado con `index-uY7dICy8.js` y `TenantsPage-nIS89c_K.js`
   - el cierre real del rollout obligó además a revalidar convergencia tenant por ambiente
   - esa revalidación detectó de nuevo drift técnico de `condominio-demo` en ambos ambientes y se corrigió con la ruta canónica de rotación + convergencia
+- subcorte de hardening tenant-local ya promovido:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora clasifica fallos operativos por razón explícita
+  - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) centraliza `pre_audit + rotate + schema_sync + seed + repair + final_audit`
+  - el backend publicado volvió a exponer drift real de `condominio-demo` en ambos ambientes durante la verificación post-deploy
+  - el nuevo script se validó en runtime real desde:
+    - `/opt/platform_paas_staging/backend/app/scripts/repair_tenant_operational_drift.py`
+    - `/opt/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py`
+  - resultado final por ambiente:
+    - `staging`: `processed=4`, `warnings=0`, `failed=0`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
   - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura
@@ -170,6 +180,16 @@
 
 ## Qué ya quedó hecho
 
+- [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora clasifica fallos tenant-locales por razón operativa explícita:
+  - `invalid_db_credentials`
+  - `db_unreachable`
+  - `schema_incomplete`
+  - `unknown_error`
+- [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) agrega la ruta canónica por tenant:
+  - `--audit-only`
+  - `--auto-rotate-if-invalid-credentials`
+  - `--rotate-db-credentials`
+  - `--skip-*` para aislar subpasos cuando haga falta diagnóstico fino
 - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) agrega una síntesis visible de `Postura operativa tenant` que reutiliza señales ya existentes de:
   - lifecycle/billing vía `TenantAccessPolicy`
   - provisioning vía último `ProvisioningJob`

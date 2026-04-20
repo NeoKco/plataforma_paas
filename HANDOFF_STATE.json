@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T18:12:00-04:00",
+  "updated_at": "2026-04-20T18:28:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; dentro del frente de hardening transversal sobre convergencia post-deploy y observabilidad tenant, la lectura de postura operativa tenant en `platform_admin > Tenants` ya quedó promovida en staging y production, y el siguiente paso correcto vuelve a ser endurecer la detección y reparación temprana del drift tenant-local",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; dentro del frente de hardening transversal sobre convergencia post-deploy y observabilidad tenant, la lectura de postura operativa tenant y el tooling canónico de auditoría/reparación tenant-local ya quedaron promovidos en staging y production, y el siguiente paso correcto pasa a ser endurecer cómo el gate distingue drift crítico vs notas no críticas de convergencia",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
   "active_modules": [
     "platform-core",
@@ -77,6 +77,12 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "audit_active_tenant_convergence.py ahora clasifica fallos tenant-locales por reason=invalid_db_credentials, db_unreachable, schema_incomplete o unknown_error",
+    "repair_tenant_operational_drift.py agregado como script canónico por tenant para pre-audit, rotación DB opcional, schema sync, seed defaults, repair maintenance/finance y final audit",
+    "validación segura inicial del nuevo script completada en staging con empresa-bootstrap --audit-only sobre runtime real",
+    "backend staging sincronizado a /opt/platform_paas_staging/backend y nuevo script validado allí reparando condominio-demo con auto-rotate; audit final staging vuelve a processed=4 warnings=0 failed=0",
+    "backend production sincronizado a /opt/platform_paas/backend y redeployado con 528 tests OK; el nuevo audit clasificó el drift de condominio-demo como invalid_db_credentials",
+    "repair_tenant_operational_drift.py ejecutado en production para condominio-demo con auto-rotate; audit_active_tenant_convergence vuelve a processed=4 warnings=0 failed=0",
     "postura operativa tenant en platform_admin > Tenants ya quedó publicada en staging y production; assets efectivos: staging index-D3rVPpHE.js/TenantsPage-bU610bTv.js y production index-uY7dICy8.js/TenantsPage-nIS89c_K.js",
     "durante el rollout de postura operativa tenant, la reauditoría volvió a detectar drift técnico de condominio-demo en staging y production; ambos ambientes se cerraron otra vez con rotación DB tenant + seed defaults + repair maintenance/finance + audit 4/4",
     "revalidacion tenant real por ambiente cerrada: el falso negativo inicial sobre ieris-ltda vino de TENANT_SECRETS_FILE no exportado al ejecutar scripts del repo contra .env runtime",
@@ -216,7 +222,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si el siguiente corte del frente tenant cae en más visibilidad/acciones operativas dentro de Tenants o en endurecer el gate/script de reparación tenant por ambiente para detectar antes el drift de credenciales DB",
+  "next_decision_required": "decidir si el siguiente corte convierte las notes no críticas de defaults faltantes en señal/gate explícito y si verify_backend_deploy.sh debe quedarse solo en clasificación o también sugerir/encadenar la reparación canónica por slug",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

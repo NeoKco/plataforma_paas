@@ -2,6 +2,26 @@
 
 ## 2026-04-20
 
+- se endurece el diagnóstico y la recuperación tenant-local post-deploy:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora clasifica fallos operativos en `invalid_db_credentials`, `db_unreachable`, `schema_incomplete` y `unknown_error`
+  - se agrega [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) como flujo canónico por tenant:
+    - `pre_audit`
+    - rotación DB opcional
+    - `schema_sync`
+    - `seed_missing_defaults`
+    - `repair maintenance -> finance`
+    - `final_audit`
+  - validación repo:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` -> `4 tests OK`
+    - `py_compile` sobre ambos scripts -> `OK`
+  - promoción y validación runtime:
+    - backend publicado en `staging` y `production`
+    - el deploy volvió a exponer drift real de `condominio-demo` en ambos ambientes
+    - se reparó usando el script nuevo ya publicado en `/opt/platform_paas_staging` y `/opt/platform_paas`
+    - resultado final:
+      - `staging`: `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+      - `production`: `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+
 - `platform_admin > Tenants` agrega una lectura corta de `Postura operativa tenant`:
   - sintetiza señales ya existentes de lifecycle/billing, provisioning, schema tenant y credenciales DB técnicas
   - distingue rápido entre bloqueo esperado, provisioning incompleto, schema drift, credencial DB inválida y tenant sano
