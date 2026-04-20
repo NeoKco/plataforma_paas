@@ -67,9 +67,9 @@
 - incidente tenant revalidado y cerrado:
   - la alarma inicial sobre `ieris-ltda` no correspondía a un tenant roto en runtime
   - el falso negativo vino de ejecutar scripts del repo contra `.env` runtime sin `set -a`, por lo que `TENANT_SECRETS_FILE` quedó resolviendo al archivo local del repo y no al runtime real
-  - el tenant realmente roto era `condominio-demo`, tanto en `production` como en `staging`
+  - en la revalidación adicional de hoy, `staging` ya estaba sano y el único tenant realmente roto era `condominio-demo` en `production`
   - la causa real del incidente sí fue drift tenant-local de credenciales DB técnicas
-  - se rotaron credenciales desde el servicio canónico para `condominio-demo` en ambos ambientes
+  - se rotaron credenciales desde el servicio canónico para `condominio-demo` en `production`
   - luego se reejecutó:
     - `sync_active_tenant_schemas.py`
     - `seed_missing_tenant_defaults.py --apply`

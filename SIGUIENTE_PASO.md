@@ -3,6 +3,10 @@
 ## Prioridad vigente
 
 - sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; `Agenda` ya quedó promovida como módulo lateral propio del portal tenant, el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, con los cuatro tenants activos auditando en verde en ambos ambientes, y desde ahora la PaaS completa queda gobernada por ownership explícito + spec mínima + cierre `SRED`
+- revalidación tenant más reciente ya cerrada:
+  - `staging` se mantuvo sano `4/4`
+  - `production` se recuperó rotando credenciales DB técnicas de `condominio-demo`
+  - ambos ambientes vuelven a quedar `4/4` en `audit_active_tenant_convergence.py`
 - mantener como regla de diagnóstico tenant:
   - si se van a ejecutar scripts del repo contra `/opt/platform_paas/.env` o `/opt/platform_paas_staging/.env.staging`, usar `set -a` antes de `source`
   - no volver a aceptar auditorías tenant con `TENANT_SECRETS_FILE` no exportado, porque pueden producir falsos negativos como el que se observó inicialmente sobre `ieris-ltda`

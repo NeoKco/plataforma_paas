@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Revalidación adicional de tenants activos y corrección final del drift real en production
+
+- objetivo:
+  - comprobar que el estado tenant seguía realmente sano antes de seguir con el hardening del roadmap
+  - corregir cualquier drift real detectado sin reabrir trabajo ya cerrado de forma ficticia
+- diagnóstico:
+  - `staging` ya estaba sano `4/4`
+  - en `production`, `ieris-ltda` no estaba roto; el único fallo real era `condominio-demo` por drift de credenciales DB técnicas
+- cambios y acciones ejecutadas:
+  - rotación canónica de credenciales DB tenant para `condominio-demo` en `production`
+  - rerun en `production` de:
+    - `sync_active_tenant_schemas.py --limit 100`
+    - `seed_missing_tenant_defaults.py --apply`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100`
+    - `audit_active_tenant_convergence.py --all-active --limit 100`
+- validaciones:
+  - `staging`:
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+  - `production`:
+    - `sync_active_tenant_schemas.py --limit 100` -> `processed=4`, `synced=4`, `failed=0`
+    - `seed_missing_tenant_defaults.py --apply` -> `processed=4`, `changed=3`, `failed=0`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4`, `failed=0`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+- resultado:
+  - todos los tenants activos quedan operativos y funcionales en ambos ambientes
+  - se confirma con evidencia que el incidente no era `ieris-ltda`; era drift tenant-local en `condominio-demo` de `production`
+- siguiente paso:
+  - seguir el roadmap central con hardening post-deploy y observabilidad tenant
+
 ## 2026-04-20 - Paquete normativo adicional para continuidad entre sesiones e IAs
 
 - objetivo:

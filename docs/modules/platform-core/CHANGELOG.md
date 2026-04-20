@@ -2,6 +2,16 @@
 
 ## 2026-04-20
 
+- revalidación adicional de tenants activos:
+  - `staging` se confirma sano `4/4`
+  - `production` mostraba drift real solo en `condominio-demo`
+  - se rota la credencial DB técnica del tenant desde el servicio canónico
+  - se reejecuta convergencia completa en `production`
+  - resultado final:
+    - `production`: `processed=4`, `warnings=0`, `failed=0`
+    - `staging`: `processed=4`, `warnings=0`, `failed=0`
+  - se confirma explícitamente que `ieris-ltda` no era el tenant roto en runtime
+
 - se institucionaliza la gobernanza de datos + `SRED` como estándar transversal de toda la PaaS:
   - se agrega [data-ownership-matrix.md](/home/felipe/platform_paas/docs/architecture/data-ownership-matrix.md) para dejar ownership explícito, escritura permitida, consumo permitido, defaults/seeds y política de baja por dominio
   - se agrega [slice-spec-template.md](/home/felipe/platform_paas/docs/architecture/slice-spec-template.md) como spec mínima oficial por slice relevante
