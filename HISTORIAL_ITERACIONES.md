@@ -1,5 +1,39 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Repo preparado para sintetizar postura operativa tenant en `Tenants`
+
+- objetivo:
+  - aterrizar el siguiente frente real de `platform-core` en un corte visible y acotado, sin reabrir slices funcionales ya cerrados
+  - distinguir mejor en la consola central entre bloqueo esperado, provisioning incompleto, drift de schema y drift de credenciales DB
+- cambios y acciones ejecutadas:
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) agrega un bloque `Postura operativa tenant`
+  - el bloque sintetiza señales ya existentes de:
+    - `TenantAccessPolicy`
+    - último `ProvisioningJob`
+    - `TenantSchemaStatusResponse`
+    - indisponibilidad estructurada de `module usage`
+  - el bloque expone acciones rápidas ya existentes:
+    - abrir `Provisioning`
+    - ejecutar o reintentar job
+    - reprovisionar
+    - sincronizar esquema tenant
+    - rotar credenciales técnicas
+  - se documenta la spec mínima del corte en:
+    - [TENANT_OPERATIONAL_POSTURE_SLICE.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_OPERATIONAL_POSTURE_SLICE.md)
+  - se alinea documentación modular en:
+    - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+    - [docs/modules/platform-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
+    - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+- validaciones:
+  - `cd frontend && npm run build` -> `OK`
+  - `bash deploy/check_release_governance.sh` primero falla correctamente por falta de memoria viva actualizada
+  - después de alinear root + docs, el gate queda listo para rerun como cierre de coherencia repo/documentación
+- resultado:
+  - el repo ya quedó preparado para una lectura operativa más rápida en `Tenants`
+  - el corte todavía no debe considerarse cerrado a nivel PaaS porque no fue promovido ni convergido en `staging` y `production`
+- siguiente paso:
+  - decidir promoción de este subcorte a `staging`, validar lectura real, converger y luego promover a `production`
+
 ## 2026-04-20 - Enforcement mínimo del paquete normativo para continuidad entre sesiones e IAs
 
 - objetivo:

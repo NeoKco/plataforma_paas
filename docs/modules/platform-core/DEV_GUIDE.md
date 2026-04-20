@@ -74,9 +74,17 @@ Documentación base:
     - `portable_full`
     - `functional_data_only`
   - `portable_minimum` queda solo como compatibilidad de import para paquetes heredados
-  - la misma lógica se expone tanto en `platform_admin > Tenants` como en `tenant_portal > Resumen técnico` para admin tenant
-  - la importación debe ofrecer `dry_run` antes de `apply` y no debe venderse como reemplazo del backup real
-  - la estrategia actual del import es `skip_existing`
+- la misma lógica se expone tanto en `platform_admin > Tenants` como en `tenant_portal > Resumen técnico` para admin tenant
+- la importación debe ofrecer `dry_run` antes de `apply` y no debe venderse como reemplazo del backup real
+- la estrategia actual del import es `skip_existing`
+- `platform_admin > Tenants` ahora puede sintetizar la `Postura operativa tenant` usando señales ya disponibles del frontend:
+  - `TenantResponse`
+  - `TenantAccessPolicy`
+  - `TenantSchemaStatusResponse`
+  - último `ProvisioningJob`
+  - indisponibilidad estructurada de `module usage`
+- esa síntesis no reemplaza la evidencia runtime ni la auditoría multi-tenant; solo evita diagnosticar a ciegas desde la consola
+- spec del corte visible en [TENANT_OPERATIONAL_POSTURE_SLICE.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_OPERATIONAL_POSTURE_SLICE.md)
 
 ## Cómo extender este bloque
 

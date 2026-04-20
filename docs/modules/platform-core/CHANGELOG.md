@@ -2,6 +2,18 @@
 
 ## 2026-04-20
 
+- `platform_admin > Tenants` agrega una lectura corta de `Postura operativa tenant`:
+  - sintetiza señales ya existentes de lifecycle/billing, provisioning, schema tenant y credenciales DB técnicas
+  - distingue rápido entre bloqueo esperado, provisioning incompleto, schema drift, credencial DB inválida y tenant sano
+  - propone la siguiente acción operativa sin reabrir automáticamente slices funcionales cerrados
+  - reutiliza acciones ya existentes de la consola:
+    - abrir `Provisioning`
+    - ejecutar o reintentar job
+    - reprovisionar tenant
+    - sincronizar esquema tenant
+    - rotar credenciales técnicas
+  - spec del corte en [TENANT_OPERATIONAL_POSTURE_SLICE.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_OPERATIONAL_POSTURE_SLICE.md)
+
 - se endurece la capa normativa y de continuidad del PaaS con enforcement explícito:
   - se agregan ADRs aceptados:
     - [0001-domain-data-ownership-and-cross-module-writes.md](/home/felipe/platform_paas/docs/architecture/adr/0001-domain-data-ownership-and-cross-module-writes.md)

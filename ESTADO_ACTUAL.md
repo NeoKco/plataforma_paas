@@ -63,6 +63,13 @@
   - gate de release en [check_release_governance.sh](/home/felipe/platform_paas/deploy/check_release_governance.sh)
   - runbook canónico de incidentes tenant en [tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md)
   - prompt canónico de arranque multi-sesión en [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md)
+- nuevo subcorte en repo, todavía no promovido:
+  - `platform_admin > Tenants` ahora puede sintetizar una `Postura operativa tenant`
+  - el bloque distingue rápido entre bloqueo esperado, provisioning incompleto, schema drift, credencial DB inválida y tenant sano
+  - la validación actual de este subcorte es solo de repo:
+    - `cd frontend && npm run build` -> `OK`
+    - `bash deploy/check_release_governance.sh` volvió a quedar `OK` una vez alineada esta memoria viva
+  - sigue pendiente la promoción real a `staging` y `production`, con convergencia y auditoría por ambiente
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
   - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura
@@ -159,6 +166,22 @@
 
 ## Qué ya quedó hecho
 
+- [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) agrega una síntesis visible de `Postura operativa tenant` que reutiliza señales ya existentes de:
+  - lifecycle/billing vía `TenantAccessPolicy`
+  - provisioning vía último `ProvisioningJob`
+  - schema tenant vía `TenantSchemaStatusResponse`
+  - indisponibilidad estructurada de `module usage`
+  - acciones ya existentes de la consola:
+    - abrir `Provisioning`
+    - ejecutar/reintentar job
+    - reprovisionar tenant
+    - sincronizar esquema tenant
+    - rotar credenciales técnicas
+- [TENANT_OPERATIONAL_POSTURE_SLICE.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_OPERATIONAL_POSTURE_SLICE.md) deja explícita la spec mínima del subcorte visible en `platform-core`
+- documentación de módulo alineada para este subcorte en repo:
+  - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+  - [docs/modules/platform-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
+  - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
 - [transaction_repository.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/repositories/transaction_repository.py) repara automáticamente la secuencia `finance_transactions` cuando detecta colisión PK
 - [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) aplica la misma autocorrección en `stage_system_transaction`, que es la ruta real usada por `maintenance -> finance`
 - [transaction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/finance/services/transaction_service.py) ahora expone en `get_summary()`:

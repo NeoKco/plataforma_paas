@@ -6,7 +6,7 @@ import { PanelCard } from "../../../../components/common/PanelCard";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
-import { AppBadge } from "../../../../design-system/AppBadge";
+import { AppBadge, type AppBadgeTone } from "../../../../design-system/AppBadge";
 import {
   AppCheckGrid,
   AppForm,
@@ -118,6 +118,33 @@ type PendingConfirmation = {
   action: () => Promise<{ message: string; afterSuccess?: () => Promise<void> | void }>;
 };
 
+type ModuleUsageAvailabilityReason =
+  | "tenant-inactive"
+  | "db-incomplete"
+  | "schema-incomplete"
+  | "db-credentials-invalid"
+  | null;
+
+type TenantOperationalAction =
+  | "open-provisioning"
+  | "run-provisioning"
+  | "retry-provisioning"
+  | "reprovision"
+  | "sync-schema"
+  | "rotate-credentials"
+  | "open-tenant-portal"
+  | null;
+
+type TenantOperationalPosture = {
+  tone: AppBadgeTone;
+  label: string;
+  dominantSignal: string;
+  quickRead: string;
+  nextAction: string;
+  supportingNote: string | null;
+  primaryAction: TenantOperationalAction;
+};
+
 export function TenantsPage() {
   const { session } = useAuth();
   const { language } = useLanguage();
@@ -131,6 +158,8 @@ export function TenantsPage() {
   const [moduleUsage, setModuleUsage] =
     useState<PlatformTenantModuleUsageSummary | null>(null);
   const [moduleUsageNotice, setModuleUsageNotice] = useState<string | null>(null);
+  const [moduleUsageAvailabilityReason, setModuleUsageAvailabilityReason] =
+    useState<ModuleUsageAvailabilityReason>(null);
   const [schemaStatus, setSchemaStatus] =
     useState<PlatformTenantSchemaStatusResponse | null>(null);
   const [policyHistory, setPolicyHistory] = useState<PlatformTenantPolicyChangeEvent[]>(
@@ -391,6 +420,32 @@ export function TenantsPage() {
     return true;
   }, [selectedProvisioningJob, selectedTenantSummary]);
 
+  const tenantOperationalPosture = useMemo(
+    () =>
+      getTenantOperationalPosture({
+        language,
+        tenant: selectedTenantSummary,
+        accessPolicy,
+        selectedProvisioningJob,
+        schemaStatus,
+        schemaStatusError,
+        moduleUsageAvailabilityReason,
+        moduleUsageError,
+        canOpenTenantPortal,
+      }),
+    [
+      accessPolicy,
+      canOpenTenantPortal,
+      language,
+      moduleUsageAvailabilityReason,
+      moduleUsageError,
+      schemaStatus,
+      schemaStatusError,
+      selectedProvisioningJob,
+      selectedTenantSummary,
+    ]
+  );
+
   const latestCompletedExportJob = useMemo(
     () =>
       dataExportJobs.find(
@@ -503,6 +558,7 @@ export function TenantsPage() {
     setDetailError(null);
     setModuleUsageError(null);
     setModuleUsageNotice(null);
+    setModuleUsageAvailabilityReason(null);
     setPolicyHistoryError(null);
     setDataExportJobsError(null);
     setDataImportJobsError(null);
@@ -554,6 +610,7 @@ export function TenantsPage() {
 
       if (tenantResponse.status !== "active") {
         setModuleUsage(null);
+        setModuleUsageAvailabilityReason("tenant-inactive");
         setModuleUsageNotice(
           language === "es"
             ? "El uso por módulo estará disponible cuando el tenant esté activo y su base tenant quede provisionada."
@@ -575,6 +632,7 @@ export function TenantsPage() {
           tenantId
         );
         setModuleUsage(usageResponse);
+        setModuleUsageAvailabilityReason(null);
       }
     } catch (rawError) {
       const typedError = rawError as ApiError;
@@ -582,6 +640,7 @@ export function TenantsPage() {
       if (
         typedError.payload?.detail === "Tenant database configuration is incomplete"
       ) {
+        setModuleUsageAvailabilityReason("db-incomplete");
         setModuleUsageNotice(
           language === "es"
             ? "El tenant todavía no tiene completa su configuración de base de datos, por eso el uso por módulo no está disponible."
@@ -591,6 +650,7 @@ export function TenantsPage() {
         typedError.payload?.detail ===
         "Tenant schema is incomplete. Run tenant schema sync or tenant migrations before requesting module usage."
       ) {
+        setModuleUsageAvailabilityReason("schema-incomplete");
         setModuleUsageNotice(
           language === "es"
             ? "La base tenant existe, pero su esquema está incompleto. Debes sincronizar migraciones tenant antes de ver el uso por módulo."
@@ -600,12 +660,14 @@ export function TenantsPage() {
         typedError.payload?.detail ===
         "Tenant database access failed. Rotate or reprovision tenant DB credentials before requesting module usage."
       ) {
+        setModuleUsageAvailabilityReason("db-credentials-invalid");
         setModuleUsageNotice(
           language === "es"
             ? "La base tenant no aceptó la credencial técnica actual. Debes rotar o reprovisionar las credenciales de la base tenant antes de ver el uso por módulo."
             : "The tenant database rejected the current technical credential. Rotate or reprovision the tenant DB credentials before viewing module usage."
         );
       } else {
+        setModuleUsageAvailabilityReason(null);
         setModuleUsageError(typedError);
       }
     }
@@ -1181,8 +1243,7 @@ export function TenantsPage() {
     });
   }
 
-  function handleTenantSchemaSync(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function requestTenantSchemaSyncConfirmation() {
     if (!session?.accessToken || selectedTenantId === null) {
       return;
     }
@@ -1206,6 +1267,11 @@ export function TenantsPage() {
       confirmLabel: language === "es" ? "Sincronizar esquema" : "Sync schema",
       action: () => syncPlatformTenantSchema(session.accessToken, selectedTenantId),
     });
+  }
+
+  function handleTenantSchemaSync(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    requestTenantSchemaSyncConfirmation();
   }
 
   async function handleCreateTenantDataExport() {
@@ -2332,6 +2398,177 @@ export function TenantsPage() {
                   </div>
                 ) : null}
               </PanelCard>
+
+              {tenantOperationalPosture ? (
+                <PanelCard
+                  title={
+                    language === "es"
+                      ? "Postura operativa tenant"
+                      : "Tenant operational posture"
+                  }
+                  subtitle={
+                    language === "es"
+                      ? "Síntesis rápida para distinguir bloqueo esperado, provisioning, drift de esquema o credenciales técnicas antes de reabrir slices."
+                      : "Quick synthesis to distinguish expected blocking, provisioning, schema drift or technical credential drift before reopening slices."
+                  }
+                >
+                  <div className="tenant-detail-grid">
+                    <DetailField
+                      label={language === "es" ? "Postura" : "Posture"}
+                      value={
+                        <AppBadge tone={tenantOperationalPosture.tone}>
+                          {tenantOperationalPosture.label}
+                        </AppBadge>
+                      }
+                    />
+                    <DetailField
+                      label={language === "es" ? "Señal dominante" : "Dominant signal"}
+                      value={tenantOperationalPosture.dominantSignal}
+                    />
+                    <DetailField
+                      label={language === "es" ? "Acceso portal" : "Portal access"}
+                      value={
+                        accessPolicy ? (
+                          <AppBadge tone={accessPolicy.access_allowed ? "success" : "danger"}>
+                            {accessPolicy.access_allowed
+                              ? language === "es"
+                                ? "habilitado"
+                                : "enabled"
+                              : language === "es"
+                                ? "bloqueado"
+                                : "blocked"}
+                          </AppBadge>
+                        ) : language === "es" ? (
+                          "sin lectura"
+                        ) : (
+                          "no read"
+                        )
+                      }
+                    />
+                    <DetailField
+                      label={language === "es" ? "DB tenant" : "Tenant DB"}
+                      value={
+                        selectedTenantSummary.db_configured
+                          ? language === "es"
+                            ? "configurada"
+                            : "configured"
+                          : language === "es"
+                            ? "incompleta"
+                            : "incomplete"
+                      }
+                    />
+                    <DetailField
+                      label={language === "es" ? "Provisioning visible" : "Visible provisioning"}
+                      value={
+                        selectedProvisioningJob ? (
+                          <StatusBadge value={selectedProvisioningJob.status} />
+                        ) : language === "es" ? (
+                          "sin job visible"
+                        ) : (
+                          "no visible job"
+                        )
+                      }
+                    />
+                    <DetailField
+                      label={language === "es" ? "Lectura de esquema" : "Schema read"}
+                      value={formatTenantSchemaSignal(language, schemaStatus, schemaStatusError)}
+                    />
+                  </div>
+
+                  <div className="tenant-inline-note">
+                    <strong>{language === "es" ? "Lectura rápida" : "Quick read"}:</strong>{" "}
+                    {tenantOperationalPosture.quickRead}
+                  </div>
+                  <div className="tenant-inline-note">
+                    <strong>{language === "es" ? "Siguiente acción" : "Next action"}:</strong>{" "}
+                    {tenantOperationalPosture.nextAction}
+                  </div>
+                  {tenantOperationalPosture.supportingNote ? (
+                    <div className="tenant-inline-note">
+                      {tenantOperationalPosture.supportingNote}
+                    </div>
+                  ) : null}
+
+                  <div className="tenant-context-actions tenant-context-actions--compact">
+                    <div className="tenant-help-text">
+                      {language === "es"
+                        ? "Este bloque resume la postura operativa actual sin reemplazar el detalle fino de Política de acceso, Provisioning y Esquema tenant."
+                        : "This block summarizes the current operational posture without replacing the detailed Access policy, Provisioning and Tenant schema sections."}
+                    </div>
+                    <div className="tenant-context-actions__buttons">
+                      {tenantOperationalPosture.primaryAction === "open-provisioning" ? (
+                        <Link
+                          className="btn btn-outline-primary btn-sm"
+                          to={buildProvisioningWorkspaceLink(
+                            selectedTenantSummary.slug,
+                            selectedProvisioningJob?.job_type || null
+                          )}
+                        >
+                          {language === "es" ? "Abrir provisioning" : "Open provisioning"}
+                        </Link>
+                      ) : null}
+                      {tenantOperationalPosture.primaryAction === "run-provisioning" ? (
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          type="button"
+                          onClick={handleRunProvisioningJob}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es" ? "Ejecutar ahora" : "Run now"}
+                        </button>
+                      ) : null}
+                      {tenantOperationalPosture.primaryAction === "retry-provisioning" ? (
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          type="button"
+                          onClick={handleRequeueProvisioningJob}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es" ? "Reintentar job" : "Retry job"}
+                        </button>
+                      ) : null}
+                      {tenantOperationalPosture.primaryAction === "reprovision" ? (
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          type="button"
+                          onClick={handleReprovisionTenant}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es" ? "Reprovisionar tenant" : "Reprovision tenant"}
+                        </button>
+                      ) : null}
+                      {tenantOperationalPosture.primaryAction === "sync-schema" ? (
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          type="button"
+                          onClick={requestTenantSchemaSyncConfirmation}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es" ? "Sincronizar esquema" : "Sync schema"}
+                        </button>
+                      ) : null}
+                      {tenantOperationalPosture.primaryAction === "rotate-credentials" ? (
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          type="button"
+                          onClick={handleRotateTenantDbCredentials}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es"
+                            ? "Rotar credenciales técnicas"
+                            : "Rotate technical credentials"}
+                        </button>
+                      ) : null}
+                      {tenantOperationalPosture.primaryAction === "open-tenant-portal" &&
+                      tenantPortalHref ? (
+                        <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
+                          {language === "es" ? "Abrir portal tenant" : "Open tenant portal"}
+                        </Link>
+                      ) : null}
+                    </div>
+                  </div>
+                </PanelCard>
+              ) : null}
 
               <PanelCard
                 title={language === "es" ? "Portabilidad tenant" : "Tenant portability"}
@@ -4158,6 +4395,298 @@ function formatDateTime(value: string | null): string {
     return value;
   }
   return parsed.toLocaleString(getCurrentLocale(language));
+}
+
+function formatTenantSchemaSignal(
+  language: "es" | "en",
+  schemaStatus: PlatformTenantSchemaStatusResponse | null,
+  schemaStatusError: ApiError | null
+): string {
+  if (schemaStatus) {
+    if (schemaStatus.pending_count > 0) {
+      return language === "es"
+        ? `${schemaStatus.pending_count} pendiente(s)`
+        : `${schemaStatus.pending_count} pending`;
+    }
+    return language === "es" ? "al día" : "up to date";
+  }
+
+  if (matchesTenantDbCredentialsIssue(schemaStatusError?.payload?.detail)) {
+    return language === "es" ? "credencial inválida" : "invalid credential";
+  }
+  if (matchesTenantSchemaIncompleteIssue(schemaStatusError?.payload?.detail)) {
+    return language === "es" ? "esquema incompleto" : "incomplete schema";
+  }
+  if (schemaStatusError) {
+    return language === "es" ? "sin lectura" : "no read";
+  }
+  return language === "es" ? "sin lectura reciente" : "no recent read";
+}
+
+function matchesTenantDbCredentialsIssue(detail: string | null | undefined): boolean {
+  return (
+    detail ===
+    "Tenant database access failed. Rotate or reprovision tenant DB credentials before requesting module usage."
+  );
+}
+
+function matchesTenantSchemaIncompleteIssue(
+  detail: string | null | undefined
+): boolean {
+  return (
+    detail ===
+    "Tenant schema is incomplete. Run tenant schema sync or tenant migrations before requesting module usage."
+  );
+}
+
+function getTenantOperationalPosture({
+  language,
+  tenant,
+  accessPolicy,
+  selectedProvisioningJob,
+  schemaStatus,
+  schemaStatusError,
+  moduleUsageAvailabilityReason,
+  moduleUsageError,
+  canOpenTenantPortal,
+}: {
+  language: "es" | "en";
+  tenant: PlatformTenant | null;
+  accessPolicy: PlatformTenantAccessPolicy | null;
+  selectedProvisioningJob: ProvisioningJob | null;
+  schemaStatus: PlatformTenantSchemaStatusResponse | null;
+  schemaStatusError: ApiError | null;
+  moduleUsageAvailabilityReason: ModuleUsageAvailabilityReason;
+  moduleUsageError: ApiError | null;
+  canOpenTenantPortal: boolean;
+}): TenantOperationalPosture | null {
+  if (!tenant) {
+    return null;
+  }
+
+  const blockingSource = accessPolicy?.access_blocking_source || null;
+  const credentialDriftDetected =
+    moduleUsageAvailabilityReason === "db-credentials-invalid" ||
+    matchesTenantDbCredentialsIssue(schemaStatusError?.payload?.detail) ||
+    matchesTenantDbCredentialsIssue(moduleUsageError?.payload?.detail);
+  const schemaDriftDetected =
+    moduleUsageAvailabilityReason === "schema-incomplete" ||
+    matchesTenantSchemaIncompleteIssue(schemaStatusError?.payload?.detail) ||
+    Boolean(schemaStatus && schemaStatus.pending_count > 0);
+
+  if (accessPolicy && !accessPolicy.access_allowed) {
+    const maintenanceBlock = blockingSource === "maintenance";
+    return {
+      tone: maintenanceBlock ? "warning" : "danger",
+      label: language === "es" ? "bloqueado" : "blocked",
+      dominantSignal: displayAccessBlockingSource(blockingSource, language),
+      quickRead: accessPolicy.access_detail
+        ? displayTenantAccessDetail(accessPolicy.access_detail, language)
+        : language === "es"
+          ? "La plataforma está bloqueando el acceso tenant por política efectiva."
+          : "The platform is blocking tenant access through effective policy.",
+      nextAction: maintenanceBlock
+        ? language === "es"
+          ? "Revisa la ventana o alcance de mantenimiento antes de tratar esto como incidente técnico."
+          : "Review the maintenance window or scope before treating this as a technical incident."
+        : language === "es"
+          ? "Revisa lifecycle y billing antes de diagnosticar credenciales, frontend o runtime."
+          : "Review lifecycle and billing before diagnosing credentials, frontend or runtime.",
+      supportingNote:
+        language === "es"
+          ? "Si este bloqueo era inesperado, usa primero Política de acceso y el runbook de incidente tenant."
+          : "If this blocking was unexpected, use Access policy and the tenant incident runbook first.",
+      primaryAction: null,
+    };
+  }
+
+  if (credentialDriftDetected) {
+    return {
+      tone: "danger",
+      label: language === "es" ? "con drift" : "with drift",
+      dominantSignal:
+        language === "es" ? "credencial DB tenant" : "tenant DB credential",
+      quickRead:
+        language === "es"
+          ? "La base tenant no aceptó la credencial técnica actual o no pudo validarse operativamente."
+          : "The tenant database rejected the current technical credential or it could not be validated operationally.",
+      nextAction:
+        language === "es"
+          ? "Rotar credenciales técnicas y luego revalidar schema, defaults y auditoría tenant."
+          : "Rotate technical credentials and then revalidate schema, defaults and tenant audit.",
+      supportingNote:
+        language === "es"
+          ? "Esto apunta a drift tenant-local y no a reapertura automática del slice funcional."
+          : "This points to tenant-local drift and not to automatic reopening of the functional slice.",
+      primaryAction: "rotate-credentials",
+    };
+  }
+
+  if (!tenant.db_configured || moduleUsageAvailabilityReason === "db-incomplete") {
+    if (selectedProvisioningJob?.status === "failed") {
+      return {
+        tone: "danger",
+        label: language === "es" ? "requiere intervención" : "needs intervention",
+        dominantSignal: language === "es" ? "provisioning fallido" : "failed provisioning",
+        quickRead:
+          language === "es"
+            ? "El tenant todavía no quedó operativo porque el último job técnico agotó sus intentos."
+            : "The tenant is still not operational because the latest technical job exhausted its attempts.",
+        nextAction:
+          language === "es"
+            ? "Reintentar el job o abrir Provisioning para revisar el error técnico real."
+            : "Retry the job or open Provisioning to review the real technical error.",
+        supportingNote:
+          selectedProvisioningJob.error_message ||
+          (language === "es"
+            ? "No cierres esto como bug funcional hasta confirmar la causa de provisioning."
+            : "Do not close this as a functional bug until you confirm the provisioning root cause."),
+        primaryAction: "retry-provisioning",
+      };
+    }
+
+    if (selectedProvisioningJob?.status === "completed") {
+      return {
+        tone: "warning",
+        label: language === "es" ? "incompleto" : "incomplete",
+        dominantSignal:
+          language === "es"
+            ? "DB tenant no convergida"
+            : "tenant DB not converged",
+        quickRead:
+          language === "es"
+            ? "Existe historial técnico completado, pero la configuración DB no quedó íntegra."
+            : "There is completed technical history, but DB configuration did not remain complete.",
+        nextAction:
+          language === "es"
+            ? "Reprovisionar el tenant para recomponer su base antes de revisar otros bloques."
+            : "Reprovision the tenant to rebuild its database before reviewing other blocks.",
+        supportingNote:
+          language === "es"
+            ? "Este patrón suele indicar drift entre job histórico y configuración efectiva."
+            : "This pattern usually indicates drift between historical job state and effective configuration.",
+        primaryAction: "reprovision",
+      };
+    }
+
+    if (
+      selectedProvisioningJob?.status === "pending" ||
+      selectedProvisioningJob?.status === "retry_pending"
+    ) {
+      return {
+        tone: "warning",
+        label: language === "es" ? "pendiente" : "pending",
+        dominantSignal: language === "es" ? "provisioning en cola" : "queued provisioning",
+        quickRead:
+          language === "es"
+            ? "La base tenant todavía no está lista y el job técnico sigue esperando ejecución."
+            : "The tenant database is not ready yet and the technical job is still waiting to run.",
+        nextAction:
+          language === "es"
+            ? "Ejecutar ahora o abrir Provisioning si necesitas revisar el contexto de cola."
+            : "Run now or open Provisioning if you need to inspect queue context.",
+        supportingNote:
+          language === "es"
+            ? "No corresponde diagnosticar frontend o credenciales mientras el provisioning sigue pendiente."
+            : "Do not diagnose frontend or credentials while provisioning is still pending.",
+        primaryAction: "run-provisioning",
+      };
+    }
+
+    if (selectedProvisioningJob?.status === "running") {
+      return {
+        tone: "info",
+        label: language === "es" ? "en curso" : "in progress",
+        dominantSignal: language === "es" ? "provisioning activo" : "active provisioning",
+        quickRead:
+          language === "es"
+            ? "El worker está procesando la preparación técnica del tenant en este momento."
+            : "The worker is processing the tenant technical setup right now.",
+        nextAction:
+          language === "es"
+            ? "Abrir Provisioning si necesitas leer el contexto del job; si no, espera cierre del ciclo."
+            : "Open Provisioning if you need job context; otherwise wait for the cycle to finish.",
+        supportingNote: null,
+        primaryAction: "open-provisioning",
+      };
+    }
+
+    return {
+      tone: "warning",
+      label: language === "es" ? "no listo" : "not ready",
+      dominantSignal: language === "es" ? "DB tenant incompleta" : "incomplete tenant DB",
+      quickRead:
+        language === "es"
+          ? "El tenant todavía no tiene base técnica completamente configurada."
+          : "The tenant still does not have a fully configured technical database.",
+      nextAction:
+        language === "es"
+          ? "Abrir Provisioning o reprovisionar el tenant antes de revisar módulos o portal."
+          : "Open Provisioning or reprovision the tenant before reviewing modules or portal.",
+      supportingNote: null,
+      primaryAction: selectedProvisioningJob ? "open-provisioning" : "reprovision",
+    };
+  }
+
+  if (schemaDriftDetected) {
+    return {
+      tone: "warning",
+      label: language === "es" ? "desalineado" : "misaligned",
+      dominantSignal: language === "es" ? "schema tenant" : "tenant schema",
+      quickRead:
+        language === "es"
+          ? "La base tenant existe, pero su schema no está completamente alineado con el backend actual."
+          : "The tenant database exists, but its schema is not fully aligned with the current backend.",
+      nextAction:
+        language === "es"
+          ? "Sincronizar esquema tenant y luego revalidar la lectura por módulo."
+          : "Sync tenant schema and then revalidate module usage.",
+      supportingNote:
+        schemaStatus?.pending_count && schemaStatus.pending_count > 0
+          ? language === "es"
+            ? `Hay ${schemaStatus.pending_count} migración(es) pendiente(s).`
+            : `There are ${schemaStatus.pending_count} pending migration(s).`
+          : null,
+      primaryAction: "sync-schema",
+    };
+  }
+
+  if (canOpenTenantPortal) {
+    return {
+      tone: "success",
+      label: language === "es" ? "sano" : "healthy",
+      dominantSignal: language === "es" ? "sin drift crítico" : "no critical drift",
+      quickRead:
+        language === "es"
+          ? "El tenant está activo, con acceso permitido, DB configurada y sin señales técnicas críticas en esta revisión."
+          : "The tenant is active, access is allowed, the DB is configured and there are no critical technical signals in this review.",
+      nextAction:
+        language === "es"
+          ? "Puedes abrir el portal tenant o seguir con lectura operativa fina por módulo."
+          : "You can open the tenant portal or continue with detailed operational module reads.",
+      supportingNote:
+        language === "es"
+          ? "Si el usuario reporta un problema igual, tratar primero como revalidación de runtime/caché."
+          : "If the user still reports a problem, treat it first as runtime/cache revalidation.",
+      primaryAction: "open-tenant-portal",
+    };
+  }
+
+  return {
+    tone: "neutral",
+    label: language === "es" ? "en revisión" : "under review",
+    dominantSignal: language === "es" ? "sin clasificación dominante" : "no dominant classification",
+    quickRead:
+      language === "es"
+        ? "La señal actual no alcanza para cerrar si el problema es acceso, runtime o drift tenant-local."
+        : "The current signal is not enough to close whether the problem is access, runtime or tenant-local drift.",
+    nextAction:
+      language === "es"
+        ? "Revisar Política de acceso, Provisioning y Esquema tenant con el runbook antes de tocar código."
+        : "Review Access policy, Provisioning and Tenant schema with the runbook before touching code.",
+    supportingNote: null,
+    primaryAction: "open-provisioning",
+  };
 }
 
 function readArchiveObject(

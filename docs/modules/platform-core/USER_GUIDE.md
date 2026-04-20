@@ -51,6 +51,11 @@ Nota operativa:
 - la misma pantalla ya debe mostrar qué módulos activa el plan seleccionado
 - en tenants existentes, el bloque correcto para revisar o cambiar eso es `Plan y módulos`
 - `Mantenciones` ya no se considera implícito dentro de `Core negocio`; si quieres que el tenant lo use, el `plan` debe traer explícitamente el módulo `maintenance`
+- el bloque `Postura operativa tenant` en `Tenants` debe leerse antes de reabrir un bug:
+  - si marca bloqueo, revisar lifecycle/billing/maintenance
+  - si marca provisioning, revisar `Provisioning`
+  - si marca schema drift, usar `Sincronizar esquema tenant`
+  - si marca drift de credenciales, usar `Rotar credenciales técnicas`
 
 Referencia:
 
@@ -142,12 +147,19 @@ Referencia:
 
 Revisar:
 
+- `Postura operativa tenant` para identificar la señal dominante
 - estado del tenant
 - jobs de provisioning
 - si el job quedó `pending`, `retry_pending` o `failed`
 - si conviene `Ejecutar ahora`, `Reencolar` o revisar primero la causa técnica
 - política de acceso
 - lifecycle visible
+
+Regla operativa:
+
+- si la postura indica bloqueo por política efectiva, no tratar el caso como drift técnico
+- si la postura indica drift técnico, usar primero el runbook [tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md)
+- si la postura sale `sana` pero el usuario sigue viendo el problema, tratar primero el caso como revalidación de runtime/caché
 
 ### No aparece acceso al portal tenant
 
