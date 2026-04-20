@@ -190,6 +190,13 @@ function normalizeNumericInput(value: string): number {
   return Number.isFinite(normalized) ? normalized : 0;
 }
 
+function formatPreviewAmount(value: number, language: "es" | "en"): string {
+  return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
 function buildDefaultCostEstimateForm(
   estimate?: TenantMaintenanceCostEstimate | null,
   suggestedPriceFallback?: string
@@ -770,6 +777,50 @@ export function MaintenanceCostingModal({
       ),
     [activeCurrencies, activeFinanceAccounts, financeCategories, financeSyncDefaults, language]
   );
+  const selectedIncomeAccountLabel = useMemo(() => {
+    if (!financeSyncForm.income_account_id) {
+      return language === "es" ? "Sin cuenta específica" : "No specific account";
+    }
+    return (
+      activeFinanceAccounts.find(
+        (account) => String(account.id) === financeSyncForm.income_account_id
+      )?.name ??
+      (language === "es" ? "Cuenta no disponible" : "Unavailable account")
+    );
+  }, [activeFinanceAccounts, financeSyncForm.income_account_id, language]);
+  const selectedExpenseAccountLabel = useMemo(() => {
+    if (!financeSyncForm.expense_account_id) {
+      return language === "es" ? "Sin cuenta específica" : "No specific account";
+    }
+    return (
+      activeFinanceAccounts.find(
+        (account) => String(account.id) === financeSyncForm.expense_account_id
+      )?.name ??
+      (language === "es" ? "Cuenta no disponible" : "Unavailable account")
+    );
+  }, [activeFinanceAccounts, financeSyncForm.expense_account_id, language]);
+  const selectedIncomeCategoryLabel = useMemo(() => {
+    if (!financeSyncForm.income_category_id) {
+      return language === "es" ? "Sin categoría específica" : "No specific category";
+    }
+    return (
+      incomeCategories.find(
+        (category) => String(category.id) === financeSyncForm.income_category_id
+      )?.name ??
+      (language === "es" ? "Categoría no disponible" : "Unavailable category")
+    );
+  }, [financeSyncForm.income_category_id, incomeCategories, language]);
+  const selectedExpenseCategoryLabel = useMemo(() => {
+    if (!financeSyncForm.expense_category_id) {
+      return language === "es" ? "Sin categoría específica" : "No specific category";
+    }
+    return (
+      expenseCategories.find(
+        (category) => String(category.id) === financeSyncForm.expense_category_id
+      )?.name ??
+      (language === "es" ? "Categoría no disponible" : "Unavailable category")
+    );
+  }, [expenseCategories, financeSyncForm.expense_category_id, language]);
   const activeCostTemplates = useMemo(
     () => costTemplates.filter((template) => template.is_active),
     [costTemplates]
@@ -850,6 +901,42 @@ export function MaintenanceCostingModal({
     () => normalizeNumericInput(actualForm.actual_price_charged) - actualTotalPreview,
     [actualForm.actual_price_charged, actualTotalPreview]
   );
+  const financePreviewIncomeAmount = useMemo(
+    () =>
+      financeSyncForm.sync_income
+        ? normalizeNumericInput(actualForm.actual_price_charged)
+        : 0,
+    [actualForm.actual_price_charged, financeSyncForm.sync_income]
+  );
+  const financePreviewExpenseAmount = useMemo(() => {
+    if (!financeSyncForm.sync_expense) {
+      return 0;
+    }
+    return actualUsesLines
+      ? actualLineSelectionSummary.included_total
+      : actualTotalPreview;
+  }, [
+    actualLineSelectionSummary.included_total,
+    actualTotalPreview,
+    actualUsesLines,
+    financeSyncForm.sync_expense,
+  ]);
+  const financePreviewNetAmount = useMemo(
+    () => financePreviewIncomeAmount - financePreviewExpenseAmount,
+    [financePreviewExpenseAmount, financePreviewIncomeAmount]
+  );
+  const financePreviewCurrencyLabel = useMemo(() => {
+    if (!financeSyncForm.currency_id) {
+      return language === "es" ? "Sin moneda" : "No currency";
+    }
+    const selectedCurrency = activeCurrencies.find(
+      (currency) => String(currency.id) === financeSyncForm.currency_id
+    );
+    if (!selectedCurrency) {
+      return language === "es" ? "Moneda no disponible" : "Unavailable currency";
+    }
+    return selectedCurrency.code;
+  }, [activeCurrencies, financeSyncForm.currency_id, language]);
   const actualMarginPreview = useMemo(() => {
     const income = normalizeNumericInput(actualForm.actual_price_charged);
     if (income <= 0) {
@@ -2247,6 +2334,78 @@ export function MaintenanceCostingModal({
                             : `Expense to sync: ${actualLineSelectionSummary.included_total.toFixed(2)} · Excluded: ${actualLineSelectionSummary.excluded_total.toFixed(2)}`}
                         </div>
                       ) : null}
+                    </div>
+                  ) : null}
+                  {!isReadOnly ? (
+                    <div className="alert alert-light border mt-3 mb-0">
+                      <div className="fw-semibold mb-2">
+                        {language === "es"
+                          ? "Preview del impacto financiero"
+                          : "Financial impact preview"}
+                      </div>
+                      <div className="row g-3">
+                        <div className="col-12 col-md-4">
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es" ? "Ingreso proyectado" : "Projected income"}
+                          </div>
+                          <div className="fw-semibold">
+                            {financeSyncForm.sync_income
+                              ? `${formatPreviewAmount(financePreviewIncomeAmount, language)} ${financePreviewCurrencyLabel}`
+                              : language === "es"
+                                ? "No se sincroniza"
+                                : "Not synced"}
+                          </div>
+                          {financeSyncForm.sync_income ? (
+                            <div className="maintenance-history-entry__meta">
+                              {selectedIncomeAccountLabel} · {selectedIncomeCategoryLabel}
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es" ? "Egreso proyectado" : "Projected expense"}
+                          </div>
+                          <div className="fw-semibold">
+                            {financeSyncForm.sync_expense
+                              ? `${formatPreviewAmount(financePreviewExpenseAmount, language)} ${financePreviewCurrencyLabel}`
+                              : language === "es"
+                                ? "No se sincroniza"
+                                : "Not synced"}
+                          </div>
+                          {financeSyncForm.sync_expense ? (
+                            <div className="maintenance-history-entry__meta">
+                              {selectedExpenseAccountLabel} · {selectedExpenseCategoryLabel}
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="col-12 col-md-4">
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es" ? "Resultado neto esperado" : "Expected net result"}
+                          </div>
+                          <div
+                            className={`fw-semibold ${
+                              financePreviewNetAmount >= 0 ? "text-success" : "text-danger"
+                            }`}
+                          >
+                            {formatPreviewAmount(financePreviewNetAmount, language)}{" "}
+                            {financePreviewCurrencyLabel}
+                          </div>
+                          <div className="maintenance-history-entry__meta">
+                            {language === "es"
+                              ? "Este neto considera solo los movimientos que sí se enviarán a Finanzas."
+                              : "This net result only considers the movements that will be sent to Finance."}
+                          </div>
+                        </div>
+                        {actualUsesLines ? (
+                          <div className="col-12">
+                            <div className="maintenance-history-entry__meta">
+                              {language === "es"
+                                ? `Líneas a egreso: ${actualLineSelectionSummary.included_count} · fuera de egreso: ${actualLineSelectionSummary.excluded_count}`
+                                : `Expense lines: ${actualLineSelectionSummary.included_count} · excluded from expense: ${actualLineSelectionSummary.excluded_count}`}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   ) : null}
                   <div className="row g-3 mt-1">
