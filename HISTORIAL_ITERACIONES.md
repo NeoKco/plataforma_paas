@@ -1,5 +1,38 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - `Tenants` promovido con postura operativa tenant y cierre real por convergencia
+
+- objetivo:
+  - promover a runtime el subcorte visible de `Postura operativa tenant` en `platform_admin > Tenants`
+  - cerrar el slice con el estándar real del proyecto: publish + convergencia + auditoría + memoria viva
+- cambios y acciones ejecutadas:
+  - build `staging`:
+    - `API_BASE_URL=http://192.168.7.42:8081 ALLOW_STAGING_API=1 RUN_NPM_INSTALL=false bash deploy/build_frontend.sh`
+  - publish `staging` en `/opt/platform_paas_staging/frontend/dist`
+  - build `production`:
+    - `API_BASE_URL=https://orkestia.ddns.net RUN_NPM_INSTALL=false bash deploy/build_frontend.sh`
+  - publish `production` en `/opt/platform_paas/frontend/dist`
+  - assets efectivos publicados:
+    - `staging`: `index-D3rVPpHE.js`, `TenantsPage-bU610bTv.js`
+    - `production`: `index-uY7dICy8.js`, `TenantsPage-nIS89c_K.js`
+- revalidación y cierre real:
+  - la auditoría post-rollout volvió a detectar drift técnico de `condominio-demo` en ambos ambientes por credencial DB tenant inválida
+  - se trató como incidente tenant-local y no como reapertura del slice frontend
+  - reparación aplicada en `staging` y `production`:
+    - `TenantService.rotate_tenant_db_credentials(...)`
+    - `seed_missing_tenant_defaults.py --apply`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100`
+    - `audit_active_tenant_convergence.py --all-active --limit 100`
+- validaciones:
+  - `cd frontend && npm run build` -> `OK`
+  - `bash deploy/check_release_governance.sh` -> `OK`
+  - `staging` -> `processed=4`, `warnings=0`, `failed=0`
+  - `production` -> `processed=4`, `warnings=0`, `failed=0`
+- resultado:
+  - el subcorte de `Postura operativa tenant` quedó promovido realmente en ambos ambientes
+  - el rollout reforzó otra vez la regla `repo != runtime` y además `publish != convergencia`
+- siguiente paso:
+  - seguir con el mismo frente de hardening tenant sobre detección temprana de drift y reparación por ambiente
 ## 2026-04-20 - Repo preparado para sintetizar postura operativa tenant en `Tenants`
 
 - objetivo:
@@ -30,9 +63,9 @@
   - después de alinear root + docs, el gate queda listo para rerun como cierre de coherencia repo/documentación
 - resultado:
   - el repo ya quedó preparado para una lectura operativa más rápida en `Tenants`
-  - el corte todavía no debe considerarse cerrado a nivel PaaS porque no fue promovido ni convergido en `staging` y `production`
+  - este estado quedó superado más tarde en la misma fecha cuando el corte sí se promovió y convergió en ambos ambientes
 - siguiente paso:
-  - decidir promoción de este subcorte a `staging`, validar lectura real, converger y luego promover a `production`
+  - no aplica; el paso ya fue ejecutado más tarde en la misma fecha
 
 ## 2026-04-20 - Enforcement mínimo del paquete normativo para continuidad entre sesiones e IAs
 

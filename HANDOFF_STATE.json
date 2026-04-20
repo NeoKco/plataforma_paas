@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T13:40:00-04:00",
+  "updated_at": "2026-04-20T18:12:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; dentro del siguiente frente correcto de hardening transversal sobre convergencia post-deploy y observabilidad tenant, el repo ya quedó preparado con una lectura de postura operativa tenant en `platform_admin > Tenants`, todavía pendiente de promoción real a staging/production",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; dentro del frente de hardening transversal sobre convergencia post-deploy y observabilidad tenant, la lectura de postura operativa tenant en `platform_admin > Tenants` ya quedó promovida en staging y production, y el siguiente paso correcto vuelve a ser endurecer la detección y reparación temprana del drift tenant-local",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
   "active_modules": [
     "platform-core",
@@ -77,7 +77,8 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
-    "repo preparado para sintetizar postura operativa tenant en platform_admin > Tenants, distinguiendo bloqueo esperado, provisioning, schema drift, credenciales DB y tenant sano; validado con frontend build OK y aún pendiente de promoción/convergencia por ambiente",
+    "postura operativa tenant en platform_admin > Tenants ya quedó publicada en staging y production; assets efectivos: staging index-D3rVPpHE.js/TenantsPage-bU610bTv.js y production index-uY7dICy8.js/TenantsPage-nIS89c_K.js",
+    "durante el rollout de postura operativa tenant, la reauditoría volvió a detectar drift técnico de condominio-demo en staging y production; ambos ambientes se cerraron otra vez con rotación DB tenant + seed defaults + repair maintenance/finance + audit 4/4",
     "revalidacion tenant real por ambiente cerrada: el falso negativo inicial sobre ieris-ltda vino de TENANT_SECRETS_FILE no exportado al ejecutar scripts del repo contra .env runtime",
     "production condominio-demo reparado el 2026-04-20 via rotate_tenant_db_credentials y convergencia completa; audit_active_tenant_convergence vuelve a 4/4 ok",
     "staging condominio-demo reparado el 2026-04-20 via rotate_tenant_db_credentials y convergencia completa; audit_active_tenant_convergence vuelve a 4/4 ok",
@@ -215,7 +216,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si el subcorte repo-only de postura operativa tenant en Tenants se promueve ahora a staging/production con convergencia completa, o si queda explícitamente como preparación de repo antes del siguiente rollout del frente de hardening transversal",
+  "next_decision_required": "decidir si el siguiente corte del frente tenant cae en más visibilidad/acciones operativas dentro de Tenants o en endurecer el gate/script de reparación tenant por ambiente para detectar antes el drift de credenciales DB",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

@@ -13,6 +13,18 @@
     - sincronizar esquema tenant
     - rotar credenciales técnicas
   - spec del corte en [TENANT_OPERATIONAL_POSTURE_SLICE.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_OPERATIONAL_POSTURE_SLICE.md)
+  - promoción real del frontend:
+    - `staging` publicado con `index-D3rVPpHE.js` y `TenantsPage-bU610bTv.js`
+    - `production` publicado con `index-uY7dICy8.js` y `TenantsPage-nIS89c_K.js`
+  - al cerrar el rollout, la reauditoría tenant volvió a detectar drift técnico de `condominio-demo` en ambos ambientes
+  - se aplicó la ruta canónica de recuperación en `staging` y `production`:
+    - rotación DB tenant desde `TenantService.rotate_tenant_db_credentials(...)`
+    - `seed_missing_tenant_defaults.py --apply`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100`
+    - `audit_active_tenant_convergence.py --all-active --limit 100`
+  - resultado final:
+    - `staging`: `processed=4`, `warnings=0`, `failed=0`
+    - `production`: `processed=4`, `warnings=0`, `failed=0`
 
 - se endurece la capa normativa y de continuidad del PaaS con enforcement explícito:
   - se agregan ADRs aceptados:

@@ -46,13 +46,12 @@
   - ADR vigente o nuevo si la decisión es transversal
   - gate de release en verde
   - runbook de incidente tenant como referencia diagnóstica oficial
-- subcorte ya preparado en repo dentro de ese frente:
+- subcorte ya cerrado en runtime dentro de ese frente:
   - `platform_admin > Tenants` ya sintetiza `Postura operativa tenant` usando señales existentes de access policy, provisioning, schema y credenciales DB
-  - siguiente paso correcto si se continúa este mismo subcorte:
-    - publicar primero en `staging`
-    - revalidar lectura visible y acciones rápidas
-    - correr convergencia/auditoría del ambiente
-    - recién después promover a `production`
+  - quedó publicado en `staging` y `production`
+  - el rollout volvió a confirmar la regla transversal del proyecto:
+    - un cambio visible puede destapar drift tenant-local previo
+    - por eso el cierre correcto siguió exigiendo convergencia y auditoría final por ambiente
 - siguiente frente recomendado del roadmap:
   - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
   - objetivos concretos del siguiente corte:
@@ -62,7 +61,9 @@
       - servicio sano
       - tenant roto por drift
       - tenant convergido
-    - seguir endureciendo la visibilidad operativa del estado tenant en la consola admin sin depender de errores genéricos `Internal server error`
+    - decidir si la siguiente profundización visible cae en:
+      - más síntesis/acciones operativas dentro de `Tenants`
+      - o endurecimiento del gate/script de reparación tenant por ambiente
     - dejar explícito qué módulos aportan eventos a la nueva `Agenda` general y cómo se habilitan tenant-side sin volver a duplicar navegación por módulo
     - ejecutar ese frente ya usando la nueva spec mínima oficial, el ownership explícito del dato técnico que se toca y el paquete normativo nuevo de ADR/API/schema/env/E2E
 - mantener como regla ya cerrada del lifecycle tenant:
