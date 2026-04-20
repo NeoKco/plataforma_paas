@@ -49,6 +49,14 @@ DEFAULT_FINANCE_SENTINELS = {
 }
 
 LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX = "legacy_finance_base_currency"
+FINANCE_BASE_CURRENCY_MISMATCH_NOTE_PREFIX = "finance_base_currency_mismatch"
+
+
+def _normalize_currency_code(value: str | None) -> str | None:
+    if value is None:
+        return None
+    normalized = value.strip().upper()
+    return normalized or None
 
 
 def parse_args() -> argparse.Namespace:
@@ -111,13 +119,16 @@ def get_finance_defaults_status(db, *, force: bool) -> dict[str, str | bool | No
         .filter(FinanceSetting.setting_key == "base_currency_code")
         .first()
     )
+    base_currency = db.query(FinanceCurrency).filter(FinanceCurrency.is_base.is_(True)).first()
     clp_ok = clp is not None and clp.is_active
-    base_currency_code = (
-        base_setting.setting_value.strip().upper()
-        if base_setting is not None and base_setting.setting_value
-        else None
+    base_setting_code = _normalize_currency_code(
+        base_setting.setting_value if base_setting is not None else None
     )
-    base_ok = base_currency_code == "CLP"
+    effective_base_currency_code = _normalize_currency_code(
+        base_currency.code if base_currency is not None else None
+    )
+    base_setting_ok = base_setting_code == "CLP"
+    effective_base_ok = effective_base_currency_code == "CLP"
 
     if has_usage:
         if missing_sentinel or not clp_ok:
@@ -126,12 +137,26 @@ def get_finance_defaults_status(db, *, force: bool) -> dict[str, str | bool | No
                 "seed_reason": "usage",
                 "audit_note": None,
             }
-        if not base_ok:
+        if (
+            effective_base_currency_code is not None
+            and base_setting_code is not None
+            and effective_base_currency_code != base_setting_code
+        ):
+            return {
+                "needs_seed": False,
+                "seed_reason": "base_currency_mismatch",
+                "audit_note": (
+                    f"{FINANCE_BASE_CURRENCY_MISMATCH_NOTE_PREFIX}:"
+                    f"{effective_base_currency_code}!={base_setting_code}"
+                ),
+            }
+        if not base_setting_ok or not effective_base_ok:
             return {
                 "needs_seed": False,
                 "seed_reason": "legacy_base_currency_with_usage",
                 "audit_note": (
-                    f"{LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX}:{base_currency_code or 'unknown'}"
+                    f"{LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX}:"
+                    f"{effective_base_currency_code or base_setting_code or 'unknown'}"
                 ),
             }
         return {
@@ -148,7 +173,13 @@ def get_finance_defaults_status(db, *, force: bool) -> dict[str, str | bool | No
         }
 
     return {
-        "needs_seed": (missing_sentinel or not clp_ok or not base_ok or not categories),
+        "needs_seed": (
+            missing_sentinel
+            or not clp_ok
+            or not base_setting_ok
+            or not effective_base_ok
+            or not categories
+        ),
         "seed_reason": "no_usage",
         "audit_note": None,
     }
