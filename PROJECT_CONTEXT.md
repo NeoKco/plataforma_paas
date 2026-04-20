@@ -33,12 +33,13 @@ Si una IA llega sin contexto, este es el orden recomendado:
 
 1. `PROJECT_CONTEXT.md`
 2. `SESION_ACTIVA.md`
-3. `PROMPT_MAESTRO_MODULO.md`
-4. `REGLAS_IMPLEMENTACION.md`
-5. `CHECKLIST_CIERRE_ITERACION.md`
-6. `ESTADO_ACTUAL.md`
-7. `SIGUIENTE_PASO.md`
-8. documentación canónica del módulo o frente activo
+3. `PROMPT_MAESTRO_SESION.md`
+4. `PROMPT_MAESTRO_MODULO.md`
+5. `REGLAS_IMPLEMENTACION.md`
+6. `CHECKLIST_CIERRE_ITERACION.md`
+7. `ESTADO_ACTUAL.md`
+8. `SIGUIENTE_PASO.md`
+9. documentación canónica del módulo o frente activo
 
 Con eso debería poder responder rápidamente:
 
@@ -218,6 +219,7 @@ y cuando aplique:
 - `docs/architecture/sred-development.md`
 - `docs/architecture/slice-spec-template.md`
 - `docs/architecture/adr/README.md`
+- `PROMPT_MAESTRO_SESION.md`
 - `docs/architecture/api-contract-standard.md`
 - `docs/architecture/schema-and-migration-policy.md`
 - `docs/architecture/environment-policy.md`

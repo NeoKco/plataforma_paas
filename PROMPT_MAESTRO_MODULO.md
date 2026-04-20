@@ -4,6 +4,8 @@ Usar este prompt como base cuando una IA retome un módulo, una iteración trans
 
 La meta es que cualquier IA pueda continuar desde el repo sin depender del chat previo.
 
+Si lo que necesitas es continuidad completa de sesión, usar además [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md) como prompt canónico de arranque.
+
 ---
 
 ## Prompt maestro recomendado
