@@ -283,6 +283,11 @@ class TenantDatabaseBootstrapService:
                 db.add(item)
                 db.flush()
             else:
+                # Legacy tenants may still carry placeholder codes even when the
+                # functional profile already matches the canonical seed by name.
+                # Backfill the canonical code so operational audits stop treating
+                # those rows as missing defaults.
+                item.code = seed["code"]
                 item.description = item.description or seed.get("description")
                 item.sort_order = seed["sort_order"]
                 item.is_active = True
@@ -306,6 +311,8 @@ class TenantDatabaseBootstrapService:
                 db.add(item)
                 db.flush()
             else:
+                # Same backfill rule for legacy task types detected by name.
+                item.code = seed["code"]
                 item.description = item.description or seed.get("description")
                 item.color = item.color or seed.get("color")
                 item.icon = item.icon or seed.get("icon")

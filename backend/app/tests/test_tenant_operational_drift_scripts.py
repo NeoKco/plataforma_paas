@@ -1,13 +1,33 @@
+import tempfile
 import unittest
+from pathlib import Path
 
 from app.scripts.audit_active_tenant_convergence import (
     build_audit_summary,
     classify_tenant_operational_error,
 )
-from app.scripts.repair_tenant_operational_drift import should_rotate_db_credentials
+from app.scripts.repair_tenant_operational_drift import (
+    should_rotate_db_credentials,
+    sync_tenant_db_password_to_env_files,
+)
 
 
 class TenantOperationalDriftScriptsTestCase(unittest.TestCase):
+    def test_sync_tenant_db_password_to_env_files_writes_secret(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir) / ".tenant-secrets.env"
+            synced = sync_tenant_db_password_to_env_files(
+                tenant_slug="empresa-demo",
+                password="super-secret",
+                env_files=[str(target)],
+            )
+
+            self.assertEqual(synced, [str(target.resolve())])
+            self.assertIn(
+                "TENANT_DB_PASSWORD__EMPRESA_DEMO=super-secret",
+                target.read_text(encoding="utf-8"),
+            )
+
     def test_build_audit_summary_includes_failed_and_notes_breakdown(self) -> None:
         summary = build_audit_summary(
             processed=4,

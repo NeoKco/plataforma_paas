@@ -20,6 +20,7 @@ from app.apps.provisioning.services.tenant_db_bootstrap_service import (  # noqa
 from app.apps.tenant_modules.core.services.tenant_connection_service import (  # noqa: E402
     TenantConnectionService,
 )
+from app.common.security.tenant_secret_service import TenantSecretService  # noqa: E402
 from app.common.db.control_database import ControlSessionLocal  # noqa: E402
 from app.scripts.audit_active_tenant_convergence import (  # noqa: E402
     _audit_single_tenant,
@@ -38,6 +39,7 @@ tenant_repository = TenantRepository()
 tenant_service = TenantService()
 tenant_connection_service = TenantConnectionService()
 tenant_bootstrap_service = TenantDatabaseBootstrapService()
+tenant_secret_service = TenantSecretService()
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -83,6 +85,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--force-finance-seed",
         action="store_true",
         help="Fuerza el baseline finance aunque existan categorías y no haya uso",
+    )
+    parser.add_argument(
+        "--sync-env-file",
+        action="append",
+        default=[],
+        help=(
+            "Replica la credencial DB tenant actual hacia un archivo .env/.tenant-secrets.env "
+            "adicional sin volver a rotar la contraseña"
+        ),
     )
     return parser
 
@@ -159,6 +170,28 @@ def seed_missing_defaults_for_tenant(
         tenant_db.close()
 
 
+def sync_tenant_db_password_to_env_files(
+    *,
+    tenant_slug: str,
+    password: str,
+    env_files: list[str],
+) -> list[str]:
+    synced_env_files: list[str] = []
+    for env_file in env_files:
+        env_path = Path(env_file).expanduser().resolve()
+        tenant_secret_service.store_tenant_db_password(
+            tenant_slug=tenant_slug,
+            password=password,
+            env_path=env_path,
+        )
+        tenant_secret_service.clear_tenant_bootstrap_db_password(
+            tenant_slug=tenant_slug,
+            env_path=env_path,
+        )
+        synced_env_files.append(str(env_path))
+    return synced_env_files
+
+
 def main() -> int:
     args = build_parser().parse_args()
     control_db = ControlSessionLocal()
@@ -231,6 +264,17 @@ def main() -> int:
             )
         else:
             print(f"schema_sync {tenant.slug}: skipped")
+
+        if args.sync_env_file:
+            current_password = tenant_connection_service.get_tenant_database_credentials(
+                tenant
+            )["password"]
+            synced_env_files = sync_tenant_db_password_to_env_files(
+                tenant_slug=tenant.slug,
+                password=current_password,
+                env_files=args.sync_env_file,
+            )
+            print(f"sync_env_files {tenant.slug}: synced={synced_env_files}")
 
         if not args.skip_seed_defaults:
             seed_result = seed_missing_defaults_for_tenant(

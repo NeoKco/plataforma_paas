@@ -123,6 +123,56 @@ class TenantDatabaseBootstrapServiceTests(unittest.TestCase):
         finally:
             db.close()
 
+    def test_seed_business_core_defaults_backfills_canonical_codes_for_legacy_matches(self) -> None:
+        db = self._db()
+        try:
+            db.add_all(
+                [
+                    BusinessFunctionProfile(
+                        code="legacy-fprofile-1",
+                        name="Tecnico",
+                        description=None,
+                        sort_order=999,
+                        is_active=True,
+                    ),
+                    BusinessTaskType(
+                        code="LEGACY-TTASK-1",
+                        name="tareas generales",
+                        description=None,
+                        color=None,
+                        icon=None,
+                        sort_order=999,
+                        is_active=True,
+                    ),
+                ]
+            )
+            db.commit()
+
+            self.service.seed_defaults(
+                db,
+                tenant_name="Empresa Demo",
+                tenant_slug="empresa-demo",
+                tenant_type="empresa",
+                enabled_modules=["core"],
+            )
+            db.commit()
+
+            tecnico = (
+                db.query(BusinessFunctionProfile)
+                .filter(BusinessFunctionProfile.name == "Tecnico")
+                .one()
+            )
+            tareas_generales = (
+                db.query(BusinessTaskType)
+                .filter(BusinessTaskType.name == "tareas generales")
+                .one()
+            )
+
+            self.assertEqual(tecnico.code, "tecnico")
+            self.assertEqual(tareas_generales.code, "tareas-generales")
+        finally:
+            db.close()
+
     def test_seed_finance_categories_replaces_existing_catalog_when_no_usage_exists(self) -> None:
         db = self._db()
         try:
