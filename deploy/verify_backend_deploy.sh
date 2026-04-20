@@ -6,6 +6,7 @@ HEALTHCHECK_URL="${HEALTHCHECK_URL:-http://127.0.0.1/health}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-10}"
 SLEEP_SECONDS="${SLEEP_SECONDS:-2}"
 PROJECT_ROOT="${PROJECT_ROOT:-/opt/platform_paas}"
+ENV_FILE="${ENV_FILE:-$PROJECT_ROOT/.env}"
 VENV_PYTHON="${VENV_PYTHON:-$PROJECT_ROOT/platform_paas_venv/bin/python}"
 BACKEND_AUTO_SYNC_POST_DEPLOY="${BACKEND_AUTO_SYNC_POST_DEPLOY:-true}"
 BACKEND_AUTO_SYNC_LIMIT="${BACKEND_AUTO_SYNC_LIMIT:-100}"
@@ -17,6 +18,7 @@ SYNC_SCRIPT="$PROJECT_ROOT/backend/app/scripts/sync_active_tenant_schemas.py"
 SEED_DEFAULTS_SCRIPT="$PROJECT_ROOT/backend/app/scripts/seed_missing_tenant_defaults.py"
 REPAIR_MAINTENANCE_FINANCE_SCRIPT="$PROJECT_ROOT/backend/app/scripts/repair_maintenance_finance_sync.py"
 AUDIT_ACTIVE_TENANTS_SCRIPT="$PROJECT_ROOT/backend/app/scripts/audit_active_tenant_convergence.py"
+REPAIR_TENANT_DRIFT_SCRIPT="$PROJECT_ROOT/backend/app/scripts/repair_tenant_operational_drift.py"
 
 CONVERGENCE_FAILED=0
 
@@ -31,6 +33,60 @@ run_convergence_step() {
     echo "WARNING: Convergence step failed: $step_name" >&2
     CONVERGENCE_FAILED=1
     return 0
+}
+
+print_tenant_repair_hint() {
+    local tenant_slug="$1"
+    local reason="$2"
+    local repair_args=""
+
+    case "$reason" in
+        invalid_db_credentials)
+            repair_args=" --auto-rotate-if-invalid-credentials"
+            ;;
+        schema_incomplete)
+            repair_args=""
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+
+    echo "NOTICE: Recoverable tenant drift detected for $tenant_slug (reason=$reason)."
+    echo "Suggested command:"
+    echo "  cd $PROJECT_ROOT"
+    echo "  set -a"
+    echo "  source $ENV_FILE"
+    echo "  set +a"
+    echo "  export PYTHONPATH=$PROJECT_ROOT/backend"
+    echo "  $VENV_PYTHON $REPAIR_TENANT_DRIFT_SCRIPT --tenant-slug $tenant_slug$repair_args"
+}
+
+run_active_tenant_audit_step() {
+    local audit_output_file
+    local audit_exit_code=0
+    audit_output_file="$(mktemp)"
+
+    set +e
+    "$VENV_PYTHON" "$AUDIT_ACTIVE_TENANTS_SCRIPT" --all-active --limit "$BACKEND_AUTO_SYNC_LIMIT" \
+        >"$audit_output_file" 2>&1
+    audit_exit_code=$?
+    set -e
+
+    cat "$audit_output_file"
+
+    if grep -Eq 'Tenant convergence audit summary: .*tenants_with_notes=[1-9]' "$audit_output_file"; then
+        echo "NOTICE: Active-tenant audit finished with non-critical notes; service is healthy but some tenants still need convergence cleanup."
+    fi
+
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^([^:]+):\ failed\ reason=([^[:space:]]+) ]]; then
+            print_tenant_repair_hint "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
+        fi
+    done <"$audit_output_file"
+
+    rm -f "$audit_output_file"
+    return "$audit_exit_code"
 }
 
 echo "Verifying service: $SERVICE_NAME"
@@ -98,9 +154,12 @@ while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
                 exit 1
             fi
             echo "Running post-deploy active-tenant audit"
-            run_convergence_step \
-                "active_tenant_audit" \
-                "$VENV_PYTHON" "$AUDIT_ACTIVE_TENANTS_SCRIPT" --all-active --limit "$BACKEND_AUTO_SYNC_LIMIT"
+            if run_active_tenant_audit_step; then
+                echo "Convergence step OK: active_tenant_audit"
+            else
+                echo "WARNING: Convergence step failed: active_tenant_audit" >&2
+                CONVERGENCE_FAILED=1
+            fi
         else
             echo "Post-deploy active-tenant audit skipped."
         fi

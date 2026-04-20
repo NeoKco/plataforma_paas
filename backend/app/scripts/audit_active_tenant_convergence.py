@@ -46,6 +46,32 @@ EXPECTED_FINANCE_SUMMARY_KEYS = {
 }
 
 
+def build_audit_summary(
+    *,
+    processed: int,
+    warnings: int,
+    failed: int,
+    failed_by_reason: dict[str, int],
+    tenants_with_notes: int,
+    notes_by_reason: dict[str, int],
+) -> str:
+    summary = (
+        "Tenant convergence audit summary: processed={processed}, warnings={warnings}, "
+        "failed={failed}".format(
+            processed=processed,
+            warnings=warnings,
+            failed=failed,
+        )
+    )
+    if tenants_with_notes:
+        summary += f", tenants_with_notes={tenants_with_notes}"
+    if failed_by_reason:
+        summary += f", failed_by_reason={failed_by_reason}"
+    if notes_by_reason:
+        summary += f", notes_by_reason={notes_by_reason}"
+    return summary
+
+
 def classify_tenant_operational_error(exc: Exception) -> str:
     detail = str(exc).lower()
 
@@ -214,7 +240,9 @@ def main() -> int:
         processed = 0
         warnings = 0
         failed = 0
+        tenants_with_notes = 0
         failed_by_reason: dict[str, int] = {}
+        notes_by_reason: dict[str, int] = {}
 
         for tenant in tenants:
             processed += 1
@@ -242,18 +270,19 @@ def main() -> int:
                 )
             )
             if result["notes"]:
+                tenants_with_notes += 1
+                for note in result["notes"]:
+                    notes_by_reason[note] = notes_by_reason.get(note, 0) + 1
                 print(f"{result['tenant_slug']}: notes={result['notes']}")
 
-        summary = (
-            "Tenant convergence audit summary: processed={processed}, warnings={warnings}, "
-            "failed={failed}".format(
-                processed=processed,
-                warnings=warnings,
-                failed=failed,
-            )
+        summary = build_audit_summary(
+            processed=processed,
+            warnings=warnings,
+            failed=failed,
+            failed_by_reason=failed_by_reason,
+            tenants_with_notes=tenants_with_notes,
+            notes_by_reason=notes_by_reason,
         )
-        if failed_by_reason:
-            summary += f", failed_by_reason={failed_by_reason}"
         print(summary)
         return 0 if warnings == 0 and failed == 0 else 1
     finally:
