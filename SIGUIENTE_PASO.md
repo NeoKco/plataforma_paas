@@ -3,6 +3,9 @@
 ## Prioridad vigente
 
 - sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; `Agenda` ya quedó promovida como módulo lateral propio del portal tenant y el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, con los cuatro tenants activos auditando en verde en ambos ambientes
+- mantener como regla de diagnóstico tenant:
+  - si se van a ejecutar scripts del repo contra `/opt/platform_paas/.env` o `/opt/platform_paas_staging/.env.staging`, usar `set -a` antes de `source`
+  - no volver a aceptar auditorías tenant con `TENANT_SECRETS_FILE` no exportado, porque pueden producir falsos negativos como el que se observó inicialmente sobre `ieris-ltda`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta

@@ -2,9 +2,9 @@
 
 ## Última actualización
 
-- fecha: 2026-04-19
-- foco de iteración: mover `Agenda` fuera del submódulo `Mantenciones` y dejarla como módulo lateral propio del portal tenant, publicado en `staging` y `production`
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; la navegación específica del módulo `maintenance` ya no expone la pestaña `Agenda`
+- fecha: 2026-04-20
+- foco de iteración: revalidación y saneamiento multi-tenant real por ambiente para dejar todos los tenants activos operativos, y cierre documental de la falsa alarma sobre `ieris-ltda`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant y hoy consolida la agenda operativa de `Mantenciones`; además `staging` y `production` vuelven a quedar auditados en verde para todos los tenants activos
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -35,10 +35,12 @@
 - la causa técnica concreta detectada en `ieris-ltda` fue colisión de secuencia `finance_transactions_pkey`, lo que impedía insertar movimientos sincronizados desde Mantenciones
 - `production` ya quedó verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
 - `staging` también quedó nuevamente verificado con convergencia real: los 4 tenants activos pasan la auditoría crítica
-- incidente cerrado de `ieris-ltda` y `condominio-demo`:
-  - el fallo visible en `Platform Admin -> Tenants` y en `tenant-portal/login` no era de frontend ni de lifecycle
-  - la causa real fue drift tenant-local de credenciales DB técnicas
-  - se rotaron credenciales desde el servicio canónico en ambos ambientes
+- incidente tenant revalidado y cerrado:
+  - la alarma inicial sobre `ieris-ltda` no correspondía a un tenant roto en runtime
+  - el falso negativo vino de ejecutar scripts del repo contra `.env` runtime sin `set -a`, por lo que `TENANT_SECRETS_FILE` quedó resolviendo al archivo local del repo y no al runtime real
+  - el tenant realmente roto era `condominio-demo`, tanto en `production` como en `staging`
+  - la causa real del incidente sí fue drift tenant-local de credenciales DB técnicas
+  - se rotaron credenciales desde el servicio canónico para `condominio-demo` en ambos ambientes
   - luego se reejecutó:
     - `sync_active_tenant_schemas.py`
     - `seed_missing_tenant_defaults.py --apply`
@@ -47,6 +49,9 @@
   - resultado final:
     - `production`: `processed=4, warnings=0, failed=0`
     - `staging`: `processed=4, warnings=0, failed=0`
+  - lección operativa cerrada:
+    - cuando se ejecuten scripts del repo contra `.env` de runtime, siempre usar `set -a` antes de `source`
+    - de lo contrario, variables como `TENANT_SECRETS_FILE` pueden quedar sin exportar y producir diagnósticos tenant falsos
 - el slice nuevo de `maintenance -> finance` ya quedó promovido en ambos ambientes:
   - el modal de costeo reutiliza cuenta/categoría/moneda/fecha/glosa/notas desde las transacciones financieras ya vinculadas
   - al reabrir una OT ya sincronizada no vuelve a defaults ciegos del tenant, sino al snapshot real de Finanzas

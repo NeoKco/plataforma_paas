@@ -1,5 +1,23 @@
 # Platform Core Changelog
 
+## 2026-04-20
+
+- se revalida el incidente tenant reportado desde `Platform Admin -> Tenants` y `tenant-portal/login`:
+  - la alarma inicial sobre `ieris-ltda` no correspondía a un tenant roto en runtime
+  - el falso negativo vino de ejecutar scripts del repo contra `.env` runtime sin `set -a`, dejando `TENANT_SECRETS_FILE` sin exportar y apuntando implícitamente al archivo local del repo
+- con el entorno correctamente exportado, el tenant realmente roto resultó ser solo `condominio-demo` en ambos ambientes
+- se corrige `condominio-demo` vía rotación DB tenant canónica y rerun completo de convergencia:
+  - `sync_active_tenant_schemas.py`
+  - `seed_missing_tenant_defaults.py --apply`
+  - `repair_maintenance_finance_sync.py --all-active --limit 100`
+  - `audit_active_tenant_convergence.py --all-active --limit 100`
+- resultado final validado:
+  - `production`: `processed=4`, `warnings=0`, `failed=0`
+  - `staging`: `processed=4`, `warnings=0`, `failed=0`
+- queda cerrada la regla operativa:
+  - si se ejecutan scripts del repo contra `.env` de runtime, usar siempre `set -a` antes de `source`
+  - un diagnóstico tenant no se acepta como válido si `TENANT_SECRETS_FILE` no está exportado
+
 ## 2026-04-19
 
 - se cierra un saneamiento multi-tenant real sobre ambos ambientes para recuperar tenants activos caídos por drift de credenciales DB técnicas:

@@ -1,5 +1,53 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Revalidación tenant real por ambiente y cierre del falso negativo sobre ieris-ltda
+
+- objetivo:
+  - revisar todos los tenants activos después del reporte visual en `Platform Admin -> Tenants`
+  - dejar `production` y `staging` operativos y funcionales para todos los tenants activos
+  - corregir la memoria viva para no seguir atribuyendo a `ieris-ltda` una caída que en runtime no existía
+- diagnóstico:
+  - la primera alarma sobre `ieris-ltda` resultó ser un falso negativo de tooling local
+  - al ejecutar scripts del repo contra `.env` runtime sin `set -a`, `TENANT_SECRETS_FILE` no quedó exportado y el proceso terminó leyendo `/home/felipe/platform_paas/.tenant-secrets.env` en vez del archivo runtime real
+  - con el entorno correctamente exportado, la auditoría real mostró:
+    - `production`:
+      - `condominio-demo`: roto por `password authentication failed`
+      - `empresa-bootstrap`: OK
+      - `empresa-demo`: OK
+      - `ieris-ltda`: OK
+    - `staging`:
+      - `condominio-demo`: roto por `password authentication failed`
+      - resto de tenants activos: OK
+- cambios y acciones ejecutadas:
+  - rotación DB tenant canónica de `condominio-demo` en `production`
+  - rerun de convergencia completa en `production`:
+    - `sync_active_tenant_schemas.py --limit 100`
+    - `seed_missing_tenant_defaults.py --apply`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100`
+    - `audit_active_tenant_convergence.py --all-active --limit 100`
+  - rotación DB tenant canónica de `condominio-demo` en `staging`
+  - rerun equivalente de convergencia completa en `staging`
+  - limpieza posterior de scripts temporales de diagnóstico/rotación usados solo para esta iteración
+- validaciones:
+  - `production` final:
+    - `sync_active_tenant_schemas.py` -> `processed=4`, `synced=4`, `failed=0`
+    - `seed_missing_tenant_defaults.py --apply` -> `processed=4`, `changed=4`, `failed=0`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4`, `failed=0`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+  - `staging` final:
+    - `sync_active_tenant_schemas.py` -> `processed=4`, `synced=4`, `failed=0`
+    - `seed_missing_tenant_defaults.py --apply` -> `processed=4`, `changed=2`, `failed=0`
+    - `repair_maintenance_finance_sync.py --all-active --limit 100` -> `processed=4`, `failed=0`
+    - `audit_active_tenant_convergence.py --all-active --limit 100` -> `processed=4`, `warnings=0`, `failed=0`
+- resultado:
+  - todos los tenants activos vuelven a quedar operativos y funcionales en ambos ambientes
+  - `ieris-ltda` queda explícitamente marcado como tenant sano en runtime; el problema real del incidente era `condominio-demo`
+  - se institucionaliza la regla operativa:
+    - al ejecutar scripts del repo con `.env` runtime, usar siempre `set -a` antes de `source`
+    - un diagnóstico tenant no se considera fiable si `TENANT_SECRETS_FILE` no quedó exportado
+- siguiente paso:
+  - seguir el roadmap central sobre hardening transversal, ahora con la lección operativa de exportación de entorno incorporada como regla
+
 ## 2026-04-19 - Agenda tenant-side separada de Mantenciones y promovida como módulo lateral propio
 
 - objetivo:

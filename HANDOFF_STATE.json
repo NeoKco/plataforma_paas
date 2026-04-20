@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-19T23:58:00-04:00",
+  "updated_at": "2026-04-20T00:32:00-04:00",
   "handoff_status": "active",
-  "current_focus": "Agenda ya quedó promovida como módulo lateral propio del portal tenant en staging y production, reutilizando el calendario operativo de maintenance como primera fuente; el siguiente paso correcto del roadmap vuelve a ser hardening transversal de convergencia post-deploy y observabilidad tenant",
-  "project_phase": "ambos ambientes siguen convergidos y auditados en verde para los tenants activos; el último slice funcional separó Agenda de Mantenciones a nivel de navegación tenant-side y el frente inmediato vuelve a ser endurecer la detección y recuperación de drift tenant-local",
+  "current_focus": "Agenda ya quedó promovida como módulo lateral propio del portal tenant en staging y production, reutilizando el calendario operativo de maintenance como primera fuente; tras revalidar tenants activos, production y staging vuelven a estar 4/4 en verde y el siguiente paso correcto del roadmap sigue siendo hardening transversal de convergencia post-deploy y observabilidad tenant",
+  "project_phase": "ambos ambientes siguen convergidos y auditados en verde para los tenants activos; la última iteración cerró un falso negativo sobre ieris-ltda y confirmó que el tenant realmente roto era condominio-demo por drift de credenciales DB técnicas",
   "active_modules": [
     "platform-core",
     "finance",
@@ -67,11 +67,14 @@
     "si un tenant legacy quedó con esa combinación inválida, la lectura efectiva la autocorrige y debe repararse con script",
     "un cambio correcto para la PaaS no se considera cerrado si solo funciona en repo, en un tenant o en un ambiente; debe quedar promovido, convergido, auditado, probado y documentado en todos los ambientes/tenants afectados",
     "no se puede borrar definitivamente un tenant archivado/unprovisioned sin export portable completado del mismo tenant y confirmacion explicita del slug",
-    "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales"
-    ,
-    "Agenda tenant-side deja de colgar de Mantenciones y pasa a ser una entrada lateral propia del portal; hoy se alimenta del calendario operativo de maintenance y queda lista para sumar otros modulos despues"
+    "functional_data_only no equivale a restauracion tenant 1:1 y no reemplaza snapshot/export previo cuando se busca preservar datos originales",
+    "Agenda tenant-side deja de colgar de Mantenciones y pasa a ser una entrada lateral propia del portal; hoy se alimenta del calendario operativo de maintenance y queda lista para sumar otros modulos despues",
+    "si se ejecutan scripts del repo usando .env runtime, siempre se debe usar set -a antes de source; si TENANT_SECRETS_FILE no queda exportado, la auditoria tenant puede dar falsos negativos"
   ],
   "completed_recently": [
+    "revalidacion tenant real por ambiente cerrada: el falso negativo inicial sobre ieris-ltda vino de TENANT_SECRETS_FILE no exportado al ejecutar scripts del repo contra .env runtime",
+    "production condominio-demo reparado el 2026-04-20 via rotate_tenant_db_credentials y convergencia completa; audit_active_tenant_convergence vuelve a 4/4 ok",
+    "staging condominio-demo reparado el 2026-04-20 via rotate_tenant_db_credentials y convergencia completa; audit_active_tenant_convergence vuelve a 4/4 ok",
     "Agenda ya aparece como modulo lateral propio del portal tenant y deja de mostrarse dentro del nav interno de Mantenciones",
     "TenantAgendaPage agregado sobre la ruta tenant-portal/agenda reutilizando MaintenanceCalendarPage en modo global",
     "frontend production publicado con la nueva Agenda tenant-side y assets TenantAgendaPage/MaintenanceCalendarPage verificados",
