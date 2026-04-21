@@ -27,7 +27,7 @@ class ImportIerisBusinessCoreMaintenanceTestCase(unittest.TestCase):
                 "historico_mantenciones": 2,
             },
             "business_core": {
-                "organizations": {"created": 1, "existing": 0, "updated": 0, "skipped": 0},
+                "organizations": {"created": 2, "existing": 0, "updated": 0, "skipped": 0},
                 "clients": {"created": 1, "existing": 0, "updated": 0, "skipped": 0},
                 "contacts": {"created": 0, "existing": 0, "updated": 0, "skipped": 0},
                 "sites": {"created": 1, "existing": 0, "updated": 0, "skipped": 0},
@@ -49,6 +49,7 @@ class ImportIerisBusinessCoreMaintenanceTestCase(unittest.TestCase):
         verification = import_script.verify_import_summary(self._build_matching_result())
 
         self.assertTrue(verification["business_core.organizations"]["matches"])
+        self.assertEqual(verification["business_core.organizations"]["expected"], 2)
         self.assertEqual(verification["maintenance.work_orders"]["expected"], 3)
         self.assertEqual(verification["maintenance.work_orders"]["processed"], 3)
 
@@ -284,6 +285,147 @@ class ImportIerisBusinessCoreMaintenanceTestCase(unittest.TestCase):
         )
         self.assertEqual(captured["work_order"]["closure_notes"], "Nota útil")
         self.assertEqual(result["business_core"]["clients"]["created"], 0)
+
+    def test_existing_maintenance_records_are_updated_when_visible_text_changes(self) -> None:
+        tenant_db = MagicMock(name="tenant_db")
+
+        installation = SimpleNamespace(
+            site_id=10,
+            equipment_type_id=20,
+            name="Equipo legacy",
+            installed_at=None,
+            installation_status="inactive",
+            location_note="legacy_location=1",
+            technical_notes="legacy_installation_id=5",
+            is_active=False,
+        )
+        work_order = SimpleNamespace(
+            client_id=30,
+            site_id=10,
+            installation_id=None,
+            title="LEGACY-TITLE",
+            description="legacy_desc=1",
+            maintenance_status="scheduled",
+            scheduled_for=None,
+            requested_at=None,
+            completed_at=None,
+            cancelled_at=None,
+            closure_notes="legacy_closure=1",
+            created_by_user_id=None,
+        )
+        status_log = SimpleNamespace(
+            to_status="scheduled",
+            note="legacy_work_order_source=mantenciones legacy_id=9",
+            changed_at=None,
+        )
+        visit = SimpleNamespace(
+            visit_status="scheduled",
+            scheduled_start_at=None,
+            scheduled_end_at=None,
+            actual_start_at=None,
+            actual_end_at=None,
+            assigned_group_label=None,
+            notes="legacy_visit_source=mantenciones legacy_id=9",
+        )
+
+        query_installation = MagicMock()
+        query_installation.filter.return_value = query_installation
+        query_installation.first.return_value = installation
+
+        query_work_order = MagicMock()
+        query_work_order.filter.return_value = query_work_order
+        query_work_order.first.return_value = work_order
+
+        query_status_log = MagicMock()
+        query_status_log.filter.return_value = query_status_log
+        query_status_log.first.return_value = status_log
+
+        query_visit = MagicMock()
+        query_visit.filter.return_value = query_visit
+        query_visit.first.return_value = visit
+
+        tenant_db.query.side_effect = [
+            query_installation,
+            query_work_order,
+            query_status_log,
+            query_visit,
+        ]
+
+        installation_counters = import_script.ImportCounters()
+        work_order_counters = import_script.ImportCounters()
+        status_log_counters = import_script.ImportCounters()
+        visit_counters = import_script.ImportCounters()
+
+        installation_result = import_script.get_or_create_installation(
+            tenant_db,
+            site_id=11,
+            equipment_type_id=21,
+            legacy_installation_id=5,
+            name="Equipo visible",
+            installed_at=None,
+            location_note="Sala técnica",
+            technical_notes="Nota visible\nlegacy_installation_id=5",
+            counters=installation_counters,
+        )
+        work_order_result, created = import_script.get_or_create_work_order(
+            tenant_db,
+            client_id=31,
+            site_id=11,
+            installation_id=installation_result.id if hasattr(installation_result, "id") else 99,
+            external_reference="LEGACY-MAINT-9",
+            title="Mantención visible",
+            description="Nota útil",
+            maintenance_status="completed",
+            scheduled_for=None,
+            completed_at=None,
+            cancelled_at=None,
+            closure_notes="Cierre visible",
+            requested_at=None,
+            created_by_user_id=1,
+            counters=work_order_counters,
+        )
+        import_script.ensure_status_log(
+            tenant_db,
+            work_order_id=77,
+            marker="legacy_work_order_source=mantenciones legacy_id=9",
+            to_status="completed",
+            note="Importado desde ieris_app.mantenciones\nlegacy_work_order_source=mantenciones legacy_id=9",
+            changed_at=None,
+            counters=status_log_counters,
+        )
+        import_script.ensure_visit(
+            tenant_db,
+            work_order_id=77,
+            marker="legacy_visit_source=mantenciones legacy_id=9",
+            visit_status="completed",
+            scheduled_start_at=None,
+            scheduled_end_at=None,
+            actual_start_at=None,
+            actual_end_at=None,
+            assigned_group_label="Grupo A",
+            notes="Visita base importada\nlegacy_visit_source=mantenciones legacy_id=9",
+            counters=visit_counters,
+        )
+
+        self.assertIs(installation_result, installation)
+        self.assertIs(work_order_result, work_order)
+        self.assertFalse(created)
+        self.assertEqual(installation.name, "Equipo visible")
+        self.assertEqual(installation.location_note, "Sala técnica")
+        self.assertEqual(installation.technical_notes, "Nota visible\nlegacy_installation_id=5")
+        self.assertEqual(work_order.title, "Mantención visible")
+        self.assertEqual(work_order.description, "Nota útil")
+        self.assertEqual(work_order.closure_notes, "Cierre visible")
+        self.assertEqual(work_order.maintenance_status, "completed")
+        self.assertEqual(status_log.note, "Importado desde ieris_app.mantenciones\nlegacy_work_order_source=mantenciones legacy_id=9")
+        self.assertEqual(status_log.to_status, "completed")
+        self.assertEqual(visit.notes, "Visita base importada\nlegacy_visit_source=mantenciones legacy_id=9")
+        self.assertEqual(visit.assigned_group_label, "Grupo A")
+        self.assertEqual(visit.visit_status, "completed")
+        self.assertEqual(installation_counters.updated, 1)
+        self.assertEqual(work_order_counters.updated, 1)
+        self.assertEqual(status_log_counters.updated, 1)
+        self.assertEqual(visit_counters.updated, 1)
 
 
 if __name__ == "__main__":

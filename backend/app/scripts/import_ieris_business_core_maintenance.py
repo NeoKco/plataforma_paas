@@ -43,7 +43,7 @@ LOCAL_TZ = ZoneInfo("America/Santiago")
 
 IMPORT_VERIFICATION_SPECS = {
     "business_core": {
-        "organizations": "empresa",
+        "organizations": ("empresa", "clientes"),
         "clients": "clientes",
         "contacts": None,
         "sites": None,
@@ -782,7 +782,26 @@ def get_or_create_installation(
         .first()
     )
     if existing is not None:
-        counters.existing += 1
+        changed = False
+        for field, value in {
+            "site_id": site_id,
+            "equipment_type_id": equipment_type_id,
+            "name": name,
+            "installed_at": installed_at,
+            "installation_status": "active",
+            "location_note": location_note,
+            "technical_notes": technical_notes,
+            "is_active": True,
+        }.items():
+            if getattr(existing, field) != value:
+                setattr(existing, field, value)
+                changed = True
+        if changed:
+            tenant_db.add(existing)
+            tenant_db.flush()
+            counters.updated += 1
+        else:
+            counters.existing += 1
         return existing
 
     item = MaintenanceInstallation(
@@ -825,7 +844,30 @@ def get_or_create_work_order(
         .first()
     )
     if existing is not None:
-        counters.existing += 1
+        changed = False
+        for field, value in {
+            "client_id": client_id,
+            "site_id": site_id,
+            "installation_id": installation_id,
+            "title": title,
+            "description": description,
+            "maintenance_status": maintenance_status,
+            "scheduled_for": scheduled_for,
+            "requested_at": requested_at,
+            "completed_at": completed_at,
+            "cancelled_at": cancelled_at,
+            "closure_notes": closure_notes,
+            "created_by_user_id": created_by_user_id,
+        }.items():
+            if getattr(existing, field) != value:
+                setattr(existing, field, value)
+                changed = True
+        if changed:
+            tenant_db.add(existing)
+            tenant_db.flush()
+            counters.updated += 1
+        else:
+            counters.existing += 1
         return existing, False
 
     item = MaintenanceWorkOrder(
@@ -869,7 +911,21 @@ def ensure_status_log(
         .first()
     )
     if existing is not None:
-        counters.existing += 1
+        changed = False
+        for field, value in {
+            "to_status": to_status,
+            "note": note,
+            "changed_at": changed_at or datetime.now(tz=LOCAL_TZ),
+        }.items():
+            if getattr(existing, field) != value:
+                setattr(existing, field, value)
+                changed = True
+        if changed:
+            tenant_db.add(existing)
+            tenant_db.flush()
+            counters.updated += 1
+        else:
+            counters.existing += 1
         return
 
     item = MaintenanceStatusLog(
@@ -907,7 +963,25 @@ def ensure_visit(
         .first()
     )
     if existing is not None:
-        counters.existing += 1
+        changed = False
+        for field, value in {
+            "visit_status": visit_status,
+            "scheduled_start_at": scheduled_start_at,
+            "scheduled_end_at": scheduled_end_at,
+            "actual_start_at": actual_start_at,
+            "actual_end_at": actual_end_at,
+            "assigned_group_label": assigned_group_label,
+            "notes": notes,
+        }.items():
+            if getattr(existing, field) != value:
+                setattr(existing, field, value)
+                changed = True
+        if changed:
+            tenant_db.add(existing)
+            tenant_db.flush()
+            counters.updated += 1
+        else:
+            counters.existing += 1
         return
 
     item = MaintenanceVisit(
