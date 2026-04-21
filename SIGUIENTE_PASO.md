@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- subcorte nuevo ya cerrado en repo dentro de `business-core > Duplicados`:
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
   - `installations` ya no queda solo con consolidación operativa de OT
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega:
     - `Ajuste manual previo`
@@ -17,6 +17,10 @@
     - `notas técnicas`
   - validación:
     - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - publicado en:
+    - `staging` con `BusinessCoreDuplicatesPage-BsdqSn1o.js` e `index-BsUt3xZE.js`
+    - `production` con `BusinessCoreDuplicatesPage-CiknFMvm.js` e `index-1d8Xvv-I.js`
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
   - `sites` ya no queda solo con consolidación operativa de instalaciones y OT

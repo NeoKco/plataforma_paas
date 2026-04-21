@@ -15,6 +15,9 @@
   - la auditoría persistente de merge de `installations` ya guarda además `selections` y `diff_rows`, no solo conteos operativos
   - validación:
     - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreDuplicatesPage-BsdqSn1o.js` e `index-BsUt3xZE.js`
+    - `production` publicado con `BusinessCoreDuplicatesPage-CiknFMvm.js` e `index-1d8Xvv-I.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - resultado:
     - `installations` deja de ser solo reasignación operativa con resumen y ya gana una primera capa auditable de decisión técnico-documental visible
 

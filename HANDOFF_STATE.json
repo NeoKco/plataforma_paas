@@ -79,7 +79,8 @@
   "completed_recently": [
     "Duplicados ahora permite ajuste manual previo y diff visible por campo también para installations",
     "la auditoría persistente de merge para installations ya guarda selections y diff_rows además del resumen operativo",
-    "validación repo del corte installations: npm run build OK con BusinessCoreDuplicatesPage-CiknFMvm.js e index-1d8Xvv-I.js generados en dist local",
+    "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles BusinessCoreDuplicatesPage-BsdqSn1o.js index-BsUt3xZE.js y static readiness OK",
+    "production frontend republicado con API_BASE_URL=https://orkestia.ddns.net, bundles BusinessCoreDuplicatesPage-CiknFMvm.js index-1d8Xvv-I.js y static readiness OK",
     "Duplicados ahora permite ajuste manual previo y diff visible por campo también para sites",
     "la auditoría persistente de merge para sites ya guarda selections y diff_rows además del resumen operativo",
     "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles BusinessCoreDuplicatesPage-BB_SD1ZA.js index-D-fTjs2W.js y static readiness OK",

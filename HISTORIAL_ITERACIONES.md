@@ -20,11 +20,19 @@
 - validaciones:
   - repo:
     - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-BsdqSn1o.js`, `index-BsUt3xZE.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-CiknFMvm.js`, `index-1d8Xvv-I.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
 - resultado:
   - `installations` deja de ser solo consolidación operativa con resumen
   - ya existe una primera capa de decisión técnico-documental auditable también para la identidad visible del equipo
 - siguiente paso:
-  - publicar este corte por ambiente o pasar al siguiente salto de `business-core`, que vuelve a quedar entre `organization addresses` y profundización de merge/asimilación más rica
+  - si seguimos en `business-core`, el siguiente salto útil vuelve a quedar entre `organization addresses` y profundización de merge/asimilación más rica
 
 ## 2026-04-20 - `Duplicados` agrega ajuste manual y diff visible para `sites`
 
