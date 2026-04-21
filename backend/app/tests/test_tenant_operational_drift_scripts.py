@@ -1,8 +1,10 @@
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock
 
+from app.common.security.tenant_secret_service import TenantSecretService
 from app.scripts.audit_active_tenant_convergence import (
     build_audit_payload,
     build_audit_summary,
@@ -11,6 +13,7 @@ from app.scripts.audit_active_tenant_convergence import (
     is_accepted_tenant_note,
 )
 from app.scripts.repair_tenant_operational_drift import (
+    format_secret_posture,
     should_rotate_db_credentials,
     sync_tenant_db_password_to_env_files,
 )
@@ -155,17 +158,84 @@ class TenantOperationalDriftScriptsTestCase(unittest.TestCase):
     def test_sync_tenant_db_password_to_env_files_writes_secret(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             target = Path(temp_dir) / ".tenant-secrets.env"
+            fake_settings = SimpleNamespace(
+                BASE_DIR=Path(temp_dir),
+                TENANT_SECRETS_FILE=str(target),
+            )
             synced = sync_tenant_db_password_to_env_files(
                 tenant_slug="empresa-demo",
                 password="super-secret",
                 env_files=[str(target)],
+                current_settings=fake_settings,
             )
 
-            self.assertEqual(synced, [str(target.resolve())])
+            self.assertEqual(len(synced), 1)
+            self.assertEqual(synced[0]["classification"], "runtime_secrets_file")
+            self.assertEqual(synced[0]["path"], str(target.resolve()))
             self.assertIn(
                 "TENANT_DB_PASSWORD__EMPRESA_DEMO=super-secret",
                 target.read_text(encoding="utf-8"),
             )
+
+    def test_sync_tenant_db_password_to_env_files_rejects_legacy_env_without_flag(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            legacy_env = Path(temp_dir) / ".env"
+            fake_settings = SimpleNamespace(
+                BASE_DIR=Path(temp_dir),
+                TENANT_SECRETS_FILE=str(Path(temp_dir) / ".tenant-secrets.env"),
+            )
+
+            with self.assertRaisesRegex(
+                ValueError,
+                r"legacy_env_sync_requires_allow_flag:",
+            ):
+                sync_tenant_db_password_to_env_files(
+                    tenant_slug="empresa-demo",
+                    password="super-secret",
+                    env_files=[str(legacy_env)],
+                    current_settings=fake_settings,
+                )
+
+    def test_sync_tenant_db_password_to_env_files_allows_legacy_env_with_flag(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            legacy_env = Path(temp_dir) / ".env"
+            fake_settings = SimpleNamespace(
+                BASE_DIR=Path(temp_dir),
+                TENANT_SECRETS_FILE=str(Path(temp_dir) / ".tenant-secrets.env"),
+            )
+
+            synced = sync_tenant_db_password_to_env_files(
+                tenant_slug="empresa-demo",
+                password="super-secret",
+                env_files=[str(legacy_env)],
+                current_settings=fake_settings,
+                allow_legacy_env_sync=True,
+            )
+
+            self.assertEqual(synced[0]["classification"], "legacy_env_file")
+            self.assertIn(
+                "TENANT_DB_PASSWORD__EMPRESA_DEMO=super-secret",
+                legacy_env.read_text(encoding="utf-8"),
+            )
+
+    def test_format_secret_posture_renders_runtime_legacy_and_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            service = TenantSecretService()
+            runtime_path = Path(temp_dir) / ".tenant-secrets.env"
+            fake_settings = SimpleNamespace(
+                BASE_DIR=Path(temp_dir),
+                TENANT_SECRETS_FILE=str(runtime_path),
+            )
+            posture = service.build_secret_posture(
+                fake_settings,
+                extra_env_files=[str(Path(temp_dir) / "mirror.env")],
+            )
+
+            rendered = format_secret_posture(posture)
+
+            self.assertIn("runtime=", rendered)
+            self.assertIn("legacy=", rendered)
+            self.assertIn("sync_targets=", rendered)
 
     def test_build_audit_summary_includes_failed_and_notes_breakdown(self) -> None:
         summary = build_audit_summary(

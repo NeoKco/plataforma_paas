@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Guardrails de secretos para sincronización cross-env tenant
+
+- objetivo:
+  - endurecer la operación de `TENANT_SECRETS_FILE` y la sincronización de credenciales tenant entre carriles que comparten rol PostgreSQL
+  - evitar que el `.env` legacy vuelva a usarse como target normal de escritura de secretos técnicos tenant
+- cambios y acciones ejecutadas:
+  - [TenantSecretService](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ahora puede:
+    - clasificar archivos como `runtime_secrets_file`, `legacy_env_file` o `custom_secrets_file`
+    - describir si existen y si son legibles/escribibles
+    - construir una `secret posture` resumida por carril
+  - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ahora:
+    - imprime `secret_posture ...` antes del pre-audit
+    - muestra runtime, legacy y `sync_targets`
+    - bloquea por defecto sincronizaciones hacia el `.env` legacy
+    - solo permite ese fallback con `--allow-legacy-env-sync`
+  - se amplían:
+    - [test_tenant_operational_drift_scripts.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_operational_drift_scripts.py)
+    - [test_security_hardening.py](/home/felipe/platform_paas/backend/app/tests/test_security_hardening.py) revalidada dentro del paquete local
+- validaciones:
+  - local:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` + `test_security_hardening` -> `27 tests OK`
+    - `py_compile tenant_secret_service.py repair_tenant_operational_drift.py` -> `OK`
+    - `bash deploy/check_release_governance.sh` -> `OK`
+- resultado:
+  - la sincronización cross-env de secretos tenant ya deja una postura operativa visible y un guardrail explícito contra escritura accidental en `.env`
+  - el baseline operativo queda acotado a `TENANT_SECRETS_FILE` o archivos de secretos dedicados
+- siguiente paso:
+  - decidir si estas señales se publican también en runtime real por ambiente o si el siguiente subfrente del bloque 1 pasa a `infraestructura/deploy`
+
 ## 2026-04-20 - Snapshot JSON de convergencia tenant por ambiente
 
 - objetivo:

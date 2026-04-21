@@ -190,6 +190,12 @@ export PYTHONPATH=/opt/platform_paas_staging/backend
   --skip-maintenance-finance-repair
 ```
 
+Desde este corte:
+
+- el script imprime `secret_posture ...` antes de reparar para dejar visible el archivo runtime de secretos, el `.env` legacy y los targets extra de sincronización
+- si se intenta usar el `.env` legacy como target de `--sync-env-file`, hace falta `--allow-legacy-env-sync`
+- el camino normal sigue siendo sincronizar hacia el `TENANT_SECRETS_FILE` del otro carril, no hacia su `.env`
+
 ## Modo estricto vs no estricto
 
 Por defecto:

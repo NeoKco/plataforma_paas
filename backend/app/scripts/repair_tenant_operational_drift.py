@@ -21,6 +21,7 @@ from app.apps.tenant_modules.core.services.tenant_connection_service import (  #
     TenantConnectionService,
 )
 from app.common.security.tenant_secret_service import TenantSecretService  # noqa: E402
+from app.common.config.settings import settings  # noqa: E402
 from app.common.db.control_database import ControlSessionLocal  # noqa: E402
 from app.scripts.audit_active_tenant_convergence import (  # noqa: E402
     _audit_single_tenant,
@@ -93,6 +94,14 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Replica la credencial DB tenant actual hacia un archivo .env/.tenant-secrets.env "
             "adicional sin volver a rotar la contraseña"
+        ),
+    )
+    parser.add_argument(
+        "--allow-legacy-env-sync",
+        action="store_true",
+        help=(
+            "Permite sincronizar explícitamente hacia el .env legacy. "
+            "Por defecto solo se admiten TENANT_SECRETS_FILE o archivos de secretos dedicados."
         ),
     )
     return parser
@@ -175,10 +184,21 @@ def sync_tenant_db_password_to_env_files(
     tenant_slug: str,
     password: str,
     env_files: list[str],
-) -> list[str]:
-    synced_env_files: list[str] = []
+    current_settings,
+    allow_legacy_env_sync: bool = False,
+) -> list[dict]:
+    synced_env_files: list[dict] = []
     for env_file in env_files:
         env_path = Path(env_file).expanduser().resolve()
+        target_info = tenant_secret_service.describe_env_path(env_path, current_settings)
+        if (
+            target_info["classification"] == "legacy_env_file"
+            and not allow_legacy_env_sync
+        ):
+            raise ValueError(
+                "legacy_env_sync_requires_allow_flag:"
+                f"{target_info['path']}"
+            )
         tenant_secret_service.store_tenant_db_password(
             tenant_slug=tenant_slug,
             password=password,
@@ -188,8 +208,37 @@ def sync_tenant_db_password_to_env_files(
             tenant_slug=tenant_slug,
             env_path=env_path,
         )
-        synced_env_files.append(str(env_path))
+        synced_env_files.append(target_info)
     return synced_env_files
+
+
+def format_secret_posture(posture: dict) -> str:
+    runtime = posture["runtime"]
+    legacy = posture["legacy"]
+    sync_targets = posture.get("sync_targets", [])
+    formatted_targets = [
+        "{path}({classification}, exists={exists}, writable={writable})".format(**item)
+        for item in sync_targets
+    ] or ["none"]
+    return (
+        "runtime={runtime_path} [{runtime_classification}, exists={runtime_exists}, "
+        "readable={runtime_readable}, writable={runtime_writable}] "
+        "legacy={legacy_path} [{legacy_classification}, exists={legacy_exists}, "
+        "readable={legacy_readable}, writable={legacy_writable}] "
+        "sync_targets={sync_targets}"
+    ).format(
+        runtime_path=runtime["path"],
+        runtime_classification=runtime["classification"],
+        runtime_exists=runtime["exists"],
+        runtime_readable=runtime["readable"],
+        runtime_writable=runtime["writable"],
+        legacy_path=legacy["path"],
+        legacy_classification=legacy["classification"],
+        legacy_exists=legacy["exists"],
+        legacy_readable=legacy["readable"],
+        legacy_writable=legacy["writable"],
+        sync_targets=formatted_targets,
+    )
 
 
 def main() -> int:
@@ -210,6 +259,12 @@ def main() -> int:
                 ),
             )
         )
+
+        secret_posture = tenant_secret_service.build_secret_posture(
+            settings,
+            extra_env_files=args.sync_env_file,
+        )
+        print(f"secret_posture {tenant.slug}: {format_secret_posture(secret_posture)}")
 
         pre_audit_result: dict | None = None
         pre_audit_error_code: str | None = None
@@ -273,6 +328,8 @@ def main() -> int:
                 tenant_slug=tenant.slug,
                 password=current_password,
                 env_files=args.sync_env_file,
+                current_settings=settings,
+                allow_legacy_env_sync=args.allow_legacy_env_sync,
             )
             print(f"sync_env_files {tenant.slug}: synced={synced_env_files}")
 

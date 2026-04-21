@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad` con snapshot JSON reutilizable del audit tenant por ambiente
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`) y el gate post-deploy ya puede guardar un snapshot JSON del estado de convergencia por ambiente
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad` y `secretos`, endureciendo ahora el flujo canónico de sincronización cross-env de credenciales tenant
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya puede guardar un snapshot JSON del estado de convergencia por ambiente y el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -35,6 +35,11 @@
   - el payload incluye `overall_status`, resumen agregado del ambiente, `failed_by_reason`, `notes_by_reason`, `accepted_notes_by_reason` y detalle por tenant
   - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya publica ese snapshot en `operational_evidence/active_tenant_convergence_<timestamp>.json`
   - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ya incrusta el snapshot más reciente dentro del paquete de evidencia cuando existe
+- desde este corte, el hardening de secretos tenant también deja guardrails operativos más explícitos:
+  - [TenantSecretService](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ya puede clasificar y describir archivos de secretos como `runtime_secrets_file`, `legacy_env_file` o `custom_secrets_file`
+  - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya imprime `secret_posture ...` antes de operar, mostrando runtime, legacy y targets extra de sincronización con su estado de lectura/escritura
+  - `--sync-env-file` ya no acepta por defecto el `.env` legacy; para ese caso excepcional hace falta `--allow-legacy-env-sync`
+  - el camino normal queda explícitamente acotado a `TENANT_SECRETS_FILE` o a archivos de secretos dedicados
 - desde este corte queda explícito que un cambio declarado correcto no se cierra si solo funciona en un tenant o en un ambiente:
   - debe promocionarse al runtime afectado
   - debe converger tenants activos afectados

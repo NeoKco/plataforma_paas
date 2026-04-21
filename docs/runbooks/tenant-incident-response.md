@@ -90,6 +90,12 @@ Uso recomendado por tenant:
 3. si el mismo slug existe en otro carril del mismo host y ya hay una credencial válida en un ambiente, sincronizar el secreto hacia el carril hermano sin volver a rotar:
    `repair_tenant_operational_drift.py --tenant-slug <slug> --sync-env-file /ruta/al/.tenant-secrets.env --skip-schema-sync --skip-seed-defaults --skip-maintenance-finance-repair`
 
+Antes de ejecutar esa sincronización, leer la línea `secret_posture ...` que imprime el script:
+
+- confirma cuál es el `TENANT_SECRETS_FILE` efectivo del carril
+- deja visible si el target adicional es runtime, legacy o custom
+- si el target es el `.env` legacy, usarlo solo como excepción explícita con `--allow-legacy-env-sync`
+
 ## Paso 5. Si el problema es credencial DB tenant
 
 Ruta recomendada:
@@ -121,6 +127,7 @@ Si al rotar en `staging` se rompe `production` o viceversa:
 - asumir primero que el rol PostgreSQL puede estar compartido entre carriles
 - no volver a rotar dos veces por reflejo
 - preferir sincronizar el `TENANT_DB_PASSWORD__<SLUG>` válido hacia el `TENANT_SECRETS_FILE` del otro ambiente
+- no reutilizar el `.env` legacy como target por defecto; si se hace por compatibilidad temporal, dejarlo explícito con `--allow-legacy-env-sync`
 
 Si el audit muestra `legacy_finance_base_currency:USD`:
 

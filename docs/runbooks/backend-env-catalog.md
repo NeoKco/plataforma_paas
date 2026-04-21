@@ -96,6 +96,8 @@ Regla operativa vigente:
 - en hosts reales, `TENANT_SECRETS_FILE` debe apuntar a un archivo escribible por el usuario del servicio backend
 - en hosts reales, `TENANT_DATA_EXPORT_ARTIFACTS_DIR` debe apuntar a un directorio escribible por el usuario del servicio backend
 - el `.env` principal sigue siendo la fuente de configuracion general, pero ya no debe ser el lugar donde runtime escriba secretos tenant nuevos
+- si un flujo excepcional necesita sincronizar una credencial tenant hacia el `.env` legacy, debe tratarse como excepción explícita y no como baseline operativo
+- el script canónico de drift ya exige `--allow-legacy-env-sync` para ese caso excepcional
 
 ## 6. Redis
 

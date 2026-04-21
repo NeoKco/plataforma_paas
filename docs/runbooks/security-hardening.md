@@ -88,6 +88,33 @@ Politica actual:
 
 Esto permite endurecer operacion sin tocar credenciales del portal tenant ni depender de cambios manuales sobre PostgreSQL.
 
+### Postura operativa de secretos por carril
+
+El script canónico [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya expone tambien una lectura rápida de postura de secretos:
+
+- archivo runtime efectivo (`TENANT_SECRETS_FILE`)
+- archivo legacy (`.env`)
+- si existen
+- si son legibles
+- si son escribibles
+- y qué archivos adicionales se usarían como `sync_targets`
+
+Objetivo:
+
+- detectar más rápido si el carril está leyendo/escribiendo donde corresponde
+- evitar diagnósticos ambiguos entre `staging`, `production` y repo local
+- dejar visible cuándo un operador intenta reutilizar el `.env` legacy como target de sincronización
+
+### Regla nueva para sincronización cross-env
+
+`--sync-env-file` sigue existiendo para carriles que comparten rol PostgreSQL, pero desde ahora:
+
+- el target normal debe ser `TENANT_SECRETS_FILE` o un archivo de secretos dedicado
+- sincronizar hacia el `.env` legacy ya no es el camino por defecto
+- si realmente hace falta escribir en `.env`, debe usarse `--allow-legacy-env-sync`
+
+Eso baja el riesgo de volver a mezclar secretos runtime con configuración general por accidente.
+
 ## 3. Menor exposicion de secretos en logs
 
 El provisioning ya no imprime la password completa de la DB tenant.

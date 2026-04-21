@@ -2,6 +2,16 @@
 
 ## 2026-04-20
 
+- se endurece la sincronización cross-env de secretos tenant:
+  - [TenantSecretService](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ahora clasifica archivos de secretos como `runtime_secrets_file`, `legacy_env_file` o `custom_secrets_file` y puede describir su postura de lectura/escritura
+  - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ahora imprime `secret_posture ...` antes de operar
+  - `--sync-env-file` ya no permite por defecto sincronizar hacia el `.env` legacy; para ese fallback hace falta `--allow-legacy-env-sync`
+  - validación local:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` + `test_security_hardening` -> `27 tests OK`
+    - `py_compile tenant_secret_service.py repair_tenant_operational_drift.py` -> `OK`
+  - resultado:
+    - el baseline operativo ya no mezcla por defecto secretos runtime tenant con el `.env` general del carril
+
 - la auditoría activa tenant ya deja snapshot JSON reutilizable por ambiente:
   - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora soporta `--format json` y `--json-output-file`
   - el snapshot incluye `overall_status`, resumen agregado, `failed_by_reason`, `notes_by_reason`, `accepted_notes_by_reason` y detalle por tenant

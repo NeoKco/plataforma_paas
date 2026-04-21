@@ -28,6 +28,45 @@ class TenantSecretService:
                 paths.append(path)
         return paths
 
+    def classify_env_path(self, env_path: Path, current_settings) -> str:
+        resolved_path = env_path.expanduser().resolve()
+        runtime_path = self.get_runtime_env_path(current_settings).expanduser().resolve()
+        legacy_path = self.get_legacy_env_path(current_settings).expanduser().resolve()
+
+        if resolved_path == runtime_path:
+            return "runtime_secrets_file"
+        if resolved_path == legacy_path:
+            return "legacy_env_file"
+        return "custom_secrets_file"
+
+    def describe_env_path(self, env_path: Path, current_settings) -> dict:
+        resolved_path = env_path.expanduser().resolve()
+        exists = resolved_path.exists()
+        read_check_path = resolved_path if exists else resolved_path.parent
+        write_check_path = resolved_path if exists else resolved_path.parent
+
+        return {
+            "path": str(resolved_path),
+            "classification": self.classify_env_path(resolved_path, current_settings),
+            "exists": exists,
+            "readable": os.access(read_check_path, os.R_OK),
+            "writable": os.access(write_check_path, os.W_OK),
+        }
+
+    def build_secret_posture(self, current_settings, extra_env_files: list[str] | None = None) -> dict:
+        runtime_path = self.get_runtime_env_path(current_settings)
+        legacy_path = self.get_legacy_env_path(current_settings)
+        posture = {
+            "runtime": self.describe_env_path(runtime_path, current_settings),
+            "legacy": self.describe_env_path(legacy_path, current_settings),
+            "sync_targets": [],
+        }
+        for env_file in extra_env_files or []:
+            posture["sync_targets"].append(
+                self.describe_env_path(Path(env_file), current_settings)
+            )
+        return posture
+
     def build_tenant_db_password_env_var_name(self, tenant_slug: str) -> str:
         normalized_slug = tenant_slug.upper().replace("-", "_")
         return f"TENANT_DB_PASSWORD__{normalized_slug}"

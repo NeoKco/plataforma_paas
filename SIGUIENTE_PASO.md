@@ -58,6 +58,10 @@
   - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ya puede emitir snapshot JSON con `overall_status`, resumen agregado y detalle por tenant
   - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya guarda ese snapshot en `operational_evidence/`
   - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ya embebe el snapshot más reciente dentro de la evidencia operativa del ambiente
+- subcorte nuevo ya cerrado en repo dentro de `secretos`:
+  - [TenantSecretService](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ya clasifica runtime, legacy y custom secret files
+  - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya imprime `secret_posture ...` antes de reparar o sincronizar
+  - `--sync-env-file` ya no permite por defecto escribir en el `.env` legacy; si ese fallback temporal hiciera falta, debe declararse con `--allow-legacy-env-sync`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -111,7 +115,7 @@
     - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
     - entrar ya al siguiente subfrente concreto del bloque 1 con la documentación estructural reordenada y sin deuda de handoff
     - siguiente subfrente sugerido ahora dentro del mismo bloque 1:
-      - `secretos`, para endurecer lectura, rotación y evidencia mínima de `TENANT_SECRETS_FILE` y carriles que comparten rol PostgreSQL
+      - `infraestructura/deploy`, para promover estas lecturas nuevas de `auditoría/observabilidad` y `secretos` en runtime real por ambiente o integrarlas en la UX/admin si hace falta
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

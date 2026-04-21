@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T22:30:00-04:00",
+  "updated_at": "2026-04-20T22:50:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el subfrente de auditoría/observabilidad ya avanzó con snapshot JSON reutilizable del audit tenant por ambiente. El foco correcto ahora es seguir el bloque 1 por secretos o publicar esta nueva salida estructurada en runtime real por ambiente",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad y secretos: el audit tenant deja snapshot JSON por ambiente y el flujo canónico de drift ya expone secret_posture y bloquea por defecto syncs hacia el .env legacy. El foco correcto ahora es decidir si esto se publica/revalida en runtime real por ambiente o si el siguiente subfrente pasa a infraestructura/deploy",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
   "active_modules": [
     "platform-core",
@@ -77,6 +77,10 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "TenantSecretService ahora clasifica archivos como runtime_secrets_file, legacy_env_file o custom_secrets_file y construye una secret_posture reutilizable",
+    "repair_tenant_operational_drift.py ahora imprime secret_posture antes de operar sobre un tenant",
+    "--sync-env-file ya no permite por defecto sincronizar hacia el .env legacy; para ese fallback hace falta --allow-legacy-env-sync",
+    "tests locales revalidados: tenant_operational_drift_scripts + test_security_hardening -> 27 tests OK; py_compile de tenant_secret_service.py y repair_tenant_operational_drift.py -> OK",
     "audit_active_tenant_convergence.py ya soporta --format json y --json-output-file para emitir snapshots reutilizables por ambiente",
     "el snapshot nuevo incluye overall_status, failed_by_reason, notes_by_reason, accepted_notes_by_reason y tenant_results",
     "verify_backend_deploy.sh ya guarda active_tenant_convergence_<timestamp>.json dentro de operational_evidence",
@@ -271,7 +275,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si el siguiente subcorte concreto dentro del bloque 1 será secretos o si primero se publica/revalida en runtime el nuevo snapshot JSON de auditoría tenant por ambiente; además, definir si --sync-env-file sigue manual explícito o pasa a flujo guiado para carriles que comparten rol PostgreSQL",
+  "next_decision_required": "decidir si el siguiente subcorte concreto dentro del bloque 1 será publicar/revalidar en runtime real las nuevas señales de auditoría/secretos por ambiente o si el foco pasa directo a infraestructura/deploy; además, definir si --sync-env-file sigue manual explícito o pasa a flujo guiado para carriles que comparten rol PostgreSQL",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
