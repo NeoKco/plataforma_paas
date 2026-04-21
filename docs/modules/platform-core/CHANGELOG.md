@@ -2,6 +2,24 @@
 
 ## 2026-04-20
 
+- `Dashboard` se alinea con el lenguaje operativo nuevo de `platform_admin`:
+  - [DashboardPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx) ahora agrega una franja `Ruta rápida` reutilizando `ops-summary-strip`
+  - los KPI visibles quedan compactados y consistentes con el resto del frente:
+    - `Tenants con fallo de provisioning`
+    - `Alertas provisioning`
+    - `Alertas billing`
+  - también se abrevia la jerarquía de paneles a:
+    - `Prioridades visibles`
+    - `Acciones rápidas`
+    - `Señal de provisioning por tenant`
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `DashboardPage-C3ovaSy4.js`, `ProvisioningPage-DpCCxewH.js`, `TenantsPage-Dx8mwonv.js`, `index-DXDopmzv.js`
+    - `production` publicado con los mismos bundles actuales
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - queda cerrado el primer pase de consistencia global entre `Dashboard`, `Tenants` y `Provisioning`
+
 - arranca `frontend fino` en `platform_admin` con jerarquía operativa visible:
   - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ahora agrega una franja de resumen con:
     - prioridad actual
@@ -21,6 +39,15 @@
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - resultado:
     - la consola ya ofrece una entrada más clara para operador antes del detalle largo de cada workspace
+  - refinamiento adicional dentro del mismo slice:
+    - copy más corto en `Provisioning`
+    - tarjetas de resumen más compactas
+    - menos explicación repetida al inicio
+    - CTA redundante removida en `Tenants` cuando la primaria ya deriva al mismo workspace
+    - validación:
+      - `staging` republicado con `ProvisioningPage-DEtujP3N.js`, `TenantsPage-BYdnEN_Y.js`, `index-DTbTJlDf.js`
+      - `production` republicado con `ProvisioningPage-BHVa62ws.js`, `TenantsPage-05A-BjbE.js`, `index-B93QfWCR.js`
+      - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - `platform_admin > Tenants` ahora suma `Contexto de alertas activas` dentro de la ficha del tenant:
   - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) reutiliza `getProvisioningAlerts(...)` para clasificar rápidamente si la señal actual parece:

@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T21:23:59-04:00",
+  "updated_at": "2026-04-20T21:38:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos, infraestructura/deploy y calidad técnica + rollback también en runtime real. staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles, el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate, el rollback ya opera desde SOURCE_REPO_ROOT y el base smoke ya quedó institucionalizado por defecto en los wrappers y en el workflow manual. Además, platform_admin > Tenants ya muestra contexto de alertas activas y jerarquía de prioridad/acción, y Provisioning ya suma plan operativo sugerido. El foco correcto sigue en frontend fino.",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos, infraestructura/deploy y calidad técnica + rollback también en runtime real. staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles, el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate, el rollback ya opera desde SOURCE_REPO_ROOT y el base smoke ya quedó institucionalizado por defecto en los wrappers y en el workflow manual. Además, platform_admin > Tenants ya muestra contexto de alertas activas y jerarquía de prioridad/acción, Provisioning ya suma plan operativo sugerido con copy/densidad compactados y Dashboard ya quedó alineado al mismo lenguaje operacional. El foco correcto sigue en frontend fino.",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime, rollback alineado al repo fuente y smoke base embebido por defecto como evidencia repetible",
   "active_modules": [
     "platform-core",
@@ -77,6 +77,12 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "Dashboard ya quedó alineado con Tenants y Provisioning: agrega franja Ruta rápida, compacta labels KPI y renombra paneles a Prioridades visibles, Acciones rápidas y Señal de provisioning por tenant",
+    "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles DashboardPage-C3ovaSy4.js ProvisioningPage-DpCCxewH.js TenantsPage-Dx8mwonv.js index-DXDopmzv.js y static readiness OK",
+    "production frontend republicado con API_BASE_URL=https://orkestia.ddns.net, bundles DashboardPage-C3ovaSy4.js ProvisioningPage-DpCCxewH.js TenantsPage-Dx8mwonv.js index-DXDopmzv.js y static readiness OK",
+    "frontend fino fue refinado otra vez en runtime: Provisioning compacta copy y densidad inicial, y Tenants elimina una CTA secundaria redundante cuando la primaria ya lleva al mismo workspace",
+    "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles ProvisioningPage-DEtujP3N.js TenantsPage-BYdnEN_Y.js index-DTbTJlDf.js y static readiness OK",
+    "production frontend republicado con API_BASE_URL=https://orkestia.ddns.net, bundles ProvisioningPage-BHVa62ws.js TenantsPage-05A-BjbE.js index-B93QfWCR.js y static readiness OK",
     "frontend fino ya arrancó en runtime: Tenants agrega franja de prioridad/acción/lectura ambiente y Provisioning agrega Plan operativo sugerido con saltos rápidos a jobs, alertas, observabilidad y DLQ",
     "platform-admin.css ahora expone ops-summary-strip y ops-summary-card como estilos reutilizables para resúmenes operativos",
     "staging frontend reconstruido con API_BASE_URL=http://192.168.7.42:8081, publicado en /opt/platform_paas_staging/frontend/dist y validado con check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias",
@@ -306,7 +312,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "definir el siguiente subcorte de frontend fino en platform_admin después de cerrar la primera jerarquía operativa visible: copy/labels, reducción de densidad inicial en Provisioning y limpieza de CTA secundarias redundantes; además, decidir si secret_posture o snapshots de convergencia también deben subir a la UI visible o seguir como evidencia/runbook",
+  "next_decision_required": "definir el siguiente subcorte de frontend fino en platform_admin después de cerrar la consistencia global inicial entre Dashboard, Tenants y Provisioning: limpieza adicional de ayuda repetida en bloques secundarios, revisar si Billing necesita la misma compactación/jerarquía visible y decidir si secret_posture o snapshots de convergencia también deben subir a la UI visible o seguir como evidencia/runbook",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

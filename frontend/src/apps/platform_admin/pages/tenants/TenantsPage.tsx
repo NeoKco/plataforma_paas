@@ -2474,8 +2474,8 @@ export function TenantsPage() {
                   }
                   subtitle={
                     language === "es"
-                      ? "Síntesis rápida para distinguir bloqueo esperado, provisioning, drift de esquema o credenciales técnicas antes de reabrir slices."
-                      : "Quick synthesis to distinguish expected blocking, provisioning, schema drift or technical credential drift before reopening slices."
+                      ? "Entrada rápida para decidir si esto es bloqueo esperado, provisioning o drift técnico."
+                      : "Quick entry point to decide whether this is expected blocking, provisioning or technical drift."
                   }
                 >
                   {tenantOperationalSummaryCards.length > 0 ? (
@@ -2539,7 +2539,7 @@ export function TenantsPage() {
                       }
                     />
                     <DetailField
-                      label={language === "es" ? "Provisioning visible" : "Visible provisioning"}
+                      label={language === "es" ? "Job visible" : "Visible job"}
                       value={
                         selectedProvisioningJob ? (
                           <StatusBadge value={selectedProvisioningJob.status} />
@@ -2551,7 +2551,7 @@ export function TenantsPage() {
                       }
                     />
                     <DetailField
-                      label={language === "es" ? "Lectura de esquema" : "Schema read"}
+                      label={language === "es" ? "Esquema" : "Schema"}
                       value={formatTenantSchemaSignal(language, schemaStatus, schemaStatusError)}
                     />
                   </div>
@@ -2596,8 +2596,8 @@ export function TenantsPage() {
                         <DetailField
                           label={
                             language === "es"
-                              ? "Alertas activas ambiente"
-                              : "Environment active alerts"
+                              ? "Alertas ambiente"
+                              : "Environment alerts"
                           }
                           value={
                             tenantProvisioningAlertContext.environmentAlertCount === null
@@ -2612,8 +2612,8 @@ export function TenantsPage() {
                         <DetailField
                           label={
                             language === "es"
-                              ? "Alertas de este tenant"
-                              : "This tenant alerts"
+                              ? "Alertas tenant"
+                              : "Tenant alerts"
                           }
                           value={
                             tenantProvisioningAlertContext.tenantAlertCount === null
@@ -2624,7 +2624,7 @@ export function TenantsPage() {
                           }
                         />
                         <DetailField
-                          label={language === "es" ? "Última captura" : "Latest capture"}
+                          label={language === "es" ? "Última señal" : "Latest signal"}
                           value={formatDateTime(tenantProvisioningAlertContext.latestCapturedAt)}
                         />
                       </div>
@@ -2639,8 +2639,8 @@ export function TenantsPage() {
                   <div className="tenant-context-actions tenant-context-actions--compact">
                     <div className="tenant-help-text">
                       {language === "es"
-                        ? "Este bloque resume la postura operativa actual sin reemplazar el detalle fino de Política de acceso, Provisioning y Esquema tenant."
-                        : "This block summarizes the current operational posture without replacing the detailed Access policy, Provisioning and Tenant schema sections."}
+                        ? "Primero lee esta prioridad y luego baja al detalle fino solo si hace falta."
+                        : "Read this priority first and only then move to the detailed sections if needed."}
                     </div>
                     <div className="tenant-context-actions__buttons">
                       {tenantOperationalPosture.primaryAction === "open-provisioning" ? (
@@ -2712,14 +2712,15 @@ export function TenantsPage() {
                           {language === "es" ? "Abrir portal tenant" : "Open tenant portal"}
                         </Link>
                       ) : null}
-                      {tenantProvisioningAlertContext?.showProvisioningLink ? (
+                      {tenantProvisioningAlertContext?.showProvisioningLink &&
+                      tenantOperationalPosture.primaryAction !== "open-provisioning" ? (
                         <Link
                           className="btn btn-outline-secondary btn-sm"
                           to={tenantProvisioningAlertContext.provisioningLink}
                         >
                           {language === "es"
-                            ? "Ver alertas activas"
-                            : "View active alerts"}
+                            ? "Ir a alertas"
+                            : "Open alerts"}
                         </Link>
                       ) : null}
                     </div>

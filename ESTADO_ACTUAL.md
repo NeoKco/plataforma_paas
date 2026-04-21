@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos`, `infraestructura/deploy` y `calidad técnica + rollback`, el `base smoke` ya quedó institucionalizado como baseline explícito del release backend por ambiente y ahora ya arrancó `frontend fino` con jerarquía operativa visible en `Tenants` y `Provisioning`
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, `Contexto de alertas activas` y una franja de prioridad/acción más clara, `Provisioning` ya suma `Plan operativo sugerido` con saltos rápidos a jobs, alertas, observabilidad o DLQ, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, el rollback ya no asume que `/opt/...` es git sino que opera desde `SOURCE_REPO_ROOT`, y los wrappers `staging`/`production` ya activan por defecto `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` con `REMOTE_BACKEND_SMOKE_TARGET=base`
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos`, `infraestructura/deploy` y `calidad técnica + rollback`, el `base smoke` ya quedó institucionalizado como baseline explícito del release backend por ambiente y `frontend fino` ya extendió consistencia operativa visible a `Tenants`, `Provisioning` y `Dashboard`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, `Contexto de alertas activas` y una franja de prioridad/acción más clara, `Provisioning` ya suma `Plan operativo sugerido` con saltos rápidos a jobs, alertas, observabilidad o DLQ, y `Dashboard` ya refleja la misma jerarquía operacional con `Prioridades visibles`, `Acciones rápidas`, labels compactos y una franja `Ruta rápida`; el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, el rollback ya no asume que `/opt/...` es git sino que opera desde `SOURCE_REPO_ROOT`, y los wrappers `staging`/`production` ya activan por defecto `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` con `REMOTE_BACKEND_SMOKE_TARGET=base`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -208,6 +208,29 @@
   - promoción frontend efectiva:
     - `staging` reconstruido con `API_BASE_URL=http://192.168.7.42:8081`, publicado con `ProvisioningPage-C2fABxX2.js`, `TenantsPage-BanIjLpq.js` e `index-Cmy8UHJQ.js`
     - `production` reconstruido con `API_BASE_URL=https://orkestia.ddns.net`, publicado con `ProvisioningPage-BYxq1XKu.js`, `TenantsPage-0TpQREn8.js` e `index-CHMebSIz.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+    - `production`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - refinamiento adicional ya publicado:
+    - copy más corto en `Provisioning` (`Capacidad activa`, `Mapa rápido`, `Filtro operativo`, `Señales abiertas`, `Observabilidad`)
+    - densidad inicial reducida:
+      - tarjetas `ops-summary-card` más compactas
+      - explicaciones introductorias más cortas
+      - foco tenant superior resumido
+    - CTA redundante removida en `Tenants` cuando la acción primaria ya abre `Provisioning`
+  - bundles actuales:
+    - `staging`: `ProvisioningPage-DEtujP3N.js`, `TenantsPage-BYdnEN_Y.js`, `index-DTbTJlDf.js`
+    - `production`: `ProvisioningPage-BHVa62ws.js`, `TenantsPage-05A-BjbE.js`, `index-B93QfWCR.js`
+- refinamiento adicional ya promovido dentro del mismo frente:
+  - [DashboardPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx) ahora queda alineado con `Tenants` y `Provisioning`:
+    - KPI con labels más cortos y consistentes (`Alertas provisioning`, `Alertas billing`, `Tenants con fallo de provisioning`)
+    - franja `Ruta rápida` con lectura compacta para `Tenants`, `Provisioning` y `Billing`
+    - paneles renombrados y abreviados (`Prioridades visibles`, `Acciones rápidas`, `Señal de provisioning por tenant`)
+  - esto cierra el subcorte de consistencia global inicial entre `Tenants`, `Provisioning` y `Dashboard` sin abrir UI nueva de secretos o convergencia
+  - bundles actuales:
+    - `staging`: `DashboardPage-C3ovaSy4.js`, `ProvisioningPage-DpCCxewH.js`, `TenantsPage-Dx8mwonv.js`, `index-DXDopmzv.js`
+    - `production`: `DashboardPage-C3ovaSy4.js`, `ProvisioningPage-DpCCxewH.js`, `TenantsPage-Dx8mwonv.js`, `index-DXDopmzv.js`
   - validación:
     - `npm run build` -> `OK`
     - `staging`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`

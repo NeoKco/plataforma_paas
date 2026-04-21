@@ -1,5 +1,43 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Consistencia global inicial entre `Dashboard`, `Tenants` y `Provisioning`
+
+- objetivo:
+  - cerrar el siguiente subcorte de `frontend fino` alineando lenguaje operativo, labels y entrada rápida entre los tres workspaces principales de `platform_admin`
+  - dejar el cambio promovido y validado en `staging` y `production`, no solo en repo
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx):
+    - agrega franja `Ruta rápida` usando el mismo patrón `ops-summary-strip`
+    - compacta labels KPI:
+      - `Tenants con fallo de provisioning`
+      - `Alertas provisioning`
+      - `Alertas billing`
+    - renombra y acorta bloques:
+      - `Prioridades visibles`
+      - `Acciones rápidas`
+      - `Señal de provisioning por tenant`
+    - alinea los hints rápidos con el lenguaje ya usado en `Tenants` y `Provisioning`
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `DashboardPage-C3ovaSy4.js`, `ProvisioningPage-DpCCxewH.js`, `TenantsPage-Dx8mwonv.js`, `index-DXDopmzv.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `DashboardPage-C3ovaSy4.js`, `ProvisioningPage-DpCCxewH.js`, `TenantsPage-Dx8mwonv.js`, `index-DXDopmzv.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `Dashboard`, `Tenants` y `Provisioning` ya comparten una entrada operativa más consistente y corta
+  - el primer subcorte de consistencia global queda cerrado en runtime
+- siguiente paso:
+  - seguir con `frontend fino` recortando ayuda repetida en bloques secundarios y decidir si `Billing` necesita la misma jerarquía visible
+
 ## 2026-04-20 - `frontend fino` en `Tenants` y `Provisioning`
 
 - objetivo:
@@ -42,8 +80,23 @@
 - resultado:
   - `Tenants` y `Provisioning` ya priorizan mejor la lectura de operador antes del detalle largo
   - el primer subcorte real de `frontend fino` queda cerrado en runtime, no solo en repo
+- refinamiento adicional dentro del mismo corte:
+  - se compacta copy en `Provisioning`:
+    - `Capacidad activa`
+    - `Mapa rápido`
+    - `Filtro operativo`
+    - `Señales abiertas`
+    - `Observabilidad`
+  - se reduce densidad vertical de `ops-summary-card`
+  - se acortan explicaciones repetidas y el foco tenant superior queda resumido
+  - en `Tenants` se elimina la CTA secundaria a alertas cuando la acción primaria ya abre `Provisioning`
+  - validación adicional:
+    - `npm run build` -> `OK`
+    - `staging` republicado con `ProvisioningPage-DEtujP3N.js`, `TenantsPage-BYdnEN_Y.js`, `index-DTbTJlDf.js`
+    - `production` republicado con `ProvisioningPage-BHVa62ws.js`, `TenantsPage-05A-BjbE.js`, `index-B93QfWCR.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - siguiente paso:
-  - seguir con el siguiente subcorte de `frontend fino`, afinando copy/labels, reduciendo densidad inicial en `Provisioning` y limpiando CTA secundarias redundantes
+  - seguir con el siguiente subcorte de `frontend fino`, ahora sobre consistencia global de labels y limpieza de ayuda repetida en bloques secundarios
 
 ## 2026-04-20 - `platform_admin > Tenants` distingue `tenant-local vs ambiente` con alertas activas
 

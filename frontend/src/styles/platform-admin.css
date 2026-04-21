@@ -837,7 +837,7 @@ code {
   border-radius: 16px;
   display: grid;
   gap: 0.45rem;
-  min-height: 8.6rem;
+  min-height: 7.4rem;
   padding: 1rem;
 }
 
@@ -858,8 +858,8 @@ code {
 
 .ops-summary-card__detail {
   color: var(--color-text-secondary);
-  font-size: 0.88rem;
-  line-height: 1.45;
+  font-size: 0.85rem;
+  line-height: 1.4;
 }
 
 .ops-summary-card--danger {

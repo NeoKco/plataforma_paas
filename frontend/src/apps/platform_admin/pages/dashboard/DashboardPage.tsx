@@ -30,6 +30,13 @@ import type {
   ProvisioningOperationalAlertsResponse,
 } from "../../../../types";
 
+type DashboardFrontlineCard = {
+  key: string;
+  tone: "success" | "info" | "warning" | "danger" | "neutral";
+  title: string;
+  detail: string;
+};
+
 export function DashboardPage() {
   const { session } = useAuth();
   const { language } = useLanguage();
@@ -165,6 +172,79 @@ export function DashboardPage() {
     );
   }, [billingSummary?.data]);
 
+  const frontlineCards = useMemo<DashboardFrontlineCard[]>(() => {
+    return [
+      {
+        key: "tenants",
+        tone: tenantAttentionRows.length > 0 ? "warning" : "success",
+        title:
+          tenantAttentionRows.length > 0
+            ? language === "es"
+              ? `${tenantAttentionRows.length} tenants requieren revisión`
+              : `${tenantAttentionRows.length} tenants require review`
+            : language === "es"
+              ? "Tenants sin atención inmediata"
+              : "Tenants without immediate attention",
+        detail:
+          language === "es"
+            ? "Estado, mantenimiento o facturación ya justifican mirar Tenants."
+            : "Status, maintenance or billing already justify opening Tenants.",
+      },
+      {
+        key: "provisioning",
+        tone:
+          kpis.provisioningFailedTenants > 0
+            ? "danger"
+            : kpis.activeProvisioningAlerts > 0
+              ? "warning"
+              : "success",
+        title:
+          kpis.provisioningFailedTenants > 0
+            ? language === "es"
+              ? `${kpis.provisioningFailedTenants} tenants con fallo visible`
+              : `${kpis.provisioningFailedTenants} tenants with visible failures`
+            : kpis.activeProvisioningAlerts > 0
+              ? language === "es"
+                ? `${kpis.activeProvisioningAlerts} alertas provisioning`
+                : `${kpis.activeProvisioningAlerts} provisioning alerts`
+              : language === "es"
+                ? "Provisioning sin señal abierta"
+                : "Provisioning without open signal",
+        detail:
+          language === "es"
+            ? "Jobs, alertas y recuperación técnica viven en Provisioning."
+            : "Jobs, alerts and technical recovery live in Provisioning.",
+      },
+      {
+        key: "billing",
+        tone: kpis.activeBillingAlerts > 0 || kpis.tenantsPastDue > 0 ? "warning" : "success",
+        title:
+          kpis.activeBillingAlerts > 0
+            ? language === "es"
+              ? `${kpis.activeBillingAlerts} alertas billing`
+              : `${kpis.activeBillingAlerts} billing alerts`
+            : kpis.tenantsPastDue > 0
+              ? language === "es"
+                ? `${kpis.tenantsPastDue} tenants con deuda`
+                : `${kpis.tenantsPastDue} tenants past due`
+              : language === "es"
+                ? "Billing sin señal abierta"
+                : "Billing without open signal",
+        detail:
+          language === "es"
+            ? "Eventos, alertas y reconcile viven en Billing."
+            : "Events, alerts and reconciliation live in Billing.",
+      },
+    ];
+  }, [
+    kpis.activeBillingAlerts,
+    kpis.activeProvisioningAlerts,
+    kpis.provisioningFailedTenants,
+    kpis.tenantsPastDue,
+    language,
+    tenantAttentionRows.length,
+  ]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -270,8 +350,8 @@ export function DashboardPage() {
             <MetricCard
               label={
                 language === "es"
-                  ? "Tenants con provisioning fallido"
-                  : "Tenants with failed provisioning"
+                  ? "Tenants con fallo de provisioning"
+                  : "Tenants with provisioning failure"
               }
               icon="provisioning"
               tone="danger"
@@ -285,8 +365,8 @@ export function DashboardPage() {
             <MetricCard
               label={
                 language === "es"
-                  ? "Alertas activas de provisioning"
-                  : "Active provisioning alerts"
+                  ? "Alertas provisioning"
+                  : "Provisioning alerts"
               }
               icon="pulse"
               tone="info"
@@ -298,7 +378,7 @@ export function DashboardPage() {
               }
             />
             <MetricCard
-              label={language === "es" ? "Alertas activas de facturación" : "Active billing alerts"}
+              label={language === "es" ? "Alertas billing" : "Billing alerts"}
               icon="billing"
               tone="info"
               value={kpis.activeBillingAlerts}
@@ -310,14 +390,29 @@ export function DashboardPage() {
             />
           </div>
 
+          <div className="ops-summary-strip">
+            {frontlineCards.map((card) => (
+              <div
+                key={card.key}
+                className={`ops-summary-card ops-summary-card--${card.tone}`}
+              >
+                <div className="ops-summary-card__eyebrow">
+                  {language === "es" ? "Ruta rápida" : "Quick route"}
+                </div>
+                <div className="ops-summary-card__title">{card.title}</div>
+                <div className="ops-summary-card__detail">{card.detail}</div>
+              </div>
+            ))}
+          </div>
+
           <div className="dashboard-section-grid">
             <PanelCard
               icon="focus"
-              title={language === "es" ? "Foco operativo" : "Operational focus"}
+              title={language === "es" ? "Prioridades visibles" : "Visible priorities"}
               subtitle={
                 language === "es"
-                  ? "Tenants que hoy requieren revisión por estado, mantenimiento o facturación."
-                  : "Tenants that currently require review due to status, maintenance or billing."
+                  ? "Tenants donde hoy ya hay señal suficiente para revisar."
+                  : "Tenants where there is already enough signal to review today."
               }
             >
               {tenantAttentionRows.length > 0 ? (
@@ -354,8 +449,8 @@ export function DashboardPage() {
               title={language === "es" ? "Acciones rápidas" : "Quick actions"}
               subtitle={
                 language === "es"
-                  ? "Entra directo a la pantalla adecuada según el tipo de problema."
-                  : "Go directly to the right screen depending on the issue type."
+                  ? "Entra directo al workspace correcto."
+                  : "Jump straight to the right workspace."
               }
             >
               <AppToolbar className="dashboard-quick-actions">
@@ -372,17 +467,17 @@ export function DashboardPage() {
               <div className="dashboard-quick-hints">
                 <div>
                   {language === "es"
-                    ? "`Tenants`: estado del tenant, plan, mantenimiento, límites y acceso."
-                    : "`Tenants`: tenant status, plan, maintenance, limits and access."}
+                    ? "`Tenants`: estado, acceso y operación del tenant."
+                    : "`Tenants`: tenant status, access and operations."}
                 </div>
                 <div>
                   {language === "es"
-                    ? "`Provisioning`: jobs pendientes, fallos, reintentos y recuperación técnica."
-                    : "`Provisioning`: pending jobs, failures, retries and technical recovery."}
+                    ? "`Provisioning`: jobs, alertas y recuperación técnica."
+                    : "`Provisioning`: jobs, alerts and technical recovery."}
                 </div>
                 <div>
                   {language === "es"
-                    ? "`Facturación`: eventos persistidos, alertas y reconcile por tenant."
+                    ? "`Billing`: eventos, alertas y reconcile por tenant."
                     : "`Billing`: persisted events, alerts and reconciliation by tenant."}
                 </div>
               </div>
@@ -393,13 +488,13 @@ export function DashboardPage() {
             <DataTableCard
               title={
                 language === "es"
-                  ? "Presión de provisioning por tenant"
-                  : "Provisioning pressure by tenant"
+                  ? "Señal de provisioning por tenant"
+                  : "Provisioning signal by tenant"
               }
               subtitle={
                 language === "es"
-                  ? "Solo tenants con jobs fallidos, en reintento o ejecutándose ahora."
-                  : "Only tenants with failed, retrying or currently running jobs."
+                  ? "Solo tenants con fallo, reintento o ejecución activa en esta lectura."
+                  : "Only tenants with failures, retries or active execution in this read."
               }
               rows={provisioningAttentionRows}
               columns={[

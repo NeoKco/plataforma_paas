@@ -2015,11 +2015,11 @@ export function ProvisioningPage() {
       {!isLoading && !capabilitiesError && capabilities ? (
         <PanelCard
           icon="settings"
-          title={language === "es" ? "Capacidad activa de provisioning" : "Active provisioning capability"}
+          title={language === "es" ? "Capacidad activa" : "Active capability"}
           subtitle={
             language === "es"
-              ? "La consola deja explícito si este entorno puede operar DLQ broker-only o solo backlog por base de datos."
-              : "The console makes it explicit whether this environment can operate broker-only DLQ or only database-backed backlog."
+              ? "Aclara si este carril puede operar DLQ broker-only o solo lectura base."
+              : "Makes it explicit whether this environment can operate broker-only DLQ or only database-backed reads."
           }
         >
           <div
@@ -2042,11 +2042,11 @@ export function ProvisioningPage() {
             <p className="tenant-help-text mb-0">
               {isBrokerDispatchActive
                 ? language === "es"
-                  ? "Este entorno sí permite operación DLQ broker-only: filtros DLQ, requeue individual, batch y requeue guiado se leen como superficie activa."
-                  : "This environment does support broker-only DLQ operations: DLQ filters, individual requeue, batch and guided requeue are an active surface."
+                  ? "Aquí sí puedes operar DLQ broker-only."
+                  : "Broker-only DLQ operations are available here."
                 : language === "es"
-                  ? "Este entorno no corre hoy con backend broker. Puedes seguir leyendo jobs, métricas y alertas, pero los recorridos DLQ broker-only deben validarse en staging u otro entorno broker."
-                  : "This environment is not currently running with the broker backend. You can still read jobs, metrics and alerts, but broker-only DLQ flows must be validated in staging or another broker environment."}
+                  ? "Aquí no corre dispatch broker; valida DLQ completa en un carril broker."
+                  : "This environment is not running the broker dispatch; validate full DLQ flows in a broker-enabled environment."}
             </p>
           </div>
         </PanelCard>
@@ -2085,44 +2085,39 @@ export function ProvisioningPage() {
 
       <PanelCard
         icon="catalogs"
-        title={language === "es" ? "Qué hace provisioning" : "What provisioning does"}
+        title={language === "es" ? "Mapa rápido" : "Quick map"}
         subtitle={
           language === "es"
-            ? "Referencia corta para no confundir el alta en catálogo con la preparación técnica real del tenant."
-            : "Short reference so you do not confuse catalog creation with the actual technical preparation of the tenant."
+            ? "Resumen mínimo para no mezclar alta de catálogo con preparación técnica."
+            : "Minimal summary so catalog registration does not get confused with technical preparation."
         }
       >
         <div className="dashboard-quick-hints mt-0">
           <div>
             {language === "es"
-              ? "`Crear tenant` da de alta la entidad en `platform_control` y dispara el job inicial."
-              : "`Create tenant` registers the entity in `platform_control` and triggers the initial job."}
+              ? "`Crear tenant` registra la entidad y dispara el job inicial."
+              : "`Create tenant` registers the entity and triggers the initial job."}
           </div>
           <div>
             {language === "es"
-              ? "`Provisionar` prepara la DB tenant, el usuario técnico, el esquema y el admin inicial que se capturó al crear el tenant."
-              : "`Provision` prepares the tenant DB, the technical user, the schema and the initial admin captured during tenant creation."}
+              ? "`Provisionar` prepara DB tenant, usuario técnico, esquema y admin inicial."
+              : "`Provision` prepares the tenant DB, technical user, schema and initial admin."}
           </div>
           <div>
             {language === "es"
-              ? "`Desprovisionar tenant` crea un job de retiro técnico para soltar DB, rol y secretos técnicos sin borrar todavía la fila viva del tenant."
-              : "`Deprovision tenant` creates a technical retirement job to release the DB, role and technical secrets without deleting the live tenant row yet."}
-          </div>
-          <div>
-            {language === "es"
-              ? "`Pending` espera worker, `retry_pending` volverá a intentarse, `failed` requiere intervención y `completed` deja el tenant listo."
-              : "`Pending` waits for the worker, `retry_pending` will retry, `failed` requires intervention and `completed` leaves the tenant ready."}
+              ? "`Desprovisionar tenant` libera infraestructura técnica sin borrar aún la fila viva."
+              : "`Deprovision tenant` releases technical infrastructure without deleting the live row yet."}
           </div>
         </div>
       </PanelCard>
 
       <PanelCard
         icon="focus"
-        title={language === "es" ? "Foco por operación" : "Focus by operation"}
+        title={language === "es" ? "Filtro operativo" : "Operational filter"}
         subtitle={
           language === "es"
-            ? "Separa altas, retiros técnicos y cambios de esquema para no mezclar deudas distintas en la misma lectura."
-            : "Separate creations, technical retirements and schema changes so different debts do not mix in the same view."
+            ? "Separa altas, retiros y esquema para no mezclar deudas distintas."
+            : "Separate creates, retirements and schema work so different debts do not mix."
         }
       >
         <AppToolbar className="provisioning-filter-strip">
@@ -2176,8 +2171,8 @@ export function ProvisioningPage() {
         {normalizedTenantSlugFilter ? (
           <div className="tenant-inline-note mt-2">
             {language === "es"
-              ? `La consola está enfocada en tenants que coinciden con "${tenantSlugFilter.trim()}". El DLQ mantiene su filtro propio, pero la lectura operativa ya quedó acotada a ese tenant.`
-              : `The console is focused on tenants matching "${tenantSlugFilter.trim()}". DLQ keeps its own filter, but the operational read is now scoped to that tenant.`}
+              ? `La lectura superior quedó acotada a "${tenantSlugFilter.trim()}".`
+              : `The top-level read is now scoped to "${tenantSlugFilter.trim()}".`}
           </div>
         ) : null}
         <div className="provisioning-operation-summary">
@@ -2224,8 +2219,8 @@ export function ProvisioningPage() {
         title={language === "es" ? "Plan operativo sugerido" : "Suggested operational plan"}
         subtitle={
           language === "es"
-            ? "Entrada corta para decidir qué mirar primero antes de bajar al detalle completo."
-            : "Short entry point to decide what to inspect first before going into the full detail."
+            ? "Prioriza primero y baja al detalle largo solo después."
+            : "Prioritize first and only then move into the longer detail."
         }
       >
         <div className="ops-summary-strip">
@@ -2282,8 +2277,8 @@ export function ProvisioningPage() {
         <div className="tenant-context-actions tenant-context-actions--compact">
           <div className="tenant-help-text">
             {language === "es"
-              ? "Resuelve primero la prioridad sugerida y luego vuelve al resto del workspace para el detalle fino."
-              : "Resolve the suggested priority first and then return to the rest of the workspace for detailed inspection."}
+              ? "Usa esto como entrada rápida, no como sustituto del detalle."
+              : "Use this as the quick entry point, not as a replacement for the detailed view."}
           </div>
           <div className="tenant-context-actions__buttons">
             <a className="btn btn-primary btn-sm" href={provisioningFrontlineGuide.primaryActionHref}>
@@ -2382,11 +2377,11 @@ export function ProvisioningPage() {
 
       <PanelCard
         icon="activity"
-        title={language === "es" ? "Qué revisar ahora" : "What to review now"}
+        title={language === "es" ? "Señales abiertas" : "Open signals"}
         subtitle={
           language === "es"
-            ? "Lectura operativa rápida para distinguir backlog normal de deuda que ya requiere intervención."
-            : "Quick operational read to distinguish normal backlog from debt that already requires intervention."
+            ? "Lectura corta para distinguir backlog normal de deuda que ya exige intervención."
+            : "Short read to distinguish normal backlog from debt that already requires intervention."
         }
       >
         {operationalSignals.length === 0 ? (
@@ -2417,12 +2412,12 @@ export function ProvisioningPage() {
       <PanelCard
         icon="pulse"
         title={
-          language === "es" ? "Observabilidad visible" : "Visible observability"
+          language === "es" ? "Observabilidad" : "Observability"
         }
         subtitle={
           language === "es"
-            ? "Lee tendencia reciente por tenant y alertas persistidas sin depender solo del estado activo actual."
-            : "Read recent tenant trends and persisted alerts without depending only on the current active state."
+            ? "Lee tendencia reciente y alertas persistidas sin depender solo del estado activo."
+            : "Read recent trends and persisted alerts without depending only on current active state."
         }
       >
         <AppForm className="tenant-action-form" onSubmit={handleObservabilityFilterSubmit}>
@@ -2502,8 +2497,8 @@ export function ProvisioningPage() {
           <div className="app-form-field app-form-field--full">
             <p className="tenant-help-text mt-0 mb-0">
               {language === "es"
-                ? `El foco tenant superior también se reutiliza aquí${normalizeNullableString(tenantSlugFilter) ? ` para ${tenantSlugFilter.trim()}` : ""}, así que puedes alternar entre lectura global o acotada sin cambiar de pantalla.`
-                : `The tenant focus above is also reused here${normalizeNullableString(tenantSlugFilter) ? ` for ${tenantSlugFilter.trim()}` : ""}, so you can switch between global and scoped readings without leaving the screen.`}
+                ? `Este bloque reutiliza el foco tenant actual${normalizeNullableString(tenantSlugFilter) ? `: ${tenantSlugFilter.trim()}` : ""}.`
+                : `This block reuses the current tenant focus${normalizeNullableString(tenantSlugFilter) ? `: ${tenantSlugFilter.trim()}` : ""}.`}
             </p>
           </div>
           <AppFormActions>
