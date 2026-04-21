@@ -543,7 +543,7 @@ export function BillingPage() {
         title={language === "es" ? "Facturación" : "Billing"}
         description={
           language === "es"
-            ? "Vista rápida de alertas, historial y reconcile tenant sobre el stream persistido de billing."
+            ? "Vista rápida de alertas, historial y reconcile sobre billing persistido."
             : "Quick view of alerts, history and tenant reconciliation over the persisted billing stream."
         }
         actions={
@@ -699,7 +699,7 @@ export function BillingPage() {
         title={language === "es" ? "Señales abiertas" : "Open signals"}
         subtitle={
           language === "es"
-            ? "Baja al detalle largo solo si esta lectura breve no alcanza."
+            ? "Lee esto primero y baja al detalle solo si hace falta."
             : "Go deeper only if this short read is not enough."
         }
       >
@@ -712,7 +712,7 @@ export function BillingPage() {
             }
             detail={
               language === "es"
-                ? "No existen alertas activas ni indicios inmediatos de reconcile pendiente. El stream de facturación se ve estable."
+                ? "No hay alertas activas ni reconcile pendiente visible."
                 : "There are no active alerts or immediate signs of pending reconciliation. The billing stream looks stable."
             }
           />
@@ -732,7 +732,7 @@ export function BillingPage() {
         title={language === "es" ? "Filtros de facturación" : "Billing filters"}
         subtitle={
           language === "es"
-            ? "El mismo set alimenta resumen, alertas e historial tenant."
+            ? "El mismo set alimenta resumen, alertas e historial."
             : "The same set drives summary, alerts and tenant history."
         }
       >
@@ -1005,7 +1005,7 @@ export function BillingPage() {
             }
             subtitle={
               language === "es"
-                ? "Historial y reconcile sobre el stream persistido."
+                ? "Historial y reconcile sobre billing persistido."
                 : "History and reconciliation over the persisted stream."
             }
           >
@@ -1085,7 +1085,7 @@ export function BillingPage() {
                 <AppFormField fullWidth>
                   <p className="tenant-help-text mt-3">
                     {language === "es"
-                      ? "Reaplica eventos recientes usando el filtro tenant actual."
+                      ? "Reaplica eventos recientes con el filtro tenant actual."
                       : "Reapply recent events using the current tenant filter."}
                   </p>
                 </AppFormField>

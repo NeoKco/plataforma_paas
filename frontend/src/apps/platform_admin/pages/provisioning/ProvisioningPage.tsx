@@ -2380,7 +2380,7 @@ export function ProvisioningPage() {
         title={language === "es" ? "Señales abiertas" : "Open signals"}
         subtitle={
           language === "es"
-            ? "Lectura corta para distinguir backlog normal de deuda que ya exige intervención."
+            ? "Lee esto primero y baja al detalle solo si hace falta."
             : "Short read to distinguish normal backlog from debt that already requires intervention."
         }
       >
@@ -2393,7 +2393,7 @@ export function ProvisioningPage() {
             }
             detail={
               language === "es"
-                ? "No hay jobs fallidos, DLQ relevante ni señales recientes de ciclos cortados por error. Provisioning se ve estable en este momento."
+                ? "No hay fallos visibles, DLQ relevante ni ciclos recientes cortados por error."
                 : "There are no failed jobs, relevant DLQ rows or recent signs of worker cycles cut by errors. Provisioning looks stable right now."
             }
           />
@@ -2416,7 +2416,7 @@ export function ProvisioningPage() {
         }
         subtitle={
           language === "es"
-            ? "Lee tendencia reciente y alertas persistidas sin depender solo del estado activo."
+            ? "Tendencia reciente y alertas persistidas."
             : "Read recent trends and persisted alerts without depending only on current active state."
         }
       >
@@ -2426,7 +2426,7 @@ export function ProvisioningPage() {
               label={language === "es" ? "Límite de historial" : "History limit"}
               help={
                 language === "es"
-                  ? "Cantidad máxima de snapshots, alertas históricas y ciclos recientes a recuperar por consulta."
+                  ? "Máximo de snapshots, alertas y ciclos por consulta."
                   : "Maximum number of snapshots, historical alerts and recent cycles to fetch per query."
               }
             />
@@ -2443,7 +2443,7 @@ export function ProvisioningPage() {
               label={language === "es" ? "Worker profile" : "Worker profile"}
               help={
                 language === "es"
-                  ? "Acota ciclos recientes y alertas históricas a un worker específico cuando operas más de un perfil."
+                  ? "Acota ciclos y alertas a un worker concreto."
                   : "Scope recent cycles and alert history to a specific worker when more than one profile is operating."
               }
             />

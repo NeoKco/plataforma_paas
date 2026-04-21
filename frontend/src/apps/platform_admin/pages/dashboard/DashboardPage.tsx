@@ -266,8 +266,8 @@ export function DashboardPage() {
         title={language === "es" ? "Resumen operativo" : "Operational overview"}
         description={
           language === "es"
-            ? "Vista rápida de salud operativa: tenants que requieren atención, presión de provisioning y señales de facturación que ya justifican una revisión."
-            : "Quick view of operational health: tenants requiring attention, provisioning pressure and billing signals that already justify a review."
+            ? "Vista rápida de tenants, provisioning y billing para decidir dónde entrar primero."
+            : "Quick view of tenants, provisioning and billing to decide where to go first."
         }
         icon="dashboard"
         actions={
@@ -411,8 +411,8 @@ export function DashboardPage() {
               title={language === "es" ? "Prioridades visibles" : "Visible priorities"}
               subtitle={
                 language === "es"
-                  ? "Tenants donde hoy ya hay señal suficiente para revisar."
-                  : "Tenants where there is already enough signal to review today."
+                  ? "Tenants que ya justifican revisión hoy."
+                  : "Tenants that already justify review today."
               }
             >
               {tenantAttentionRows.length > 0 ? (
@@ -467,17 +467,17 @@ export function DashboardPage() {
               <div className="dashboard-quick-hints">
                 <div>
                   {language === "es"
-                    ? "`Tenants`: estado, acceso y operación del tenant."
+                    ? "`Tenants`: estado, acceso y operación."
                     : "`Tenants`: tenant status, access and operations."}
                 </div>
                 <div>
                   {language === "es"
-                    ? "`Provisioning`: jobs, alertas y recuperación técnica."
+                    ? "`Provisioning`: jobs, alertas y recuperación."
                     : "`Provisioning`: jobs, alerts and technical recovery."}
                 </div>
                 <div>
                   {language === "es"
-                    ? "`Billing`: eventos, alertas y reconcile por tenant."
+                    ? "`Billing`: eventos, alertas y reconcile."
                     : "`Billing`: persisted events, alerts and reconciliation by tenant."}
                 </div>
               </div>
@@ -493,7 +493,7 @@ export function DashboardPage() {
               }
               subtitle={
                 language === "es"
-                  ? "Solo tenants con fallo, reintento o ejecución activa en esta lectura."
+                  ? "Solo tenants con fallo, reintento o ejecución activa."
                   : "Only tenants with failures, retries or active execution in this read."
               }
               rows={provisioningAttentionRows}

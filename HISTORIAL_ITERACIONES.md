@@ -1,5 +1,44 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Limpieza final de ayuda secundaria en `Dashboard`, `Provisioning` y `Billing`
+
+- objetivo:
+  - cerrar otro subcorte de `frontend fino` recortando copy secundaria repetida
+  - dejar explícita la decisión de no subir todavía señales de convergencia/secretos a UI visible
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx):
+    - compacta descripción inicial
+    - acorta subtítulos y hints rápidos de entrada
+  - [frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx):
+    - acorta copy de `Señales abiertas`
+    - acorta `Observabilidad`
+    - simplifica ayuda de filtros de observabilidad
+  - [frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx):
+    - compacta otra vez encabezado, `Señales abiertas`, filtros y `Workspace tenant`
+  - decisión explícita:
+    - `secret_posture` y snapshots de convergencia siguen fuera de la UI visible
+    - se mantienen como evidencia técnica y runbooks operativos
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BillingPage-CrCSNwQ_.js`, `DashboardPage-Lxdw4m9X.js`, `ProvisioningPage-CIjIa5to.js`, `TenantsPage-CwoDOf96.js`, `index-CR7LtYrt.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BillingPage-BgRnLPTq.js`, `DashboardPage-FIEfSOxY.js`, `ProvisioningPage-C1FPLJZ8.js`, `TenantsPage-BWayidnb.js`, `index-MB3Dw1B2.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - la compactación visible inicial del frente queda más cerrada y coherente
+  - la señal técnica de convergencia/secretos sigue fuera del frontend por decisión explícita
+- siguiente paso:
+  - revisar si `Tenants` todavía necesita una pasada adicional de copy secundaria en bloques más profundos
+
 ## 2026-04-20 - `Billing` se alinea al lenguaje operativo de `platform_admin`
 
 - objetivo:

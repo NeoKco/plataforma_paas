@@ -2,6 +2,18 @@
 
 ## 2026-04-20
 
+- se cierra otro pase de compactación visible en `platform_admin`:
+  - [DashboardPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx) recorta descripción inicial, subtítulos y hints de entrada
+  - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) recorta `Señales abiertas`, `Observabilidad` y ayuda de filtros
+  - [BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx) recorta otra vez encabezado, `Señales abiertas`, filtros y `Workspace tenant`
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BillingPage-CrCSNwQ_.js`, `DashboardPage-Lxdw4m9X.js`, `ProvisioningPage-CIjIa5to.js`, `TenantsPage-CwoDOf96.js`, `index-CR7LtYrt.js`
+    - `production` publicado con `BillingPage-BgRnLPTq.js`, `DashboardPage-FIEfSOxY.js`, `ProvisioningPage-C1FPLJZ8.js`, `TenantsPage-BWayidnb.js`, `index-MB3Dw1B2.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - decisión operativa:
+    - `secret_posture` y snapshots de convergencia siguen fuera de la UI visible y permanecen como evidencia/runbook
+
 - `Billing` se alinea al mismo lenguaje operativo corto de `platform_admin`:
   - [BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx) ahora agrega una franja `Ruta rápida`
   - compacta además:
