@@ -2,6 +2,25 @@
 
 ## 2026-04-20
 
+- se endurece el cierre de release backend con rollback alineado al repo fuente y smoke corto opcional:
+  - [rollback_backend.sh](/home/felipe/platform_paas/deploy/rollback_backend.sh) ya deja de asumir que `/opt/...` es un checkout git
+  - ahora el rollback mueve la ref en `SOURCE_REPO_ROOT` y luego reutiliza el wrapper normal para reproyectar esa ref al runtime objetivo
+  - el rollback falla por defecto si el repo fuente tiene cambios locales y permite override explícito con `ALLOW_DIRTY_SOURCE_REPO_FOR_ROLLBACK=true`
+  - [run_backend_post_deploy_gate.sh](/home/felipe/platform_paas/deploy/run_backend_post_deploy_gate.sh) ahora puede ejecutar [run_remote_backend_smoke.py](/home/felipe/platform_paas/deploy/run_remote_backend_smoke.py) como smoke funcional corto opcional
+  - el gate puede:
+    - guardar `remote_backend_smoke_<timestamp>.json`
+    - fallar por smoke con `REMOTE_BACKEND_SMOKE_STRICT=true`
+    - dejar `WARNING` si el smoke es solo observacional
+  - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ya incrusta el último reporte JSON de smoke remoto cuando existe
+  - validación local:
+    - `bash -n deploy/rollback_backend.sh` -> `OK`
+    - `bash -n deploy/run_backend_post_deploy_gate.sh` -> `OK`
+    - `bash -n deploy/collect_backend_operational_evidence.sh` -> `OK`
+    - `python3 deploy/run_remote_backend_smoke.py --help` -> `OK`
+  - resultado:
+    - el criterio `rollback vs reparación tenant-local` queda mejor alineado al carril real de release
+    - el smoke funcional corto ya puede formar parte de la evidencia del ambiente sin depender de una corrida manual aislada
+
 - se cierra `infraestructura/deploy` con promoción explícita `repo -> runtime backend` dentro del wrapper de release:
   - se agrega [sync_backend_runtime_tree.sh](/home/felipe/platform_paas/deploy/sync_backend_runtime_tree.sh) para reflejar el árbol `backend/` del repo fuente en el runtime del ambiente
   - [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) ahora usa `SOURCE_REPO_ROOT`, `SOURCE_BACKEND_DIR` y `SYNC_RUNTIME_BACKEND_FROM_SOURCE` para promover backend antes de `pip install`, tests, restart y gate post-deploy

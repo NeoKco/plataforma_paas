@@ -76,6 +76,8 @@ Que deja:
 - estado del servicio
 - logs recientes
 - respuesta del healthcheck
+- snapshot JSON más reciente de convergencia tenant, si existe
+- reporte JSON más reciente de smoke remoto, si existe
 
 ## Cuando No Aceptar
 
@@ -90,6 +92,7 @@ No aceptar un deploy o restore si:
 ## Accion Recomendada si Falla
 
 - deploy fallido por codigo: usar rollback por ref git
+- si el rollback se ejecuta hoy, mover la ref en `SOURCE_REPO_ROOT`; no asumir que `/opt/...` sea un checkout git
 - restore drill fallido: revisar backup, logs de PostgreSQL y repetir sobre una DB temporal
 - problemas de migracion o datos: no asumir que rollback de codigo arregla el estado
 

@@ -65,6 +65,14 @@ Variables útiles:
 - `BACKEND_POST_DEPLOY_AUDIT_ACTIVE_TENANTS`
 - `BACKEND_POST_DEPLOY_CONVERGENCE_STRICT`
 - `BACKEND_POST_DEPLOY_AUDIT_OUTPUT_DIR`
+- `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY`
+- `REMOTE_BACKEND_SMOKE_BASE_URL`
+- `REMOTE_BACKEND_SMOKE_TARGET`
+- `REMOTE_BACKEND_SMOKE_TIMEOUT_SECONDS`
+- `REMOTE_BACKEND_SMOKE_ATTEMPTS`
+- `REMOTE_BACKEND_SMOKE_RETRY_DELAY_SECONDS`
+- `REMOTE_BACKEND_SMOKE_STRICT`
+- `REMOTE_BACKEND_SMOKE_REPORT_PATH`
 
 Ejemplo para `staging`:
 
@@ -75,6 +83,17 @@ HEALTHCHECK_URL=http://127.0.0.1/health \
 MAX_ATTEMPTS=15 \
 SLEEP_SECONDS=2 \
 bash deploy/verify_backend_deploy.sh
+```
+
+Si además quieres exigir smoke funcional corto contra la URL publicada:
+
+```bash
+PROJECT_ROOT=/opt/platform_paas \
+RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true \
+REMOTE_BACKEND_SMOKE_BASE_URL=https://orkestia.ddns.net \
+REMOTE_BACKEND_SMOKE_TARGET=all \
+REMOTE_BACKEND_SMOKE_STRICT=true \
+bash deploy/run_backend_post_deploy_gate.sh
 ```
 
 ## Comportamiento actual del gate
@@ -121,6 +140,18 @@ Ese snapshot incluye:
 - `notes_by_reason`
 - `accepted_notes_by_reason`
 - detalle por tenant auditado
+
+Si el smoke remoto está habilitado, además deja:
+
+- `${PROJECT_ROOT}/operational_evidence/remote_backend_smoke_<timestamp>.json`
+
+Ese reporte resume:
+
+- `base_url`
+- `target`
+- checks ejecutados
+- `status=passed|failed`
+- error final cuando corresponde
 
 Desde este corte, una `note` como `legacy_finance_base_currency:USD` significa algo distinto a un seed faltante:
 
@@ -217,6 +248,7 @@ BACKEND_POST_DEPLOY_CONVERGENCE_STRICT=true bash deploy/verify_backend_deploy.sh
 Con eso:
 
 - cualquier falla de convergencia o auditoría hace fallar el gate
+- si además está habilitado el smoke remoto y `REMOTE_BACKEND_SMOKE_STRICT=true`, también falla por smoke funcional corto
 
 ## Qué no debe asumirse
 

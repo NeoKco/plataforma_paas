@@ -1,5 +1,39 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Hardening de rollback y smoke corto opcional del release backend
+
+- objetivo:
+  - alinear el rollback backend con el modelo actual `SOURCE_REPO_ROOT -> PROJECT_ROOT`
+  - dejar disponible un smoke funcional corto opcional dentro del gate post-deploy con evidencia JSON reutilizable
+- cambios y acciones ejecutadas:
+  - [rollback_backend.sh](/home/felipe/platform_paas/deploy/rollback_backend.sh) ahora:
+    - mueve la ref en `SOURCE_REPO_ROOT`
+    - deja de asumir que `/opt/...` es un checkout git
+    - falla si el repo fuente no es git
+    - falla por defecto si el repo fuente está sucio
+    - permite overrides explícitos con `ALLOW_DIRTY_SOURCE_REPO_FOR_ROLLBACK=true` y `ROLLBACK_GIT_FETCH=false`
+  - [run_backend_post_deploy_gate.sh](/home/felipe/platform_paas/deploy/run_backend_post_deploy_gate.sh) ahora puede:
+    - correr `run_remote_backend_smoke.py`
+    - guardar `remote_backend_smoke_<timestamp>.json`
+    - fallar o advertir según `REMOTE_BACKEND_SMOKE_STRICT`
+  - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ahora embebe el último reporte JSON de smoke remoto cuando existe
+  - documentación alineada en:
+    - [backend-release-and-rollback.md](/home/felipe/platform_paas/docs/deploy/backend-release-and-rollback.md)
+    - [backend-post-deploy-verification.md](/home/felipe/platform_paas/docs/deploy/backend-post-deploy-verification.md)
+    - [operational-acceptance-checklist.md](/home/felipe/platform_paas/docs/deploy/operational-acceptance-checklist.md)
+    - [backend-debian.md](/home/felipe/platform_paas/docs/deploy/backend-debian.md)
+- validaciones:
+  - `bash -n deploy/rollback_backend.sh` -> `OK`
+  - `bash -n deploy/run_backend_post_deploy_gate.sh` -> `OK`
+  - `bash -n deploy/collect_backend_operational_evidence.sh` -> `OK`
+  - `python3 deploy/run_remote_backend_smoke.py --help` -> `OK`
+  - no se ejecuta rollback real en este turno para no mover la ref del workspace compartido sin incidente efectivo
+- resultado:
+  - el rollback ya quedó consistente con el carril de deploy actual
+  - el release backend ya puede exigir o registrar smoke funcional corto como parte de la evidencia operativa
+- siguiente paso:
+  - promover este hardening por ambiente y decidir si el smoke corto debe quedar opt-in u obligatorio por carril
+
 ## 2026-04-20 - Infraestructura/deploy ya promueve `backend/` desde repo a runtime
 
 - objetivo:

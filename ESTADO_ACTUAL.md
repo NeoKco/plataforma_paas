@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos` e `infraestructura/deploy`, y los tres subfrentes ya quedaron además publicados y revalidados en `staging` y `production`
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, y el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, eliminando la copia manual previa
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos`, `infraestructura/deploy` y ahora por `calidad técnica + rollback`, con smoke corto opcional y rollback alineado al modelo `SOURCE_REPO_ROOT`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, y ahora el rollback ya no asume que `/opt/...` es git sino que opera desde `SOURCE_REPO_ROOT` y puede además dejar smoke remoto corto como evidencia JSON opcional
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -74,6 +74,36 @@
   - conclusión operativa:
     - el deploy backend ya no depende de recordar una copia manual del código hacia `/opt/.../backend`
     - el carril normal de release ya integra la promoción del árbol backend junto con el gate post-deploy y la evidencia operativa del ambiente
+- desde este corte, `calidad técnica + rollback` avanza un subcorte importante en repo:
+  - [rollback_backend.sh](/home/felipe/platform_paas/deploy/rollback_backend.sh) ya no mueve la ref en `/opt/...`, sino en `SOURCE_REPO_ROOT`, y luego reutiliza el deploy wrapper normal para reproyectar esa ref al runtime objetivo
+  - guardrails nuevos del rollback:
+    - falla si `SOURCE_REPO_ROOT` no es un checkout git
+    - falla por defecto si el repo fuente está sucio
+    - permite override explícito con `ALLOW_DIRTY_SOURCE_REPO_FOR_ROLLBACK=true`
+    - permite omitir fetch previo con `ROLLBACK_GIT_FETCH=false`
+  - [run_backend_post_deploy_gate.sh](/home/felipe/platform_paas/deploy/run_backend_post_deploy_gate.sh) ya puede correr smoke remoto corto opcional vía [run_remote_backend_smoke.py](/home/felipe/platform_paas/deploy/run_remote_backend_smoke.py)
+  - variables nuevas del gate:
+    - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY`
+    - `REMOTE_BACKEND_SMOKE_BASE_URL`
+    - `REMOTE_BACKEND_SMOKE_TARGET`
+    - `REMOTE_BACKEND_SMOKE_TIMEOUT_SECONDS`
+    - `REMOTE_BACKEND_SMOKE_ATTEMPTS`
+    - `REMOTE_BACKEND_SMOKE_RETRY_DELAY_SECONDS`
+    - `REMOTE_BACKEND_SMOKE_STRICT`
+    - `REMOTE_BACKEND_SMOKE_REPORT_PATH`
+  - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ya incrusta también el último `remote_backend_smoke_*.json` cuando existe
+  - documentación operativa alineada en:
+    - [backend-release-and-rollback.md](/home/felipe/platform_paas/docs/deploy/backend-release-and-rollback.md)
+    - [backend-post-deploy-verification.md](/home/felipe/platform_paas/docs/deploy/backend-post-deploy-verification.md)
+    - [operational-acceptance-checklist.md](/home/felipe/platform_paas/docs/deploy/operational-acceptance-checklist.md)
+    - [backend-debian.md](/home/felipe/platform_paas/docs/deploy/backend-debian.md)
+  - validación local:
+    - `bash -n deploy/rollback_backend.sh` -> `OK`
+    - `bash -n deploy/run_backend_post_deploy_gate.sh` -> `OK`
+    - `bash -n deploy/collect_backend_operational_evidence.sh` -> `OK`
+    - `python3 deploy/run_remote_backend_smoke.py --help` -> `OK`
+  - nota operativa:
+    - no se ejecutó un rollback real en este turno para no mover la ref del workspace compartido sin necesidad de incidente real
 - desde este corte queda explícito que un cambio declarado correcto no se cierra si solo funciona en un tenant o en un ambiente:
   - debe promocionarse al runtime afectado
   - debe converger tenants activos afectados

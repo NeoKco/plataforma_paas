@@ -152,8 +152,46 @@ PROJECT_ROOT=/opt/platform_paas \
 ENV_FILE=/opt/platform_paas/.env \
 SERVICE_NAME=platform-paas-backend \
 EXPECTED_APP_ENV=production \
+SOURCE_REPO_ROOT=/home/felipe/platform_paas \
 bash deploy/rollback_backend.sh v1.2.3
 ```
+
+## Cómo funciona hoy el rollback
+
+El rollback ya no asume que `PROJECT_ROOT=/opt/...` es un checkout git.
+
+Ahora:
+
+- el checkout git se mueve en `SOURCE_REPO_ROOT`
+- el runtime afectado sigue siendo `PROJECT_ROOT`
+- luego el wrapper normal vuelve a promover `backend/` desde esa ref al runtime real
+
+Esto evita depender de que `/opt/platform_paas` o `/opt/platform_paas_staging` sean repos git utilizables.
+
+Guardrails actuales:
+
+- si `SOURCE_REPO_ROOT` no es git, el rollback falla
+- si el repo fuente tiene cambios locales, el rollback falla por defecto
+- solo si hace falta forzarlo, se puede usar:
+  - `ALLOW_DIRTY_SOURCE_REPO_FOR_ROLLBACK=true`
+  - `ROLLBACK_GIT_FETCH=false`
+
+## Smoke corto opcional después del deploy o rollback
+
+El gate post-deploy ya puede correr además un smoke remoto corto y guardar su reporte JSON dentro de `operational_evidence/`.
+
+Variables útiles:
+
+- `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`
+- `REMOTE_BACKEND_SMOKE_BASE_URL=https://orkestia.ddns.net`
+- `REMOTE_BACKEND_SMOKE_TARGET=all`
+- `REMOTE_BACKEND_SMOKE_STRICT=true`
+- `REMOTE_BACKEND_SMOKE_REPORT_PATH=/opt/platform_paas/operational_evidence/remote_backend_smoke_<timestamp>.json`
+
+Si ese smoke falla:
+
+- con `REMOTE_BACKEND_SMOKE_STRICT=true`, el gate falla
+- con `REMOTE_BACKEND_SMOKE_STRICT=false`, deja `WARNING` pero sigue recolectando evidencia
 
 ## Recomendación operativa
 

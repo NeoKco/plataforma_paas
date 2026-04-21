@@ -163,6 +163,14 @@ Variables ajustables del script:
 - `BACKEND_AUTO_SYNC_POST_DEPLOY`
 - `BACKEND_AUTO_SYNC_LIMIT`
 - `COLLECT_OPERATIONAL_EVIDENCE`
+- `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY`
+- `REMOTE_BACKEND_SMOKE_BASE_URL`
+- `REMOTE_BACKEND_SMOKE_TARGET`
+- `REMOTE_BACKEND_SMOKE_TIMEOUT_SECONDS`
+- `REMOTE_BACKEND_SMOKE_ATTEMPTS`
+- `REMOTE_BACKEND_SMOKE_RETRY_DELAY_SECONDS`
+- `REMOTE_BACKEND_SMOKE_STRICT`
+- `REMOTE_BACKEND_SMOKE_REPORT_PATH`
 
 Ejemplo:
 
@@ -214,6 +222,7 @@ sudo journalctl -u platform-paas-backend -n 50 --no-pager
 - el deploy ahora falla rapido si faltan variables criticas o si el entorno no coincide con el wrapper usado
 - el verify post-deploy ahora tambien puede dejar ya encolado el sync de schema tenant sin depender de una corrida manual posterior
 - para una validacion funcional externa adicional se puede usar `deploy/run_remote_backend_smoke.py` contra la URL publica del entorno
+- si quieres que ese smoke forme parte del gate backend, habilitar `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` y definir `REMOTE_BACKEND_SMOKE_BASE_URL`
 - el preflight `check_backend_release_readiness.sh` sirve para detectar antes del deploy bloqueos típicos como `.env` inválido, unidad `systemd` ausente o build frontend no generado
 - la carga de `.env` del deploy ya no depende de `source` crudo, por lo que secretos con espacios o caracteres especiales como `$` quedan soportados de forma más segura
 

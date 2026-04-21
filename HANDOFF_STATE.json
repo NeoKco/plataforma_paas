@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T20:31:44-04:00",
+  "updated_at": "2026-04-20T20:39:16-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos e infraestructura/deploy también en runtime real: staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles y el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate. El foco correcto ahora pasa a calidad técnica + rollback o a decidir si estas señales suben a la UX de platform_admin",
-  "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos, infraestructura/deploy y ahora calidad técnica + rollback: staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles, el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate y el rollback ya opera desde SOURCE_REPO_ROOT con smoke remoto corto opcional como evidencia. El foco correcto ahora pasa a promover este hardening por ambiente o a decidir si estas señales suben a la UX de platform_admin",
+  "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime y el rollback ya quedó alineado al repo fuente",
   "active_modules": [
     "platform-core",
     "finance",
@@ -77,6 +77,12 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "rollback_backend.sh ya usa SOURCE_REPO_ROOT como checkout git real del rollback y deja de asumir que /opt/... es un repositorio git",
+    "rollback_backend.sh ahora falla por defecto si el repo fuente está sucio y permite override explícito con ALLOW_DIRTY_SOURCE_REPO_FOR_ROLLBACK=true",
+    "run_backend_post_deploy_gate.sh ahora puede correr run_remote_backend_smoke.py, guardar remote_backend_smoke_<timestamp>.json y fallar o advertir según REMOTE_BACKEND_SMOKE_STRICT",
+    "collect_backend_operational_evidence.sh ya embebe el último reporte remote_backend_smoke_*.json cuando existe",
+    "backend-release-and-rollback.md, backend-post-deploy-verification.md, operational-acceptance-checklist.md y backend-debian.md ya documentan el rollback desde SOURCE_REPO_ROOT y el smoke corto opcional del gate",
+    "validación local del subcorte: bash -n rollback_backend.sh, run_backend_post_deploy_gate.sh y collect_backend_operational_evidence.sh -> OK; python3 deploy/run_remote_backend_smoke.py --help -> OK",
     "deploy_backend.sh ya promueve backend/ desde /home/felipe/platform_paas hacia /opt/platform_paas_staging/backend o /opt/platform_paas/backend antes del release cuando los árboles difieren",
     "sync_backend_runtime_tree.sh agregado para reflejar explícitamente el backend runtime del ambiente desde el repo fuente, eliminando la copia manual previa",
     "check_backend_release_readiness.sh ahora valida SOURCE_REPO_ROOT, SOURCE_BACKEND_DIR y el script de sincronización runtime antes del deploy",

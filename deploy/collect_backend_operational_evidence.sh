@@ -56,4 +56,13 @@ if [ -n "$latest_audit_snapshot" ] && [ -f "$latest_audit_snapshot" ]; then
     } >> "$OUTPUT_FILE"
 fi
 
+latest_remote_smoke_report="$(ls -1t "$OUTPUT_DIR"/remote_backend_smoke_*.json 2>/dev/null | head -n 1 || true)"
+if [ -n "$latest_remote_smoke_report" ] && [ -f "$latest_remote_smoke_report" ]; then
+    append_section "Remote Backend Smoke JSON Report"
+    {
+        echo "File: $latest_remote_smoke_report"
+        cat "$latest_remote_smoke_report"
+    } >> "$OUTPUT_FILE"
+fi
+
 echo "Operational evidence saved to: $OUTPUT_FILE"
