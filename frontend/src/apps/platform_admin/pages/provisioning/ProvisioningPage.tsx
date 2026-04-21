@@ -6,7 +6,7 @@ import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { DataTableCard } from "../../../../components/data-display/DataTableCard";
-import { AppBadge } from "../../../../design-system/AppBadge";
+import { AppBadge, type AppBadgeTone } from "../../../../design-system/AppBadge";
 import { AppForm, AppFormActions, AppFormField } from "../../../../design-system/AppForm";
 import { AppTableWrap, AppToolbar } from "../../../../design-system/AppLayout";
 import { EmptyState } from "../../../../components/feedback/EmptyState";
@@ -120,6 +120,17 @@ type DlqTenantTechnicalSummary = {
   jobTypeCount: number;
   dominantErrorCode: string | null;
   latestRecordedAt: string | null;
+};
+
+type ProvisioningFrontlineGuide = {
+  tone: AppBadgeTone;
+  title: string;
+  detail: string;
+  scopeLabel: string;
+  primaryActionLabel: string;
+  primaryActionHref: string;
+  secondaryActionLabel: string | null;
+  secondaryActionHref: string | null;
 };
 
 type DlqFamilyRecommendation = {
@@ -1140,6 +1151,24 @@ export function ProvisioningPage() {
       ).length,
     };
   }, [tenantScopedJobs]);
+
+  const provisioningFrontlineGuide = useMemo(
+    () =>
+      getProvisioningFrontlineGuide({
+        language,
+        normalizedTenantSlugFilter,
+        overview,
+        filteredJobsRequiringActionCount: filteredJobsRequiringAction.length,
+        isBrokerDispatchActive,
+      }),
+    [
+      filteredJobsRequiringAction.length,
+      isBrokerDispatchActive,
+      language,
+      normalizedTenantSlugFilter,
+      overview,
+    ]
+  );
 
   async function loadProvisioningWorkspace(overrides?: Partial<DlqFormFilters>) {
     if (!session?.accessToken) {
@@ -2192,6 +2221,90 @@ export function ProvisioningPage() {
 
       <PanelCard
         icon="focus"
+        title={language === "es" ? "Plan operativo sugerido" : "Suggested operational plan"}
+        subtitle={
+          language === "es"
+            ? "Entrada corta para decidir qué mirar primero antes de bajar al detalle completo."
+            : "Short entry point to decide what to inspect first before going into the full detail."
+        }
+      >
+        <div className="ops-summary-strip">
+          <div className={`ops-summary-card ops-summary-card--${provisioningFrontlineGuide.tone}`}>
+            <div className="ops-summary-card__eyebrow">
+              {language === "es" ? "Prioridad visible" : "Visible priority"}
+            </div>
+            <div className="ops-summary-card__title">{provisioningFrontlineGuide.title}</div>
+            <div className="ops-summary-card__detail">{provisioningFrontlineGuide.detail}</div>
+          </div>
+          <div className="ops-summary-card ops-summary-card--info">
+            <div className="ops-summary-card__eyebrow">
+              {language === "es" ? "Ámbito actual" : "Current scope"}
+            </div>
+            <div className="ops-summary-card__title">
+              {normalizedTenantSlugFilter
+                ? normalizedTenantSlugFilter
+                : language === "es"
+                  ? "todos los tenants"
+                  : "all tenants"}
+            </div>
+            <div className="ops-summary-card__detail">
+              {provisioningFrontlineGuide.scopeLabel}
+            </div>
+          </div>
+          <div
+            className={`ops-summary-card ops-summary-card--${
+              isBrokerDispatchActive ? "success" : "warning"
+            }`}
+          >
+            <div className="ops-summary-card__eyebrow">
+              {language === "es" ? "DLQ broker-only" : "Broker-only DLQ"}
+            </div>
+            <div className="ops-summary-card__title">
+              {isBrokerDispatchActive
+                ? language === "es"
+                  ? "superficie activa"
+                  : "active surface"
+                : language === "es"
+                  ? "lectura limitada"
+                  : "limited read"}
+            </div>
+            <div className="ops-summary-card__detail">
+              {isBrokerDispatchActive
+                ? language === "es"
+                  ? "Puedes operar requeue y lote visible desde este ambiente."
+                  : "You can operate requeue and visible batches from this environment."
+                : language === "es"
+                  ? "La lectura DLQ completa debe validarse en un carril con dispatch broker."
+                  : "Full DLQ reads must be validated in an environment running the broker dispatch."}
+            </div>
+          </div>
+        </div>
+        <div className="tenant-context-actions tenant-context-actions--compact">
+          <div className="tenant-help-text">
+            {language === "es"
+              ? "Resuelve primero la prioridad sugerida y luego vuelve al resto del workspace para el detalle fino."
+              : "Resolve the suggested priority first and then return to the rest of the workspace for detailed inspection."}
+          </div>
+          <div className="tenant-context-actions__buttons">
+            <a className="btn btn-primary btn-sm" href={provisioningFrontlineGuide.primaryActionHref}>
+              {provisioningFrontlineGuide.primaryActionLabel}
+            </a>
+            {provisioningFrontlineGuide.secondaryActionLabel &&
+            provisioningFrontlineGuide.secondaryActionHref ? (
+              <a
+                className="btn btn-outline-secondary btn-sm"
+                href={provisioningFrontlineGuide.secondaryActionHref}
+              >
+                {provisioningFrontlineGuide.secondaryActionLabel}
+              </a>
+            ) : null}
+          </div>
+        </div>
+      </PanelCard>
+
+      <div id="provisioning-jobs-action">
+      <PanelCard
+        icon="focus"
         title={language === "es" ? "Jobs que requieren acción" : "Jobs requiring action"}
         subtitle={
           language === "es"
@@ -2265,6 +2378,7 @@ export function ProvisioningPage() {
           </AppTableWrap>
         )}
       </PanelCard>
+      </div>
 
       <PanelCard
         icon="activity"
@@ -2299,6 +2413,7 @@ export function ProvisioningPage() {
         )}
       </PanelCard>
 
+      <div id="provisioning-observability">
       <PanelCard
         icon="pulse"
         title={
@@ -2402,6 +2517,7 @@ export function ProvisioningPage() {
           </AppFormActions>
         </AppForm>
       </PanelCard>
+      </div>
 
       {!metricsError && metricsHistory ? (
         metricsHistory.data.length > 0 ? (
@@ -2832,6 +2948,7 @@ export function ProvisioningPage() {
 
       {!alertsError && alerts ? (
         filteredAlertsRows.length > 0 ? (
+          <div id="provisioning-active-alerts">
           <DataTableCard
             title={language === "es" ? "Alertas activas" : "Active alerts"}
             rows={filteredAlertsRows}
@@ -2888,7 +3005,9 @@ export function ProvisioningPage() {
               },
             ]}
           />
+          </div>
         ) : (
+          <div id="provisioning-active-alerts">
           <PanelCard
             icon="pulse"
             title={language === "es" ? "Alertas activas" : "Active alerts"}
@@ -2911,6 +3030,7 @@ export function ProvisioningPage() {
               }
             />
           </PanelCard>
+          </div>
         )
       ) : null}
 
@@ -4345,6 +4465,157 @@ function formatProvisioningAlertCode(value: string): string {
   };
 
   return knownLabels[value] || formatProvisioningCodeLabel(value);
+}
+
+function getProvisioningFrontlineGuide({
+  language,
+  normalizedTenantSlugFilter,
+  overview,
+  filteredJobsRequiringActionCount,
+  isBrokerDispatchActive,
+}: {
+  language: "es" | "en";
+  normalizedTenantSlugFilter: string;
+  overview: {
+    totalJobs: number;
+    failedJobs: number;
+    runningJobs: number;
+    activeAlerts: number;
+    dlqJobs: number;
+  };
+  filteredJobsRequiringActionCount: number;
+  isBrokerDispatchActive: boolean;
+}): ProvisioningFrontlineGuide {
+  const scopeLabel = normalizedTenantSlugFilter
+    ? language === "es"
+      ? `La lectura está acotada a ${normalizedTenantSlugFilter}.`
+      : `The read is scoped to ${normalizedTenantSlugFilter}.`
+    : language === "es"
+      ? "La lectura está abierta sobre todos los tenants visibles."
+      : "The read is open across all visible tenants.";
+
+  if (overview.failedJobs > 0) {
+    return {
+      tone: "danger",
+      title:
+        language === "es"
+          ? `${overview.failedJobs} jobs fallidos requieren intervención`
+          : `${overview.failedJobs} failed jobs require intervention`,
+      detail:
+        language === "es"
+          ? "Ataca primero el panel de jobs que requieren acción para decidir si conviene reencolar, ejecutar o corregir la causa antes."
+          : "Tackle the jobs requiring action panel first to decide whether to requeue, run now or fix the cause beforehand.",
+      scopeLabel,
+      primaryActionLabel:
+        language === "es" ? "Abrir jobs con acción" : "Open action jobs",
+      primaryActionHref: "#provisioning-jobs-action",
+      secondaryActionLabel:
+        overview.dlqJobs > 0 && isBrokerDispatchActive
+          ? language === "es"
+            ? "Abrir DLQ"
+            : "Open DLQ"
+          : overview.activeAlerts > 0
+            ? language === "es"
+              ? "Abrir alertas activas"
+              : "Open active alerts"
+            : null,
+      secondaryActionHref:
+        overview.dlqJobs > 0 && isBrokerDispatchActive
+          ? "#provisioning-dlq-panel"
+          : overview.activeAlerts > 0
+            ? "#provisioning-active-alerts"
+            : null,
+    };
+  }
+
+  if (overview.activeAlerts > 0) {
+    return {
+      tone: "warning",
+      title:
+        language === "es"
+          ? `${overview.activeAlerts} alertas activas siguen visibles`
+          : `${overview.activeAlerts} active alerts remain visible`,
+      detail:
+        language === "es"
+          ? "No hay fallo duro visible, pero sí señal abierta. Lee primero alertas activas y luego baja a observabilidad o DLQ si la familia lo exige."
+          : "There is no visible hard failure, but there is an open signal. Read active alerts first and then move to observability or the DLQ if the family requires it.",
+      scopeLabel,
+      primaryActionLabel:
+        language === "es" ? "Abrir alertas activas" : "Open active alerts",
+      primaryActionHref: "#provisioning-active-alerts",
+      secondaryActionLabel:
+        overview.dlqJobs > 0 && isBrokerDispatchActive
+          ? language === "es"
+            ? "Abrir DLQ"
+            : "Open DLQ"
+          : language === "es"
+            ? "Abrir observabilidad"
+            : "Open observability",
+      secondaryActionHref:
+        overview.dlqJobs > 0 && isBrokerDispatchActive
+          ? "#provisioning-dlq-panel"
+          : "#provisioning-observability",
+    };
+  }
+
+  if (overview.dlqJobs > 0 && isBrokerDispatchActive) {
+    return {
+      tone: "warning",
+      title:
+        language === "es"
+          ? `${overview.dlqJobs} filas DLQ requieren triage`
+          : `${overview.dlqJobs} DLQ rows require triage`,
+      detail:
+        language === "es"
+          ? "No mezcles toda la cola. Aísla la familia visible y decide si corresponde requeue individual o en lote."
+          : "Do not mix the whole queue. Isolate the visible family and decide whether individual or batch requeue is appropriate.",
+      scopeLabel,
+      primaryActionLabel:
+        language === "es" ? "Abrir operación DLQ" : "Open DLQ operations",
+      primaryActionHref: "#provisioning-dlq-panel",
+      secondaryActionLabel:
+        language === "es" ? "Abrir observabilidad" : "Open observability",
+      secondaryActionHref: "#provisioning-observability",
+    };
+  }
+
+  if (filteredJobsRequiringActionCount > 0 || overview.runningJobs > 0) {
+    return {
+      tone: "info",
+      title:
+        language === "es"
+          ? "Backlog activo sin fallo duro dominante"
+          : "Active backlog without a dominant hard failure",
+      detail:
+        language === "es"
+          ? "Hay trabajo en curso o jobs esperando atención, pero la prioridad visible no es un incidente crítico."
+          : "There is work in flight or jobs awaiting attention, but the visible priority is not a critical incident.",
+      scopeLabel,
+      primaryActionLabel:
+        language === "es" ? "Abrir jobs con acción" : "Open action jobs",
+      primaryActionHref: "#provisioning-jobs-action",
+      secondaryActionLabel:
+        language === "es" ? "Abrir observabilidad" : "Open observability",
+      secondaryActionHref: "#provisioning-observability",
+    };
+  }
+
+  return {
+    tone: "success",
+    title:
+      language === "es" ? "Provisioning se ve estable" : "Provisioning looks stable",
+    detail:
+      language === "es"
+        ? "No hay fallo duro, alertas activas ni DLQ visible como prioridad inmediata. Puedes usar observabilidad para seguimiento fino."
+        : "There is no hard failure, active alert or visible DLQ as an immediate priority. You can use observability for finer follow-up.",
+    scopeLabel,
+    primaryActionLabel:
+      language === "es" ? "Abrir observabilidad" : "Open observability",
+    primaryActionHref: "#provisioning-observability",
+    secondaryActionLabel:
+      language === "es" ? "Abrir jobs con acción" : "Open action jobs",
+    secondaryActionHref: "#provisioning-jobs-action",
+  };
 }
 
 function buildDlqInvestigationFromErrorMetric(

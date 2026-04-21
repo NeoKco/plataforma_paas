@@ -2,6 +2,26 @@
 
 ## 2026-04-20
 
+- arranca `frontend fino` en `platform_admin` con jerarquía operativa visible:
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ahora agrega una franja de resumen con:
+    - prioridad actual
+    - acción sugerida
+    - lectura ambiente
+  - las CTA principales del bloque `Postura operativa tenant` pasan a botón primario, dejando el contexto secundario en segundo plano
+  - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) ahora agrega `Plan operativo sugerido` con saltos directos a:
+    - `Jobs que requieren acción`
+    - `Alertas activas`
+    - `Observabilidad`
+    - `DLQ`
+  - [platform-admin.css](/home/felipe/platform_paas/frontend/src/styles/platform-admin.css) suma estilos reutilizables `ops-summary-strip` y `ops-summary-card`
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `ProvisioningPage-C2fABxX2.js`, `TenantsPage-BanIjLpq.js` e `index-Cmy8UHJQ.js`
+    - `production` publicado con `ProvisioningPage-BYxq1XKu.js`, `TenantsPage-0TpQREn8.js` e `index-CHMebSIz.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - la consola ya ofrece una entrada más clara para operador antes del detalle largo de cada workspace
+
 - `platform_admin > Tenants` ahora suma `Contexto de alertas activas` dentro de la ficha del tenant:
   - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) reutiliza `getProvisioningAlerts(...)` para clasificar rápidamente si la señal actual parece:
     - `sin alertas activas`

@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos`, `infraestructura/deploy` y `calidad técnica + rollback`, el `base smoke` ya quedó institucionalizado como baseline explícito del release backend por ambiente y ahora también quedó visible en `platform_admin > Tenants` una lectura rápida para distinguir `tenant-local vs ambiente`
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant` y además `Contexto de alertas activas`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, el rollback ya no asume que `/opt/...` es git sino que opera desde `SOURCE_REPO_ROOT`, y los wrappers `staging`/`production` ya activan por defecto `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` con `REMOTE_BACKEND_SMOKE_TARGET=base`
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos`, `infraestructura/deploy` y `calidad técnica + rollback`, el `base smoke` ya quedó institucionalizado como baseline explícito del release backend por ambiente y ahora ya arrancó `frontend fino` con jerarquía operativa visible en `Tenants` y `Provisioning`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, `Contexto de alertas activas` y una franja de prioridad/acción más clara, `Provisioning` ya suma `Plan operativo sugerido` con saltos rápidos a jobs, alertas, observabilidad o DLQ, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, el rollback ya no asume que `/opt/...` es git sino que opera desde `SOURCE_REPO_ROOT`, y los wrappers `staging`/`production` ya activan por defecto `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` con `REMOTE_BACKEND_SMOKE_TARGET=base`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -192,6 +192,24 @@
     - `staging` reconstruido con `API_BASE_URL=http://192.168.7.42:8081`, publicado con `TenantsPage-D0v4eAxU.js` e `index-Dy8kF1xF.js`
     - `production` reconstruido con `API_BASE_URL=https://orkestia.ddns.net`, publicado con `TenantsPage-DOFD3agc.js` e `index-BvEqsJZL.js`
   - validación runtime:
+    - `staging`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+    - `production`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- subcorte adicional ya promovido dentro de `frontend fino`:
+  - `platform_admin > Tenants` ahora prioriza visualmente:
+    - prioridad actual
+    - acción sugerida
+    - lectura de ambiente
+  - las CTA principales del bloque operativo pasan a botón primario y dejan el contexto secundario en segundo plano
+  - `Provisioning` ahora expone un `Plan operativo sugerido` al inicio con:
+    - prioridad visible
+    - ámbito actual
+    - disponibilidad real de superficie DLQ broker-only
+    - saltos directos a `Jobs que requieren acción`, `Alertas activas`, `Observabilidad` o `DLQ`
+  - promoción frontend efectiva:
+    - `staging` reconstruido con `API_BASE_URL=http://192.168.7.42:8081`, publicado con `ProvisioningPage-C2fABxX2.js`, `TenantsPage-BanIjLpq.js` e `index-Cmy8UHJQ.js`
+    - `production` reconstruido con `API_BASE_URL=https://orkestia.ddns.net`, publicado con `ProvisioningPage-BYxq1XKu.js`, `TenantsPage-0TpQREn8.js` e `index-CHMebSIz.js`
+  - validación:
+    - `npm run build` -> `OK`
     - `staging`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
     - `production`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
 - subcorte de hardening tenant-local ya promovido:

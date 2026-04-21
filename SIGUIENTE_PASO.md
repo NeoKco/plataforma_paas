@@ -153,6 +153,18 @@
     - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
     - `production` con `API_BASE_URL=https://orkestia.ddns.net`
   - ambos carriles pasaron `check_frontend_static_readiness.sh` con `0 fallos, 0 advertencias`
+- subcorte adicional ya cerrado en runtime dentro de `frontend fino`:
+  - `platform_admin > Tenants` ahora ordena primero:
+    - prioridad actual
+    - acción sugerida
+    - lectura ambiente
+  - las CTA principales del bloque operativo ya no compiten igual con las secundarias
+  - `Provisioning` ahora arranca con `Plan operativo sugerido` y saltos directos a:
+    - `Jobs que requieren acción`
+    - `Alertas activas`
+    - `Observabilidad`
+    - `DLQ`
+  - quedó publicado en `staging` y `production` con `static readiness` verde en ambos carriles
 - siguiente frente recomendado del roadmap:
   - hardening transversal final de plataforma y cierre operativo del alcance actual
   - objetivos concretos del siguiente corte:
@@ -164,8 +176,11 @@
     - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
     - entrar ya al siguiente subfrente concreto del bloque 1 con la documentación estructural reordenada y sin deuda de handoff
     - siguiente subfrente sugerido ahora dentro del mismo bloque 1:
-      - el baseline backend ya quedó cerrado y este primer corte de observabilidad visible en `platform_admin` también
-      - el salto útil ahora es `frontend fino`, especialmente labels, jerarquía visual y CTA operativas de `platform_admin > Tenants` y `Provisioning`
+      - el baseline backend ya quedó cerrado y este primer corte de observabilidad visible + jerarquía operativa en `platform_admin` también
+      - el salto útil ahora es el siguiente subcorte de `frontend fino`:
+        - copy/labels más consistentes
+        - reducción de densidad inicial en `Provisioning`
+        - refinar CTA secundarias y textos de ayuda para no repetir la misma explicación en varios bloques
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

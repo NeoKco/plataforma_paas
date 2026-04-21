@@ -1,5 +1,50 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - `frontend fino` en `Tenants` y `Provisioning`
+
+- objetivo:
+  - mejorar jerarquía visual y CTA operativas en `platform_admin > Tenants` y `Provisioning`
+  - dejar una entrada más corta para operador sin rediseñar ambas pantallas completas
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - agrega franja `ops-summary-strip` con:
+      - prioridad actual
+      - acción sugerida
+      - lectura ambiente
+    - las CTA principales del bloque `Postura operativa tenant` pasan a botón primario
+  - [frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx):
+    - agrega `Plan operativo sugerido`
+    - resume prioridad visible, ámbito actual y disponibilidad de superficie DLQ broker-only
+    - suma saltos rápidos a:
+      - `Jobs que requieren acción`
+      - `Alertas activas`
+      - `Observabilidad`
+      - `DLQ`
+  - [frontend/src/styles/platform-admin.css](/home/felipe/platform_paas/frontend/src/styles/platform-admin.css):
+    - agrega estilos reutilizables `ops-summary-strip` y `ops-summary-card`
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - `API_BASE_URL=http://192.168.7.42:8081 ALLOW_STAGING_API=1 RUN_NPM_INSTALL=false bash deploy/build_frontend.sh` -> `OK`
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles: `ProvisioningPage-C2fABxX2.js`, `TenantsPage-BanIjLpq.js`, `index-Cmy8UHJQ.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - `API_BASE_URL=https://orkestia.ddns.net RUN_NPM_INSTALL=false bash deploy/build_frontend.sh` -> `OK`
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles: `ProvisioningPage-BYxq1XKu.js`, `TenantsPage-0TpQREn8.js`, `index-CHMebSIz.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `Tenants` y `Provisioning` ya priorizan mejor la lectura de operador antes del detalle largo
+  - el primer subcorte real de `frontend fino` queda cerrado en runtime, no solo en repo
+- siguiente paso:
+  - seguir con el siguiente subcorte de `frontend fino`, afinando copy/labels, reduciendo densidad inicial en `Provisioning` y limpiando CTA secundarias redundantes
+
 ## 2026-04-20 - `platform_admin > Tenants` distingue `tenant-local vs ambiente` con alertas activas
 
 - objetivo:

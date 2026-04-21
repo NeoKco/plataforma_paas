@@ -161,6 +161,14 @@ type TenantProvisioningAlertContext = {
   provisioningLink: string;
 };
 
+type TenantOperationalSummaryCard = {
+  key: string;
+  eyebrow: string;
+  tone: AppBadgeTone;
+  title: string;
+  detail: string;
+};
+
 export function TenantsPage() {
   const { session } = useAuth();
   const { language } = useLanguage();
@@ -476,6 +484,16 @@ export function TenantsPage() {
         provisioningAlertsError,
       }),
     [language, provisioningAlerts, provisioningAlertsError, selectedTenantSummary?.slug]
+  );
+
+  const tenantOperationalSummaryCards = useMemo(
+    () =>
+      getTenantOperationalSummaryCards(
+        language,
+        tenantOperationalPosture,
+        tenantProvisioningAlertContext
+      ),
+    [language, tenantOperationalPosture, tenantProvisioningAlertContext]
   );
 
   const latestCompletedExportJob = useMemo(
@@ -2460,6 +2478,21 @@ export function TenantsPage() {
                       : "Quick synthesis to distinguish expected blocking, provisioning, schema drift or technical credential drift before reopening slices."
                   }
                 >
+                  {tenantOperationalSummaryCards.length > 0 ? (
+                    <div className="ops-summary-strip">
+                      {tenantOperationalSummaryCards.map((card) => (
+                        <div
+                          key={card.key}
+                          className={`ops-summary-card ops-summary-card--${card.tone}`}
+                        >
+                          <div className="ops-summary-card__eyebrow">{card.eyebrow}</div>
+                          <div className="ops-summary-card__title">{card.title}</div>
+                          <div className="ops-summary-card__detail">{card.detail}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
                   <div className="tenant-detail-grid">
                     <DetailField
                       label={language === "es" ? "Postura" : "Posture"}
@@ -2612,7 +2645,7 @@ export function TenantsPage() {
                     <div className="tenant-context-actions__buttons">
                       {tenantOperationalPosture.primaryAction === "open-provisioning" ? (
                         <Link
-                          className="btn btn-outline-primary btn-sm"
+                          className="btn btn-primary btn-sm"
                           to={buildProvisioningWorkspaceLink(
                             selectedTenantSummary.slug,
                             selectedProvisioningJob?.job_type || null
@@ -2623,7 +2656,7 @@ export function TenantsPage() {
                       ) : null}
                       {tenantOperationalPosture.primaryAction === "run-provisioning" ? (
                         <button
-                          className="btn btn-outline-primary btn-sm"
+                          className="btn btn-primary btn-sm"
                           type="button"
                           onClick={handleRunProvisioningJob}
                           disabled={isActionSubmitting}
@@ -2633,7 +2666,7 @@ export function TenantsPage() {
                       ) : null}
                       {tenantOperationalPosture.primaryAction === "retry-provisioning" ? (
                         <button
-                          className="btn btn-outline-primary btn-sm"
+                          className="btn btn-primary btn-sm"
                           type="button"
                           onClick={handleRequeueProvisioningJob}
                           disabled={isActionSubmitting}
@@ -2643,7 +2676,7 @@ export function TenantsPage() {
                       ) : null}
                       {tenantOperationalPosture.primaryAction === "reprovision" ? (
                         <button
-                          className="btn btn-outline-primary btn-sm"
+                          className="btn btn-primary btn-sm"
                           type="button"
                           onClick={handleReprovisionTenant}
                           disabled={isActionSubmitting}
@@ -2653,7 +2686,7 @@ export function TenantsPage() {
                       ) : null}
                       {tenantOperationalPosture.primaryAction === "sync-schema" ? (
                         <button
-                          className="btn btn-outline-primary btn-sm"
+                          className="btn btn-primary btn-sm"
                           type="button"
                           onClick={requestTenantSchemaSyncConfirmation}
                           disabled={isActionSubmitting}
@@ -2663,7 +2696,7 @@ export function TenantsPage() {
                       ) : null}
                       {tenantOperationalPosture.primaryAction === "rotate-credentials" ? (
                         <button
-                          className="btn btn-outline-primary btn-sm"
+                          className="btn btn-primary btn-sm"
                           type="button"
                           onClick={handleRotateTenantDbCredentials}
                           disabled={isActionSubmitting}
@@ -2675,7 +2708,7 @@ export function TenantsPage() {
                       ) : null}
                       {tenantOperationalPosture.primaryAction === "open-tenant-portal" &&
                       tenantPortalHref ? (
-                        <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
+                        <Link className="btn btn-primary btn-sm" to={tenantPortalHref}>
                           {language === "es" ? "Abrir portal tenant" : "Open tenant portal"}
                         </Link>
                       ) : null}
@@ -4947,6 +4980,47 @@ function getTenantProvisioningAlertContext({
     showProvisioningLink: true,
     provisioningLink: "/provisioning",
   };
+}
+
+function getTenantOperationalSummaryCards(
+  language: "es" | "en",
+  tenantOperationalPosture: TenantOperationalPosture | null,
+  tenantProvisioningAlertContext: TenantProvisioningAlertContext | null
+): TenantOperationalSummaryCard[] {
+  if (!tenantOperationalPosture) {
+    return [];
+  }
+
+  const cards: TenantOperationalSummaryCard[] = [
+    {
+      key: "posture",
+      eyebrow: language === "es" ? "Prioridad actual" : "Current priority",
+      tone: tenantOperationalPosture.tone,
+      title: tenantOperationalPosture.label,
+      detail: tenantOperationalPosture.dominantSignal,
+    },
+    {
+      key: "next-action",
+      eyebrow: language === "es" ? "Haz ahora" : "Do now",
+      tone: tenantOperationalPosture.tone,
+      title: tenantOperationalPosture.nextAction,
+      detail:
+        tenantOperationalPosture.supportingNote ||
+        tenantOperationalPosture.quickRead,
+    },
+  ];
+
+  if (tenantProvisioningAlertContext) {
+    cards.push({
+      key: "scope",
+      eyebrow: language === "es" ? "Lectura ambiente" : "Environment read",
+      tone: tenantProvisioningAlertContext.tone,
+      title: tenantProvisioningAlertContext.label,
+      detail: tenantProvisioningAlertContext.scopeLabel,
+    });
+  }
+
+  return cards;
 }
 
 function getProvisioningAlertsTone(
