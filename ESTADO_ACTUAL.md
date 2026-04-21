@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad` y `secretos`, y ambas mejoras ya quedaron además publicadas y revalidadas en `staging` y `production`
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, y ambas señales ya fueron comprobadas en runtime real
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos` e `infraestructura/deploy`, y los tres subfrentes ya quedaron además publicados y revalidados en `staging` y `production`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, y el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, eliminando la copia manual previa
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -54,6 +54,26 @@
   - corrección adicional cerrada durante la promoción:
     - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya no confunde `accepted_tenants_with_notes` con `tenants_with_notes`
     - `production` vuelve a emitir el `NOTICE` correcto de notas aceptadas en vez del notice de cleanup pendiente
+- desde este corte, `infraestructura/deploy` también queda cerrada en runtime:
+  - se agrega [sync_backend_runtime_tree.sh](/home/felipe/platform_paas/deploy/sync_backend_runtime_tree.sh) para reflejar de forma explícita el árbol `backend/` del repo fuente dentro del árbol runtime del ambiente
+  - [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) ahora toma `SOURCE_REPO_ROOT`, `SOURCE_BACKEND_DIR` y `SYNC_RUNTIME_BACKEND_FROM_SOURCE`, y ejecuta la promoción `repo -> runtime backend` antes de instalar dependencias, correr tests y reiniciar el servicio
+  - [check_backend_release_readiness.sh](/home/felipe/platform_paas/deploy/check_backend_release_readiness.sh) ahora valida también el repo fuente, el script de sincronización y si el release realmente promoverá backend desde el árbol fuente esperado
+  - la documentación operativa ya quedó alineada en:
+    - [backend-release-and-rollback.md](/home/felipe/platform_paas/docs/deploy/backend-release-and-rollback.md)
+    - [backend-debian.md](/home/felipe/platform_paas/docs/deploy/backend-debian.md)
+    - [backend-production-preflight.md](/home/felipe/platform_paas/docs/deploy/backend-production-preflight.md)
+  - validación real del flujo nuevo, ya sin `cp -a` manual previo:
+    - `staging`:
+      - `bash deploy/deploy_backend_staging.sh` -> `528 tests OK`
+      - snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_203115.json`
+      - auditoría final `processed=4`, `warnings=0`, `failed=0`
+    - `production`:
+      - `bash deploy/deploy_backend_production.sh` -> `528 tests OK`
+      - snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_203116.json`
+      - auditoría final `processed=4`, `warnings=0`, `failed=0`, `accepted_tenants_with_notes=1`
+  - conclusión operativa:
+    - el deploy backend ya no depende de recordar una copia manual del código hacia `/opt/.../backend`
+    - el carril normal de release ya integra la promoción del árbol backend junto con el gate post-deploy y la evidencia operativa del ambiente
 - desde este corte queda explícito que un cambio declarado correcto no se cierra si solo funciona en un tenant o en un ambiente:
   - debe promocionarse al runtime afectado
   - debe converger tenants activos afectados

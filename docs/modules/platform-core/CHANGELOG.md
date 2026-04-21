@@ -2,6 +2,21 @@
 
 ## 2026-04-20
 
+- se cierra `infraestructura/deploy` con promoción explícita `repo -> runtime backend` dentro del wrapper de release:
+  - se agrega [sync_backend_runtime_tree.sh](/home/felipe/platform_paas/deploy/sync_backend_runtime_tree.sh) para reflejar el árbol `backend/` del repo fuente en el runtime del ambiente
+  - [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) ahora usa `SOURCE_REPO_ROOT`, `SOURCE_BACKEND_DIR` y `SYNC_RUNTIME_BACKEND_FROM_SOURCE` para promover backend antes de `pip install`, tests, restart y gate post-deploy
+  - [check_backend_release_readiness.sh](/home/felipe/platform_paas/deploy/check_backend_release_readiness.sh) ahora valida también el repo fuente, el backend fuente y el script de sincronización runtime
+  - documentación operativa alineada en:
+    - [backend-release-and-rollback.md](/home/felipe/platform_paas/docs/deploy/backend-release-and-rollback.md)
+    - [backend-debian.md](/home/felipe/platform_paas/docs/deploy/backend-debian.md)
+    - [backend-production-preflight.md](/home/felipe/platform_paas/docs/deploy/backend-production-preflight.md)
+  - validación real del flujo nuevo:
+    - `staging`: `bash deploy/deploy_backend_staging.sh` -> `528 tests OK`, snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_203115.json`, auditoría final `processed=4`, `warnings=0`, `failed=0`
+    - `production`: `bash deploy/deploy_backend_production.sh` -> `528 tests OK`, snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_203116.json`, auditoría final `processed=4`, `warnings=0`, `failed=0`, `accepted_tenants_with_notes=1`
+  - resultado:
+    - el deploy backend ya no depende de recordar `cp -a /home/felipe/platform_paas/backend/. /opt/.../backend/`
+    - el carril normal de release ya integra promoción de código backend y verificación operativa por ambiente
+
 - se publican en runtime real los subcortes de `auditoría/observabilidad` y `secretos`:
   - `staging`:
     - backend redeployado con `528 tests OK`

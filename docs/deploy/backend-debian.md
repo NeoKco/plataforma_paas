@@ -139,6 +139,7 @@ El wrapper real luego:
 
 Ese script:
 
+- promueve `backend/` desde el repo fuente al árbol runtime (`PROJECT_ROOT/backend`) antes del resto del release cuando ambos árboles difieren
 - instala dependencias backend
 - valida variables obligatorias antes de ejecutar
 - ejecuta migraciones de control
@@ -151,6 +152,9 @@ Ese script:
 Variables ajustables del script:
 
 - `PROJECT_ROOT`
+- `SOURCE_REPO_ROOT`
+- `SOURCE_BACKEND_DIR`
+- `SYNC_RUNTIME_BACKEND_FROM_SOURCE`
 - `VENV_PYTHON`
 - `SERVICE_NAME`
 - `ENV_FILE`
@@ -201,6 +205,7 @@ sudo journalctl -u platform-paas-backend -n 50 --no-pager
 
 - la unidad `systemd` del repo usa valores plantilla; no asumir que sirven sin ajuste
 - el script de despliegue esta pensado para actualizaciones manuales asistidas, no como CD completo
+- cuando `PROJECT_ROOT` apunta a `/opt/...`, el wrapper ya puede promover automáticamente el árbol `backend/` desde el repo fuente; eso evita repetir `cp -a .../backend/. /opt/.../backend/` como paso manual implícito
 - `nginx` ya reenvia `X-Request-ID`, lo que ayuda a conservar trazabilidad en logs y errores
 - para HTTPS real, usar la plantilla `infra/nginx/platform-paas-backend-ssl.conf`
 - para renovacion de certificados, usar `infra/systemd/platform-paas-certbot-renew.timer`

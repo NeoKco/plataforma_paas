@@ -1,5 +1,46 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Infraestructura/deploy ya promueve `backend/` desde repo a runtime
+
+- objetivo:
+  - cerrar la deuda operativa donde el release backend dependía de copiar manualmente `/home/felipe/platform_paas/backend` hacia `/opt/.../backend`
+  - integrar la promoción `repo -> runtime backend` en el carril normal de deploy y dejarla validada en `staging` y `production`
+- cambios y acciones ejecutadas:
+  - se agrega [sync_backend_runtime_tree.sh](/home/felipe/platform_paas/deploy/sync_backend_runtime_tree.sh) para reflejar de forma explícita el árbol `backend/` del repo fuente en el runtime objetivo
+  - [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) ahora:
+    - recibe `SOURCE_REPO_ROOT`, `SOURCE_BACKEND_DIR` y `SYNC_RUNTIME_BACKEND_FROM_SOURCE`
+    - promueve backend al runtime antes de `pip install`, tests, restart y gate post-deploy
+  - [check_backend_release_readiness.sh](/home/felipe/platform_paas/deploy/check_backend_release_readiness.sh) ahora valida:
+    - repo fuente y backend fuente
+    - script de sincronización runtime
+    - si el release realmente promoverá backend desde el repo esperado
+  - se alinean:
+    - [backend-release-and-rollback.md](/home/felipe/platform_paas/docs/deploy/backend-release-and-rollback.md)
+    - [backend-debian.md](/home/felipe/platform_paas/docs/deploy/backend-debian.md)
+    - [backend-production-preflight.md](/home/felipe/platform_paas/docs/deploy/backend-production-preflight.md)
+- validaciones:
+  - repo/local:
+    - `bash -n deploy/deploy_backend.sh` -> `OK`
+    - `bash -n deploy/check_backend_release_readiness.sh` -> `OK`
+    - `bash -n deploy/sync_backend_runtime_tree.sh` -> `OK`
+    - preflight con `PROJECT_ROOT=/opt/platform_paas SOURCE_REPO_ROOT=/home/felipe/platform_paas REQUIRE_SYSTEMD=false REQUIRE_FRONTEND_DIST=false bash deploy/check_backend_release_readiness.sh` -> `0 fallos, 2 advertencias`
+  - `staging`:
+    - `bash deploy/deploy_backend_staging.sh` ya corre sin `cp -a` manual previo
+    - `528 tests OK`
+    - snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_203115.json`
+    - auditoría final `processed=4, warnings=0, failed=0`
+  - `production`:
+    - `bash deploy/deploy_backend_production.sh` ya corre sin `cp -a` manual previo
+    - `528 tests OK`
+    - snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_203116.json`
+    - auditoría final `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+- resultado:
+  - el release backend ya integra la promoción del árbol `backend/` desde el repo fuente al runtime del ambiente
+  - se elimina la copia manual implícita como dependencia operativa del despliegue
+  - `staging` y `production` quedan validados otra vez en verde con el flujo nuevo
+- siguiente paso:
+  - seguir con el bloque 1 por `calidad técnica + rollback`, o decidir si parte de esta señal operativa debe subir a `platform_admin`
+
 ## 2026-04-20 - Publicación runtime de `auditoría/observabilidad` y `secretos` por ambiente
 
 - objetivo:

@@ -71,6 +71,14 @@
     - `secret_posture` validada sobre `empresa-bootstrap`
   - ajuste fino adicional:
     - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya no mezcla `accepted_tenants_with_notes` con `tenants_with_notes`
+- subcorte nuevo ya cerrado en runtime dentro de `infraestructura/deploy`:
+  - [sync_backend_runtime_tree.sh](/home/felipe/platform_paas/deploy/sync_backend_runtime_tree.sh) ya refleja `backend/` desde el repo fuente hacia el árbol runtime del ambiente antes del release
+  - [deploy_backend.sh](/home/felipe/platform_paas/deploy/deploy_backend.sh) ya integra esa promoción `repo -> runtime backend` usando `SOURCE_REPO_ROOT`, `SOURCE_BACKEND_DIR` y `SYNC_RUNTIME_BACKEND_FROM_SOURCE`
+  - [check_backend_release_readiness.sh](/home/felipe/platform_paas/deploy/check_backend_release_readiness.sh) ya valida la presencia del repo fuente, del sync script y si el wrapper realmente va a promover backend al runtime esperado
+  - validación real sin `cp -a` manual previo:
+    - `staging` -> `bash deploy/deploy_backend_staging.sh` -> `528 tests OK`, `processed=4`, `warnings=0`, `failed=0`
+    - `production` -> `bash deploy/deploy_backend_production.sh` -> `528 tests OK`, `processed=4`, `warnings=0`, `failed=0`, `accepted_tenants_with_notes=1`
+  - queda cerrada la deuda operativa donde el release dependía de recordar una copia manual de `/home/felipe/platform_paas/backend` a `/opt/.../backend`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -124,7 +132,7 @@
     - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
     - entrar ya al siguiente subfrente concreto del bloque 1 con la documentación estructural reordenada y sin deuda de handoff
     - siguiente subfrente sugerido ahora dentro del mismo bloque 1:
-      - `infraestructura/deploy`, para consolidar estos artefactos operativos en el carril normal de release y decidir si la señal debe subir también a `platform_admin`
+      - `calidad técnica + rollback`, para endurecer el cierre real del release con smoke corto de salida, lectura más clara de fallback y criterio más explícito de rollback vs reparación tenant-local
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

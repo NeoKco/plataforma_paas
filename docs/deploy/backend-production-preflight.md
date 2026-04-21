@@ -17,6 +17,7 @@ No reemplaza el deploy. Lo prepara.
 ## Qué valida
 
 - presencia de `PROJECT_ROOT`
+- presencia de `SOURCE_REPO_ROOT` y `SOURCE_BACKEND_DIR` cuando el release promueve desde un repo fuente distinto
 - presencia de `backend/` y scripts de deploy
 - virtualenv Python ejecutable
 - `.env` válido con el mismo gate del deploy real
@@ -95,6 +96,7 @@ npm run build
 Un host está razonablemente listo para deploy productivo cuando:
 
 - el preflight termina sin fallos
+- el source backend que se va a promover está identificado y accesible
 - el servicio esperado existe en `systemd`
 - el `.env` pasa con `EXPECTED_APP_ENV=production`
 - el build frontend existe cuando corresponde

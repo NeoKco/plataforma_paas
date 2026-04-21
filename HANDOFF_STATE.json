@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T23:20:00-04:00",
+  "updated_at": "2026-04-20T20:31:44-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad y secretos también en runtime real: staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles y el gate ya no confunde accepted_tenants_with_notes con tenants_with_notes. El foco correcto ahora pasa a infraestructura/deploy o a decidir si estas señales suben a la UX de platform_admin",
-  "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos e infraestructura/deploy también en runtime real: staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles y el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate. El foco correcto ahora pasa a calidad técnica + rollback o a decidir si estas señales suben a la UX de platform_admin",
+  "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime",
   "active_modules": [
     "platform-core",
     "finance",
@@ -77,6 +77,12 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "deploy_backend.sh ya promueve backend/ desde /home/felipe/platform_paas hacia /opt/platform_paas_staging/backend o /opt/platform_paas/backend antes del release cuando los árboles difieren",
+    "sync_backend_runtime_tree.sh agregado para reflejar explícitamente el backend runtime del ambiente desde el repo fuente, eliminando la copia manual previa",
+    "check_backend_release_readiness.sh ahora valida SOURCE_REPO_ROOT, SOURCE_BACKEND_DIR y el script de sincronización runtime antes del deploy",
+    "staging revalidado con el flujo nuevo sin cp -a manual: bash deploy/deploy_backend_staging.sh -> 528 tests OK, processed=4 warnings=0 failed=0, snapshot /opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_203115.json",
+    "production revalidado con el flujo nuevo sin cp -a manual: bash deploy/deploy_backend_production.sh -> 528 tests OK, processed=4 warnings=0 failed=0 accepted_tenants_with_notes=1, snapshot /opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_203116.json",
+    "backend-release-and-rollback.md, backend-debian.md y backend-production-preflight.md ya documentan que el wrapper backend promueve repo -> runtime antes de tests, restart y gate post-deploy",
     "staging redeployado con 528 tests OK y snapshot /opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_202152.json con overall_status=ok",
     "production redeployado con 528 tests OK y snapshot /opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_202151.json con overall_status=ok_with_accepted_notes",
     "secret_posture comprobada en runtime real: staging sobre condominio-demo y production sobre empresa-bootstrap",

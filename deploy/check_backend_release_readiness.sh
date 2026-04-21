@@ -4,6 +4,11 @@ set -euo pipefail
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_REPO_ROOT="${SOURCE_REPO_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+SOURCE_BACKEND_DIR="${SOURCE_BACKEND_DIR:-$SOURCE_REPO_ROOT/backend}"
+DEPLOY_SCRIPT_ROOT="${DEPLOY_SCRIPT_ROOT:-$SOURCE_REPO_ROOT}"
+SYNC_RUNTIME_BACKEND_FROM_SOURCE="${SYNC_RUNTIME_BACKEND_FROM_SOURCE:-auto}"
 VENV_PYTHON="${VENV_PYTHON:-$PROJECT_ROOT/platform_paas_venv/bin/python}"
 ENV_FILE="${ENV_FILE:-$PROJECT_ROOT/.env}"
 EXPECTED_APP_ENV="${EXPECTED_APP_ENV:-production}"
@@ -42,14 +47,30 @@ check_path() {
 
 echo '== Backend release readiness =='
 printf 'PROJECT_ROOT=%s\n' "$PROJECT_ROOT"
+printf 'SOURCE_REPO_ROOT=%s\n' "$SOURCE_REPO_ROOT"
+printf 'DEPLOY_SCRIPT_ROOT=%s\n' "$DEPLOY_SCRIPT_ROOT"
 printf 'ENV_FILE=%s\n' "$ENV_FILE"
 printf 'SERVICE_NAME=%s\n' "$SERVICE_NAME"
 printf 'EXPECTED_APP_ENV=%s\n' "$EXPECTED_APP_ENV"
 
 check_path "$PROJECT_ROOT" 'Project root'
 check_path "$BACKEND_DIR" 'Backend dir'
-check_path "$PROJECT_ROOT/deploy/deploy_backend.sh" 'Deploy script'
-check_path "$PROJECT_ROOT/deploy/validate_backend_env.sh" 'Env validator'
+check_path "$DEPLOY_SCRIPT_ROOT/deploy/deploy_backend.sh" 'Deploy script'
+check_path "$DEPLOY_SCRIPT_ROOT/deploy/sync_backend_runtime_tree.sh" 'Backend sync script'
+check_path "$DEPLOY_SCRIPT_ROOT/deploy/validate_backend_env.sh" 'Env validator'
+
+if [ -d "$SOURCE_BACKEND_DIR" ]; then
+    pass "Source backend dir detectado: $SOURCE_BACKEND_DIR"
+    if [ "$SYNC_RUNTIME_BACKEND_FROM_SOURCE" = "false" ]; then
+        warn 'La promoción repo -> runtime backend está deshabilitada por configuración'
+    elif [ "$(cd "$SOURCE_BACKEND_DIR" && pwd)" = "$(cd "$BACKEND_DIR" && pwd)" ]; then
+        pass 'Source backend y runtime backend apuntan al mismo árbol'
+    else
+        pass 'El deploy promoverá backend desde el repo fuente al árbol runtime'
+    fi
+else
+    fail "Source backend dir no encontrado: $SOURCE_BACKEND_DIR"
+fi
 
 if [ -x "$VENV_PYTHON" ]; then
     pass "Python virtualenv listo: $VENV_PYTHON"
@@ -58,7 +79,7 @@ else
 fi
 
 if [ -f "$ENV_FILE" ]; then
-    if validation_output=$(bash "$PROJECT_ROOT/deploy/validate_backend_env.sh" "$ENV_FILE" "$EXPECTED_APP_ENV" 2>&1); then
+    if validation_output=$(bash "$DEPLOY_SCRIPT_ROOT/deploy/validate_backend_env.sh" "$ENV_FILE" "$EXPECTED_APP_ENV" 2>&1); then
         pass 'Validación de entorno OK'
         printf '%s\n' "$validation_output"
     else

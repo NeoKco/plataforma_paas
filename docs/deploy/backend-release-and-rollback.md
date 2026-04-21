@@ -24,6 +24,7 @@ Por eso:
 
 - cambiar código en el repo no lo deja activo en ningún ambiente
 - el cambio solo existe en un ambiente cuando se despliega a su árbol runtime
+- desde este corte, el wrapper backend ya puede promover automáticamente `backend/` desde el repo fuente al árbol runtime antes de correr tests, restart y gate post-deploy
 
 ## Archivos base
 
@@ -66,6 +67,7 @@ bash deploy/deploy_backend_production.sh
 
 El wrapper:
 
+- promueve `backend/` desde `SOURCE_REPO_ROOT` hacia `PROJECT_ROOT/backend` cuando ambos árboles no son el mismo
 - valida `.env` y runtime base
 - corre migraciones de control
 - ejecuta pruebas backend
@@ -156,6 +158,7 @@ bash deploy/rollback_backend.sh v1.2.3
 ## Recomendación operativa
 
 - probar siempre primero en `staging`
+- lanzar el wrapper desde el repo fuente cuando `PROJECT_ROOT` apunte a `/opt/...`
 - no promover a `production` solo porque el servicio subió
 - revisar la auditoría de tenants activos
 - dejar evidencia operativa archivada
