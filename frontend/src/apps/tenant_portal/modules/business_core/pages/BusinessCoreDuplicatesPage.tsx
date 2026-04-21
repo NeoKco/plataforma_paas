@@ -197,6 +197,25 @@ type InstallationAuditRow = {
   workOrdersCount: number;
 };
 
+type InstallationMergeFieldKey =
+  | "name"
+  | "serial_number"
+  | "manufacturer"
+  | "model"
+  | "location_note"
+  | "technical_notes";
+
+type InstallationMergeSelectionMap = Partial<Record<InstallationMergeFieldKey, string>>;
+
+type InstallationMergeDiffRow = {
+  field: InstallationMergeFieldKey;
+  currentValue: string | null;
+  nextValue: string | null;
+  sourceLabel: string | null;
+  isAutomatic: boolean;
+  isChanged: boolean;
+};
+
 type DuplicateGroup<T> = {
   id: string;
   kind: DuplicateEntityKind;
@@ -242,6 +261,15 @@ const CONTACT_MERGE_FIELDS: ContactMergeFieldKey[] = [
   "phone",
   "role_title",
   "is_primary",
+];
+
+const INSTALLATION_MERGE_FIELDS: InstallationMergeFieldKey[] = [
+  "name",
+  "serial_number",
+  "manufacturer",
+  "model",
+  "location_note",
+  "technical_notes",
 ];
 
 function normalizeHumanKey(value: string | null | undefined): string {
@@ -1004,7 +1032,10 @@ function buildSiteMergeAuditPayload(
 function buildInstallationMergeAuditPayload(
   target: InstallationAuditRow,
   sources: InstallationAuditRow[],
-  totalWorkOrders: number
+  totalWorkOrders: number,
+  documentFieldsToMerge: number,
+  selections: InstallationMergeSelectionMap,
+  diffRows: InstallationMergeDiffRow[]
 ) {
   return {
     entity_kind: "installation",
@@ -1020,7 +1051,17 @@ function buildInstallationMergeAuditPayload(
       source_ids: sources.map((source) => source.installation.id),
       summary: {
         work_orders_moved: totalWorkOrders,
+        document_fields_merged: documentFieldsToMerge,
       },
+      selections,
+      diff_rows: diffRows.map((row) => ({
+        field: row.field,
+        current_value: row.currentValue,
+        next_value: row.nextValue,
+        source_label: row.sourceLabel,
+        is_automatic: row.isAutomatic,
+        is_changed: row.isChanged,
+      })),
     },
   };
 }
@@ -1189,6 +1230,9 @@ function getMergeAuditFieldLabel(
   }
   if (audit.entity_kind === "contact") {
     return getContactMergeFieldLabel(field as ContactMergeFieldKey, language);
+  }
+  if (audit.entity_kind === "installation") {
+    return getInstallationMergeFieldLabel(field as InstallationMergeFieldKey, language);
   }
   return field.replace(/_/g, " ");
 }
@@ -1659,6 +1703,202 @@ function buildInstallationWritePayload(
     is_active: overrides.is_active ?? installation.is_active,
     sort_order: overrides.sort_order ?? installation.sort_order,
   };
+}
+
+function getInstallationFieldValue(
+  installation: TenantMaintenanceInstallation,
+  field: InstallationMergeFieldKey
+) {
+  switch (field) {
+    case "name":
+      return installation.name;
+    case "serial_number":
+      return installation.serial_number;
+    case "manufacturer":
+      return installation.manufacturer;
+    case "model":
+      return installation.model;
+    case "location_note":
+      return installation.location_note;
+    case "technical_notes":
+      return installation.technical_notes;
+    default:
+      return null;
+  }
+}
+
+function getInstallationFieldDisplayValue(
+  value: string | null | undefined,
+  _field: InstallationMergeFieldKey
+) {
+  return getMeaningfulText(value) ?? null;
+}
+
+function getInstallationMergeFieldLabel(
+  field: InstallationMergeFieldKey,
+  language: "es" | "en"
+) {
+  if (language === "es") {
+    switch (field) {
+      case "name":
+        return "Nombre visible";
+      case "serial_number":
+        return "Serie";
+      case "manufacturer":
+        return "Fabricante";
+      case "model":
+        return "Modelo";
+      case "location_note":
+        return "Ubicación visible";
+      case "technical_notes":
+        return "Notas técnicas";
+      default:
+        return field;
+    }
+  }
+  switch (field) {
+    case "name":
+      return "Visible name";
+    case "serial_number":
+      return "Serial";
+    case "manufacturer":
+      return "Manufacturer";
+    case "model":
+      return "Model";
+    case "location_note":
+      return "Visible location";
+    case "technical_notes":
+      return "Technical notes";
+    default:
+      return field;
+  }
+}
+
+function buildMergedInstallationDocumentPayload(
+  target: TenantMaintenanceInstallation,
+  sources: TenantMaintenanceInstallation[]
+) {
+  return buildInstallationWritePayload(target, {
+    name: pickPreferredText([target.name, ...sources.map((source) => source.name)]) ?? target.name,
+    serial_number: pickPreferredText([
+      target.serial_number,
+      ...sources.map((source) => source.serial_number),
+    ]),
+    manufacturer: pickPreferredText([
+      target.manufacturer,
+      ...sources.map((source) => source.manufacturer),
+    ]),
+    model: pickPreferredText([target.model, ...sources.map((source) => source.model)]),
+    location_note: pickPreferredText([
+      target.location_note,
+      ...sources.map((source) => source.location_note),
+    ]),
+    technical_notes: mergeDistinctTextBlock([
+      target.technical_notes,
+      ...sources.map((source) => source.technical_notes),
+    ]),
+    is_active: true,
+  });
+}
+
+function resolveInstallationMergePayload(
+  target: TenantMaintenanceInstallation,
+  sources: TenantMaintenanceInstallation[],
+  selections: InstallationMergeSelectionMap = {}
+) {
+  const autoPayload = buildMergedInstallationDocumentPayload(target, sources);
+  const installations = [target, ...sources];
+  const resolved = { ...autoPayload };
+
+  INSTALLATION_MERGE_FIELDS.forEach((field) => {
+    const selection = selections[field];
+    if (!selection || selection === "auto") {
+      return;
+    }
+    const installationId = Number(selection.replace("installation:", ""));
+    if (!Number.isFinite(installationId)) {
+      return;
+    }
+    const selectedInstallation = installations.find((installation) => installation.id === installationId);
+    if (!selectedInstallation) {
+      return;
+    }
+    const selectedValue = getMeaningfulText(getInstallationFieldValue(selectedInstallation, field));
+    switch (field) {
+      case "name":
+        resolved.name = selectedValue ?? autoPayload.name;
+        break;
+      case "serial_number":
+        resolved.serial_number = selectedValue;
+        break;
+      case "manufacturer":
+        resolved.manufacturer = selectedValue;
+        break;
+      case "model":
+        resolved.model = selectedValue;
+        break;
+      case "location_note":
+        resolved.location_note = selectedValue;
+        break;
+      case "technical_notes":
+        resolved.technical_notes = selectedValue;
+        break;
+      default:
+        break;
+    }
+  });
+
+  return resolved;
+}
+
+function countInstallationDocumentFieldsToMerge(
+  target: TenantMaintenanceInstallation,
+  sources: TenantMaintenanceInstallation[],
+  selections: InstallationMergeSelectionMap = {}
+) {
+  const merged = resolveInstallationMergePayload(target, sources, selections);
+  let count = 0;
+  INSTALLATION_MERGE_FIELDS.forEach((field) => {
+    if ((merged[field] ?? null) !== (target[field] ?? null)) {
+      count += 1;
+    }
+  });
+  return count;
+}
+
+function buildInstallationMergeDiffRows(
+  target: TenantMaintenanceInstallation,
+  sources: TenantMaintenanceInstallation[],
+  selections: InstallationMergeSelectionMap = {},
+  language: "es" | "en"
+): InstallationMergeDiffRow[] {
+  const resolved = resolveInstallationMergePayload(target, sources, selections);
+  const installations = [target, ...sources];
+
+  return INSTALLATION_MERGE_FIELDS.map((field) => {
+    const selection = selections[field] ?? "auto";
+    const selectedInstallationId =
+      selection !== "auto" ? Number(selection.replace("installation:", "")) : null;
+    const selectedInstallation =
+      selectedInstallationId !== null
+        ? installations.find((installation) => installation.id === selectedInstallationId) ?? null
+        : null;
+    const currentValue = getInstallationFieldDisplayValue(
+      getInstallationFieldValue(target, field),
+      field
+    );
+    const nextValue = getInstallationFieldDisplayValue(resolved[field], field);
+    return {
+      field,
+      currentValue,
+      nextValue,
+      isChanged: (currentValue ?? null) !== (nextValue ?? null),
+      sourceLabel: selectedInstallation
+        ? stripLegacyVisibleText(selectedInstallation.name) || `#${selectedInstallation.id}`
+        : null,
+      isAutomatic: selection === "auto",
+    };
+  });
 }
 
 function buildWorkOrderWritePayload(
@@ -2179,6 +2419,9 @@ export function BusinessCoreDuplicatesPage() {
   >({});
   const [contactMergeSelections, setContactMergeSelections] = useState<
     Record<string, ContactMergeSelectionMap>
+  >({});
+  const [installationMergeSelections, setInstallationMergeSelections] = useState<
+    Record<string, InstallationMergeSelectionMap>
   >({});
 
   const organizationById = useMemo(
@@ -3278,10 +3521,22 @@ export function BusinessCoreDuplicatesPage() {
         workOrders.filter((workOrder) => workOrder.installation_id === source.installation.id).length,
       0
     );
+    const selections = installationMergeSelections[group.id] ?? {};
+    const documentFieldsToMerge = countInstallationDocumentFieldsToMerge(
+      target.installation,
+      sources.map((source) => source.installation),
+      selections
+    );
+    const diffRows = buildInstallationMergeDiffRows(
+      target.installation,
+      sources.map((source) => source.installation),
+      selections,
+      language
+    );
     const confirmed = window.confirm(
       language === "es"
-        ? `Consolidar ${sources.length} instalación(es) duplicada(s) en "${target.installation.name}". Se moverán ${totalWorkOrders} OT a la instalación sugerida y luego se desactivarán las instalaciones origen.`
-        : `Consolidate ${sources.length} duplicate installation(s) into "${target.installation.name}". ${totalWorkOrders} work orders will be moved to the suggested installation and the source installations will then be deactivated.`
+        ? `Consolidar ${sources.length} instalación(es) duplicada(s) en "${target.installation.name}". Se moverán ${totalWorkOrders} OT a la instalación sugerida, se integrarán ${documentFieldsToMerge} dato(s) técnico-documental(es) y luego se desactivarán las instalaciones origen.`
+        : `Consolidate ${sources.length} duplicate installation(s) into "${target.installation.name}". ${totalWorkOrders} work orders will be moved to the suggested installation, ${documentFieldsToMerge} technical documentary field(s) will be merged and the source installations will then be deactivated.`
     );
     if (!confirmed) {
       return;
@@ -3289,6 +3544,17 @@ export function BusinessCoreDuplicatesPage() {
     setIsMutating(true);
     setError(null);
     try {
+      if (documentFieldsToMerge > 0) {
+        await updateTenantMaintenanceInstallation(
+          session.accessToken,
+          target.installation.id,
+          resolveInstallationMergePayload(
+            target.installation,
+            sources.map((source) => source.installation),
+            selections
+          )
+        );
+      }
       for (const source of sources) {
         const relatedWorkOrders = workOrders.filter(
           (workOrder) => workOrder.installation_id === source.installation.id
@@ -3315,7 +3581,14 @@ export function BusinessCoreDuplicatesPage() {
       try {
         await createTenantBusinessCoreMergeAudit(
           session.accessToken,
-          buildInstallationMergeAuditPayload(target, sources, totalWorkOrders)
+          buildInstallationMergeAuditPayload(
+            target,
+            sources,
+            totalWorkOrders,
+            documentFieldsToMerge,
+            selections,
+            diffRows
+          )
         );
       } catch (auditError) {
         console.warn("Unable to persist installation merge audit", auditError);
@@ -3418,6 +3691,20 @@ export function BusinessCoreDuplicatesPage() {
     value: string
   ) {
     setContactMergeSelections((current) => ({
+      ...current,
+      [groupId]: {
+        ...(current[groupId] ?? {}),
+        [field]: value,
+      },
+    }));
+  }
+
+  function updateInstallationMergeSelection(
+    groupId: string,
+    field: InstallationMergeFieldKey,
+    value: string
+  ) {
+    setInstallationMergeSelections((current) => ({
       ...current,
       [groupId]: {
         ...(current[groupId] ?? {}),
@@ -3836,6 +4123,119 @@ export function BusinessCoreDuplicatesPage() {
               >
                 <div className="business-core-duplicates-merge-diff-item__field">
                   {getContactMergeFieldLabel(row.field, language)}
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__values">
+                  <span>
+                    {language === "es" ? "Actual:" : "Current:"} {row.currentValue ?? "—"}
+                  </span>
+                  <span>
+                    {language === "es" ? "Final:" : "Final:"} {row.nextValue ?? "—"}
+                  </span>
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__meta">
+                  {row.isAutomatic
+                    ? language === "es"
+                      ? "origen automático"
+                      : "automatic source"
+                    : `${language === "es" ? "origen manual" : "manual source"}: ${row.sourceLabel ?? "—"}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderInstallationMergeAssistant(group: DuplicateGroup<InstallationAuditRow>) {
+    const preferredInstallationId = getPreferredInstallationId(group);
+    const target =
+      group.members.find((member) => member.installation.id === preferredInstallationId)?.installation ??
+      group.members[0]?.installation ??
+      null;
+    if (!target) {
+      return null;
+    }
+    const sources = group.members
+      .filter((member) => member.installation.id !== preferredInstallationId)
+      .map((member) => member.installation);
+    const selections = installationMergeSelections[group.id] ?? {};
+    const preview = resolveInstallationMergePayload(target, sources, selections);
+    const diffRows = buildInstallationMergeDiffRows(target, sources, selections, language);
+
+    return (
+      <div className="business-core-duplicates-merge-assistant">
+        <div className="business-core-duplicates-merge-assistant__header">
+          <strong>{language === "es" ? "Ajuste manual previo" : "Manual pre-merge adjustment"}</strong>
+          <span>
+            {language === "es"
+              ? "Si hace falta, elige qué instalación aporta la identidad técnica visible antes de consolidar."
+              : "If needed, choose which installation provides the visible technical identity before consolidating."}
+          </span>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__grid">
+          {INSTALLATION_MERGE_FIELDS.map((field) => (
+            <label key={`${group.id}-${field}`} className="business-core-duplicates-merge-assistant__field">
+              <span>{getInstallationMergeFieldLabel(field, language)}</span>
+              <select
+                className="form-select form-select-sm"
+                value={selections[field] ?? "auto"}
+                onChange={(event) =>
+                  updateInstallationMergeSelection(group.id, field, event.target.value)
+                }
+              >
+                <option value="auto">
+                  {language === "es" ? "Automático sugerido" : "Suggested automatic"}
+                </option>
+                {[target, ...sources].map((installation) => {
+                  const fieldValue = getInstallationFieldDisplayValue(
+                    getInstallationFieldValue(installation, field),
+                    field
+                  );
+                  return (
+                    <option
+                      key={`${field}-${installation.id}`}
+                      value={`installation:${installation.id}`}
+                    >
+                      {`${stripLegacyVisibleText(installation.name) || `#${installation.id}`} · ${fieldValue ?? (language === "es" ? "sin dato" : "no value")}`}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          ))}
+        </div>
+        <div className="business-core-duplicates-merge-assistant__preview">
+          <div className="business-core-cell__meta">
+            {language === "es"
+              ? "Vista previa de la instalación objetivo"
+              : "Target installation preview"}
+          </div>
+          <div className="business-core-duplicates-group__summary">
+            <span>{preview.name}</span>
+            {preview.serial_number ? <span>{preview.serial_number}</span> : null}
+            {preview.manufacturer ? <span>{preview.manufacturer}</span> : null}
+            {preview.model ? <span>{preview.model}</span> : null}
+            {preview.location_note ? (
+              <span>{language === "es" ? "ubicación integrada" : "merged location"}</span>
+            ) : null}
+            {preview.technical_notes ? (
+              <span>{language === "es" ? "notas integradas" : "merged notes"}</span>
+            ) : null}
+          </div>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__diff">
+          <div className="business-core-cell__meta">
+            {language === "es" ? "Diff final por campo" : "Final field diff"}
+          </div>
+          <div className="business-core-duplicates-merge-diff-list">
+            {diffRows.map((row) => (
+              <div
+                key={`${group.id}-${row.field}`}
+                className={`business-core-duplicates-merge-diff-item${row.isChanged ? " is-changed" : ""}`}
+              >
+                <div className="business-core-duplicates-merge-diff-item__field">
+                  {getInstallationMergeFieldLabel(row.field, language)}
                 </div>
                 <div className="business-core-duplicates-merge-diff-item__values">
                   <span>
@@ -4490,12 +4890,26 @@ export function BusinessCoreDuplicatesPage() {
     const sourceMembers = group.members.filter(
       (member) => member.installation.id !== preferredInstallationId
     );
+    const selections = installationMergeSelections[group.id] ?? {};
     const mergeWorkOrdersCount = sourceMembers.reduce(
       (total, source) =>
         total +
         workOrders.filter((workOrder) => workOrder.installation_id === source.installation.id).length,
       0
     );
+    const documentFieldsToMerge = (() => {
+      const target = group.members.find(
+        (member) => member.installation.id === preferredInstallationId
+      );
+      if (!target) {
+        return 0;
+      }
+      return countInstallationDocumentFieldsToMerge(
+        target.installation,
+        sourceMembers.map((member) => member.installation),
+        selections
+      );
+    })();
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -4509,6 +4923,9 @@ export function BusinessCoreDuplicatesPage() {
             <div className="business-core-duplicates-group__summary">
               <span>
                 {sourceMembers.length} {language === "es" ? "instalaciones origen" : "source installations"}
+              </span>
+              <span>
+                {documentFieldsToMerge} {language === "es" ? "campos técnico-documentales a integrar" : "technical documentary fields to merge"}
               </span>
               <span>
                 {mergeWorkOrdersCount} {language === "es" ? "OT a mover" : "work orders to move"}
@@ -4529,6 +4946,7 @@ export function BusinessCoreDuplicatesPage() {
             </button>
           </div>
         </div>
+        {renderInstallationMergeAssistant(group)}
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
             const isPreferred = member.installation.id === preferredInstallationId;
