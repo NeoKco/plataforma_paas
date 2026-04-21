@@ -54,6 +54,10 @@
   - [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md) ya refleja el árbol real de `tenant_modules`, `deploy`, `scripts/dev` y la estructura vigente de frontend
   - [docs/index.md](/home/felipe/platform_paas/docs/index.md), [README.md](/home/felipe/platform_paas/README.md) y [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) ya incluyen [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md) como arranque canónico de continuidad
   - queda explícito además que `project-structure.md` es la referencia estructural mantenida y `estructura_proyecto.txt` solo un snapshot auxiliar si no está regenerado
+- subcorte nuevo ya cerrado en repo dentro de `auditoría/observabilidad`:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ya puede emitir snapshot JSON con `overall_status`, resumen agregado y detalle por tenant
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya guarda ese snapshot en `operational_evidence/`
+  - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ya embebe el snapshot más reciente dentro de la evidencia operativa del ambiente
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -106,6 +110,8 @@
       - `accepted notes` ya institucionalizadas
     - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
     - entrar ya al siguiente subfrente concreto del bloque 1 con la documentación estructural reordenada y sin deuda de handoff
+    - siguiente subfrente sugerido ahora dentro del mismo bloque 1:
+      - `secretos`, para endurecer lectura, rotación y evidencia mínima de `TENANT_SECRETS_FILE` y carriles que comparten rol PostgreSQL
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

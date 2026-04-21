@@ -1,5 +1,36 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Snapshot JSON de convergencia tenant por ambiente
+
+- objetivo:
+  - convertir la auditoría activa tenant en una salida reutilizable por ambiente y no solo en texto de consola
+  - dejar evidencia operativa más fácil de comparar entre `staging` y `production`
+- cambios y acciones ejecutadas:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora soporta:
+    - `--format json`
+    - `--json-output-file`
+  - el payload nuevo incluye:
+    - `overall_status`
+    - resumen agregado (`processed`, `warnings`, `failed`)
+    - `failed_by_reason`
+    - `notes_by_reason`
+    - `accepted_notes_by_reason`
+    - `tenant_results`
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya guarda ese snapshot automáticamente en `operational_evidence/active_tenant_convergence_<timestamp>.json`
+  - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ya embebe el snapshot más reciente dentro del paquete de evidencia
+  - se amplía [test_tenant_operational_drift_scripts.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_operational_drift_scripts.py)
+- validaciones:
+  - local:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` -> `14 tests OK`
+    - `py_compile backend/app/scripts/audit_active_tenant_convergence.py` -> `OK`
+    - `bash -n deploy/verify_backend_deploy.sh` -> `OK`
+    - `bash -n deploy/collect_backend_operational_evidence.sh` -> `OK`
+- resultado:
+  - el estado de convergencia por ambiente ya puede consumirse sin parsear líneas de consola
+  - la evidencia operativa queda más comparable y reutilizable entre carriles
+- siguiente paso:
+  - seguir con el bloque 1 por `secretos` o reforzar esta misma línea publicando el snapshot JSON en runtime real por ambiente
+
 ## 2026-04-20 - Realineación de estructura y handoff antes de seguir con el bloque 1
 
 - objetivo:

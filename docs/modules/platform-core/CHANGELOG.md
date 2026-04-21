@@ -2,6 +2,18 @@
 
 ## 2026-04-20
 
+- la auditoría activa tenant ya deja snapshot JSON reutilizable por ambiente:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora soporta `--format json` y `--json-output-file`
+  - el snapshot incluye `overall_status`, resumen agregado, `failed_by_reason`, `notes_by_reason`, `accepted_notes_by_reason` y detalle por tenant
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya guarda automáticamente `active_tenant_convergence_<timestamp>.json` en `operational_evidence/`
+  - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ya incrusta el snapshot más reciente dentro del paquete de evidencia
+  - validación local:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` -> `14 tests OK`
+    - `bash -n deploy/verify_backend_deploy.sh` -> `OK`
+    - `bash -n deploy/collect_backend_operational_evidence.sh` -> `OK`
+  - resultado:
+    - el estado de convergencia por ambiente deja de depender solo de parseo textual de consola
+
 - se realinea la documentación estructural y de continuidad del repo antes de seguir con el bloque 1:
   - [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md) vuelve a reflejar el árbol real de `tenant_modules`, `deploy`, `scripts/dev` y frontend
   - [docs/index.md](/home/felipe/platform_paas/docs/index.md), [README.md](/home/felipe/platform_paas/README.md) y [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) ya incluyen [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md) como arranque canónico multi-sesión
