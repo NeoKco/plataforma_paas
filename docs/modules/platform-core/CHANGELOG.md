@@ -2,6 +2,21 @@
 
 ## 2026-04-20
 
+- `Billing` se alinea al mismo lenguaje operativo corto de `platform_admin`:
+  - [BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx) ahora agrega una franja `Ruta rápida`
+  - compacta además:
+    - `Señales abiertas`
+    - labels de resumen/alertas/historial
+    - copy del `Workspace tenant`
+    - ayuda de `Reconcile en lote`
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BillingPage-BECHfIgS.js`, `DashboardPage-C803pQqD.js`, `ProvisioningPage-BWzGyJ8q.js`, `TenantsPage-CtEltPSp.js`, `index-Jd2vYjEF.js`
+    - `production` publicado con `BillingPage-DAe8eFyw.js`, `DashboardPage-6npkTjyZ.js`, `ProvisioningPage-B1EjfI4N.js`, `TenantsPage-uaVOuShv.js`, `index-DuttH5IT.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - la compactación visible ya cubre `Dashboard`, `Tenants`, `Provisioning` y `Billing`
+
 - `Dashboard` se alinea con el lenguaje operativo nuevo de `platform_admin`:
   - [DashboardPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx) ahora agrega una franja `Ruta rápida` reutilizando `ops-summary-strip`
   - los KPI visibles quedan compactados y consistentes con el resto del frente:

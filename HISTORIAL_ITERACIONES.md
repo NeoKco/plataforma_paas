@@ -1,5 +1,37 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - `Billing` se alinea al lenguaje operativo de `platform_admin`
+
+- objetivo:
+  - extender el mismo pase de `frontend fino` a `Billing`
+  - compactar entrada visual y ayuda repetida sin reabrir el slice funcional de reconcile
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx):
+    - agrega franja `Ruta rápida` con resumen operativo de alertas, tenant foco e historial
+    - renombra `Qué revisar ahora` a `Señales abiertas`
+    - compacta copy en filtros, resumen, alertas, historial y `Workspace tenant`
+    - reduce ayuda repetida en `Reconcile en lote`
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BillingPage-BECHfIgS.js`, `DashboardPage-C803pQqD.js`, `ProvisioningPage-BWzGyJ8q.js`, `TenantsPage-CtEltPSp.js`, `index-Jd2vYjEF.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BillingPage-DAe8eFyw.js`, `DashboardPage-6npkTjyZ.js`, `ProvisioningPage-B1EjfI4N.js`, `TenantsPage-uaVOuShv.js`, `index-DuttH5IT.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `Billing` ya entra con la misma lectura rápida y compacta que el resto de `platform_admin`
+  - el subcorte queda cerrado en runtime
+- siguiente paso:
+  - seguir con `frontend fino` limpiando ayuda repetida residual en bloques secundarios y decidir si hace falta subir señales de convergencia/secretos a UI visible
+
 ## 2026-04-20 - Consistencia global inicial entre `Dashboard`, `Tenants` y `Provisioning`
 
 - objetivo:

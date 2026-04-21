@@ -180,6 +180,16 @@
     - `staging` con `DashboardPage-C3ovaSy4.js`, `ProvisioningPage-DpCCxewH.js`, `TenantsPage-Dx8mwonv.js`, `index-DXDopmzv.js`
     - `production` con los mismos bundles actuales
   - ambos carriles volvieron a pasar `check_frontend_static_readiness.sh` con `0 fallos, 0 advertencias`
+- subcorte adicional ya cerrado en runtime dentro del mismo frente:
+  - `Billing` ahora también entra con la misma jerarquía visual compacta:
+    - franja `Ruta rápida`
+    - bloque `Señales abiertas`
+    - labels más cortos en resumen/alertas/historial
+    - menos ayuda repetida en `Workspace tenant` y `Reconcile en lote`
+  - quedó publicado en:
+    - `staging` con `BillingPage-BECHfIgS.js`, `DashboardPage-C803pQqD.js`, `ProvisioningPage-BWzGyJ8q.js`, `TenantsPage-CtEltPSp.js`, `index-Jd2vYjEF.js`
+    - `production` con `BillingPage-DAe8eFyw.js`, `DashboardPage-6npkTjyZ.js`, `ProvisioningPage-B1EjfI4N.js`, `TenantsPage-uaVOuShv.js`, `index-DuttH5IT.js`
+  - ambos carriles volvieron a pasar `check_frontend_static_readiness.sh` con `0 fallos, 0 advertencias`
 - siguiente frente recomendado del roadmap:
   - hardening transversal final de plataforma y cierre operativo del alcance actual
   - objetivos concretos del siguiente corte:
@@ -193,8 +203,8 @@
     - siguiente subfrente sugerido ahora dentro del mismo bloque 1:
       - el baseline backend ya quedó cerrado y este primer corte de observabilidad visible + jerarquía operativa en `platform_admin` también
       - el salto útil ahora es el siguiente subcorte de `frontend fino` después de cerrar la consistencia global inicial:
-        - recorte adicional de textos de ayuda repetidos en bloques secundarios de `Dashboard`, `Tenants` y `Provisioning`
-        - revisar si `Billing` necesita la misma compactación/jerarquía visible
+        - recorte adicional de textos de ayuda repetidos en bloques secundarios de `Dashboard`, `Tenants`, `Provisioning` y `Billing`
+        - decidir si conviene una barra operativa compartida o si el patrón actual ya basta
         - decidir si parte de la señal de convergencia/secretos sube a UI o sigue solo en evidencia/runbook
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
