@@ -2,6 +2,25 @@
 
 ## 2026-04-20
 
+- `Duplicados` profundiza ahora el caso `sites` con una primera capa guiada/documental propia:
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora muestra `Ajuste manual previo` también para grupos de `Direcciones duplicadas`
+  - el operador ya puede decidir qué ficha dirección aporta:
+    - `dirección`
+    - `comuna`
+    - `ciudad`
+    - `región`
+    - `país`
+    - `notas de referencia`
+  - antes de consolidar, el slice ya muestra `Diff final por campo` para esos datos
+  - la auditoría persistente de merge de `sites` ya guarda además `selections` y `diff_rows`, no solo conteos operativos
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreDuplicatesPage-BB_SD1ZA.js` e `index-D-fTjs2W.js`
+    - `production` publicado con `BusinessCoreDuplicatesPage-CMiL3J_w.js` e `index-socCWeki.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - `sites` deja de ser solo reasignación operativa con resumen y ya gana una primera capa auditable de decisión documental visible
+
 - `Duplicados` profundiza ahora el caso `clients` con una primera capa guiada/documental propia:
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora muestra `Ajuste manual previo` también para grupos de `Clientes duplicados`
   - el operador ya puede decidir qué ficha cliente aporta:

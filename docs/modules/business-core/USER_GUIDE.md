@@ -134,6 +134,7 @@ Como decidir rapido:
 - en `Contactos`, el mismo patrón ya permite decidir por adelantado qué ficha aporta nombre, email, teléfono, rol y el flag de contacto principal
 - en `Contactos`, revisa también `Diff final por campo` antes de consolidar si quieres dejar auditada la decisión visible y no solo el resultado automático
 - en `Clientes`, ahora también puedes revisar y ajustar antes del merge el `estado servicio` y las `notas comerciales` de la ficha final
+- en `Direcciones`, ahora también puedes revisar y ajustar antes del merge los datos visibles de ubicación y las `notas de referencia`
 - después del merge, revisa `Historial reciente de consolidaciones` si necesitas recordar rápido qué campos quedaron distintos y desde qué ficha se tomó el valor final
 
 Que consolida hoy:
@@ -145,6 +146,7 @@ Que consolida hoy:
 - `Contactos`: además ya permite un ajuste manual previo por campo visible y deja ese diff dentro de la auditoría persistente del merge
 - cuando el merge audit trae `diff_rows` y `selections`, el historial visible ya resume también campos documentados y ajustes manuales recientes
 - `Direcciones`: mueve `Instalaciones` y `OT`
+- `Direcciones`: además ya permite ajustar antes del merge qué ficha aporta dirección, comuna, ciudad, región, país y notas de referencia, dejando ese diff en la auditoría persistente
 - `Instalaciones`: mueve `OT`
 - cada una de esas consolidaciones ya puede dejar rastro visible en `Historial reciente de consolidaciones`
 

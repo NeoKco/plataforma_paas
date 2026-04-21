@@ -3,6 +3,26 @@
 ## Prioridad vigente
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
+  - `sites` ya no queda solo con consolidación operativa de instalaciones y OT
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega:
+    - `Ajuste manual previo`
+    - `Diff final por campo`
+    - persistencia de `selections` y `diff_rows` en la auditoría de merge de `sites`
+  - el ajuste documental actual cubre:
+    - `dirección`
+    - `comuna`
+    - `ciudad`
+    - `región`
+    - `país`
+    - `notas de referencia`
+  - publicado en:
+    - `staging` con `BusinessCoreDuplicatesPage-BB_SD1ZA.js` e `index-D-fTjs2W.js`
+    - `production` con `BusinessCoreDuplicatesPage-CMiL3J_w.js` e `index-socCWeki.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
   - `clients` ya no queda solo con consolidación operativa de contactos/direcciones/OT
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega:
     - `Ajuste manual previo`

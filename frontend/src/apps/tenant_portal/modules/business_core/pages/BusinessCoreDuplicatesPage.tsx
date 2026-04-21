@@ -169,6 +169,25 @@ type SiteAuditRow = {
   workOrdersCount: number;
 };
 
+type SiteMergeFieldKey =
+  | "address_line"
+  | "commune"
+  | "city"
+  | "region"
+  | "country_code"
+  | "reference_notes";
+
+type SiteMergeSelectionMap = Partial<Record<SiteMergeFieldKey, string>>;
+
+type SiteMergeDiffRow = {
+  field: SiteMergeFieldKey;
+  currentValue: string | null;
+  nextValue: string | null;
+  sourceLabel: string | null;
+  isAutomatic: boolean;
+  isChanged: boolean;
+};
+
 type InstallationAuditRow = {
   installation: TenantMaintenanceInstallation;
   site: TenantBusinessSite | null;
@@ -206,6 +225,15 @@ const ORGANIZATION_MERGE_FIELDS: OrganizationMergeFieldKey[] = [
 const CLIENT_MERGE_FIELDS: ClientMergeFieldKey[] = [
   "service_status",
   "commercial_notes",
+];
+
+const SITE_MERGE_FIELDS: SiteMergeFieldKey[] = [
+  "address_line",
+  "commune",
+  "city",
+  "region",
+  "country_code",
+  "reference_notes",
 ];
 
 const CONTACT_MERGE_FIELDS: ContactMergeFieldKey[] = [
@@ -938,6 +966,9 @@ function buildContactMergeAuditPayload(
 function buildSiteMergeAuditPayload(
   target: SiteAuditRow,
   sources: SiteAuditRow[],
+  documentFieldsToMerge: number,
+  selections: SiteMergeSelectionMap,
+  diffRows: SiteMergeDiffRow[],
   totalInstallations: number,
   totalWorkOrders: number
 ) {
@@ -955,7 +986,17 @@ function buildSiteMergeAuditPayload(
       summary: {
         installations_moved: totalInstallations,
         work_orders_moved: totalWorkOrders,
+        document_fields_merged: documentFieldsToMerge,
       },
+      selections,
+      diff_rows: diffRows.map((row) => ({
+        field: row.field,
+        current_value: row.currentValue,
+        next_value: row.nextValue,
+        source_label: row.sourceLabel,
+        is_automatic: row.isAutomatic,
+        is_changed: row.isChanged,
+      })),
     },
   };
 }
@@ -1142,6 +1183,9 @@ function getMergeAuditFieldLabel(
   }
   if (audit.entity_kind === "client") {
     return getClientMergeFieldLabel(field as ClientMergeFieldKey, language);
+  }
+  if (audit.entity_kind === "site") {
+    return getSiteMergeFieldLabel(field as SiteMergeFieldKey, language);
   }
   if (audit.entity_kind === "contact") {
     return getContactMergeFieldLabel(field as ContactMergeFieldKey, language);
@@ -1422,6 +1466,177 @@ function buildSiteWritePayload(site: TenantBusinessSite, overrides: Partial<Tena
     is_active: overrides.is_active ?? site.is_active,
     sort_order: overrides.sort_order ?? site.sort_order,
   };
+}
+
+function getSiteFieldValue(site: TenantBusinessSite, field: SiteMergeFieldKey) {
+  switch (field) {
+    case "address_line":
+      return site.address_line;
+    case "commune":
+      return site.commune;
+    case "city":
+      return site.city;
+    case "region":
+      return site.region;
+    case "country_code":
+      return site.country_code;
+    case "reference_notes":
+      return site.reference_notes;
+    default:
+      return null;
+  }
+}
+
+function getSiteMergeFieldLabel(
+  field: SiteMergeFieldKey,
+  language: "es" | "en"
+) {
+  if (language === "es") {
+    switch (field) {
+      case "address_line":
+        return "Dirección";
+      case "commune":
+        return "Comuna";
+      case "city":
+        return "Ciudad";
+      case "region":
+        return "Región";
+      case "country_code":
+        return "País";
+      case "reference_notes":
+        return "Notas de referencia";
+      default:
+        return field;
+    }
+  }
+  switch (field) {
+    case "address_line":
+      return "Address";
+    case "commune":
+      return "Commune";
+    case "city":
+      return "City";
+    case "region":
+      return "Region";
+    case "country_code":
+      return "Country";
+    case "reference_notes":
+      return "Reference notes";
+    default:
+      return field;
+  }
+}
+
+function getSiteFieldDisplayValue(
+  value: string | null | undefined,
+  field: SiteMergeFieldKey
+) {
+  if (field === "reference_notes") {
+    return getMeaningfulText(value) ?? null;
+  }
+  return getMeaningfulText(value) ?? null;
+}
+
+function buildMergedSiteDocumentPayload(
+  target: TenantBusinessSite,
+  sources: TenantBusinessSite[]
+) {
+  return buildSiteWritePayload(target, {
+    address_line: pickPreferredText([
+      target.address_line,
+      ...sources.map((source) => source.address_line),
+    ]),
+    commune: pickPreferredText([target.commune, ...sources.map((source) => source.commune)]),
+    city: pickPreferredText([target.city, ...sources.map((source) => source.city)]),
+    region: pickPreferredText([target.region, ...sources.map((source) => source.region)]),
+    country_code: pickPreferredText([
+      target.country_code,
+      ...sources.map((source) => source.country_code),
+    ]),
+    reference_notes: mergeDistinctTextBlock([
+      target.reference_notes,
+      ...sources.map((source) => source.reference_notes),
+    ]),
+    is_active: true,
+  });
+}
+
+function resolveSiteMergePayload(
+  target: TenantBusinessSite,
+  sources: TenantBusinessSite[],
+  selections: SiteMergeSelectionMap = {}
+) {
+  const autoPayload = buildMergedSiteDocumentPayload(target, sources);
+  const sites = [target, ...sources];
+  const resolved = { ...autoPayload };
+
+  SITE_MERGE_FIELDS.forEach((field) => {
+    const selection = selections[field];
+    if (!selection || selection === "auto") {
+      return;
+    }
+    const siteId = Number(selection.replace("site:", ""));
+    if (!Number.isFinite(siteId)) {
+      return;
+    }
+    const selectedSite = sites.find((site) => site.id === siteId);
+    if (!selectedSite) {
+      return;
+    }
+    const selectedValue = getSiteFieldValue(selectedSite, field);
+    resolved[field] = getMeaningfulText(selectedValue);
+  });
+
+  return resolved;
+}
+
+function countSiteDocumentFieldsToMerge(
+  target: TenantBusinessSite,
+  sources: TenantBusinessSite[],
+  selections: SiteMergeSelectionMap = {}
+) {
+  const merged = resolveSiteMergePayload(target, sources, selections);
+  let count = 0;
+  SITE_MERGE_FIELDS.forEach((field) => {
+    if ((merged[field] ?? null) !== (target[field] ?? null)) {
+      count += 1;
+    }
+  });
+  return count;
+}
+
+function buildSiteMergeDiffRows(
+  target: TenantBusinessSite,
+  sources: TenantBusinessSite[],
+  selections: SiteMergeSelectionMap = {},
+  language: "es" | "en"
+): SiteMergeDiffRow[] {
+  const resolved = resolveSiteMergePayload(target, sources, selections);
+  const sites = [target, ...sources];
+
+  return SITE_MERGE_FIELDS.map((field) => {
+    const selection = selections[field] ?? "auto";
+    const selectedSiteId =
+      selection !== "auto" ? Number(selection.replace("site:", "")) : null;
+    const selectedSite =
+      selectedSiteId !== null
+        ? sites.find((site) => site.id === selectedSiteId) ?? null
+        : null;
+    const currentValue = getSiteFieldDisplayValue(
+      getSiteFieldValue(target, field),
+      field
+    );
+    const nextValue = getSiteFieldDisplayValue(resolved[field], field);
+
+    return {
+      field,
+      currentValue,
+      nextValue,
+      isChanged: (currentValue ?? null) !== (nextValue ?? null),
+      sourceLabel: selectedSite ? getVisibleAddressLabel(selectedSite) : null,
+      isAutomatic: selection === "auto",
+    };
+  });
 }
 
 function buildInstallationWritePayload(
@@ -1958,6 +2173,9 @@ export function BusinessCoreDuplicatesPage() {
   >({});
   const [clientMergeSelections, setClientMergeSelections] = useState<
     Record<string, ClientMergeSelectionMap>
+  >({});
+  const [siteMergeSelections, setSiteMergeSelections] = useState<
+    Record<string, SiteMergeSelectionMap>
   >({});
   const [contactMergeSelections, setContactMergeSelections] = useState<
     Record<string, ContactMergeSelectionMap>
@@ -2867,6 +3085,7 @@ export function BusinessCoreDuplicatesPage() {
     if (!target || sources.length === 0) {
       return;
     }
+    const selections = siteMergeSelections[group.id] ?? {};
     const totalInstallations = sources.reduce(
       (total, source) =>
         total + installations.filter((item) => item.site_id === source.site.id).length,
@@ -2877,10 +3096,21 @@ export function BusinessCoreDuplicatesPage() {
         total + workOrders.filter((workOrder) => workOrder.site_id === source.site.id).length,
       0
     );
+    const documentFieldsToMerge = countSiteDocumentFieldsToMerge(
+      target.site,
+      sources.map((source) => source.site),
+      selections
+    );
+    const diffRows = buildSiteMergeDiffRows(
+      target.site,
+      sources.map((source) => source.site),
+      selections,
+      language
+    );
     const confirmed = window.confirm(
       language === "es"
-        ? `Consolidar ${sources.length} dirección(es) duplicada(s) en "${getVisibleAddressLabel(target.site)}". Se moverán ${totalInstallations} instalaciones y ${totalWorkOrders} OT al sitio sugerido, y luego se desactivarán los sitios origen.`
-        : `Consolidate ${sources.length} duplicate address(es) into "${getVisibleAddressLabel(target.site)}". ${totalInstallations} installations and ${totalWorkOrders} work orders will be moved to the suggested site, and the source sites will then be deactivated.`
+        ? `Consolidar ${sources.length} dirección(es) duplicada(s) en "${getVisibleAddressLabel(target.site)}". Se moverán ${totalInstallations} instalaciones y ${totalWorkOrders} OT al sitio sugerido, se integrarán ${documentFieldsToMerge} dato(s) documental(es) y luego se desactivarán los sitios origen.`
+        : `Consolidate ${sources.length} duplicate address(es) into "${getVisibleAddressLabel(target.site)}". ${totalInstallations} installations and ${totalWorkOrders} work orders will be moved to the suggested site, ${documentFieldsToMerge} documentary field(s) will be merged and the source sites will then be deactivated.`
     );
     if (!confirmed) {
       return;
@@ -2888,6 +3118,17 @@ export function BusinessCoreDuplicatesPage() {
     setIsMutating(true);
     setError(null);
     try {
+      if (documentFieldsToMerge > 0) {
+        await updateTenantBusinessSite(
+          session.accessToken,
+          target.site.id,
+          resolveSiteMergePayload(
+            target.site,
+            sources.map((source) => source.site),
+            selections
+          )
+        );
+      }
       for (const source of sources) {
         const relatedInstallations = installations.filter(
           (item) => item.site_id === source.site.id
@@ -2919,7 +3160,15 @@ export function BusinessCoreDuplicatesPage() {
       try {
         await createTenantBusinessCoreMergeAudit(
           session.accessToken,
-          buildSiteMergeAuditPayload(target, sources, totalInstallations, totalWorkOrders)
+          buildSiteMergeAuditPayload(
+            target,
+            sources,
+            documentFieldsToMerge,
+            selections,
+            diffRows,
+            totalInstallations,
+            totalWorkOrders
+          )
         );
       } catch (auditError) {
         console.warn("Unable to persist site merge audit", auditError);
@@ -3149,6 +3398,20 @@ export function BusinessCoreDuplicatesPage() {
     }));
   }
 
+  function updateSiteMergeSelection(
+    groupId: string,
+    field: SiteMergeFieldKey,
+    value: string
+  ) {
+    setSiteMergeSelections((current) => ({
+      ...current,
+      [groupId]: {
+        ...(current[groupId] ?? {}),
+        [field]: value,
+      },
+    }));
+  }
+
   function updateContactMergeSelection(
     groupId: string,
     field: ContactMergeFieldKey,
@@ -3352,6 +3615,113 @@ export function BusinessCoreDuplicatesPage() {
               >
                 <div className="business-core-duplicates-merge-diff-item__field">
                   {getClientMergeFieldLabel(row.field, language)}
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__values">
+                  <span>
+                    {language === "es" ? "Actual:" : "Current:"} {row.currentValue ?? "—"}
+                  </span>
+                  <span>
+                    {language === "es" ? "Final:" : "Final:"} {row.nextValue ?? "—"}
+                  </span>
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__meta">
+                  {row.isAutomatic
+                    ? language === "es"
+                      ? "origen automático"
+                      : "automatic source"
+                    : `${language === "es" ? "origen manual" : "manual source"}: ${row.sourceLabel ?? "—"}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderSiteMergeAssistant(group: DuplicateGroup<SiteAuditRow>) {
+    const preferredSiteId = getPreferredSiteId(group);
+    const target =
+      group.members.find((member) => member.site.id === preferredSiteId)?.site ??
+      group.members[0]?.site ??
+      null;
+    if (!target) {
+      return null;
+    }
+    const sources = group.members
+      .filter((member) => member.site.id !== preferredSiteId)
+      .map((member) => member.site);
+    const selections = siteMergeSelections[group.id] ?? {};
+    const preview = resolveSiteMergePayload(target, sources, selections);
+    const diffRows = buildSiteMergeDiffRows(target, sources, selections, language);
+
+    return (
+      <div className="business-core-duplicates-merge-assistant">
+        <div className="business-core-duplicates-merge-assistant__header">
+          <strong>{language === "es" ? "Ajuste manual previo" : "Manual pre-merge adjustment"}</strong>
+          <span>
+            {language === "es"
+              ? "Si quieres, decide qué dirección aporta cada dato visible antes de consolidar."
+              : "If needed, decide which address provides each visible field before consolidating."}
+          </span>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__grid">
+          {SITE_MERGE_FIELDS.map((field) => (
+            <label key={`${group.id}-${field}`} className="business-core-duplicates-merge-assistant__field">
+              <span>{getSiteMergeFieldLabel(field, language)}</span>
+              <select
+                className="form-select form-select-sm"
+                value={selections[field] ?? "auto"}
+                onChange={(event) =>
+                  updateSiteMergeSelection(group.id, field, event.target.value)
+                }
+              >
+                <option value="auto">
+                  {language === "es" ? "Automático sugerido" : "Suggested automatic"}
+                </option>
+                {[target, ...sources].map((site) => {
+                  const fieldValue = getSiteFieldDisplayValue(
+                    getSiteFieldValue(site, field),
+                    field
+                  );
+                  return (
+                    <option key={`${field}-${site.id}`} value={`site:${site.id}`}>
+                      {`${getVisibleAddressLabel(site)} · ${fieldValue ?? (language === "es" ? "sin dato" : "no value")}`}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          ))}
+        </div>
+        <div className="business-core-duplicates-merge-assistant__preview">
+          <div className="business-core-cell__meta">
+            {language === "es"
+              ? "Vista previa de la dirección objetivo"
+              : "Target address preview"}
+          </div>
+          <div className="business-core-duplicates-group__summary">
+            {preview.address_line ? <span>{preview.address_line}</span> : null}
+            {preview.commune ? <span>{preview.commune}</span> : null}
+            {preview.city ? <span>{preview.city}</span> : null}
+            {preview.region ? <span>{preview.region}</span> : null}
+            {preview.reference_notes ? (
+              <span>{language === "es" ? "notas integradas" : "merged notes"}</span>
+            ) : null}
+          </div>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__diff">
+          <div className="business-core-cell__meta">
+            {language === "es" ? "Diff final por campo" : "Final field diff"}
+          </div>
+          <div className="business-core-duplicates-merge-diff-list">
+            {diffRows.map((row) => (
+              <div
+                key={`${group.id}-${row.field}`}
+                className={`business-core-duplicates-merge-diff-item${row.isChanged ? " is-changed" : ""}`}
+              >
+                <div className="business-core-duplicates-merge-diff-item__field">
+                  {getSiteMergeFieldLabel(row.field, language)}
                 </div>
                 <div className="business-core-duplicates-merge-diff-item__values">
                   <span>
@@ -3970,6 +4340,7 @@ export function BusinessCoreDuplicatesPage() {
   function renderSiteGroup(group: DuplicateGroup<SiteAuditRow>) {
     const preferredSiteId = getPreferredSiteId(group);
     const sourceMembers = group.members.filter((member) => member.site.id !== preferredSiteId);
+    const selections = siteMergeSelections[group.id] ?? {};
     const mergeInstallationsCount = sourceMembers.reduce(
       (total, source) =>
         total + installations.filter((item) => item.site_id === source.site.id).length,
@@ -3980,6 +4351,17 @@ export function BusinessCoreDuplicatesPage() {
         total + workOrders.filter((workOrder) => workOrder.site_id === source.site.id).length,
       0
     );
+    const documentFieldsToMerge = (() => {
+      const target = group.members.find((member) => member.site.id === preferredSiteId);
+      if (!target) {
+        return 0;
+      }
+      return countSiteDocumentFieldsToMerge(
+        target.site,
+        sourceMembers.map((member) => member.site),
+        selections
+      );
+    })();
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -3996,6 +4378,9 @@ export function BusinessCoreDuplicatesPage() {
               </span>
               <span>
                 {mergeInstallationsCount} {language === "es" ? "instalaciones a mover" : "installations to move"}
+              </span>
+              <span>
+                {documentFieldsToMerge} {language === "es" ? "campos documentales a integrar" : "documentary fields to merge"}
               </span>
               <span>
                 {mergeWorkOrdersCount} {language === "es" ? "OT a mover" : "work orders to move"}
@@ -4016,6 +4401,7 @@ export function BusinessCoreDuplicatesPage() {
             </button>
           </div>
         </div>
+        {renderSiteMergeAssistant(group)}
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
             const isPreferred = member.site.id === preferredSiteId;

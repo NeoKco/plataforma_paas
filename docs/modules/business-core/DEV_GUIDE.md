@@ -215,9 +215,12 @@ Resumen previo por grupo:
 - `clients` ya suma una primera capa documental propia sin backend nuevo:
   - el merge guiado puede ajustar `service_status` y `commercial_notes`
   - el audit persistente de `clients` ya puede guardar `selections` y `diff_rows`
+- `sites` ya suma también una primera capa documental propia sin backend nuevo:
+  - el merge guiado puede ajustar `address_line`, `commune`, `city`, `region`, `country_code` y `reference_notes`
+  - el audit persistente de `sites` ya puede guardar `selections` y `diff_rows`
 - restricción vigente:
-  - `organizations`, `contacts` y ahora `clients` ya pueden dejar evidencia documental por campo
-  - `sites` e `installations` siguen limitados a ids origen y conteos operativos movidos/desactivados
+  - `organizations`, `clients`, `contacts` y ahora `sites` ya pueden dejar evidencia documental por campo
+  - `installations` sigue limitado a ids origen y conteos operativos movidos/desactivados
 
 ### 5. Contact-Site Links
 
