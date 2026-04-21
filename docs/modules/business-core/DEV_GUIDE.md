@@ -218,9 +218,12 @@ Resumen previo por grupo:
 - `sites` ya suma también una primera capa documental propia sin backend nuevo:
   - el merge guiado puede ajustar `address_line`, `commune`, `city`, `region`, `country_code` y `reference_notes`
   - el audit persistente de `sites` ya puede guardar `selections` y `diff_rows`
+- `installations` ya suma también una primera capa documental propia sin backend nuevo:
+  - el merge guiado puede ajustar `name`, `serial_number`, `manufacturer`, `model`, `location_note` y `technical_notes`
+  - el audit persistente de `installations` ya puede guardar `selections` y `diff_rows`
 - restricción vigente:
-  - `organizations`, `clients`, `contacts` y ahora `sites` ya pueden dejar evidencia documental por campo
-  - `installations` sigue limitado a ids origen y conteos operativos movidos/desactivados
+  - `organizations`, `clients`, `contacts`, `sites` y ahora también `installations` ya pueden dejar evidencia documental por campo
+  - `installations` sigue limitado a identidad técnica visible y notas; aún no entra en merge profundo de fechas técnicas, garantía o relaciones externas
 
 ### 5. Contact-Site Links
 

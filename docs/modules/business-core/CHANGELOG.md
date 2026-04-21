@@ -1,5 +1,23 @@
 # Business Core Changelog
 
+## 2026-04-21
+
+- `Duplicados` profundiza ahora el caso `installations` con una primera capa guiada/documental propia:
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora muestra `Ajuste manual previo` también para grupos de `Instalaciones duplicadas`
+  - el operador ya puede decidir qué ficha instalación aporta:
+    - `nombre visible`
+    - `serie`
+    - `fabricante`
+    - `modelo`
+    - `ubicación visible`
+    - `notas técnicas`
+  - antes de consolidar, el slice ya muestra `Diff final por campo` para esos datos
+  - la auditoría persistente de merge de `installations` ya guarda además `selections` y `diff_rows`, no solo conteos operativos
+  - validación:
+    - `npm run build` -> `OK`
+  - resultado:
+    - `installations` deja de ser solo reasignación operativa con resumen y ya gana una primera capa auditable de decisión técnico-documental visible
+
 ## 2026-04-20
 
 - `Duplicados` profundiza ahora el caso `sites` con una primera capa guiada/documental propia:

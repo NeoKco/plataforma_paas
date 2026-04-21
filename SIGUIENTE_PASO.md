@@ -2,6 +2,22 @@
 
 ## Prioridad vigente
 
+- subcorte nuevo ya cerrado en repo dentro de `business-core > Duplicados`:
+  - `installations` ya no queda solo con consolidación operativa de OT
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega:
+    - `Ajuste manual previo`
+    - `Diff final por campo`
+    - persistencia de `selections` y `diff_rows` en la auditoría de merge de `installations`
+  - el ajuste documental actual cubre:
+    - `nombre visible`
+    - `serie`
+    - `fabricante`
+    - `modelo`
+    - `ubicación visible`
+    - `notas técnicas`
+  - validación:
+    - `npm run build` -> `OK`
+
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
   - `sites` ya no queda solo con consolidación operativa de instalaciones y OT
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega:

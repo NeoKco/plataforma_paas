@@ -99,6 +99,7 @@ Estado actual del slice `Duplicados`:
 - `clients` ya cuenta además con ajuste manual previo y diff visible para `service_status` y `commercial_notes`
 - `sites` ya cuenta además con ajuste manual previo y diff visible para dirección visible y notas de referencia
 - `contacts` ya cuenta además con ajuste manual previo y diff visible por campo antes de consolidar
+- `installations` ya cuenta además con ajuste manual previo y diff visible para identidad técnica y notas visibles antes de consolidar
 - el historial visible ya aprovecha `diff_rows` y `selections` cuando existen para explicar cambios documentales relevantes sin depender solo del resumen plano
 
 ## Fase 4. Assets y adopcion
@@ -140,7 +141,7 @@ Completado recientemente:
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - profundizar la adopcion de `assets` por `iot`
 - endurecer el importador inicial desde `ieris_app`
-- profundizar la depuracion de duplicados hacia otras entidades para soportar consolidacion guiada/documental más allá del caso ya enriquecido de `organizations`, `clients`, `contacts` y `sites`
+- profundizar la depuracion de duplicados hacia otras entidades para soportar consolidacion guiada/documental más allá del caso ya enriquecido de `organizations`, `clients`, `contacts`, `sites` e `installations`
 
 ## Backlog pendiente visible
 
@@ -149,7 +150,7 @@ Completado recientemente:
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
 - auditoria operativa de duplicados: UI ya lista para `organizations`, `clients`, `contacts`, `sites` e `installations`, con sugerencia de ficha a conservar, consolidacion operativa y desactivacion segura; falta merge/asimilacion profunda guiada
 - historial visible de merges: listo para las consolidaciones operativas base del slice
-- merge profundo de `organizations` y consolidacion documental de `contacts`: ya resuelve asimilacion guiada de múltiples clientes en conflicto, integra campos visibles base, permite selección manual por campo, expone diff final previo y registra una auditoria persistente del merge; falta criterio documental profundo y fusión manual asistida de identidad completa para el resto de las entidades
+- merge profundo de `organizations` y consolidacion documental de `contacts`, `sites` e `installations`: ya resuelve asimilacion guiada de múltiples clientes en conflicto, integra campos visibles base, permite selección manual por campo, expone diff final previo y registra una auditoria persistente del merge; falta criterio documental profundo y fusión manual asistida de identidad completa para el resto de las entidades
 - integración con `projects`: pendiente
 - integración con `iot`: pendiente
 

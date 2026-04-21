@@ -1,5 +1,31 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-21 - `Duplicados` agrega ajuste manual y diff visible para `installations`
+
+- objetivo:
+  - llevar la misma capa guiada/documental de `clients`, `contacts` y `sites` a `installations`
+  - mejorar la consolidación de instalaciones sin abrir backend nuevo ni mezclarla con merge profundo todavía no definido
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx):
+    - agrega `Ajuste manual previo` para `installations`
+    - agrega `Diff final por campo` para `installations`
+    - permite decidir explícitamente por campo:
+      - `nombre visible`
+      - `serie`
+      - `fabricante`
+      - `modelo`
+      - `ubicación visible`
+      - `notas técnicas`
+    - la auditoría persistente de merge de `installations` ahora guarda también `selections` y `diff_rows`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+- resultado:
+  - `installations` deja de ser solo consolidación operativa con resumen
+  - ya existe una primera capa de decisión técnico-documental auditable también para la identidad visible del equipo
+- siguiente paso:
+  - publicar este corte por ambiente o pasar al siguiente salto de `business-core`, que vuelve a quedar entre `organization addresses` y profundización de merge/asimilación más rica
+
 ## 2026-04-20 - `Duplicados` agrega ajuste manual y diff visible para `sites`
 
 - objetivo:
