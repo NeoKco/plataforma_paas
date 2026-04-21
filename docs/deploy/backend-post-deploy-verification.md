@@ -153,6 +153,12 @@ Ese reporte resume:
 - `status=passed|failed`
 - error final cuando corresponde
 
+Decisión operativa vigente:
+
+- `target=base` ya quedó validado en `staging` y `production` como smoke corto repetible del carril
+- ese smoke puede tratarse como obligatorio por ambiente cuando el release quiera exigir evidencia mínima adicional sobre el servicio publicado
+- `target=platform` o `target=all` siguen siendo `opt-in` mientras las credenciales no vivan en un canal seguro y repetible del entorno o del pipeline
+
 Desde este corte, una `note` como `legacy_finance_base_currency:USD` significa algo distinto a un seed faltante:
 
 - el tenant tiene uso financiero y conserva `USD` como base legacy

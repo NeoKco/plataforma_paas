@@ -84,6 +84,16 @@
   - [run_backend_post_deploy_gate.sh](/home/felipe/platform_paas/deploy/run_backend_post_deploy_gate.sh) ya puede ejecutar smoke remoto corto opcional y fallar o advertir según `REMOTE_BACKEND_SMOKE_STRICT`
   - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ya embebe además el reporte `remote_backend_smoke_*.json` cuando existe
   - este subcorte quedó validado en repo con sintaxis shell y `run_remote_backend_smoke.py --help`, pero no se ejecutó rollback real para no mover la ref del workspace sin incidente efectivo
+- promoción runtime ya cerrada para ese mismo subcorte:
+  - `staging` -> `bash deploy/deploy_backend_staging.sh` con `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`, `REMOTE_BACKEND_SMOKE_TARGET=base`, `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8200`
+  - `production` -> `bash deploy/deploy_backend_production.sh` con `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`, `REMOTE_BACKEND_SMOKE_TARGET=base`, `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8000`
+  - ambos carriles terminan con:
+    - `528 tests OK`
+    - auditoría activa verde
+    - reporte `remote_backend_smoke_*.json` guardado en `operational_evidence/`
+  - decisión ya tomada:
+    - `base smoke` sí puede ser baseline repetible por ambiente
+    - el smoke autenticado completo sigue `opt-in` mientras las credenciales `SMOKE_*` no se gestionen por canal seguro/repetible
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -137,7 +147,7 @@
     - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
     - entrar ya al siguiente subfrente concreto del bloque 1 con la documentación estructural reordenada y sin deuda de handoff
     - siguiente subfrente sugerido ahora dentro del mismo bloque 1:
-      - promoción runtime de este mismo hardening de `calidad técnica + rollback`, validando por ambiente el smoke corto opcional con evidencia JSON real y dejando criterio operativo final de cuándo hacerlo obligatorio
+      - endurecer el carril para que `base smoke` quede como baseline explícito del release backend y decidir si el siguiente salto útil es `frontend fino` o `observabilidad visible en platform_admin`
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

@@ -1,5 +1,41 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Publicación runtime del hardening `rollback + smoke corto`
+
+- objetivo:
+  - promover a `staging` y `production` el gate backend con smoke corto embebido
+  - cerrar la decisión operativa real sobre qué target puede ser baseline obligatorio hoy
+- cambios y acciones ejecutadas:
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se redeploya `staging` con:
+    - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`
+    - `REMOTE_BACKEND_SMOKE_TARGET=base`
+    - `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8200`
+  - se redeploya `production` con:
+    - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`
+    - `REMOTE_BACKEND_SMOKE_TARGET=base`
+    - `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8000`
+  - se comprueba además que los `.env` runtime no exponen hoy `SMOKE_*` persistidos por ambiente, por lo que el tramo autenticado completo no es todavía baseline repetible
+- validaciones:
+  - `staging`:
+    - `528 tests OK`
+    - `audit_active_tenant_convergence.py` -> `processed=4, warnings=0, failed=0`
+    - snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_204126.json`
+    - smoke real `target=base` -> `/opt/platform_paas_staging/operational_evidence/remote_backend_smoke_20260420_204116.json`
+    - evidencia consolidada -> `/opt/platform_paas_staging/operational_evidence/backend_operational_evidence_20260420_204127.log`
+  - `production`:
+    - `528 tests OK`
+    - `audit_active_tenant_convergence.py` -> `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_204154.json`
+    - smoke real `target=base` -> `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260420_204144.json`
+    - evidencia consolidada -> `/opt/platform_paas/operational_evidence/backend_operational_evidence_20260420_204155.log`
+- resultado:
+  - el gate backend ya quedó validado en runtime real con smoke corto embebido en ambos carriles
+  - `target=base` queda confirmado como baseline repetible por ambiente
+  - `target=platform` o `target=all` siguen siendo `opt-in` hasta que las credenciales `SMOKE_*` se gestionen por un canal seguro y mantenible
+- siguiente paso:
+  - institucionalizar `base smoke` como baseline explícito del release backend y seguir con el siguiente subfrente del bloque 1
+
 ## 2026-04-20 - Hardening de rollback y smoke corto opcional del release backend
 
 - objetivo:

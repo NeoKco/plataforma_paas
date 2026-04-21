@@ -2,6 +2,31 @@
 
 ## 2026-04-20
 
+- se promueve a runtime el hardening de `rollback + smoke corto` y se cierra la decisión operativa por carril:
+  - `staging`:
+    - `bash deploy/deploy_backend_staging.sh` con:
+      - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`
+      - `REMOTE_BACKEND_SMOKE_TARGET=base`
+      - `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8200`
+    - resultado:
+      - `528 tests OK`
+      - auditoría final `processed=4`, `warnings=0`, `failed=0`
+      - snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_204126.json`
+      - smoke `/opt/platform_paas_staging/operational_evidence/remote_backend_smoke_20260420_204116.json`
+  - `production`:
+    - `bash deploy/deploy_backend_production.sh` con:
+      - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`
+      - `REMOTE_BACKEND_SMOKE_TARGET=base`
+      - `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8000`
+    - resultado:
+      - `528 tests OK`
+      - auditoría final `processed=4`, `warnings=0`, `failed=0`, `accepted_tenants_with_notes=1`
+      - snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_204154.json`
+      - smoke `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260420_204144.json`
+  - conclusión operativa:
+    - `target=base` queda validado como smoke corto repetible por ambiente
+    - el smoke autenticado completo (`platform`/`tenant`/`all`) sigue siendo `opt-in` mientras las credenciales `SMOKE_*` no vivan en un canal seguro y mantenible del release
+
 - se endurece el cierre de release backend con rollback alineado al repo fuente y smoke corto opcional:
   - [rollback_backend.sh](/home/felipe/platform_paas/deploy/rollback_backend.sh) ya deja de asumir que `/opt/...` es un checkout git
   - ahora el rollback mueve la ref en `SOURCE_REPO_ROOT` y luego reutiliza el wrapper normal para reproyectar esa ref al runtime objetivo

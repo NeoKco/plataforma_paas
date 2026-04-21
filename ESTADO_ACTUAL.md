@@ -104,6 +104,20 @@
     - `python3 deploy/run_remote_backend_smoke.py --help` -> `OK`
   - nota operativa:
     - no se ejecutó un rollback real en este turno para no mover la ref del workspace compartido sin necesidad de incidente real
+  - promoción runtime ya cerrada para este subcorte:
+    - `staging`:
+      - backend redeployado con `528 tests OK`
+      - auditoría final `processed=4`, `warnings=0`, `failed=0`
+      - snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_204126.json`
+      - smoke corto real `target=base` publicado dentro del gate con reporte `/opt/platform_paas_staging/operational_evidence/remote_backend_smoke_20260420_204116.json`
+    - `production`:
+      - backend redeployado con `528 tests OK`
+      - auditoría final `processed=4`, `warnings=0`, `failed=0`, `accepted_tenants_with_notes=1`
+      - snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_204154.json`
+      - smoke corto real `target=base` publicado dentro del gate con reporte `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260420_204144.json`
+  - decisión operativa cerrada:
+    - el smoke corto `base` ya puede considerarse baseline repetible por ambiente
+    - el smoke remoto autenticado completo (`platform`/`tenant`/`all`) sigue siendo `opt-in` porque los `.env` runtime no mantienen hoy credenciales `SMOKE_*` seguras/repetibles para ese tramo
 - desde este corte queda explícito que un cambio declarado correcto no se cierra si solo funciona en un tenant o en un ambiente:
   - debe promocionarse al runtime afectado
   - debe converger tenants activos afectados

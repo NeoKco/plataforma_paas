@@ -193,6 +193,14 @@ Si ese smoke falla:
 - con `REMOTE_BACKEND_SMOKE_STRICT=true`, el gate falla
 - con `REMOTE_BACKEND_SMOKE_STRICT=false`, deja `WARNING` pero sigue recolectando evidencia
 
+Decisión operativa actual:
+
+- para `staging` y `production`, el smoke corto repetible hoy es `REMOTE_BACKEND_SMOKE_TARGET=base`
+- ese target ya quedó revalidado en ambos carriles con:
+  - `staging` -> `http://127.0.0.1:8200`
+  - `production` -> `http://127.0.0.1:8000`
+- el smoke autenticado completo (`platform`/`tenant`/`all`) sigue siendo optativo hasta que las credenciales se inyecten por un canal seguro y mantenible
+
 ## Recomendación operativa
 
 - probar siempre primero en `staging`
