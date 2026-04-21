@@ -2,6 +2,21 @@
 
 ## 2026-04-20
 
+- `Duplicados` profundiza ahora el caso `clients` con una primera capa guiada/documental propia:
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora muestra `Ajuste manual previo` también para grupos de `Clientes duplicados`
+  - el operador ya puede decidir qué ficha cliente aporta:
+    - `estado servicio`
+    - `notas comerciales`
+  - antes de consolidar, el slice ya muestra `Diff final por campo` para esos dos datos
+  - la auditoría persistente de merge de `clients` ya guarda además `selections` y `diff_rows`, no solo conteos operativos
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreDuplicatesPage-DGzovy8H.js` e `index-BbTsZr5t.js`
+    - `production` publicado con `BusinessCoreDuplicatesPage-CDyFUcmw.js` e `index-BkI14Qc2.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - `clients` deja de ser solo reasignación operativa con resumen y ya gana una primera capa auditable de decisión documental visible
+
 - `Duplicados` deja de mostrar un historial plano y pasa a explotar la evidencia ya persistida en `merge_audits`:
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora parsea `summary`, `diff_rows` y `selections` con tolerancia a payloads viejos
   - el bloque `Historial reciente de consolidaciones` ya muestra:

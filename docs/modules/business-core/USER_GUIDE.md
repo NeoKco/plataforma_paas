@@ -133,12 +133,14 @@ Como decidir rapido:
 - revisa luego `Diff final por campo` para validar el resultado exacto antes de consolidar
 - en `Contactos`, el mismo patrón ya permite decidir por adelantado qué ficha aporta nombre, email, teléfono, rol y el flag de contacto principal
 - en `Contactos`, revisa también `Diff final por campo` antes de consolidar si quieres dejar auditada la decisión visible y no solo el resultado automático
+- en `Clientes`, ahora también puedes revisar y ajustar antes del merge el `estado servicio` y las `notas comerciales` de la ficha final
 - después del merge, revisa `Historial reciente de consolidaciones` si necesitas recordar rápido qué campos quedaron distintos y desde qué ficha se tomó el valor final
 
 Que consolida hoy:
 
 - `Organizaciones`: mueve `Contactos`, puede consolidar varios `Clientes` en una ficha sugerida, reasignar la ficha final, integrar datos visibles faltantes y deja inactivas las organizaciones origen
 - `Clientes`: mueve `Contactos`, `Direcciones` y `OT`
+- `Clientes`: además ya permite ajustar antes del merge qué ficha aporta `estado servicio` y `notas comerciales`, dejando ese diff en la auditoría persistente
 - `Contactos`: integra email, teléfono o rol faltante, desactiva duplicados equivalentes y conserva una sola ficha sugerida dentro de la misma organización
 - `Contactos`: además ya permite un ajuste manual previo por campo visible y deja ese diff dentro de la auditoría persistente del merge
 - cuando el merge audit trae `diff_rows` y `selections`, el historial visible ya resume también campos documentados y ajustes manuales recientes

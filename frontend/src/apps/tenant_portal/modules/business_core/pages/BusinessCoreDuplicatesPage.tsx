@@ -115,6 +115,19 @@ type ClientAuditRow = {
   workOrdersCount: number;
 };
 
+type ClientMergeFieldKey = "service_status" | "commercial_notes";
+
+type ClientMergeSelectionMap = Partial<Record<ClientMergeFieldKey, string>>;
+
+type ClientMergeDiffRow = {
+  field: ClientMergeFieldKey;
+  currentValue: string | null;
+  nextValue: string | null;
+  sourceLabel: string | null;
+  isAutomatic: boolean;
+  isChanged: boolean;
+};
+
 type ContactAuditRow = {
   contact: TenantBusinessContact;
   organization: TenantBusinessOrganization | null;
@@ -188,6 +201,11 @@ const ORGANIZATION_MERGE_FIELDS: OrganizationMergeFieldKey[] = [
   "region",
   "country_code",
   "notes",
+];
+
+const CLIENT_MERGE_FIELDS: ClientMergeFieldKey[] = [
+  "service_status",
+  "commercial_notes",
 ];
 
 const CONTACT_MERGE_FIELDS: ContactMergeFieldKey[] = [
@@ -502,6 +520,185 @@ function buildClientWritePayload(
   };
 }
 
+function getClientFieldValue(
+  client: TenantBusinessClient,
+  field: ClientMergeFieldKey
+) {
+  switch (field) {
+    case "service_status":
+      return client.service_status;
+    case "commercial_notes":
+      return client.commercial_notes;
+    default:
+      return null;
+  }
+}
+
+function getClientServiceStatusLabel(
+  value: string | null | undefined,
+  language: "es" | "en"
+) {
+  switch (value) {
+    case "active":
+      return language === "es" ? "Activo" : "Active";
+    case "paused":
+      return language === "es" ? "Pausado" : "Paused";
+    case "prospect":
+      return language === "es" ? "Prospecto" : "Prospect";
+    default:
+      return getMeaningfulText(value) ?? null;
+  }
+}
+
+function getClientFieldDisplayValue(
+  value: string | null | undefined,
+  field: ClientMergeFieldKey,
+  language: "es" | "en"
+) {
+  if (field === "service_status") {
+    return getClientServiceStatusLabel(value, language);
+  }
+  return getMeaningfulText(value) ?? null;
+}
+
+function getClientMergeFieldLabel(
+  field: ClientMergeFieldKey,
+  language: "es" | "en"
+) {
+  if (language === "es") {
+    switch (field) {
+      case "service_status":
+        return "Estado servicio";
+      case "commercial_notes":
+        return "Notas comerciales";
+      default:
+        return field;
+    }
+  }
+  switch (field) {
+    case "service_status":
+      return "Service status";
+    case "commercial_notes":
+      return "Commercial notes";
+    default:
+      return field;
+  }
+}
+
+function buildMergedClientDocumentPayload(
+  target: TenantBusinessClient,
+  sources: TenantBusinessClient[]
+) {
+  const prioritizedStatus =
+    [target, ...sources].find((client) => client.service_status === "active")?.service_status ??
+    [target, ...sources].find((client) => client.service_status === "paused")?.service_status ??
+    [target, ...sources].find((client) => client.service_status === "prospect")?.service_status ??
+    target.service_status;
+
+  return buildClientWritePayload(target, {
+    service_status: prioritizedStatus,
+    commercial_notes: mergeDistinctTextBlock([
+      target.commercial_notes,
+      ...sources.map((source) => source.commercial_notes),
+    ]),
+    is_active: true,
+  });
+}
+
+function resolveClientMergePayload(
+  target: TenantBusinessClient,
+  sources: TenantBusinessClient[],
+  selections: ClientMergeSelectionMap = {}
+) {
+  const autoPayload = buildMergedClientDocumentPayload(target, sources);
+  const clients = [target, ...sources];
+  const resolved = { ...autoPayload };
+
+  CLIENT_MERGE_FIELDS.forEach((field) => {
+    const selection = selections[field];
+    if (!selection || selection === "auto") {
+      return;
+    }
+    const clientId = Number(selection.replace("client:", ""));
+    if (!Number.isFinite(clientId)) {
+      return;
+    }
+    const selectedClient = clients.find((client) => client.id === clientId);
+    if (!selectedClient) {
+      return;
+    }
+    const selectedValue = getClientFieldValue(selectedClient, field);
+    if (field === "service_status") {
+      resolved.service_status =
+        (typeof selectedValue === "string" && selectedValue) || autoPayload.service_status;
+      return;
+    }
+    resolved.commercial_notes = getMeaningfulText(selectedValue) ?? null;
+  });
+
+  return resolved;
+}
+
+function countClientDocumentFieldsToMerge(
+  target: TenantBusinessClient,
+  sources: TenantBusinessClient[],
+  selections: ClientMergeSelectionMap = {}
+) {
+  const merged = resolveClientMergePayload(target, sources, selections);
+  let count = 0;
+  if ((merged.service_status ?? null) !== (target.service_status ?? null)) {
+    count += 1;
+  }
+  if ((merged.commercial_notes ?? null) !== (target.commercial_notes ?? null)) {
+    count += 1;
+  }
+  return count;
+}
+
+function buildClientMergeDiffRows(
+  target: TenantBusinessClient,
+  sources: TenantBusinessClient[],
+  selections: ClientMergeSelectionMap = {},
+  language: "es" | "en"
+): ClientMergeDiffRow[] {
+  const resolved = resolveClientMergePayload(target, sources, selections);
+  const clients = [target, ...sources];
+
+  return CLIENT_MERGE_FIELDS.map((field) => {
+    const selection = selections[field] ?? "auto";
+    const selectedClientId =
+      selection !== "auto" ? Number(selection.replace("client:", "")) : null;
+    const selectedClient =
+      selectedClientId !== null
+        ? clients.find((client) => client.id === selectedClientId) ?? null
+        : null;
+    const currentValue = getClientFieldDisplayValue(
+      getClientFieldValue(target, field),
+      field,
+      language
+    );
+    const nextValue = getClientFieldDisplayValue(
+      field === "service_status" ? resolved.service_status : resolved.commercial_notes,
+      field,
+      language
+    );
+
+    return {
+      field,
+      currentValue,
+      nextValue,
+      isChanged: (currentValue ?? null) !== (nextValue ?? null),
+      sourceLabel: selectedClient
+        ? `#${selectedClient.id} · ${
+            getClientServiceStatusLabel(selectedClient.service_status, language) ??
+            (language === "es" ? "sin estado" : "no status")
+          }`
+        : null,
+      isAutomatic: selection === "auto",
+    };
+  });
+}
+
 function buildMergedOrganizationDocumentPayload(
   target: TenantBusinessOrganization,
   sources: TenantBusinessOrganization[]
@@ -663,6 +860,9 @@ function buildClientMergeAuditPayload(
   target: ClientAuditRow,
   sources: ClientAuditRow[],
   summary: ReturnType<typeof summarizeClientContactMerge>,
+  documentFieldsToMerge: number,
+  selections: ClientMergeSelectionMap,
+  diffRows: ClientMergeDiffRow[],
   totalSites: number,
   totalWorkOrders: number
 ) {
@@ -684,7 +884,17 @@ function buildClientMergeAuditPayload(
         contacts_to_move: summary.contactsToMove,
         contacts_to_deactivate: summary.contactsToDeactivate,
         source_organizations_remaining: summary.sourceOrganizations,
+        document_fields_merged: documentFieldsToMerge,
       },
+      selections,
+      diff_rows: diffRows.map((row) => ({
+        field: row.field,
+        current_value: row.currentValue,
+        next_value: row.nextValue,
+        source_label: row.sourceLabel,
+        is_automatic: row.isAutomatic,
+        is_changed: row.isChanged,
+      })),
     },
   };
 }
@@ -929,6 +1139,9 @@ function getMergeAuditFieldLabel(
       default:
         return field.replace(/_/g, " ");
     }
+  }
+  if (audit.entity_kind === "client") {
+    return getClientMergeFieldLabel(field as ClientMergeFieldKey, language);
   }
   if (audit.entity_kind === "contact") {
     return getContactMergeFieldLabel(field as ContactMergeFieldKey, language);
@@ -1743,6 +1956,9 @@ export function BusinessCoreDuplicatesPage() {
   const [organizationMergeSelections, setOrganizationMergeSelections] = useState<
     Record<string, OrganizationMergeSelectionMap>
   >({});
+  const [clientMergeSelections, setClientMergeSelections] = useState<
+    Record<string, ClientMergeSelectionMap>
+  >({});
   const [contactMergeSelections, setContactMergeSelections] = useState<
     Record<string, ContactMergeSelectionMap>
   >({});
@@ -2325,12 +2541,24 @@ export function BusinessCoreDuplicatesPage() {
         total + workOrders.filter((workOrder) => workOrder.client_id === source.client.id).length,
       0
     );
+    const selections = clientMergeSelections[group.id] ?? {};
     const { contactsToMove, contactsToDeactivate, sourceOrganizations } =
       summarizeClientContactMerge(group, contactsByOrganizationId);
+    const documentFieldsToMerge = countClientDocumentFieldsToMerge(
+      target.client,
+      sources.map((source) => source.client),
+      selections
+    );
+    const diffRows = buildClientMergeDiffRows(
+      target.client,
+      sources.map((source) => source.client),
+      selections,
+      language
+    );
     const confirmed = window.confirm(
       language === "es"
-        ? `Consolidar ${sources.length} ficha(s) duplicada(s) en "${getClientName(target.organization, language)}". Se moverán ${totalSites} direcciones, ${totalWorkOrders} OT y ${contactsToMove} contacto(s) al cliente sugerido; ${contactsToDeactivate} contacto(s) duplicado(s) se desactivarán y quedarán ${sourceOrganizations} organización(es) origen para revisión manual.`
-        : `Consolidate ${sources.length} duplicate record(s) into "${getClientName(target.organization, language)}". ${totalSites} addresses, ${totalWorkOrders} work orders, and ${contactsToMove} contact(s) will be moved to the suggested client; ${contactsToDeactivate} duplicated contact(s) will be deactivated and ${sourceOrganizations} source organization(s) will remain for manual review.`
+        ? `Consolidar ${sources.length} ficha(s) duplicada(s) en "${getClientName(target.organization, language)}". Se moverán ${totalSites} direcciones, ${totalWorkOrders} OT y ${contactsToMove} contacto(s) al cliente sugerido; ${contactsToDeactivate} contacto(s) duplicado(s) se desactivarán, se integrarán ${documentFieldsToMerge} dato(s) documental(es) del cliente y quedarán ${sourceOrganizations} organización(es) origen para revisión manual.`
+        : `Consolidate ${sources.length} duplicate record(s) into "${getClientName(target.organization, language)}". ${totalSites} addresses, ${totalWorkOrders} work orders, and ${contactsToMove} contact(s) will be moved to the suggested client; ${contactsToDeactivate} duplicated contact(s) will be deactivated, ${documentFieldsToMerge} client documentary field(s) will be merged and ${sourceOrganizations} source organization(s) will remain for manual review.`
     );
     if (!confirmed) {
       return;
@@ -2338,6 +2566,17 @@ export function BusinessCoreDuplicatesPage() {
     setIsMutating(true);
     setError(null);
     try {
+      if (documentFieldsToMerge > 0) {
+        await updateTenantBusinessClient(
+          session.accessToken,
+          target.client.id,
+          resolveClientMergePayload(
+            target.client,
+            sources.map((source) => source.client),
+            selections
+          )
+        );
+      }
       const targetContactByIdentity = new Map(
         (contactsByOrganizationId.get(target.client.organization_id) ?? []).map((contact) => [
           buildContactIdentityKey(contact),
@@ -2419,6 +2658,9 @@ export function BusinessCoreDuplicatesPage() {
             target,
             sources,
             { contactsToMove, contactsToDeactivate, sourceOrganizations },
+            documentFieldsToMerge,
+            selections,
+            diffRows,
             totalSites,
             totalWorkOrders
           )
@@ -2893,6 +3135,20 @@ export function BusinessCoreDuplicatesPage() {
     }));
   }
 
+  function updateClientMergeSelection(
+    groupId: string,
+    field: ClientMergeFieldKey,
+    value: string
+  ) {
+    setClientMergeSelections((current) => ({
+      ...current,
+      [groupId]: {
+        ...(current[groupId] ?? {}),
+        [field]: value,
+      },
+    }));
+  }
+
   function updateContactMergeSelection(
     groupId: string,
     field: ContactMergeFieldKey,
@@ -2988,6 +3244,114 @@ export function BusinessCoreDuplicatesPage() {
               >
                 <div className="business-core-duplicates-merge-diff-item__field">
                   {getOrganizationMergeFieldLabel(row.field)}
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__values">
+                  <span>
+                    {language === "es" ? "Actual:" : "Current:"} {row.currentValue ?? "—"}
+                  </span>
+                  <span>
+                    {language === "es" ? "Final:" : "Final:"} {row.nextValue ?? "—"}
+                  </span>
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__meta">
+                  {row.isAutomatic
+                    ? language === "es"
+                      ? "origen automático"
+                      : "automatic source"
+                    : `${language === "es" ? "origen manual" : "manual source"}: ${row.sourceLabel ?? "—"}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderClientMergeAssistant(group: DuplicateGroup<ClientAuditRow>) {
+    const preferredClientId = getPreferredClientId(group);
+    const target =
+      group.members.find((member) => member.client.id === preferredClientId)?.client ??
+      group.members[0]?.client ??
+      null;
+    if (!target) {
+      return null;
+    }
+    const sources = group.members
+      .filter((member) => member.client.id !== preferredClientId)
+      .map((member) => member.client);
+    const selections = clientMergeSelections[group.id] ?? {};
+    const preview = resolveClientMergePayload(target, sources, selections);
+    const diffRows = buildClientMergeDiffRows(target, sources, selections, language);
+
+    return (
+      <div className="business-core-duplicates-merge-assistant">
+        <div className="business-core-duplicates-merge-assistant__header">
+          <strong>{language === "es" ? "Ajuste manual previo" : "Manual pre-merge adjustment"}</strong>
+          <span>
+            {language === "es"
+              ? "Si quieres, decide qué ficha cliente aporta el estado comercial y las notas visibles antes de consolidar."
+              : "If needed, decide which client record provides the commercial status and visible notes before consolidating."}
+          </span>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__grid">
+          {CLIENT_MERGE_FIELDS.map((field) => (
+            <label key={`${group.id}-${field}`} className="business-core-duplicates-merge-assistant__field">
+              <span>{getClientMergeFieldLabel(field, language)}</span>
+              <select
+                className="form-select form-select-sm"
+                value={selections[field] ?? "auto"}
+                onChange={(event) =>
+                  updateClientMergeSelection(group.id, field, event.target.value)
+                }
+              >
+                <option value="auto">
+                  {language === "es" ? "Automático sugerido" : "Suggested automatic"}
+                </option>
+                {[target, ...sources].map((client) => {
+                  const fieldValue = getClientFieldDisplayValue(
+                    getClientFieldValue(client, field),
+                    field,
+                    language
+                  );
+                  return (
+                    <option key={`${field}-${client.id}`} value={`client:${client.id}`}>
+                      {`#${client.id} · ${fieldValue ?? (language === "es" ? "sin dato" : "no value")}`}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          ))}
+        </div>
+        <div className="business-core-duplicates-merge-assistant__preview">
+          <div className="business-core-cell__meta">
+            {language === "es"
+              ? "Vista previa de la ficha cliente objetivo"
+              : "Target client record preview"}
+          </div>
+          <div className="business-core-duplicates-group__summary">
+            <span>
+              {getClientServiceStatusLabel(preview.service_status, language) ??
+                (language === "es" ? "sin estado" : "no status")}
+            </span>
+            {preview.commercial_notes ? (
+              <span>{language === "es" ? "notas integradas" : "merged notes"}</span>
+            ) : null}
+          </div>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__diff">
+          <div className="business-core-cell__meta">
+            {language === "es" ? "Diff final por campo" : "Final field diff"}
+          </div>
+          <div className="business-core-duplicates-merge-diff-list">
+            {diffRows.map((row) => (
+              <div
+                key={`${group.id}-${row.field}`}
+                className={`business-core-duplicates-merge-diff-item${row.isChanged ? " is-changed" : ""}`}
+              >
+                <div className="business-core-duplicates-merge-diff-item__field">
+                  {getClientMergeFieldLabel(row.field, language)}
                 </div>
                 <div className="business-core-duplicates-merge-diff-item__values">
                   <span>
@@ -3300,6 +3664,7 @@ export function BusinessCoreDuplicatesPage() {
   function renderClientGroup(group: DuplicateGroup<ClientAuditRow>) {
     const preferredClientId = getPreferredClientId(group);
     const sourceMembers = group.members.filter((member) => member.client.id !== preferredClientId);
+    const selections = clientMergeSelections[group.id] ?? {};
     const mergeSitesCount = sourceMembers.reduce(
       (total, source) => total + sites.filter((site) => site.client_id === source.client.id).length,
       0
@@ -3311,6 +3676,17 @@ export function BusinessCoreDuplicatesPage() {
     );
     const { contactsToMove, contactsToDeactivate, sourceOrganizations } =
       summarizeClientContactMerge(group, contactsByOrganizationId);
+    const documentFieldsToMerge = (() => {
+      const target = group.members.find((member) => member.client.id === preferredClientId);
+      if (!target) {
+        return 0;
+      }
+      return countClientDocumentFieldsToMerge(
+        target.client,
+        sourceMembers.map((member) => member.client),
+        selections
+      );
+    })();
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -3335,6 +3711,9 @@ export function BusinessCoreDuplicatesPage() {
                 {contactsToDeactivate} {language === "es" ? "contactos a desactivar" : "contacts to deactivate"}
               </span>
               <span>
+                {documentFieldsToMerge} {language === "es" ? "campos documentales a integrar" : "documentary fields to merge"}
+              </span>
+              <span>
                 {mergeSitesCount} {language === "es" ? "direcciones a mover" : "addresses to move"}
               </span>
               <span>
@@ -3356,6 +3735,7 @@ export function BusinessCoreDuplicatesPage() {
             </button>
           </div>
         </div>
+        {renderClientMergeAssistant(group)}
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
             const isPreferred = member.client.id === preferredClientId;

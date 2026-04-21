@@ -1,5 +1,39 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - `Duplicados` agrega ajuste manual y diff visible para `clients`
+
+- objetivo:
+  - llevar la misma capa guiada/documental de `organizations` y `contacts` a `clients`
+  - mejorar la consolidación sin tocar backend nuevo ni reabrir la estrategia operativa ya cerrada
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx):
+    - agrega `Ajuste manual previo` para `clients`
+    - agrega `Diff final por campo` para `clients`
+    - permite decidir explícitamente por campo:
+      - `estado servicio`
+      - `notas comerciales`
+    - la auditoría persistente de merge de `clients` ahora guarda también `selections` y `diff_rows`
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-DGzovy8H.js`, `index-BbTsZr5t.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-CDyFUcmw.js`, `index-BkI14Qc2.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `clients` deja de ser solo consolidación operativa con resumen
+  - ya existe una primera capa de decisión documental auditable también para `estado servicio` y `notas comerciales`
+- siguiente paso:
+  - si seguimos en `business-core`, el siguiente salto útil vuelve a ser otra entidad o una capa documental más profunda, no repetir el mismo patrón sobre `clients`
+
 ## 2026-04-20 - `Duplicados` vuelve legible el historial reciente usando `diff_rows` y `selections`
 
 - objetivo:

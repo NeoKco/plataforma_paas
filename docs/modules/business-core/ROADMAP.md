@@ -96,6 +96,7 @@ Estado actual del slice `Duplicados`:
 - historial visible reciente de consolidaciones
 - cobertura actual para `organizations`, `clients`, `contacts`, `sites` e `installations`
 - auditoría persistente ya visible para merges de `organizations`, `clients`, `contacts`, `sites` e `installations`
+- `clients` ya cuenta además con ajuste manual previo y diff visible para `service_status` y `commercial_notes`
 - `contacts` ya cuenta además con ajuste manual previo y diff visible por campo antes de consolidar
 - el historial visible ya aprovecha `diff_rows` y `selections` cuando existen para explicar cambios documentales relevantes sin depender solo del resumen plano
 
@@ -138,7 +139,7 @@ Completado recientemente:
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - profundizar la adopcion de `assets` por `iot`
 - endurecer el importador inicial desde `ieris_app`
-- profundizar la depuracion de duplicados hacia `clients` y otras entidades para soportar consolidacion guiada/documental más allá del caso ya enriquecido de `organizations` y `contacts`
+- profundizar la depuracion de duplicados hacia otras entidades para soportar consolidacion guiada/documental más allá del caso ya enriquecido de `organizations`, `clients` y `contacts`
 
 ## Backlog pendiente visible
 

@@ -212,9 +212,12 @@ Resumen previo por grupo:
   - lee `summary` cuando el audit solo trae resumen operativo
   - lee también `diff_rows` y `selections` cuando el merge dejó evidencia documental por campo
   - hoy esa capa enriquecida aplica sobre todo a `organizations` y `contacts` sin exigir backend nuevo
+- `clients` ya suma una primera capa documental propia sin backend nuevo:
+  - el merge guiado puede ajustar `service_status` y `commercial_notes`
+  - el audit persistente de `clients` ya puede guardar `selections` y `diff_rows`
 - restricción vigente:
-  - fuera de `organizations`, la auditoría actual resume ids origen y conteos operativos movidos/desactivados
-  - no existe todavía diff documental profundo por campo para esas otras entidades
+  - `organizations`, `contacts` y ahora `clients` ya pueden dejar evidencia documental por campo
+  - `sites` e `installations` siguen limitados a ids origen y conteos operativos movidos/desactivados
 
 ### 5. Contact-Site Links
 

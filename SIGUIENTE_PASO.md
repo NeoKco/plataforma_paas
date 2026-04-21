@@ -3,6 +3,22 @@
 ## Prioridad vigente
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
+  - `clients` ya no queda solo con consolidación operativa de contactos/direcciones/OT
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega:
+    - `Ajuste manual previo`
+    - `Diff final por campo`
+    - persistencia de `selections` y `diff_rows` en la auditoría de merge de `clients`
+  - el ajuste documental actual cubre:
+    - `estado servicio`
+    - `notas comerciales`
+  - publicado en:
+    - `staging` con `BusinessCoreDuplicatesPage-DGzovy8H.js` e `index-BbTsZr5t.js`
+    - `production` con `BusinessCoreDuplicatesPage-CDyFUcmw.js` e `index-BkI14Qc2.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
   - `Historial reciente de consolidaciones` ya no queda en modo plano
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora aprovecha `summary`, `diff_rows` y `selections`
   - el historial visible ya muestra:
