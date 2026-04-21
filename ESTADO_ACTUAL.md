@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy para cerrar el último frente abierto de `finance` y convertir `empresa-bootstrap` en un caso explícito de convivencia legacy aceptada
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; ambos ambientes siguen 4/4 limpios en convergencia crítica y el único tenant con señal residual en `finance`, `empresa-bootstrap`, ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; antes de seguir con el siguiente subfrente del bloque 1 se realineó además la documentación estructural y de handoff para que el repo vuelva a describir correctamente el código y la PaaS actual
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`)
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -26,6 +26,10 @@
   - export portable completado del mismo tenant
   - confirmación explícita del slug
   - archivo histórico de retiro con esa evidencia embebida
+- desde este corte, la documentación de estructura vuelve a estar alineada con el repo real:
+  - [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md) vuelve a reflejar `business_core`, `maintenance`, scripts reales de `deploy` y baseline actual de `scripts/dev`
+  - [docs/index.md](/home/felipe/platform_paas/docs/index.md), [README.md](/home/felipe/platform_paas/README.md) y [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) ya priorizan también [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md) como arranque canónico multi-sesión
+  - `estructura_proyecto.txt` queda tratado como snapshot auxiliar y no como fuente canónica cuando diverge del árbol real
 - desde este corte queda explícito que un cambio declarado correcto no se cierra si solo funciona en un tenant o en un ambiente:
   - debe promocionarse al runtime afectado
   - debe converger tenants activos afectados

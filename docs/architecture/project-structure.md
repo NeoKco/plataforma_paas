@@ -22,6 +22,15 @@ platform_paas/
 │   │   │   ├── platform_control/
 │   │   │   ├── provisioning/
 │   │   │   └── tenant_modules/
+│   │   │       ├── _templates/
+│   │   │       ├── business_core/
+│   │   │       ├── condos/
+│   │   │       ├── core/
+│   │   │       ├── finance/
+│   │   │       ├── integrations/
+│   │   │       ├── iot/
+│   │   │       ├── maintenance/
+│   │   │       └── shared/
 │   │   ├── bootstrap/
 │   │   ├── common/
 │   │   │   ├── adapters/
@@ -47,12 +56,18 @@ platform_paas/
 │   │   └── main.py
 │   ├── migrations/
 │   │   ├── control/
+│   │   │   └── versions/
 │   │   ├── tenant/
+│   │   │   └── versions/
 │   │   ├── tenant_core/
+│   │   │   └── versions/
 │   │   └── tenant_modules/
 │   │       ├── condos/
+│   │       │   └── versions/
 │   │       ├── finance/
+│   │       │   └── versions/
 │   │       └── iot/
+│   │           └── versions/
 │   └── requirements/
 ├── frontend/
 │   ├── .env.example
@@ -61,7 +76,11 @@ platform_paas/
 │   ├── public/
 │   └── src/
 │       ├── apps/
+│       │   ├── _templates/
+│       │   ├── installer/
 │       │   ├── platform_admin/
+│       │   │   ├── access/
+│       │   │   ├── components/
 │       │   │   ├── layout/
 │       │   │   ├── pages/
 │       │   │   │   ├── activity/
@@ -74,8 +93,10 @@ platform_paas/
 │       │   │   │   ├── tenant_history/
 │       │   │   │   ├── tenants/
 │       │   │   │   └── users/
+│       │   │   ├── services/
 │       │   │   └── routes/
 │       │   └── tenant_portal/
+│       │       ├── components/
 │       │       ├── layout/
 │       │       ├── modules/
 │       │       │   ├── business_core/
@@ -83,7 +104,8 @@ platform_paas/
 │       │       │   └── maintenance/
 │       │       ├── pages/
 │       │       ├── routes/
-│       │       └── store/
+│       │       ├── services/
+│       │       └── utils/
 │       ├── components/
 │       │   ├── common/
 │       │   ├── data-display/
@@ -147,19 +169,33 @@ platform_paas/
 │       ├── platform-paas-tenant-restore-drill.service
 │       └── platform-paas-tenant-restore-drill.timer
 ├── deploy/
+│   ├── build_frontend.sh
+│   ├── check_backend_release_readiness.sh
+│   ├── check_frontend_static_readiness.sh
+│   ├── check_release_governance.sh
 │   ├── collect_backend_operational_evidence.sh
-│   ├── deploy_backend_production.sh
 │   ├── deploy_backend_staging.sh
 │   ├── deploy_backend.sh
+│   ├── deploy_backend_production.sh
 │   ├── install_provisioning_worker_profile_units.sh
+│   ├── load_dotenv.sh
+│   ├── reset_staging_bootstrap.sh
+│   ├── restore_staging_mirror.sh
 │   ├── rollback_backend.sh
+│   ├── run_backend_post_deploy_gate.sh
 │   ├── run_provisioning_worker_profile.sh
+│   ├── run_remote_backend_smoke.py
 │   ├── validate_backend_env.sh
 │   └── verify_backend_deploy.sh
 ├── generated/
 ├── scripts/
 │   ├── db/
 │   ├── dev/
+│   │   ├── run_local_backend_baseline.sh
+│   │   ├── run_local_broker_dlq_baseline.sh
+│   │   ├── run_local_browser_baseline.sh
+│   │   ├── run_remote_backend_smoke.sh
+│   │   └── run_staging_published_broker_dlq_smoke.sh
 │   └── maintenance/
 ├── tools/
 ├── .env
@@ -176,18 +212,31 @@ Referencia de esta politica:
 
 ```text
 tenant_modules/
-├── core/
+├── _templates/
+│   ├── backend_module_basic/
+│   └── backend_module_full/
+├── business_core/
 ├── condos/
+├── core/
 ├── finance/
-├── iot/
+│   ├── docs/
+│   ├── policies/
+│   ├── schemas/
+│   ├── storage/
+│   ├── tests/
+│   └── utils/
 ├── integrations/
+├── iot/
+├── maintenance/
+│   ├── api/
+│   ├── models/
+│   ├── repositories/
+│   ├── schemas/
+│   └── services/
 ├── shared/
 │   ├── enums/
 │   ├── mixins/
 │   └── validators/
-└── _templates/
-    ├── backend_module_basic/
-    └── backend_module_full/
 ```
 
 ## Estructura Canonica por Slice
@@ -204,6 +253,11 @@ Sin mover hoy todo el repo, la regla oficial de continuidad es esta:
 
 Todo cambio nuevo debe poder ubicarse rapido dentro de esa grilla. Si un cambio no calza, primero hay que aclarar frontera de dominio o documentar la excepcion.
 
+Nota operativa:
+
+- [project-structure.md](./project-structure.md) es la referencia mantenida a mano para continuidad y revisión rápida
+- `estructura_proyecto.txt` puede servir como snapshot auxiliar, pero no debe tratarse como fuente canónica cuando diverge del repo real
+
 ## Continuidad E2E y Árboles Operativos
 
 Para continuidad entre sesiones, otra IA o validaciones sobre entornos publicados, estas rutas ya son parte del contrato operativo del repo:
@@ -217,8 +271,10 @@ frontend/
 
 scripts/
 └── dev/
+    ├── run_local_backend_baseline.sh
     ├── run_local_browser_baseline.sh
     ├── run_local_broker_dlq_baseline.sh
+    ├── run_remote_backend_smoke.sh
     └── run_staging_published_broker_dlq_smoke.sh
 ```
 

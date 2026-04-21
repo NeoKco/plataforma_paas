@@ -23,6 +23,7 @@ Además del árbol `docs/`, el proyecto mantiene un set de archivos raíz para h
 - [PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md)
 - [SESION_ACTIVA.md](../SESION_ACTIVA.md)
 - [REGLAS_IMPLEMENTACION.md](../REGLAS_IMPLEMENTACION.md)
+- [PROMPT_MAESTRO_SESION.md](../PROMPT_MAESTRO_SESION.md)
 - [PROMPT_MAESTRO_MODULO.md](../PROMPT_MAESTRO_MODULO.md)
 - [ESTADO_ACTUAL.md](../ESTADO_ACTUAL.md)
 - [SIGUIENTE_PASO.md](../SIGUIENTE_PASO.md)
@@ -41,6 +42,7 @@ La regla práctica es esta:
 
 - [Contexto raiz del proyecto](../PROJECT_CONTEXT.md)
 - [Sesión activa / puntero corto](../SESION_ACTIVA.md)
+- [Prompt maestro de sesión](../PROMPT_MAESTRO_SESION.md)
 - [Prompt maestro de reanudación](../PROMPT_MAESTRO_MODULO.md)
 - [Reglas de implementacion raiz](../REGLAS_IMPLEMENTACION.md)
 - [Estado actual de la iteracion](../ESTADO_ACTUAL.md)
@@ -55,6 +57,7 @@ La regla práctica es esta:
 - [Demo data y seeds de desarrollo](./runbooks/demo-data.md)
 - [Flujo diario de trabajo](./runbooks/daily-workflow.md)
 - [Estructura raiz del proyecto](./architecture/project-structure.md)
+- `project-structure.md` es la referencia estructural mantenida; `estructura_proyecto.txt` queda solo como snapshot auxiliar si no está regenerado
 - [Convencion modular por slice](./architecture/module-slice-convention.md)
 - [Estandar de construccion de modulos](./architecture/module-build-standard.md)
 - [Gobernanza de implementacion](./architecture/implementation-governance.md)

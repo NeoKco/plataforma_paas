@@ -50,6 +50,10 @@
     - `migration_effective_at`
     - `account_currency_policy`
     - `loan_currency_policy`
+- subcorte documental/estructural ya cerrado en repo:
+  - [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md) ya refleja el árbol real de `tenant_modules`, `deploy`, `scripts/dev` y la estructura vigente de frontend
+  - [docs/index.md](/home/felipe/platform_paas/docs/index.md), [README.md](/home/felipe/platform_paas/README.md) y [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) ya incluyen [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md) como arranque canónico de continuidad
+  - queda explícito además que `project-structure.md` es la referencia estructural mantenida y `estructura_proyecto.txt` solo un snapshot auxiliar si no está regenerado
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -101,6 +105,7 @@
       - `notes` no críticas pendientes
       - `accepted notes` ya institucionalizadas
     - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
+    - entrar ya al siguiente subfrente concreto del bloque 1 con la documentación estructural reordenada y sin deuda de handoff
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

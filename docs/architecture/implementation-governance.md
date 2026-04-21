@@ -8,6 +8,7 @@ Debe leerse junto con:
 
 - [PROJECT_CONTEXT.md](../../PROJECT_CONTEXT.md)
 - [SESION_ACTIVA.md](../../SESION_ACTIVA.md)
+- [PROMPT_MAESTRO_SESION.md](../../PROMPT_MAESTRO_SESION.md)
 - [PROMPT_MAESTRO_MODULO.md](../../PROMPT_MAESTRO_MODULO.md)
 - [REGLAS_IMPLEMENTACION.md](../../REGLAS_IMPLEMENTACION.md)
 - [ESTADO_ACTUAL.md](../../ESTADO_ACTUAL.md)
@@ -325,6 +326,7 @@ Minimo esperado:
 
 - `SESION_ACTIVA.md` revisado cuando cambie el foco inmediato, el bloqueo principal o la siguiente acción concreta para retomar
 - `PROJECT_CONTEXT.md`, `ESTADO_ACTUAL.md` y `SIGUIENTE_PASO.md` revisados cuando el cambio altera el estado real del proyecto
+- `PROMPT_MAESTRO_SESION.md` revisado si cambia el arranque canónico multi-sesión o el orden mínimo de lectura
 - `PROMPT_MAESTRO_MODULO.md` revisado si cambia la forma estándar de retomar con otra IA
 - `CHECKLIST_CIERRE_ITERACION.md` usado como control corto antes de cerrar
 - `HANDOFF_STATE.json` e `HISTORIAL_ITERACIONES.md` revisados cuando la iteración cierre o cambie de foco

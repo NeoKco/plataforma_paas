@@ -2,6 +2,14 @@
 
 ## 2026-04-20
 
+- se realinea la documentación estructural y de continuidad del repo antes de seguir con el bloque 1:
+  - [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md) vuelve a reflejar el árbol real de `tenant_modules`, `deploy`, `scripts/dev` y frontend
+  - [docs/index.md](/home/felipe/platform_paas/docs/index.md), [README.md](/home/felipe/platform_paas/README.md) y [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) ya incluyen [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md) como arranque canónico multi-sesión
+  - se explicita además que `project-structure.md` es la referencia estructural mantenida y `estructura_proyecto.txt` queda como snapshot auxiliar
+  - resultado:
+    - la continuidad entre sesiones vuelve a apoyarse en documentos alineados con el repo real y no en árboles desactualizados
+    - el siguiente subfrente de hardening puede retomarse sin deuda documental previa
+
 - el gate post-deploy ya distingue notas aceptadas de notas pendientes reales:
   - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora separa:
     - `tenants_with_notes`

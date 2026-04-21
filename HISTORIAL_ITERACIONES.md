@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Realineación de estructura y handoff antes de seguir con el bloque 1
+
+- objetivo:
+  - actualizar la documentación estructural y los punteros raíz antes de seguir con el siguiente subfrente de hardening técnico-operativo
+  - evitar que otra sesión o IA vuelva a leer un árbol desfasado respecto del repo real
+- cambios y acciones ejecutadas:
+  - [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md) ahora refleja:
+    - `backend/app/apps/tenant_modules` con `business_core`, `maintenance`, `_templates`, `shared` e `integrations`
+    - el árbol real de `deploy/`
+    - el baseline vigente de `scripts/dev/`
+    - la presencia de `_templates` e `installer` en frontend
+  - [docs/index.md](/home/felipe/platform_paas/docs/index.md), [README.md](/home/felipe/platform_paas/README.md) y [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) ya priorizan también [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md)
+  - queda explícito que `project-structure.md` es la referencia estructural mantenida y `estructura_proyecto.txt` solo un snapshot auxiliar
+- validaciones:
+  - revisión directa del árbol real de:
+    - `backend/app/apps/tenant_modules`
+    - `backend/migrations`
+    - `frontend/src/apps`
+    - `deploy`
+    - `scripts/dev`
+    - `docs/deploy`
+  - `bash deploy/check_release_governance.sh` -> `OK`
+  - `jq . HANDOFF_STATE.json` -> `OK`
+- resultado:
+  - la memoria viva vuelve a describir correctamente el repositorio y el arranque canónico entre sesiones
+  - el siguiente subfrente del bloque 1 ya puede retomarse sin ambigüedad documental
+- siguiente paso:
+  - continuar con el hardening técnico-operativo final, eligiendo el siguiente subfrente concreto dentro de calidad, secretos, auditoría/observabilidad o infraestructura/deploy
+
 ## 2026-04-20 - Gate post-deploy distingue `accepted notes` de `notes` pendientes
 
 - objetivo:

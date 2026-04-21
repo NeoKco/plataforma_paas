@@ -29,6 +29,7 @@ Si alguien retoma el trabajo sin contexto conversacional, debe partir por estos 
 - [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)
 - [SESION_ACTIVA.md](./SESION_ACTIVA.md)
 - [REGLAS_IMPLEMENTACION.md](./REGLAS_IMPLEMENTACION.md)
+- [PROMPT_MAESTRO_SESION.md](./PROMPT_MAESTRO_SESION.md)
 - [PROMPT_MAESTRO_MODULO.md](./PROMPT_MAESTRO_MODULO.md)
 - [ESTADO_ACTUAL.md](./ESTADO_ACTUAL.md)
 - [SIGUIENTE_PASO.md](./SIGUIENTE_PASO.md)
@@ -70,6 +71,7 @@ Si solo quieres levantarlo rapido:
 - [docs/](./docs): arquitectura, runbooks, deploy, install y manual visual
 - [infra/](./infra): ejemplos de entorno, Nginx, systemd, backups
 - [deploy/](./deploy): scripts operativos de despliegue y verificacion
+- [docs/architecture/project-structure.md](./docs/architecture/project-structure.md): referencia estructural mantenida del repo y de los árboles operativos
 
 ## Arranque local rapido
 
