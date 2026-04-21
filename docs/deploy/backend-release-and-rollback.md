@@ -199,6 +199,7 @@ Decisión operativa actual:
 - ese target ya quedó revalidado en ambos carriles con:
   - `staging` -> `http://127.0.0.1:8200`
   - `production` -> `http://127.0.0.1:8000`
+- además, los wrappers por ambiente ya lo activan por defecto en el carril estándar de release
 - el smoke autenticado completo (`platform`/`tenant`/`all`) sigue siendo optativo hasta que las credenciales se inyecten por un canal seguro y mantenible
 
 ## Recomendación operativa

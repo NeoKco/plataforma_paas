@@ -1,5 +1,44 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Institucionalización final de `base smoke` en el release backend
+
+- objetivo:
+  - dejar el `base smoke` como baseline explícito del carril normal de release, no solo como una bandera manual
+  - cerrar también la configuración por defecto del workflow manual
+- cambios y acciones ejecutadas:
+  - [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh) ahora exporta por defecto:
+    - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`
+    - `REMOTE_BACKEND_SMOKE_TARGET=base`
+    - `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8200`
+    - `REMOTE_BACKEND_SMOKE_STRICT=true`
+  - [deploy_backend_production.sh](/home/felipe/platform_paas/deploy/deploy_backend_production.sh) ahora exporta por defecto:
+    - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`
+    - `REMOTE_BACKEND_SMOKE_TARGET=base`
+    - `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8000`
+    - `REMOTE_BACKEND_SMOKE_STRICT=true`
+  - [.github/workflows/backend-deploy.yml](/home/felipe/platform_paas/.github/workflows/backend-deploy.yml) ahora deja `remote_smoke_target=base` como default del workflow manual
+- validaciones:
+  - repo:
+    - `bash -n deploy/deploy_backend_staging.sh` -> `OK`
+    - `bash -n deploy/deploy_backend_production.sh` -> `OK`
+  - `staging`:
+    - `bash deploy/deploy_backend_staging.sh` sin flags extra -> `528 tests OK`
+    - auditoría final `processed=4, warnings=0, failed=0`
+    - snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_204618.json`
+    - smoke `/opt/platform_paas_staging/operational_evidence/remote_backend_smoke_20260420_204617.json`
+    - evidencia consolidada `/opt/platform_paas_staging/operational_evidence/backend_operational_evidence_20260420_204619.log`
+  - `production`:
+    - `bash deploy/deploy_backend_production.sh` sin flags extra -> `528 tests OK`
+    - auditoría final `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_204640.json`
+    - smoke `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260420_204638.json`
+    - evidencia consolidada `/opt/platform_paas/operational_evidence/backend_operational_evidence_20260420_204641.log`
+- resultado:
+  - `base smoke` deja de ser una convención manual y pasa a ser baseline del wrapper normal por ambiente
+  - el workflow manual también queda alineado a `base` como target por defecto
+- siguiente paso:
+  - mover el foco al siguiente frente del roadmap sin dejar deuda pendiente en el carril backend de release
+
 ## 2026-04-20 - Publicación runtime del hardening `rollback + smoke corto`
 
 - objetivo:

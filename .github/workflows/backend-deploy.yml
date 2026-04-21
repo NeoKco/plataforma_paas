@@ -31,7 +31,7 @@ on:
       remote_smoke_target:
         description: "Subset remoto a validar"
         required: true
-        default: all
+        default: base
         type: choice
         options:
           - all

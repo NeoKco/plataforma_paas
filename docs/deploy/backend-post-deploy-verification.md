@@ -158,6 +158,9 @@ Decisión operativa vigente:
 - `target=base` ya quedó validado en `staging` y `production` como smoke corto repetible del carril
 - ese smoke puede tratarse como obligatorio por ambiente cuando el release quiera exigir evidencia mínima adicional sobre el servicio publicado
 - `target=platform` o `target=all` siguen siendo `opt-in` mientras las credenciales no vivan en un canal seguro y repetible del entorno o del pipeline
+- desde este corte, los wrappers por ambiente ya lo activan por defecto:
+  - [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh) -> `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`, `REMOTE_BACKEND_SMOKE_TARGET=base`, `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8200`
+  - [deploy_backend_production.sh](/home/felipe/platform_paas/deploy/deploy_backend_production.sh) -> `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`, `REMOTE_BACKEND_SMOKE_TARGET=base`, `REMOTE_BACKEND_SMOKE_BASE_URL=http://127.0.0.1:8000`
 
 Desde este corte, una `note` como `legacy_finance_base_currency:USD` significa algo distinto a un seed faltante:
 

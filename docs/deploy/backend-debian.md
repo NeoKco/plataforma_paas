@@ -223,6 +223,7 @@ sudo journalctl -u platform-paas-backend -n 50 --no-pager
 - el verify post-deploy ahora tambien puede dejar ya encolado el sync de schema tenant sin depender de una corrida manual posterior
 - para una validacion funcional externa adicional se puede usar `deploy/run_remote_backend_smoke.py` contra la URL publica del entorno
 - si quieres que ese smoke forme parte del gate backend, habilitar `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` y definir `REMOTE_BACKEND_SMOKE_BASE_URL`
+- desde este corte, los wrappers [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh) y [deploy_backend_production.sh](/home/felipe/platform_paas/deploy/deploy_backend_production.sh) ya activan por defecto `target=base` contra `127.0.0.1:8200` y `127.0.0.1:8000` respectivamente
 - el preflight `check_backend_release_readiness.sh` sirve para detectar antes del deploy bloqueos típicos como `.env` inválido, unidad `systemd` ausente o build frontend no generado
 - la carga de `.env` del deploy ya no depende de `source` crudo, por lo que secretos con espacios o caracteres especiales como `$` quedan soportados de forma más segura
 

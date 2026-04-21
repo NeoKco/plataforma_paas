@@ -2,6 +2,19 @@
 
 ## 2026-04-20
 
+- se institucionaliza `base smoke` como baseline explícito del release backend:
+  - [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh) y [deploy_backend_production.sh](/home/felipe/platform_paas/deploy/deploy_backend_production.sh) ahora activan por defecto:
+    - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`
+    - `REMOTE_BACKEND_SMOKE_TARGET=base`
+    - `REMOTE_BACKEND_SMOKE_STRICT=true`
+    - `REMOTE_BACKEND_SMOKE_BASE_URL` local del carril (`8200` en `staging`, `8000` en `production`)
+  - [.github/workflows/backend-deploy.yml](/home/felipe/platform_paas/.github/workflows/backend-deploy.yml) ahora deja `remote_smoke_target=base` como default del workflow manual
+  - validación final sin overrides:
+    - `staging`: `bash deploy/deploy_backend_staging.sh` -> `528 tests OK`, snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_204618.json`, smoke `/opt/platform_paas_staging/operational_evidence/remote_backend_smoke_20260420_204617.json`
+    - `production`: `bash deploy/deploy_backend_production.sh` -> `528 tests OK`, snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_204640.json`, smoke `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260420_204638.json`
+  - resultado:
+    - el baseline backend ya no depende de flags manuales para correr el smoke mínimo repetible por ambiente
+
 - se promueve a runtime el hardening de `rollback + smoke corto` y se cierra la decisión operativa por carril:
   - `staging`:
     - `bash deploy/deploy_backend_staging.sh` con:
