@@ -33,6 +33,10 @@ from app.apps.tenant_modules.core.services.tenant_connection_service import (  #
     TenantConnectionService,
 )
 from app.common.db.control_database import ControlSessionLocal  # noqa: E402
+from app.scripts.tenant_operational_policies import (  # noqa: E402
+    ACCEPTED_LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX,
+    get_accepted_legacy_finance_currency_policy,
+)
 
 
 tenant_connection_service = TenantConnectionService()
@@ -104,7 +108,12 @@ def _needs_core_seed(db) -> bool:
     return bool(missing_profiles or missing_tasks)
 
 
-def get_finance_defaults_status(db, *, force: bool) -> dict[str, str | bool | None]:
+def get_finance_defaults_status(
+    db,
+    *,
+    force: bool,
+    tenant_slug: str | None = None,
+) -> dict[str, str | bool | None]:
     has_usage = _has_finance_usage(db)
     categories = db.query(FinanceCategory).all()
     category_names = {item.name.strip() for item in categories}
@@ -129,6 +138,10 @@ def get_finance_defaults_status(db, *, force: bool) -> dict[str, str | bool | No
     )
     base_setting_ok = base_setting_code == "CLP"
     effective_base_ok = effective_base_currency_code == "CLP"
+    accepted_legacy_policy = get_accepted_legacy_finance_currency_policy(
+        tenant_slug,
+        currency_code=effective_base_currency_code or base_setting_code,
+    )
 
     if has_usage:
         if missing_sentinel or not clp_ok:
@@ -151,6 +164,15 @@ def get_finance_defaults_status(db, *, force: bool) -> dict[str, str | bool | No
                 ),
             }
         if not base_setting_ok or not effective_base_ok:
+            if accepted_legacy_policy is not None:
+                return {
+                    "needs_seed": False,
+                    "seed_reason": "accepted_legacy_base_currency_with_usage",
+                    "audit_note": (
+                        f"{ACCEPTED_LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX}:"
+                        f"{accepted_legacy_policy['currency_code']}"
+                    ),
+                }
             return {
                 "needs_seed": False,
                 "seed_reason": "legacy_base_currency_with_usage",
@@ -185,8 +207,13 @@ def get_finance_defaults_status(db, *, force: bool) -> dict[str, str | bool | No
     }
 
 
-def _needs_finance_seed(db, *, force: bool) -> tuple[bool, str]:
-    status = get_finance_defaults_status(db, force=force)
+def _needs_finance_seed(
+    db,
+    *,
+    force: bool,
+    tenant_slug: str | None = None,
+) -> tuple[bool, str]:
+    status = get_finance_defaults_status(db, force=force, tenant_slug=tenant_slug)
     return bool(status["needs_seed"]), str(status["seed_reason"])
 
 
@@ -222,7 +249,9 @@ def main() -> int:
                         modules.append("core")
 
                     finance_needed, finance_reason = _needs_finance_seed(
-                        tenant_db, force=args.force_finance
+                        tenant_db,
+                        force=args.force_finance,
+                        tenant_slug=tenant.slug,
                     )
                     if finance_needed:
                         modules.append("finance")

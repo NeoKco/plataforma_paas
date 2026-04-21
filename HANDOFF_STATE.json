@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T20:20:00-04:00",
+  "updated_at": "2026-04-20T21:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; dentro del frente de hardening transversal sobre convergencia post-deploy y observabilidad tenant, el falso `missing_core_defaults` ya quedó corregido, el drift cross-env de credenciales tenant ya puede cerrarse con sincronización explícita de secrets y el caso `metadata-only` de `condominio-demo` en finance ya quedó cerrado; la única deuda residual real sigue siendo `legacy_finance_base_currency:USD` en `empresa-bootstrap`, pero ahora ya quedó revalidada en staging y production como caso `blocked` para auto-migración `USD -> CLP`, por lo que el siguiente paso correcto es decidir convivencia legacy explícita o un flujo guiado con política de revalorización histórica",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; dentro del frente de hardening transversal sobre convergencia post-deploy y observabilidad tenant, el falso `missing_core_defaults` ya quedó corregido, el drift cross-env de credenciales tenant ya puede cerrarse con sincronización explícita de secrets, el caso `metadata-only` de `condominio-demo` en finance ya quedó cerrado y `empresa-bootstrap` ya quedó aceptado explícitamente como convivencia legacy `USD`; el foco correcto ahora pasa al hardening técnico-operativo final, empezando por separar en el gate post-deploy las `accepted notes` de las `notes` pendientes reales",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
   "active_modules": [
     "platform-core",
@@ -77,6 +77,15 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "audit_active_tenant_convergence.py ahora separa tenants_with_notes/notes_by_reason de accepted_tenants_with_notes/accepted_notes_by_reason",
+    "verify_backend_deploy.sh ahora deja un NOTICE distinto cuando el ambiente solo arrastra accepted notes ya institucionalizadas",
+    "tests locales revalidados: tenant_operational_drift_scripts + test_legacy_finance_base_currency_audit + test_repair_finance_base_currency_mismatch + tenant_db_bootstrap_service -> 24 tests OK",
+    "tenant_operational_policies.py agregado para institucionalizar políticas operativas explícitas por tenant; empresa-bootstrap queda con policy_code=accepted_legacy_coexistence por su rol de tenant baseline E2E",
+    "seed_missing_tenant_defaults.py y audit_active_tenant_convergence.py ya distinguen accepted_legacy_finance_base_currency:USD y dejan de tratar empresa-bootstrap como deuda abierta de finance",
+    "audit_legacy_finance_base_currency.py ahora devuelve recommendation=accepted_legacy_coexistence y readiness.status=accepted_legacy cuando la política explícita aplica",
+    "tests locales revalidados: test_legacy_finance_base_currency_audit + test_tenant_operational_drift_scripts + test_repair_finance_base_currency_mismatch + tenant_db_bootstrap_service -> 22 tests OK",
+    "staging revalidado en runtime con empresa-bootstrap: status=ok, recommendation=accepted_legacy_coexistence, note=accepted_legacy_finance_base_currency:USD",
+    "production revalidado en runtime con empresa-bootstrap: status=ok, recommendation=accepted_legacy_coexistence, note=accepted_legacy_finance_base_currency:USD",
     "audit_legacy_finance_base_currency.py ahora agrega legacy_base_transaction_summary, loan_counts_by_currency, migration_readiness y exchange_rate_pair_summary para el caso legacy USD real",
     "tests locales revalidados: test_legacy_finance_base_currency_audit + test_repair_finance_base_currency_mismatch + tenant_operational_drift_scripts + tenant_db_bootstrap_service -> 20 tests OK",
     "staging revalidado en runtime con empresa-bootstrap: recommendation=manual_migration_review, readiness.status=blocked, accounts={'USD': 4}, loans={'USD': 110}, transactions={'USD': 495}",
@@ -254,7 +263,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si empresa-bootstrap con legacy_finance_base_currency:USD queda en convivencia legacy explícita o si se diseña un flujo guiado USD -> CLP con política formal de revalorización histórica, migration_effective_at y criterios para cuentas/préstamos; además, definir si conviene materializar ese flujo separado del repair metadata-only y si --sync-env-file sigue manual explícito o pasa a flujo guiado para carriles que comparten rol PostgreSQL",
+  "next_decision_required": "decidir cuál es el siguiente subcorte concreto dentro del bloque 1 de hardening técnico-operativo final: calidad técnica, secretos, auditoría/observabilidad o infraestructura/deploy; además, definir si --sync-env-file sigue manual explícito o pasa a flujo guiado para carriles que comparten rol PostgreSQL",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

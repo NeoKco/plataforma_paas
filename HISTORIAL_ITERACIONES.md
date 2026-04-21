@@ -1,5 +1,58 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Gate post-deploy distingue `accepted notes` de `notes` pendientes
+
+- objetivo:
+  - evitar que el cierre técnico-operativo del deploy mezcle notas aceptadas con convergencia pendiente real
+  - dejar más limpio el frente final de hardening del roadmap
+- cambios y acciones ejecutadas:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora separa:
+    - `tenants_with_notes`
+    - `notes_by_reason`
+    - `accepted_tenants_with_notes`
+    - `accepted_notes_by_reason`
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ahora imprime un `NOTICE` distinto cuando el ambiente solo arrastra notas aceptadas
+  - se amplía [test_tenant_operational_drift_scripts.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_operational_drift_scripts.py)
+- validaciones:
+  - local:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` + `test_legacy_finance_base_currency_audit` + `test_repair_finance_base_currency_mismatch` + `test_tenant_db_bootstrap_service` -> `24 tests OK`
+    - `py_compile` scripts backend -> `OK`
+    - `bash -n deploy/verify_backend_deploy.sh` -> `OK`
+- resultado:
+  - el hardening técnico-operativo ya separa mejor deuda pendiente real de decisiones aceptadas
+  - `accepted_legacy_finance_base_currency:USD` deja de parecer cleanup abierto del deploy
+- siguiente paso:
+  - seguir con el bloque 1 sobre calidad, secretos, observabilidad e infraestructura
+
+## 2026-04-20 - Convivencia legacy explícita para `empresa-bootstrap`
+
+- objetivo:
+  - cerrar la decisión de producto/operación sobre el único tenant residual de `finance`
+  - dejar `empresa-bootstrap` como convivencia legacy aceptada y no como deuda abierta indefinida
+- cambios y acciones ejecutadas:
+  - se agrega [tenant_operational_policies.py](/home/felipe/platform_paas/backend/app/scripts/tenant_operational_policies.py) para institucionalizar políticas operativas explícitas por tenant
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) y [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ya distinguen `accepted_legacy_finance_base_currency:USD`
+  - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora devuelve `accepted_legacy_coexistence` y `readiness.status=accepted_legacy` cuando la política explícita aplica
+  - se amplían tests:
+    - [test_legacy_finance_base_currency_audit.py](/home/felipe/platform_paas/backend/app/tests/test_legacy_finance_base_currency_audit.py)
+    - [test_tenant_operational_drift_scripts.py](/home/felipe/platform_paas/backend/app/tests/test_tenant_operational_drift_scripts.py)
+- validaciones:
+  - local:
+    - `backend.app.tests.test_legacy_finance_base_currency_audit` + `test_tenant_operational_drift_scripts` + `test_repair_finance_base_currency_mismatch` + `test_tenant_db_bootstrap_service` -> `22 tests OK`
+    - `py_compile` de scripts -> `OK`
+  - `staging`:
+    - Comprobando que lo último realizado corresponde y quedó bien...
+    - `audit_legacy_finance_base_currency.py --tenant-slug empresa-bootstrap` -> `status=ok`, `recommendation=accepted_legacy_coexistence`, `note=accepted_legacy_finance_base_currency:USD`
+  - `production`:
+    - Comprobando que lo último realizado corresponde y quedó bien...
+    - `audit_legacy_finance_base_currency.py --tenant-slug empresa-bootstrap` -> `status=ok`, `recommendation=accepted_legacy_coexistence`, `note=accepted_legacy_finance_base_currency:USD`
+- resultado:
+  - `empresa-bootstrap` deja de bloquear el roadmap activo de `finance`
+  - la señal residual queda explícitamente tratada como convivencia legacy aceptada
+  - si más adelante se quisiera migrar `USD -> CLP`, seguirá haciendo falta política formal de revalorización histórica
+- siguiente paso:
+  - mover el foco al hardening técnico-operativo final y decidir entre `registro y activación de módulos` o el siguiente módulo grande del roadmap
+
 ## 2026-04-20 - Readiness real de `empresa-bootstrap` para base legacy `USD`
 
 - objetivo:

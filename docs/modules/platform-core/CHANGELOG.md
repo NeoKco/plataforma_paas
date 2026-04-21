@@ -2,6 +2,34 @@
 
 ## 2026-04-20
 
+- el gate post-deploy ya distingue notas aceptadas de notas pendientes reales:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora separa:
+    - `tenants_with_notes`
+    - `notes_by_reason`
+    - `accepted_tenants_with_notes`
+    - `accepted_notes_by_reason`
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ahora deja un `NOTICE` distinto cuando el ambiente solo arrastra `accepted notes`
+  - validación local:
+    - `backend.app.tests.test_tenant_operational_drift_scripts` + `test_legacy_finance_base_currency_audit` + `test_repair_finance_base_currency_mismatch` + `test_tenant_db_bootstrap_service` -> `24 tests OK`
+    - `bash -n deploy/verify_backend_deploy.sh` -> `OK`
+  - resultado:
+    - el post-deploy deja de mezclar convivencia legacy aceptada con cleanup pendiente real
+
+- se cierra la decisión operativa sobre `empresa-bootstrap` en `finance`:
+  - se agrega [tenant_operational_policies.py](/home/felipe/platform_paas/backend/app/scripts/tenant_operational_policies.py) para institucionalizar políticas operativas explícitas por tenant
+  - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) y [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ya distinguen `accepted_legacy_finance_base_currency:USD`
+  - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora devuelve:
+    - `recommendation=accepted_legacy_coexistence`
+    - `readiness.status=accepted_legacy`
+  - validación local:
+    - `backend.app.tests.test_legacy_finance_base_currency_audit` + `test_tenant_operational_drift_scripts` + `test_repair_finance_base_currency_mismatch` + `test_tenant_db_bootstrap_service` -> `22 tests OK`
+  - validación runtime:
+    - `staging`: `audit_legacy_finance_base_currency.py --tenant-slug empresa-bootstrap` -> `status=ok`, `note=accepted_legacy_finance_base_currency:USD`
+    - `production`: mismo resultado
+  - conclusión operativa:
+    - `empresa-bootstrap` deja de bloquear el roadmap activo de `finance`
+    - la convivencia legacy queda aceptada explícitamente para este tenant baseline
+
 - se endurece la evidencia operativa del único tenant residual `legacy_finance_base_currency:USD`:
   - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora agrega:
     - `legacy_base_transaction_summary`

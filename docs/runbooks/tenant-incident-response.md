@@ -130,6 +130,15 @@ Si el audit muestra `legacy_finance_base_currency:USD`:
   - significa que aún falta política de revalorización histórica y/o criterio explícito para cuentas y préstamos
   - el siguiente paso correcto es decidir una migración guiada formal o aceptar la convivencia legacy
 
+Si el audit muestra `accepted_legacy_finance_base_currency:USD`:
+
+- no tratarlo como incidente ni como deuda abierta de convergencia
+- significa que el tenant quedó explícitamente aceptado en convivencia legacy
+- el auditor específico debe devolver:
+  - `recommendation=accepted_legacy_coexistence`
+  - `readiness.status=accepted_legacy`
+- no tocar runtime automáticamente salvo que se decida abrir más adelante una migración formal `USD -> CLP`
+
 Si el audit muestra `finance_base_currency_mismatch:CLP!=USD`:
 
 - no tratarlo como el mismo caso legacy `USD`

@@ -45,6 +45,18 @@ EXPECTED_FINANCE_SUMMARY_KEYS = {
     "finance_synced_at",
 }
 
+ACCEPTED_NOTE_PREFIXES = {
+    "accepted_legacy_finance_base_currency",
+}
+
+
+def is_accepted_tenant_note(note: str) -> bool:
+    normalized = str(note or "").strip().lower()
+    if not normalized:
+        return False
+    prefix = normalized.split(":", 1)[0]
+    return prefix in ACCEPTED_NOTE_PREFIXES
+
 
 def build_audit_summary(
     *,
@@ -54,6 +66,8 @@ def build_audit_summary(
     failed_by_reason: dict[str, int],
     tenants_with_notes: int,
     notes_by_reason: dict[str, int],
+    accepted_tenants_with_notes: int = 0,
+    accepted_notes_by_reason: dict[str, int] | None = None,
 ) -> str:
     summary = (
         "Tenant convergence audit summary: processed={processed}, warnings={warnings}, "
@@ -65,10 +79,14 @@ def build_audit_summary(
     )
     if tenants_with_notes:
         summary += f", tenants_with_notes={tenants_with_notes}"
+    if accepted_tenants_with_notes:
+        summary += f", accepted_tenants_with_notes={accepted_tenants_with_notes}"
     if failed_by_reason:
         summary += f", failed_by_reason={failed_by_reason}"
     if notes_by_reason:
         summary += f", notes_by_reason={notes_by_reason}"
+    if accepted_notes_by_reason:
+        summary += f", accepted_notes_by_reason={accepted_notes_by_reason}"
     return summary
 
 
@@ -188,7 +206,11 @@ def _audit_single_tenant(tenant) -> dict:
         finance_seed_reason: str | None = None
         finance_audit_note: str | None = None
         if should_check_finance_defaults:
-            finance_status = get_finance_defaults_status(tenant_db, force=False)
+            finance_status = get_finance_defaults_status(
+                tenant_db,
+                force=False,
+                tenant_slug=tenant.slug,
+            )
             needs_finance_seed = bool(finance_status["needs_seed"])
             finance_seed_reason = str(finance_status["seed_reason"])
             finance_audit_note = (
@@ -251,8 +273,10 @@ def main() -> int:
         warnings = 0
         failed = 0
         tenants_with_notes = 0
+        accepted_tenants_with_notes = 0
         failed_by_reason: dict[str, int] = {}
         notes_by_reason: dict[str, int] = {}
+        accepted_notes_by_reason: dict[str, int] = {}
 
         for tenant in tenants:
             processed += 1
@@ -280,9 +304,23 @@ def main() -> int:
                 )
             )
             if result["notes"]:
-                tenants_with_notes += 1
+                pending_notes = [
+                    note for note in result["notes"] if not is_accepted_tenant_note(note)
+                ]
+                accepted_notes = [
+                    note for note in result["notes"] if is_accepted_tenant_note(note)
+                ]
+                if pending_notes:
+                    tenants_with_notes += 1
+                if accepted_notes:
+                    accepted_tenants_with_notes += 1
                 for note in result["notes"]:
-                    notes_by_reason[note] = notes_by_reason.get(note, 0) + 1
+                    target = (
+                        accepted_notes_by_reason
+                        if is_accepted_tenant_note(note)
+                        else notes_by_reason
+                    )
+                    target[note] = target.get(note, 0) + 1
                 print(f"{result['tenant_slug']}: notes={result['notes']}")
 
         summary = build_audit_summary(
@@ -292,6 +330,8 @@ def main() -> int:
             failed_by_reason=failed_by_reason,
             tenants_with_notes=tenants_with_notes,
             notes_by_reason=notes_by_reason,
+            accepted_tenants_with_notes=accepted_tenants_with_notes,
+            accepted_notes_by_reason=accepted_notes_by_reason,
         )
         print(summary)
         return 0 if warnings == 0 and failed == 0 else 1

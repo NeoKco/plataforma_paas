@@ -37,22 +37,19 @@
     - `staging` -> `changed=0`, sin `notes`
     - `production` -> `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=1`, `notes_by_reason={'legacy_finance_base_currency:USD': 1}`
 - subcorte adicional ya cerrado en runtime:
-  - `audit_legacy_finance_base_currency.py` ahora no deja a `empresa-bootstrap` en una etiqueta genérica de `manual_migration_review`; también expone `migration_readiness`, deuda por moneda y `operator_inputs`
-  - revalidación real en `staging` y `production` sobre `empresa-bootstrap`:
-    - `status=warning`
-    - `recommendation=manual_migration_review`
-    - `readiness.status=blocked`
-    - `accounts={'USD': 4}`
-    - `loans={'USD': 110}`
-    - `transactions={'USD': 495}`
-    - `exchange_rate_pair_summary={'pair': 'USD<->CLP', 'direct_count': 3, 'reverse_count': 0}`
-  - conclusión cerrada de este subcorte:
-    - no corresponde una auto-migración `USD -> CLP`
-    - el caso queda explícitamente bloqueado hasta definir:
-      - `historical_usd_to_clp_rate_policy`
-      - `migration_effective_at`
-      - `account_currency_policy`
-      - `loan_currency_policy`
+  - `empresa-bootstrap` deja de quedar como decisión abierta de `finance`
+  - la convivencia legacy `USD` queda aceptada explícitamente en repo como `accepted_legacy_coexistence`
+  - validación real en `staging` y `production` sobre `empresa-bootstrap`:
+    - `status=ok`
+    - `recommendation=accepted_legacy_coexistence`
+    - `readiness.status=accepted_legacy`
+    - `audit_note=accepted_legacy_finance_base_currency:USD`
+  - el caso deja de bloquear el roadmap actual
+  - si en el futuro se quisiera migrar igual, seguiría haciendo falta:
+    - `historical_usd_to_clp_rate_policy`
+    - `migration_effective_at`
+    - `account_currency_policy`
+    - `loan_currency_policy`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -96,18 +93,36 @@
     - un cambio visible puede destapar drift tenant-local previo
     - por eso el cierre correcto siguió exigiendo convergencia y auditoría final por ambiente
 - siguiente frente recomendado del roadmap:
-  - hardening transversal de plataforma sobre convergencia post-deploy y observabilidad tenant
+  - hardening transversal final de plataforma y cierre operativo del alcance actual
   - objetivos concretos del siguiente corte:
-    - decidir el tratamiento final de `legacy_finance_base_currency:USD` en `empresa-bootstrap`, que ya quedó aislado como único caso residual real y además como `blocked` para auto-migración
-    - decidir si conviene dejar un flujo guiado explícito para migrar de base legacy `USD` a `CLP` con política formal de revalorización histórica y sin mezclarlo con repairs metadata-only
-    - si no se va a migrar en este ciclo, dejar explícita la convivencia legacy aceptada con señal operativa visible y runbook asociado
+    - endurecer calidad técnica, secretos, auditoría/observabilidad e infraestructura para el cierre real de las etapas 9, 11, 12, 16 y 17
+    - mantener el gate post-deploy separando correctamente:
+      - drift recuperable
+      - `notes` no críticas pendientes
+      - `accepted notes` ya institucionalizadas
+    - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano
       - tenant roto por drift
       - tenant convergido con notas
-    - dejar explícito qué módulos aportan eventos a la nueva `Agenda` general y cómo se habilitan tenant-side sin volver a duplicar navegación por módulo
+      - dejar explícito qué módulos aportan eventos a la nueva `Agenda` general y cómo se habilitan tenant-side sin volver a duplicar navegación por módulo
     - ejecutar ese frente ya usando la nueva spec mínima oficial, el ownership explícito del dato técnico que se toca y el paquete normativo nuevo de ADR/API/schema/env/E2E
+
+## Qué Falta Para Terminar
+
+Queda concentrado en 5 bloques:
+
+1. hardening técnico-operativo final:
+   testing, migraciones, secretos, observabilidad, deploy y rollback más cerrados
+2. frontend fino:
+   labels, UX, catálogos backend más ricos y bordes operativos todavía abiertos
+3. `business-core` de adopción profunda:
+   contratos con módulos, `assets`, importadores y merge profundo de duplicados
+4. registro y activación de módulos:
+   etapa 15 del roadmap, todavía pendiente como bloque formal
+5. expansión de producto:
+   decidir y abrir el siguiente módulo grande después de `finance`
 - mantener como regla ya cerrada del lifecycle tenant:
   - no borrar tenant archivado/unprovisioned sin export portable completado del mismo tenant
   - no tratar `functional_data_only` como restauración `1:1`

@@ -6,6 +6,7 @@ from unittest.mock import Mock
 from app.scripts.audit_active_tenant_convergence import (
     build_audit_summary,
     classify_tenant_operational_error,
+    is_accepted_tenant_note,
 )
 from app.scripts.repair_tenant_operational_drift import (
     should_rotate_db_credentials,
@@ -55,6 +56,52 @@ class TenantOperationalDriftScriptsTestCase(unittest.TestCase):
         self.assertFalse(status["needs_seed"])
         self.assertEqual(status["seed_reason"], "legacy_base_currency_with_usage")
         self.assertEqual(status["audit_note"], "legacy_finance_base_currency:USD")
+
+    def test_get_finance_defaults_status_marks_accepted_legacy_tenant_as_explicit_note(self) -> None:
+        fake_db = Mock()
+
+        def query_side_effect(model):
+            query = Mock()
+            model_name = getattr(model, "__name__", None)
+            if model_name is None:
+                model_name = getattr(getattr(model, "class_", None), "__name__", None)
+
+            if model_name == "FinanceTransaction":
+                query.first.return_value = object()
+                return query
+            if model_name in {"FinanceBudget", "FinanceAccount"}:
+                query.first.return_value = None
+                return query
+            if model_name == "FinanceCategory":
+                query.all.return_value = [
+                    Mock(name="Ingreso General"),
+                    Mock(name="Mantenciones y servicios"),
+                ]
+                query.all.return_value[0].name = "Ingreso General"
+                query.all.return_value[1].name = "Mantenciones y servicios"
+                return query
+            if model_name == "FinanceCurrency":
+                query.filter.return_value.first.return_value = Mock(is_active=True, code="USD")
+                return query
+            if model_name == "FinanceSetting":
+                query.filter.return_value.first.return_value = Mock(setting_value="USD")
+                return query
+            raise AssertionError(model_name)
+
+        fake_db.query.side_effect = query_side_effect
+
+        status = get_finance_defaults_status(
+            fake_db,
+            force=False,
+            tenant_slug="empresa-bootstrap",
+        )
+
+        self.assertFalse(status["needs_seed"])
+        self.assertEqual(status["seed_reason"], "accepted_legacy_base_currency_with_usage")
+        self.assertEqual(
+            status["audit_note"],
+            "accepted_legacy_finance_base_currency:USD",
+        )
 
     def test_get_finance_defaults_status_reports_base_currency_mismatch_with_usage(self) -> None:
         fake_db = Mock()
@@ -133,6 +180,32 @@ class TenantOperationalDriftScriptsTestCase(unittest.TestCase):
         self.assertIn("tenants_with_notes=2", summary)
         self.assertIn("failed_by_reason={'invalid_db_credentials': 1}", summary)
         self.assertIn("notes_by_reason={'missing_core_defaults': 1, 'missing_finance_defaults:usage': 2}", summary)
+
+    def test_build_audit_summary_includes_accepted_notes_breakdown(self) -> None:
+        summary = build_audit_summary(
+            processed=1,
+            warnings=0,
+            failed=0,
+            failed_by_reason={},
+            tenants_with_notes=0,
+            notes_by_reason={},
+            accepted_tenants_with_notes=1,
+            accepted_notes_by_reason={
+                "accepted_legacy_finance_base_currency:USD": 1
+            },
+        )
+
+        self.assertIn("accepted_tenants_with_notes=1", summary)
+        self.assertIn(
+            "accepted_notes_by_reason={'accepted_legacy_finance_base_currency:USD': 1}",
+            summary,
+        )
+
+    def test_is_accepted_tenant_note_recognizes_accepted_legacy_finance(self) -> None:
+        self.assertTrue(
+            is_accepted_tenant_note("accepted_legacy_finance_base_currency:USD")
+        )
+        self.assertFalse(is_accepted_tenant_note("legacy_finance_base_currency:USD"))
 
     def test_classify_invalid_db_credentials_error(self) -> None:
         exc = RuntimeError(

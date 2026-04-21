@@ -41,6 +41,7 @@ Luego valida capa tenant:
 - auditoría crítica por tenant activo
 - clasificación de fallos tenant por causa operativa (`invalid_db_credentials`, `db_unreachable`, `schema_incomplete`, `unknown_error`)
 - resumen explícito de tenants convergidos con notas no críticas (`tenants_with_notes`, `notes_by_reason`)
+- resumen separado de notas operativas aceptadas (`accepted_tenants_with_notes`, `accepted_notes_by_reason`)
 
 ## Uso básico
 
@@ -104,12 +105,20 @@ Además, desde este corte el gate deja dos lecturas operativas separadas:
 
 - `WARNING` con sugerencia de comando cuando detecta drift recuperable por `invalid_db_credentials` o `schema_incomplete`
 - `NOTICE` cuando el ambiente queda sano pero todavía arrastra `notes` no críticas de defaults o convergencia parcial
+- `NOTICE` distinto cuando el ambiente solo arrastra `accepted notes` ya institucionalizadas
 
 Desde este corte, una `note` como `legacy_finance_base_currency:USD` significa algo distinto a un seed faltante:
 
 - el tenant tiene uso financiero y conserva `USD` como base legacy
 - el gate ya no intenta resembrar `finance` inútilmente en cada deploy
 - la decisión pendiente pasa a ser de migración/compatibilidad, no de convergencia básica
+
+Si la `note` pasa a ser `accepted_legacy_finance_base_currency:USD`:
+
+- no tratarla como deuda abierta del deploy
+- significa que el tenant quedó explícitamente aceptado en convivencia legacy
+- el auditor específico debe devolver `recommendation=accepted_legacy_coexistence`
+- la convergencia crítica del ambiente puede seguir considerándose cerrada aunque esa señal siga visible
 
 Si el audit deja `finance_base_currency_mismatch:CLP!=USD`:
 

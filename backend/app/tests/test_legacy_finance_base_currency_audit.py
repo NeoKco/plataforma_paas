@@ -509,6 +509,143 @@ class LegacyFinanceBaseCurrencyAuditTestCase(unittest.TestCase):
         finally:
             db.close()
 
+    def test_assess_reports_accepted_legacy_coexistence_for_explicit_tenant_policy(self) -> None:
+        db = self._db()
+        try:
+            usd = FinanceCurrency(
+                code="USD",
+                name="US Dollar",
+                symbol="$",
+                decimal_places=2,
+                is_base=True,
+                is_active=True,
+                sort_order=10,
+            )
+            clp = FinanceCurrency(
+                code="CLP",
+                name="Peso Chileno",
+                symbol="$",
+                decimal_places=0,
+                is_base=False,
+                is_active=True,
+                sort_order=20,
+            )
+            db.add_all([usd, clp])
+            db.flush()
+            db.add(
+                FinanceSetting(
+                    setting_key="base_currency_code",
+                    setting_value="USD",
+                    is_active=True,
+                )
+            )
+            db.add(
+                FinanceAccount(
+                    name="Caja USD aceptada",
+                    code="CAJA_USD_ACCEPTED",
+                    account_type="cash",
+                    currency_id=usd.id,
+                    opening_balance=0,
+                    is_active=True,
+                    sort_order=10,
+                )
+            )
+            db.add_all(
+                [
+                    FinanceCategory(
+                        name="Ingreso General",
+                        category_type="income",
+                        is_active=True,
+                        sort_order=10,
+                    ),
+                    FinanceCategory(
+                        name="Mantenciones y servicios",
+                        category_type="expense",
+                        is_active=True,
+                        sort_order=20,
+                    ),
+                ]
+            )
+            db.add(
+                FinanceExchangeRate(
+                    source_currency_id=usd.id,
+                    target_currency_id=clp.id,
+                    rate=950,
+                    effective_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+                    source="manual",
+                    note=None,
+                )
+            )
+            db.add(
+                FinanceTransaction(
+                    transaction_type="income",
+                    account_id=None,
+                    target_account_id=None,
+                    category_id=None,
+                    beneficiary_id=None,
+                    person_id=None,
+                    project_id=None,
+                    currency_id=usd.id,
+                    amount=200,
+                    amount_in_base_currency=200,
+                    exchange_rate=1,
+                    description="Ingreso legacy aceptado",
+                    is_reconciled=False,
+                    is_voided=False,
+                )
+            )
+            db.add(
+                FinanceLoan(
+                    name="Prestamo legacy aceptado",
+                    loan_type="receivable",
+                    counterparty_name="Cliente demo",
+                    currency_id=usd.id,
+                    account_id=None,
+                    principal_amount=100,
+                    current_balance=90,
+                    interest_rate=0,
+                    installments_count=2,
+                    payment_frequency="monthly",
+                    start_date=date(2026, 1, 1),
+                    due_date=None,
+                    note=None,
+                    is_active=True,
+                )
+            )
+            db.commit()
+
+            result = assess_legacy_finance_base_currency(
+                db,
+                tenant_slug="empresa-bootstrap",
+            )
+
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["recommendation"], "accepted_legacy_coexistence")
+            self.assertEqual(
+                result["audit_note"],
+                "accepted_legacy_finance_base_currency:USD",
+            )
+            self.assertEqual(result["migration_readiness"]["status"], "accepted_legacy")
+            self.assertEqual(
+                result["migration_readiness"]["accepted_policy"],
+                {
+                    "tenant_slug": "empresa-bootstrap",
+                    "currency_code": "USD",
+                    "policy_code": "accepted_legacy_coexistence",
+                    "reason": "baseline_e2e_tenant",
+                },
+            )
+            self.assertIn(
+                "legacy_base_transactions_require_revaluation",
+                result["migration_readiness"]["blockers"],
+            )
+            self.assertIn(
+                "legacy_base_loans_remain_in_usd",
+                result["migration_readiness"]["blockers"],
+            )
+        finally:
+            db.close()
+
 
 if __name__ == "__main__":
     unittest.main()

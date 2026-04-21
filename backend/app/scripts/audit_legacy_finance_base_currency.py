@@ -22,6 +22,10 @@ from app.apps.tenant_modules.finance.models.settings import FinanceSetting  # no
 from app.apps.tenant_modules.finance.models.transaction import FinanceTransaction  # noqa: E402
 from app.common.db.control_database import ControlSessionLocal  # noqa: E402
 from app.scripts.seed_missing_tenant_defaults import get_finance_defaults_status  # noqa: E402
+from app.scripts.tenant_operational_policies import (  # noqa: E402
+    ACCEPTED_LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX,
+    get_accepted_legacy_finance_currency_policy,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -255,6 +259,7 @@ def _build_migration_readiness(
     base_currency_id: int | None,
     base_currency_code: str | None,
     audit_note: str | None,
+    accepted_legacy_policy: dict[str, str] | None,
     target_currency_id: int | None,
     target_currency_code: str,
     has_usage: bool,
@@ -265,8 +270,14 @@ def _build_migration_readiness(
     legacy_base_transaction_summary: dict,
     exchange_rate_pair_summary: dict,
 ) -> dict:
+    is_accepted_legacy = audit_note == (
+        f"{ACCEPTED_LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX}:USD"
+    )
     if (
-        audit_note != "legacy_finance_base_currency:USD"
+        audit_note not in {
+            "legacy_finance_base_currency:USD",
+            f"{ACCEPTED_LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX}:USD",
+        }
         or base_currency_code != "USD"
         or not has_usage
     ):
@@ -278,6 +289,7 @@ def _build_migration_readiness(
             "legacy_base_account_summary": legacy_base_account_summary,
             "legacy_base_transaction_summary": legacy_base_transaction_summary,
             "exchange_rate_pair_summary": exchange_rate_pair_summary,
+            "accepted_policy": None,
         }
 
     blockers: list[str] = []
@@ -302,7 +314,11 @@ def _build_migration_readiness(
         operator_inputs.append("operator_review")
 
     return {
-        "status": "blocked" if blockers else "guided_candidate",
+        "status": (
+            "accepted_legacy"
+            if is_accepted_legacy
+            else "blocked" if blockers else "guided_candidate"
+        ),
         "target_currency_code": target_currency_code,
         "blockers": blockers,
         "operator_inputs": list(dict.fromkeys(operator_inputs)),
@@ -310,10 +326,15 @@ def _build_migration_readiness(
         "legacy_base_transaction_summary": legacy_base_transaction_summary,
         "exchange_rate_pair_summary": exchange_rate_pair_summary,
         "legacy_base_currency_id": base_currency_id,
+        "accepted_policy": accepted_legacy_policy,
     }
 
 
-def assess_legacy_finance_base_currency(tenant_db) -> dict:
+def assess_legacy_finance_base_currency(
+    tenant_db,
+    *,
+    tenant_slug: str | None = None,
+) -> dict:
     currencies = tenant_db.query(FinanceCurrency).all()
     base_currency = next((item for item in currencies if item.is_base), None)
     currency_by_id = {item.id: item.code.strip().upper() for item in currencies}
@@ -324,7 +345,11 @@ def assess_legacy_finance_base_currency(tenant_db) -> dict:
         .first()
     )
     has_usage = _has_finance_usage(tenant_db)
-    finance_defaults_status = get_finance_defaults_status(tenant_db, force=False)
+    finance_defaults_status = get_finance_defaults_status(
+        tenant_db,
+        force=False,
+        tenant_slug=tenant_slug,
+    )
     audit_note = (
         str(finance_defaults_status["audit_note"])
         if finance_defaults_status["audit_note"] is not None
@@ -335,6 +360,10 @@ def assess_legacy_finance_base_currency(tenant_db) -> dict:
         base_setting.setting_value.strip().upper()
         if base_setting is not None and base_setting.setting_value
         else None
+    )
+    accepted_legacy_policy = get_accepted_legacy_finance_currency_policy(
+        tenant_slug,
+        currency_code=base_currency_code or base_setting_code,
     )
     account_counts = _list_currency_counter(tenant_db, FinanceAccount, "currency_id")
     transaction_counts = _list_currency_counter(tenant_db, FinanceTransaction, "currency_id")
@@ -377,6 +406,14 @@ def assess_legacy_finance_base_currency(tenant_db) -> dict:
         else:
             recommendation = "manual_migration_review"
         status = "warning"
+    elif (
+        audit_note
+        == f"{ACCEPTED_LEGACY_FINANCE_BASE_CURRENCY_NOTE_PREFIX}:USD"
+        and has_usage
+        and base_currency_code == "USD"
+    ):
+        recommendation = "accepted_legacy_coexistence"
+        status = "ok"
     elif audit_note is not None and has_usage and base_currency_code == "USD":
         recommendation = "manual_migration_review"
         status = "warning"
@@ -388,6 +425,7 @@ def assess_legacy_finance_base_currency(tenant_db) -> dict:
         base_currency_id=base_currency.id if base_currency is not None else None,
         base_currency_code=base_currency_code,
         audit_note=audit_note,
+        accepted_legacy_policy=accepted_legacy_policy,
         target_currency_id=target_currency.id if target_currency is not None else None,
         target_currency_code="CLP",
         has_usage=has_usage,
@@ -445,7 +483,10 @@ def main() -> int:
             processed += 1
             tenant_db = _open_tenant_session(tenant)
             try:
-                result = assess_legacy_finance_base_currency(tenant_db)
+                result = assess_legacy_finance_base_currency(
+                    tenant_db,
+                    tenant_slug=tenant.slug,
+                )
             finally:
                 tenant_db.close()
 

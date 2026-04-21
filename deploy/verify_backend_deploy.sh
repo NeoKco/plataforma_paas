@@ -77,6 +77,8 @@ run_active_tenant_audit_step() {
 
     if grep -Eq 'Tenant convergence audit summary: .*tenants_with_notes=[1-9]' "$audit_output_file"; then
         echo "NOTICE: Active-tenant audit finished with non-critical notes; service is healthy but some tenants still need convergence cleanup."
+    elif grep -Eq 'Tenant convergence audit summary: .*accepted_tenants_with_notes=[1-9]' "$audit_output_file"; then
+        echo "NOTICE: Active-tenant audit finished with accepted operational notes; service is healthy and no convergence cleanup is pending for those tenants."
     fi
 
     while IFS= read -r line; do

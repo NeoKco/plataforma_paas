@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy para cerrar el caso `metadata-only` de `finance` y bajar el único tenant legacy real de base `USD` al nivel de evidencia operativa necesario para decidir migración o convivencia
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; ambos ambientes siguen 4/4 limpios en convergencia crítica y `production` queda 4/4 con una sola `note` residual real: `legacy_finance_base_currency:USD` en `empresa-bootstrap`, ahora ya clasificada además como caso `blocked` para auto-migración `USD -> CLP`
+- foco de iteración: hardening transversal de convergencia post-deploy para cerrar el último frente abierto de `finance` y convertir `empresa-bootstrap` en un caso explícito de convivencia legacy aceptada
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, y el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`; ambos ambientes siguen 4/4 limpios en convergencia crítica y el único tenant con señal residual en `finance`, `empresa-bootstrap`, ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -89,6 +89,7 @@
   - el mismo gate ya separa explícitamente:
     - tenant roto por drift recuperable
     - ambiente sano con `notes` de convergencia incompleta no crítica
+    - ambiente sano con `accepted notes` institucionalizadas
   - validación real observada:
     - `staging` dejó `WARNING` + comando sugerido para `condominio-demo`
     - `production` dejó `NOTICE` con `tenants_with_notes=3` y `notes_by_reason`
@@ -110,27 +111,29 @@
     - `migration_readiness` con `blockers` e `operator_inputs` cuando el caso es un legacy `USD` real
     - recomendación `repair_base_currency_setting_only` cuando el mismatch sí es metadata-only
   - [repair_finance_base_currency_mismatch.py](/home/felipe/platform_paas/backend/app/scripts/repair_finance_base_currency_mismatch.py) ya existe como reparación canónica cuando el drift es solo metadata
-  - resultado runtime actualizado:
+  - resultado runtime anterior:
     - `staging`: `condominio-demo` se alinea `USD -> CLP` en `base_currency_code` y queda `processed=4`, `warnings=0`, `failed=0`
     - `production`: `processed=4`, `warnings=0`, `failed=0`, `tenants_with_notes=1`, `notes_by_reason={'legacy_finance_base_currency:USD': 1}`
     - `audit_legacy_finance_base_currency.py --all-active --limit 100` confirma:
       - `condominio-demo` -> `no_action`
       - `empresa-bootstrap` -> `manual_migration_review`
-  - revalidación runtime posterior del único residual:
-    - `staging`: `audit_legacy_finance_base_currency.py --tenant-slug empresa-bootstrap` -> `status=warning`, `recommendation=manual_migration_review`, `readiness.status=blocked`
-    - `production`: mismo resultado operativo
-    - blockers confirmados en ambos ambientes:
-      - `legacy_base_transactions_require_revaluation`
-      - `legacy_base_accounts_remain_in_usd`
-      - `legacy_base_loans_remain_in_usd`
-    - evidencia concreta:
+  - decisión operativa posterior ya cerrada:
+    - se acepta convivencia legacy explícita para `empresa-bootstrap`
+    - [tenant_operational_policies.py](/home/felipe/platform_paas/backend/app/scripts/tenant_operational_policies.py) institucionaliza esa política en repo
+    - [seed_missing_tenant_defaults.py](/home/felipe/platform_paas/backend/app/scripts/seed_missing_tenant_defaults.py) y [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ya no lo señalan como deuda abierta, sino como `accepted_legacy_finance_base_currency:USD`
+    - [audit_legacy_finance_base_currency.py](/home/felipe/platform_paas/backend/app/scripts/audit_legacy_finance_base_currency.py) ahora lo clasifica como:
+      - `status=ok`
+      - `recommendation=accepted_legacy_coexistence`
+      - `readiness.status=accepted_legacy`
+    - evidencia runtime revalidada en `staging` y `production`:
       - `accounts={'USD': 4}`
       - `loans={'USD': 110}`
       - `transactions={'USD': 495}`
       - `exchange_rate_pair_summary={'pair': 'USD<->CLP', 'direct_count': 3, 'reverse_count': 0}`
+      - `accepted_policy={'policy_code': 'accepted_legacy_coexistence', 'reason': 'baseline_e2e_tenant'}`
     - conclusión operativa:
-      - que existan tasas `USD -> CLP` no alcanza para auto-migrar
-      - todavía faltan definición de política de revalorización histórica y criterios por cuentas/préstamos
+      - la auto-migración `USD -> CLP` queda descartada para este ciclo
+      - si más adelante se quiere migrar, seguirá haciendo falta una política formal de revalorización histórica y criterios por cuentas/préstamos
 - resultado del paquete normativo:
   - las decisiones transversales ya no dependen solo de changelog o memoria viva
   - contratos, migraciones, entornos y pruebas quedan normalizados para cualquier continuidad futura
@@ -248,6 +251,8 @@
 - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) resume también:
   - `tenants_with_notes`
   - `notes_by_reason`
+  - `accepted_tenants_with_notes`
+  - `accepted_notes_by_reason`
 - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora clasifica fallos tenant-locales por razón operativa explícita:
   - `invalid_db_credentials`
   - `db_unreachable`
