@@ -6,6 +6,7 @@ Estado actual:
 - `Slice operativo de Duplicados ya visible en UI tenant`
 - `Slice de assets y asset_types implementado`
 - `Importador legacy endurecido para sanear texto visible`
+- `Importador legacy revalidado en runtime sobre empresa-bootstrap`
 
 Prioridad:
 
@@ -201,6 +202,10 @@ Cuando un tenant nuevo nace con `core` habilitado, o cuando un tenant activo gan
 - saneamiento visible reforzado:
   - notas/descripciones importadas ya limpian `legacy_*` antes de persistirse en `business-core` y `maintenance`
   - placeholders heredados visibles no deben quedar como lectura operativa final
+  - la verificación post-import ya quedó alineada con la fuente real `empresa + clientes` para `organizations`
+  - revalidación runtime 2026-04-20:
+    - `staging` apply completa `10` `work_orders/status_logs/visits` históricos faltantes en `empresa-bootstrap`
+    - `production` apply revalida saneamiento visible sobre `empresa-bootstrap` con `matches=true`
 - `dry-run` validado:
   - fuente `kanban_db`
   - tenant destino `empresa-bootstrap`

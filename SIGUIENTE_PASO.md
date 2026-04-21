@@ -9,7 +9,11 @@
   - validación repo:
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_import_ieris_business_core_maintenance -v` -> `5 tests OK`
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_business_core_validation_rules -v` -> `12 tests OK`
-  - el corte quedó cerrado en repo, no promovido a un tenant runtime en este turno
+  - validación runtime:
+    - `staging` dry-run/apply reales sobre `empresa-bootstrap` -> verificación `matches=true`; además completó `10` `work_orders/status_logs/visits` históricos faltantes
+    - `production` dry-run/apply reales sobre `empresa-bootstrap` -> verificación `matches=true` y saneamiento visible aplicado
+  - el verificador ya no queda mal calibrado:
+    - `business_core.organizations` ahora se contrasta contra `empresa + clientes`
 
 - sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; `Agenda` ya quedó promovida como módulo lateral propio del portal tenant, el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, con los cuatro tenants activos auditando en verde en ambos ambientes, y desde ahora la PaaS completa queda gobernada por ownership explícito + spec mínima + cierre `SRED`
 - revalidación tenant más reciente ya cerrada:

@@ -5,13 +5,19 @@
 - se endurece el importador legacy [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py) para sanear mejor texto visible antes de persistirlo:
   - `organizations.notes`, `clients.commercial_notes` y textos visibles importados hacia `maintenance` ya limpian marcadores `legacy_*` antes de guardarse
   - placeholders heredados como `Sin contacto` o teléfonos vacíos ya no deberían quedar como líneas visibles de historial importado
+  - el mismo corte ya puede actualizar también `installations`, `work_orders`, `status_logs` y `visits` legacy existentes cuando su texto visible quedó desalineado
+  - la verificación post-import ahora cuenta `business_core.organizations` contra `empresa + clientes`, alineándose con la fuente real que crea/actualiza organizaciones desde ambos datasets
   - los marcadores internos usados para idempotencia en `installations`, `status_logs` y `visits` se mantienen intactos
   - validación:
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_import_ieris_business_core_maintenance -v` -> `5 tests OK`
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_business_core_validation_rules -v` -> `12 tests OK`
     - `python3 -m py_compile backend/app/scripts/import_ieris_business_core_maintenance.py` -> `OK`
+    - `staging` dry-run real sobre `empresa-bootstrap` -> `organizations processed=209`, `work_orders processed=113`, `matches=true`
+    - `staging` apply real sobre `empresa-bootstrap` -> corrige texto visible y completa `10` `work_orders/status_logs/visits` históricos faltantes
+    - `production` dry-run/apply reales sobre `empresa-bootstrap` -> verificación `matches=true` y saneamiento visible aplicado sin fallar
   - resultado:
     - el importador deja de filtrar bien solo catálogos y pasa también a proteger notas/descripciones visibles del dominio importado
+    - el corte queda validado ya no solo en repo sino también en runtime real por ambiente sobre `empresa-bootstrap`
 
 - `Duplicados` deja de tener auditoría persistente solo para `organizations` y pasa a exponer historial visible reciente de consolidaciones:
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora muestra `Historial reciente de consolidaciones`

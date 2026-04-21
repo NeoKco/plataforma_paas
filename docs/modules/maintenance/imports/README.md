@@ -19,6 +19,7 @@ Comportamiento:
 - no debe copiar ids o trazas legacy a campos visibles para usuario como `reference_notes`
 - para `business_sites`, una corrida posterior tambien puede corregir registros legacy ya importados si detecta que `comuna`, `ciudad` o `region` quedaron mal asignadas
 - tambien sanea placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto`, convirtiendolos en `null` o eliminando contactos falsos si no contienen datos reales
+- en el corte actual tambien puede actualizar filas legacy ya existentes cuando el texto visible quedó contaminado o cuando faltaban `work_orders/status_logs/visits` históricos por reimportar
 
 Precondicion obligatoria:
 
@@ -40,6 +41,10 @@ Validacion ya realizada:
 - `--apply` ejecutado con exito sobre `empresa-demo`
 - segunda corrida en `dry-run` validada como idempotente
 - luego se reaplico `--apply` para corregir direcciones legacy ya existentes y normalizar `commune/city/region` en `empresa-bootstrap`
+- revalidación 2026-04-20 sobre `empresa-bootstrap` en `staging` y `production`:
+  - la verificación post-import ya corre contra la fuente real `empresa + clientes` para `organizations`
+  - el rerun real volvió a sanear texto visible legacy en `business-core` y `maintenance`
+  - `staging` además completó `10` `work_orders/status_logs/visits` históricos faltantes
 
 Comando recomendado de validacion:
 

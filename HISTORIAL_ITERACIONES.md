@@ -17,11 +17,16 @@
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_import_ieris_business_core_maintenance -v` -> `5 tests OK`
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_business_core_validation_rules -v` -> `12 tests OK`
     - `python3 -m py_compile backend/app/scripts/import_ieris_business_core_maintenance.py` -> `OK`
+  - runtime:
+    - `staging` dry-run real sobre `empresa-bootstrap` -> `matches=true`, `organizations processed=209`, `work_orders processed=113`
+    - `staging` apply real sobre `empresa-bootstrap` -> `10` `work_orders/status_logs/visits` históricos completados y saneamiento visible aplicado
+    - `production` dry-run/apply reales sobre `empresa-bootstrap` -> `matches=true` y saneamiento visible aplicado
 - resultado:
   - el importador deja de filtrar bien solo catálogos y pasa también a proteger notas/descripciones visibles del dominio importado
-  - el corte queda cerrado en repo y listo para una siguiente validación runtime sobre un tenant real si se prioriza
+  - el verificador post-import deja de caer por un falso mismatch en `organizations`
+  - el corte queda cerrado también en runtime real sobre `empresa-bootstrap`
 - siguiente paso:
-  - decidir si el siguiente corte de `business-core` es aplicar/revalidar este hardening del importador sobre un tenant runtime o volver a `Duplicados` para merge guiado/documental más profundo
+  - decidir si el siguiente corte de `business-core` vuelve a `Duplicados` para merge guiado/documental más profundo o si conviene profundizar la trazabilidad del propio importador para explicar mejor updates residuales entre corridas
 
 ## 2026-04-20 - `Duplicados` deja historial visible de consolidaciones
 
