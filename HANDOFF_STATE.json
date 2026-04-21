@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T22:50:00-04:00",
+  "updated_at": "2026-04-20T23:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad y secretos: el audit tenant deja snapshot JSON por ambiente y el flujo canónico de drift ya expone secret_posture y bloquea por defecto syncs hacia el .env legacy. El foco correcto ahora es decidir si esto se publica/revalida en runtime real por ambiente o si el siguiente subfrente pasa a infraestructura/deploy",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad y secretos también en runtime real: staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles y el gate ya no confunde accepted_tenants_with_notes con tenants_with_notes. El foco correcto ahora pasa a infraestructura/deploy o a decidir si estas señales suben a la UX de platform_admin",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad",
   "active_modules": [
     "platform-core",
@@ -77,6 +77,10 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "staging redeployado con 528 tests OK y snapshot /opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_202152.json con overall_status=ok",
+    "production redeployado con 528 tests OK y snapshot /opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_202151.json con overall_status=ok_with_accepted_notes",
+    "secret_posture comprobada en runtime real: staging sobre condominio-demo y production sobre empresa-bootstrap",
+    "verify_backend_deploy.sh ya no confunde accepted_tenants_with_notes con tenants_with_notes; production vuelve a emitir el NOTICE correcto para notas aceptadas",
     "TenantSecretService ahora clasifica archivos como runtime_secrets_file, legacy_env_file o custom_secrets_file y construye una secret_posture reutilizable",
     "repair_tenant_operational_drift.py ahora imprime secret_posture antes de operar sobre un tenant",
     "--sync-env-file ya no permite por defecto sincronizar hacia el .env legacy; para ese fallback hace falta --allow-legacy-env-sync",
@@ -275,7 +279,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si el siguiente subcorte concreto dentro del bloque 1 será publicar/revalidar en runtime real las nuevas señales de auditoría/secretos por ambiente o si el foco pasa directo a infraestructura/deploy; además, definir si --sync-env-file sigue manual explícito o pasa a flujo guiado para carriles que comparten rol PostgreSQL",
+  "next_decision_required": "decidir si el siguiente subcorte concreto dentro del bloque 1 pasa a infraestructura/deploy o si primero se suben a platform_admin las nuevas señales de convergencia JSON y secret_posture; además, definir si --sync-env-file sigue manual explícito o pasa a flujo guiado para carriles que comparten rol PostgreSQL",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

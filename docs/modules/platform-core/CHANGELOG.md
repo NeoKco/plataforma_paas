@@ -2,6 +2,21 @@
 
 ## 2026-04-20
 
+- se publican en runtime real los subcortes de `auditoría/observabilidad` y `secretos`:
+  - `staging`:
+    - backend redeployado con `528 tests OK`
+    - snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_202152.json` con `overall_status=ok`
+    - `repair_tenant_operational_drift.py --tenant-slug condominio-demo --audit-only` ya expone `secret_posture` con runtime `/opt/platform_paas_staging/.tenant-secrets.env`
+  - `production`:
+    - backend redeployado con `528 tests OK`
+    - snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_202151.json` con `overall_status=ok_with_accepted_notes`
+    - `repair_tenant_operational_drift.py --tenant-slug empresa-bootstrap --audit-only` ya expone `secret_posture` con runtime `/opt/platform_paas/.tenant-secrets.env`
+  - ajuste fino adicional:
+    - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya no confunde `accepted_tenants_with_notes` con `tenants_with_notes`
+    - el `NOTICE` de `production` vuelve a reflejar correctamente que solo quedan notas aceptadas
+  - resultado:
+    - ambos carriles ya usan la salida JSON nueva y la postura de secretos nueva con evidencia real
+
 - se endurece la sincronización cross-env de secretos tenant:
   - [TenantSecretService](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ahora clasifica archivos de secretos como `runtime_secrets_file`, `legacy_env_file` o `custom_secrets_file` y puede describir su postura de lectura/escritura
   - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ahora imprime `secret_posture ...` antes de operar

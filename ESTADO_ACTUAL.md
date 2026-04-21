@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad` y `secretos`, endureciendo ahora el flujo canónico de sincronización cross-env de credenciales tenant
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya puede guardar un snapshot JSON del estado de convergencia por ambiente y el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad` y `secretos`, y ambas mejoras ya quedaron además publicadas y revalidadas en `staging` y `production`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, y ambas señales ya fueron comprobadas en runtime real
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -40,6 +40,20 @@
   - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya imprime `secret_posture ...` antes de operar, mostrando runtime, legacy y targets extra de sincronización con su estado de lectura/escritura
   - `--sync-env-file` ya no acepta por defecto el `.env` legacy; para ese caso excepcional hace falta `--allow-legacy-env-sync`
   - el camino normal queda explícitamente acotado a `TENANT_SECRETS_FILE` o a archivos de secretos dedicados
+- promoción y revalidación runtime cerradas para estos dos subcortes:
+  - `staging`:
+    - backend redeployado con `528 tests OK`
+    - `audit_active_tenant_convergence.py` ya genera snapshot JSON en `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_202152.json`
+    - el snapshot deja `overall_status=ok`
+    - `repair_tenant_operational_drift.py --tenant-slug condominio-demo --audit-only` ya imprime `secret_posture` apuntando a `/opt/platform_paas_staging/.tenant-secrets.env`
+  - `production`:
+    - backend redeployado con `528 tests OK`
+    - `audit_active_tenant_convergence.py` ya genera snapshot JSON en `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_202151.json`
+    - el snapshot deja `overall_status=ok_with_accepted_notes`
+    - `repair_tenant_operational_drift.py --tenant-slug empresa-bootstrap --audit-only` ya imprime `secret_posture` apuntando a `/opt/platform_paas/.tenant-secrets.env`
+  - corrección adicional cerrada durante la promoción:
+    - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya no confunde `accepted_tenants_with_notes` con `tenants_with_notes`
+    - `production` vuelve a emitir el `NOTICE` correcto de notas aceptadas en vez del notice de cleanup pendiente
 - desde este corte queda explícito que un cambio declarado correcto no se cierra si solo funciona en un tenant o en un ambiente:
   - debe promocionarse al runtime afectado
   - debe converger tenants activos afectados

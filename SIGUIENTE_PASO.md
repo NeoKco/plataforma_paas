@@ -62,6 +62,15 @@
   - [TenantSecretService](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ya clasifica runtime, legacy y custom secret files
   - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya imprime `secret_posture ...` antes de reparar o sincronizar
   - `--sync-env-file` ya no permite por defecto escribir en el `.env` legacy; si ese fallback temporal hiciera falta, debe declararse con `--allow-legacy-env-sync`
+- promoción runtime ya cerrada para ambos subfrentes:
+  - `staging`:
+    - snapshot JSON de convergencia publicado con `overall_status=ok`
+    - `secret_posture` validada sobre `condominio-demo`
+  - `production`:
+    - snapshot JSON de convergencia publicado con `overall_status=ok_with_accepted_notes`
+    - `secret_posture` validada sobre `empresa-bootstrap`
+  - ajuste fino adicional:
+    - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya no mezcla `accepted_tenants_with_notes` con `tenants_with_notes`
 - en `finance`, la semántica de cabecera ya quedó corregida y promovida:
   - `Resultado neto` = `ingresos - egresos`
   - `Saldo total en cuentas` = suma backend de balances visibles por cuenta
@@ -115,7 +124,7 @@
     - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
     - entrar ya al siguiente subfrente concreto del bloque 1 con la documentación estructural reordenada y sin deuda de handoff
     - siguiente subfrente sugerido ahora dentro del mismo bloque 1:
-      - `infraestructura/deploy`, para promover estas lecturas nuevas de `auditoría/observabilidad` y `secretos` en runtime real por ambiente o integrarlas en la UX/admin si hace falta
+      - `infraestructura/deploy`, para consolidar estos artefactos operativos en el carril normal de release y decidir si la señal debe subir también a `platform_admin`
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

@@ -1,5 +1,39 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - Publicación runtime de `auditoría/observabilidad` y `secretos` por ambiente
+
+- objetivo:
+  - promover a `staging` y `production` los nuevos artefactos de convergencia JSON y `secret_posture`
+  - cerrar la validación por ambiente del bloque 1 sin quedarse solo en repo
+- cambios y acciones ejecutadas:
+  - se sincroniza `backend/` hacia:
+    - `/opt/platform_paas_staging/backend`
+    - `/opt/platform_paas/backend`
+  - se redeploya backend en ambos ambientes con sus tests completos y gate post-deploy real
+  - se rerunea la verificación por ambiente con el gate corregido
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se valida además `secret_posture` en runtime con:
+    - `staging`: `repair_tenant_operational_drift.py --tenant-slug condominio-demo --audit-only`
+    - `production`: `repair_tenant_operational_drift.py --tenant-slug empresa-bootstrap --audit-only`
+- validaciones:
+  - `staging`:
+    - backend redeployado con `528 tests OK`
+    - `audit_active_tenant_convergence.py` -> `processed=4, warnings=0, failed=0`
+    - snapshot `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_202152.json` -> `overall_status=ok`
+    - `secret_posture` muestra runtime `/opt/platform_paas_staging/.tenant-secrets.env`
+  - `production`:
+    - backend redeployado con `528 tests OK`
+    - `audit_active_tenant_convergence.py` -> `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - snapshot `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260420_202151.json` -> `overall_status=ok_with_accepted_notes`
+    - `secret_posture` muestra runtime `/opt/platform_paas/.tenant-secrets.env`
+  - corrección adicional validada:
+    - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya no deja el `NOTICE` equivocado cuando solo existen `accepted_tenants_with_notes`
+- resultado:
+  - los subfrentes `auditoría/observabilidad` y `secretos` quedan cerrados también en runtime real
+  - la evidencia operativa por ambiente ya quedó usable en ambos carriles
+- siguiente paso:
+  - mover el bloque 1 a `infraestructura/deploy` o decidir si estas señales deben reflejarse también en la UX de `platform_admin`
+
 ## 2026-04-20 - Guardrails de secretos para sincronización cross-env tenant
 
 - objetivo:
