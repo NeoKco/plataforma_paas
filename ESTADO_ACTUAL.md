@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos`, `infraestructura/deploy` y `calidad técnica + rollback`, y el `base smoke` ya quedó institucionalizado como baseline explícito del release backend por ambiente
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, el rollback ya no asume que `/opt/...` es git sino que opera desde `SOURCE_REPO_ROOT`, y los wrappers `staging`/`production` ya activan por defecto `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` con `REMOTE_BACKEND_SMOKE_TARGET=base`
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos`, `infraestructura/deploy` y `calidad técnica + rollback`, el `base smoke` ya quedó institucionalizado como baseline explícito del release backend por ambiente y ahora también quedó visible en `platform_admin > Tenants` una lectura rápida para distinguir `tenant-local vs ambiente`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant` y además `Contexto de alertas activas`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, el rollback ya no asume que `/opt/...` es git sino que opera desde `SOURCE_REPO_ROOT`, y los wrappers `staging`/`production` ya activan por defecto `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` con `REMOTE_BACKEND_SMOKE_TARGET=base`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -172,6 +172,28 @@
     - `production` publicado con `index-uY7dICy8.js` y `TenantsPage-nIS89c_K.js`
   - el cierre real del rollout obligó además a revalidar convergencia tenant por ambiente
   - esa revalidación detectó de nuevo drift técnico de `condominio-demo` en ambos ambientes y se corrigió con la ruta canónica de rotación + convergencia
+- subcorte adicional ya promovido dentro de `platform_admin > Tenants`:
+  - el workspace del tenant ahora reutiliza `getProvisioningAlerts(...)` para leer alertas activas del ambiente y distinguir rápido si la señal visible es:
+    - `sin alertas activas`
+    - `alerta tenant-local`
+    - `alerta amplia`
+    - `sin alerta directa`
+    - `sin lectura`
+  - el bloque nuevo muestra:
+    - clasificación visible
+    - lectura ambiente
+    - total de alertas activas del ambiente
+    - alertas directas del tenant
+    - última captura
+    - acceso directo a `Provisioning` cuando corresponde
+  - validación en repo:
+    - `npm run build` -> `OK`
+  - promoción frontend efectiva:
+    - `staging` reconstruido con `API_BASE_URL=http://192.168.7.42:8081`, publicado con `TenantsPage-D0v4eAxU.js` e `index-Dy8kF1xF.js`
+    - `production` reconstruido con `API_BASE_URL=https://orkestia.ddns.net`, publicado con `TenantsPage-DOFD3agc.js` e `index-BvEqsJZL.js`
+  - validación runtime:
+    - `staging`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+    - `production`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
 - subcorte de hardening tenant-local ya promovido:
   - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ahora clasifica fallos operativos por razón explícita
   - [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) centraliza `pre_audit + rotate + schema_sync + seed + repair + final_audit`

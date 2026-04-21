@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T20:51:19-04:00",
+  "updated_at": "2026-04-20T21:08:54-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos, infraestructura/deploy y calidad técnica + rollback también en runtime real. staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles, el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate, el rollback ya opera desde SOURCE_REPO_ROOT y el base smoke ya quedó institucionalizado por defecto en los wrappers y en el workflow manual. El foco correcto ahora pasa al siguiente frente del roadmap.",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos, infraestructura/deploy y calidad técnica + rollback también en runtime real. staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles, el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate, el rollback ya opera desde SOURCE_REPO_ROOT y el base smoke ya quedó institucionalizado por defecto en los wrappers y en el workflow manual. Además, platform_admin > Tenants ya muestra contexto de alertas activas para distinguir tenant-local vs ambiente. El foco correcto ahora pasa a frontend fino.",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime, rollback alineado al repo fuente y smoke base embebido por defecto como evidencia repetible",
   "active_modules": [
     "platform-core",
@@ -77,6 +77,10 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "platform_admin > Tenants ahora reutiliza getProvisioningAlerts(...) para mostrar contexto de alertas activas y distinguir tenant-local vs ambiente desde la ficha del tenant",
+    "repo validado con npm run build OK para el nuevo contexto de alertas activas en TenantsPage",
+    "staging frontend reconstruido con API_BASE_URL=http://192.168.7.42:8081, publicado en /opt/platform_paas_staging/frontend/dist y validado con check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias",
+    "production frontend reconstruido con API_BASE_URL=https://orkestia.ddns.net, publicado en /opt/platform_paas/frontend/dist y validado con check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias",
     "deploy_backend_staging.sh y deploy_backend_production.sh ahora activan por defecto RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true, REMOTE_BACKEND_SMOKE_TARGET=base y REMOTE_BACKEND_SMOKE_STRICT=true con base URLs locales del carril",
     ".github/workflows/backend-deploy.yml ahora deja remote_smoke_target=base como default del workflow manual",
     "staging revalidado otra vez sin overrides: bash deploy/deploy_backend_staging.sh -> 528 tests OK, processed=4 warnings=0 failed=0, snapshot /opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260420_204618.json y smoke /opt/platform_paas_staging/operational_evidence/remote_backend_smoke_20260420_204617.json",
@@ -298,7 +302,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir si el siguiente subcorte concreto dentro del bloque 1 pasa a infraestructura/deploy o si primero se suben a platform_admin las nuevas señales de convergencia JSON y secret_posture; además, definir si --sync-env-file sigue manual explícito o pasa a flujo guiado para carriles que comparten rol PostgreSQL",
+  "next_decision_required": "definir el siguiente subcorte de frontend fino en platform_admin, priorizando labels, jerarquía visual y CTA operativas en Tenants y Provisioning; además, decidir si secret_posture o snapshots de convergencia también deben subir a la UI visible o seguir como evidencia/runbook",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

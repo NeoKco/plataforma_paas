@@ -1,5 +1,48 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - `platform_admin > Tenants` distingue `tenant-local vs ambiente` con alertas activas
+
+- objetivo:
+  - subir a la ficha de tenant una lectura visible que ayude a distinguir si el incidente parece local del tenant o parte de una señal más amplia del ambiente
+  - cerrar este subcorte también en `staging` y `production`, no solo en repo
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ahora reutiliza `getProvisioningAlerts(...)` dentro del workspace del tenant
+  - el bloque `Postura operativa tenant` suma `Contexto de alertas activas` con:
+    - clasificación visible
+    - lectura ambiente
+    - total de alertas activas del ambiente
+    - alertas directas del tenant
+    - última captura
+    - CTA a `Provisioning` cuando corresponde
+  - la clasificación operativa nueva distingue:
+    - `sin alertas activas`
+    - `alerta tenant-local`
+    - `alerta amplia`
+    - `sin alerta directa`
+    - `sin lectura`
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se reconstruye frontend por ambiente y se publica sin purgar todos los assets hash previos:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - `API_BASE_URL=http://192.168.7.42:8081 ALLOW_STAGING_API=1 RUN_NPM_INSTALL=false bash deploy/build_frontend.sh` -> `OK`
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles: `TenantsPage-D0v4eAxU.js`, `index-Dy8kF1xF.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - `API_BASE_URL=https://orkestia.ddns.net RUN_NPM_INSTALL=false bash deploy/build_frontend.sh` -> `OK`
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles: `TenantsPage-DOFD3agc.js`, `index-BvEqsJZL.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `platform_admin > Tenants` ya no obliga a saltar a `Provisioning` para la primera pregunta operativa de contexto
+  - el operador puede distinguir antes si el síntoma parece tenant-local o una señal más amplia del ambiente
+- siguiente paso:
+  - pasar a `frontend fino`, priorizando labels, jerarquía visual y CTA operativas en `platform_admin > Tenants` y `Provisioning`
+
 ## 2026-04-20 - Institucionalización final de `base smoke` en el release backend
 
 - objetivo:

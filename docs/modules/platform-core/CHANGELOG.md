@@ -2,6 +2,27 @@
 
 ## 2026-04-20
 
+- `platform_admin > Tenants` ahora suma `Contexto de alertas activas` dentro de la ficha del tenant:
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) reutiliza `getProvisioningAlerts(...)` para clasificar rápidamente si la señal actual parece:
+    - `sin alertas activas`
+    - `alerta tenant-local`
+    - `alerta amplia`
+    - `sin alerta directa`
+    - `sin lectura`
+  - el bloque nuevo muestra:
+    - clasificación visible
+    - lectura ambiente
+    - total de alertas activas del ambiente
+    - alertas directas del tenant
+    - última captura
+    - CTA a `Provisioning` cuando aplica
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` reconstruido con `API_BASE_URL=http://192.168.7.42:8081` y `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+    - `production` reconstruido con `API_BASE_URL=https://orkestia.ddns.net` y `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - resultado:
+    - la primera lectura operativa en `Tenants` ya ayuda a distinguir `tenant-local vs ambiente` sin abrir backend nuevo ni reabrir slices cerrados
+
 - se institucionaliza `base smoke` como baseline explícito del release backend:
   - [deploy_backend_staging.sh](/home/felipe/platform_paas/deploy/deploy_backend_staging.sh) y [deploy_backend_production.sh](/home/felipe/platform_paas/deploy/deploy_backend_production.sh) ahora activan por defecto:
     - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`

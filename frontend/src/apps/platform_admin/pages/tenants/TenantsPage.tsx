@@ -37,6 +37,7 @@ import {
   getPlatformCapabilities,
   getPlatformTenant,
   getPlatformTenantAccessPolicy,
+  getProvisioningAlerts,
   listPlatformTenantDataExportJobs,
   listPlatformTenantDataImportJobs,
   getPlatformTenantRetirementArchive,
@@ -79,6 +80,8 @@ import type {
   PlatformTenantPolicyChangeEvent,
   PlatformTenantSchemaStatusResponse,
   PlatformTenantModuleUsageSummary,
+  ProvisioningOperationalAlert,
+  ProvisioningOperationalAlertsResponse,
 } from "../../../../types";
 import { getCurrentLanguage, getCurrentLocale } from "../../../../utils/i18n";
 
@@ -145,6 +148,19 @@ type TenantOperationalPosture = {
   primaryAction: TenantOperationalAction;
 };
 
+type TenantProvisioningAlertContext = {
+  tone: AppBadgeTone;
+  label: string;
+  scopeLabel: string;
+  quickRead: string;
+  supportingNote: string | null;
+  environmentAlertCount: number | null;
+  tenantAlertCount: number | null;
+  latestCapturedAt: string | null;
+  showProvisioningLink: boolean;
+  provisioningLink: string;
+};
+
 export function TenantsPage() {
   const { session } = useAuth();
   const { language } = useLanguage();
@@ -165,6 +181,8 @@ export function TenantsPage() {
   const [policyHistory, setPolicyHistory] = useState<PlatformTenantPolicyChangeEvent[]>(
     []
   );
+  const [provisioningAlerts, setProvisioningAlerts] =
+    useState<ProvisioningOperationalAlertsResponse | null>(null);
   const [dataExportJobs, setDataExportJobs] = useState<PlatformTenantDataExportJob[]>(
     []
   );
@@ -194,6 +212,9 @@ export function TenantsPage() {
   const [dataExportJobsError, setDataExportJobsError] = useState<ApiError | null>(null);
   const [dataImportJobsError, setDataImportJobsError] = useState<ApiError | null>(null);
   const [provisioningJobError, setProvisioningJobError] = useState<ApiError | null>(null);
+  const [provisioningAlertsError, setProvisioningAlertsError] = useState<ApiError | null>(
+    null
+  );
   const [schemaStatusError, setSchemaStatusError] = useState<ApiError | null>(null);
   const [isListLoading, setIsListLoading] = useState(true);
   const [isRetirementArchivesLoading, setIsRetirementArchivesLoading] = useState(true);
@@ -446,6 +467,17 @@ export function TenantsPage() {
     ]
   );
 
+  const tenantProvisioningAlertContext = useMemo(
+    () =>
+      getTenantProvisioningAlertContext({
+        language,
+        tenantSlug: selectedTenantSummary?.slug || null,
+        provisioningAlerts,
+        provisioningAlertsError,
+      }),
+    [language, provisioningAlerts, provisioningAlertsError, selectedTenantSummary?.slug]
+  );
+
   const latestCompletedExportJob = useMemo(
     () =>
       dataExportJobs.find(
@@ -563,12 +595,14 @@ export function TenantsPage() {
     setDataExportJobsError(null);
     setDataImportJobsError(null);
     setProvisioningJobError(null);
+    setProvisioningAlertsError(null);
     setSchemaStatusError(null);
     setSelectedTenant(null);
     setAccessPolicy(null);
     setModuleUsage(null);
     setSchemaStatus(null);
     setPolicyHistory([]);
+    setProvisioningAlerts(null);
     setDataExportJobs([]);
     setDataImportJobs([]);
     setSelectedProvisioningJob(null);
@@ -714,12 +748,26 @@ export function TenantsPage() {
       setIsDataImportJobsLoading(false);
     }
 
-    try {
-      const provisioningJobs = await listProvisioningJobs(session.accessToken);
-      setSelectedProvisioningJob(selectLatestProvisioningJob(provisioningJobs, tenantId));
-    } catch (rawError) {
+    const [provisioningJobsResult, provisioningAlertsResult] =
+      await Promise.allSettled([
+        listProvisioningJobs(session.accessToken),
+        getProvisioningAlerts(session.accessToken),
+      ]);
+
+    if (provisioningJobsResult.status === "fulfilled") {
+      setSelectedProvisioningJob(
+        selectLatestProvisioningJob(provisioningJobsResult.value, tenantId)
+      );
+    } else {
       setSelectedProvisioningJob(null);
-      setProvisioningJobError(rawError as ApiError);
+      setProvisioningJobError(provisioningJobsResult.reason as ApiError);
+    }
+
+    if (provisioningAlertsResult.status === "fulfilled") {
+      setProvisioningAlerts(provisioningAlertsResult.value);
+    } else {
+      setProvisioningAlerts(null);
+      setProvisioningAlertsError(provisioningAlertsResult.reason as ApiError);
     }
 
     if (tenantDbConfigured) {
@@ -2488,6 +2536,72 @@ export function TenantsPage() {
                       {tenantOperationalPosture.supportingNote}
                     </div>
                   ) : null}
+                  {tenantProvisioningAlertContext ? (
+                    <>
+                      <div className="tenant-inline-note">
+                        <strong>
+                          {language === "es"
+                            ? "Contexto de alertas activas"
+                            : "Active alerts context"}
+                          :
+                        </strong>{" "}
+                        {tenantProvisioningAlertContext.quickRead}
+                      </div>
+                      <div className="tenant-detail-grid">
+                        <DetailField
+                          label={language === "es" ? "Clasificación" : "Classification"}
+                          value={
+                            <AppBadge tone={tenantProvisioningAlertContext.tone}>
+                              {tenantProvisioningAlertContext.label}
+                            </AppBadge>
+                          }
+                        />
+                        <DetailField
+                          label={language === "es" ? "Lectura ambiente" : "Environment read"}
+                          value={tenantProvisioningAlertContext.scopeLabel}
+                        />
+                        <DetailField
+                          label={
+                            language === "es"
+                              ? "Alertas activas ambiente"
+                              : "Environment active alerts"
+                          }
+                          value={
+                            tenantProvisioningAlertContext.environmentAlertCount === null
+                              ? language === "es"
+                                ? "sin lectura"
+                                : "no read"
+                              : String(
+                                  tenantProvisioningAlertContext.environmentAlertCount
+                                )
+                          }
+                        />
+                        <DetailField
+                          label={
+                            language === "es"
+                              ? "Alertas de este tenant"
+                              : "This tenant alerts"
+                          }
+                          value={
+                            tenantProvisioningAlertContext.tenantAlertCount === null
+                              ? language === "es"
+                                ? "sin lectura"
+                                : "no read"
+                              : String(tenantProvisioningAlertContext.tenantAlertCount)
+                          }
+                        />
+                        <DetailField
+                          label={language === "es" ? "Última captura" : "Latest capture"}
+                          value={formatDateTime(tenantProvisioningAlertContext.latestCapturedAt)}
+                        />
+                      </div>
+                      {tenantProvisioningAlertContext.supportingNote ? (
+                        <div className="tenant-inline-note">
+                          {tenantProvisioningAlertContext.supportingNote}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
 
                   <div className="tenant-context-actions tenant-context-actions--compact">
                     <div className="tenant-help-text">
@@ -2563,6 +2677,16 @@ export function TenantsPage() {
                       tenantPortalHref ? (
                         <Link className="btn btn-outline-primary btn-sm" to={tenantPortalHref}>
                           {language === "es" ? "Abrir portal tenant" : "Open tenant portal"}
+                        </Link>
+                      ) : null}
+                      {tenantProvisioningAlertContext?.showProvisioningLink ? (
+                        <Link
+                          className="btn btn-outline-secondary btn-sm"
+                          to={tenantProvisioningAlertContext.provisioningLink}
+                        >
+                          {language === "es"
+                            ? "Ver alertas activas"
+                            : "View active alerts"}
                         </Link>
                       ) : null}
                     </div>
@@ -4687,6 +4811,177 @@ function getTenantOperationalPosture({
     supportingNote: null,
     primaryAction: "open-provisioning",
   };
+}
+
+function getTenantProvisioningAlertContext({
+  language,
+  tenantSlug,
+  provisioningAlerts,
+  provisioningAlertsError,
+}: {
+  language: "es" | "en";
+  tenantSlug: string | null;
+  provisioningAlerts: ProvisioningOperationalAlertsResponse | null;
+  provisioningAlertsError: ApiError | null;
+}): TenantProvisioningAlertContext | null {
+  if (!tenantSlug) {
+    return null;
+  }
+
+  if (provisioningAlertsError) {
+    return {
+      tone: "warning",
+      label: language === "es" ? "sin lectura" : "no read",
+      scopeLabel: language === "es" ? "requiere revisión manual" : "manual review required",
+      quickRead:
+        language === "es"
+          ? "No se pudo leer la señal activa del ambiente; si estás investigando un incidente, abre Provisioning para confirmar si el drift es local o más amplio."
+          : "The active environment signal could not be read; if you are investigating an incident, open Provisioning to confirm whether the drift is local or broader.",
+      supportingNote: getApiErrorDisplayMessage(provisioningAlertsError),
+      environmentAlertCount: null,
+      tenantAlertCount: null,
+      latestCapturedAt: null,
+      showProvisioningLink: true,
+      provisioningLink: "/provisioning",
+    };
+  }
+
+  const alertsRows = provisioningAlerts?.data || [];
+  const tenantAlerts = alertsRows.filter((row) => row.tenant_slug === tenantSlug);
+  const otherTenantAlerts = alertsRows.filter(
+    (row) => row.tenant_slug && row.tenant_slug !== tenantSlug
+  );
+  const sharedAlerts = alertsRows.filter((row) => !row.tenant_slug);
+  const environmentAlertCount = provisioningAlerts?.total_alerts ?? 0;
+  const tenantAlertCount = tenantAlerts.length;
+  const broaderEnvironmentCount = otherTenantAlerts.length + sharedAlerts.length;
+  const latestCapturedAt = getLatestProvisioningAlertCaptureAt(alertsRows);
+  const tone = getProvisioningAlertsTone(
+    tenantAlerts.length > 0 ? tenantAlerts : alertsRows
+  );
+
+  if (environmentAlertCount === 0) {
+    return {
+      tone: "success",
+      label: language === "es" ? "sin alertas activas" : "no active alerts",
+      scopeLabel: language === "es" ? "sin señal amplia visible" : "no visible broad signal",
+      quickRead:
+        language === "es"
+          ? "El ambiente no muestra alertas activas de provisioning; si este tenant igual presenta drift, lo más probable es que sea un caso aislado o fuera de esta señal."
+          : "The environment shows no active provisioning alerts; if this tenant still has drift, it is most likely an isolated case or outside this signal.",
+      supportingNote:
+        language === "es"
+          ? "Usa igual el detalle fino de esquema, provisioning y credenciales si el síntoma sigue presente."
+          : "Still use the detailed schema, provisioning and credentials sections if the symptom remains present.",
+      environmentAlertCount,
+      tenantAlertCount,
+      latestCapturedAt,
+      showProvisioningLink: false,
+      provisioningLink: buildProvisioningWorkspaceLink(tenantSlug, null),
+    };
+  }
+
+  if (tenantAlertCount > 0 && broaderEnvironmentCount === 0) {
+    return {
+      tone,
+      label: language === "es" ? "alerta tenant-local" : "tenant-local alert",
+      scopeLabel: language === "es" ? "centrada en este tenant" : "centered on this tenant",
+      quickRead:
+        language === "es"
+          ? "Las alertas activas visibles apuntan a este tenant y no hay señal equivalente en otros tenants o a nivel compartido."
+          : "The visible active alerts point to this tenant and there is no equivalent signal on other tenants or shared scope.",
+      supportingNote:
+        language === "es"
+          ? `Se detectaron ${tenantAlertCount} alertas activas asociadas a ${tenantSlug}.`
+          : `${tenantAlertCount} active alerts were detected for ${tenantSlug}.`,
+      environmentAlertCount,
+      tenantAlertCount,
+      latestCapturedAt,
+      showProvisioningLink: true,
+      provisioningLink: buildProvisioningWorkspaceLink(tenantSlug, null),
+    };
+  }
+
+  if (tenantAlertCount > 0) {
+    return {
+      tone,
+      label: language === "es" ? "alerta amplia" : "broad alert",
+      scopeLabel:
+        language === "es"
+          ? "tenant afectado dentro de un ambiente con señal"
+          : "affected tenant inside a signaled environment",
+      quickRead:
+        language === "es"
+          ? "Este tenant aparece en alertas activas y, además, el ambiente mantiene señal operativa en otros tenants o a nivel compartido."
+          : "This tenant appears in active alerts and the environment also keeps an operational signal on other tenants or shared scope.",
+      supportingNote:
+        language === "es"
+          ? `${tenantAlertCount} alertas afectan a este tenant y ${broaderEnvironmentCount} señales adicionales siguen activas fuera de él.`
+          : `${tenantAlertCount} alerts affect this tenant and ${broaderEnvironmentCount} additional signals remain active outside it.`,
+      environmentAlertCount,
+      tenantAlertCount,
+      latestCapturedAt,
+      showProvisioningLink: true,
+      provisioningLink: buildProvisioningWorkspaceLink(tenantSlug, null),
+    };
+  }
+
+  return {
+    tone,
+    label: language === "es" ? "sin alerta directa" : "no direct alert",
+    scopeLabel:
+      language === "es"
+        ? "ambiente con señal, tenant sin impacto visible"
+        : "signaled environment, tenant without visible impact",
+    quickRead:
+      language === "es"
+        ? "El ambiente tiene alertas activas, pero este tenant no aparece afectado directamente en la captura actual."
+        : "The environment has active alerts, but this tenant does not appear directly affected in the current capture.",
+    supportingNote:
+      language === "es"
+        ? `${broaderEnvironmentCount} alertas siguen activas fuera de ${tenantSlug}; revisa Provisioning solo si sospechas degradación compartida.`
+        : `${broaderEnvironmentCount} alerts remain active outside ${tenantSlug}; open Provisioning only if you suspect shared degradation.`,
+    environmentAlertCount,
+    tenantAlertCount,
+    latestCapturedAt,
+    showProvisioningLink: true,
+    provisioningLink: "/provisioning",
+  };
+}
+
+function getProvisioningAlertsTone(
+  alertsRows: ProvisioningOperationalAlert[]
+): AppBadgeTone {
+  const severities = alertsRows.map((row) => row.severity.toLowerCase());
+  if (
+    severities.some((severity) =>
+      ["critical", "danger", "error", "high"].includes(severity)
+    )
+  ) {
+    return "danger";
+  }
+  if (severities.some((severity) => ["warning", "warn", "medium"].includes(severity))) {
+    return "warning";
+  }
+  if (alertsRows.length === 0) {
+    return "neutral";
+  }
+  return "info";
+}
+
+function getLatestProvisioningAlertCaptureAt(
+  alertsRows: ProvisioningOperationalAlert[]
+): string | null {
+  let latest: string | null = null;
+  alertsRows.forEach((row) => {
+    if (!row.captured_at) {
+      return;
+    }
+    if (!latest || row.captured_at > latest) {
+      latest = row.captured_at;
+    }
+  });
+  return latest;
 }
 
 function readArchiveObject(

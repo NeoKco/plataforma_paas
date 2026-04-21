@@ -142,6 +142,17 @@
   - el rollout volvió a confirmar la regla transversal del proyecto:
     - un cambio visible puede destapar drift tenant-local previo
     - por eso el cierre correcto siguió exigiendo convergencia y auditoría final por ambiente
+- subcorte adicional ya cerrado en runtime dentro del mismo frente:
+  - `platform_admin > Tenants` ahora también muestra `Contexto de alertas activas`
+  - el operador puede distinguir desde la misma ficha si la señal visible parece:
+    - tenant-local
+    - amplia de ambiente
+    - ambiente con alertas pero sin impacto directo en ese tenant
+    - o sin lectura/sin alertas activas
+  - quedó publicado por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+  - ambos carriles pasaron `check_frontend_static_readiness.sh` con `0 fallos, 0 advertencias`
 - siguiente frente recomendado del roadmap:
   - hardening transversal final de plataforma y cierre operativo del alcance actual
   - objetivos concretos del siguiente corte:
@@ -153,7 +164,8 @@
     - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
     - entrar ya al siguiente subfrente concreto del bloque 1 con la documentación estructural reordenada y sin deuda de handoff
     - siguiente subfrente sugerido ahora dentro del mismo bloque 1:
-      - el baseline backend ya quedó cerrado; el salto útil ahora es `frontend fino` o `observabilidad visible en platform_admin`, no más hardening del carril de release por este frente
+      - el baseline backend ya quedó cerrado y este primer corte de observabilidad visible en `platform_admin` también
+      - el salto útil ahora es `frontend fino`, especialmente labels, jerarquía visual y CTA operativas de `platform_admin > Tenants` y `Provisioning`
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano
