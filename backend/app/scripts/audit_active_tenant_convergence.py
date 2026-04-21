@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import or_
@@ -58,6 +60,24 @@ def is_accepted_tenant_note(note: str) -> bool:
     return prefix in ACCEPTED_NOTE_PREFIXES
 
 
+def determine_overall_status(
+    *,
+    warnings: int,
+    failed: int,
+    tenants_with_notes: int,
+    accepted_tenants_with_notes: int,
+) -> str:
+    if failed:
+        return "failed"
+    if warnings:
+        return "warning"
+    if tenants_with_notes:
+        return "ok_with_notes"
+    if accepted_tenants_with_notes:
+        return "ok_with_accepted_notes"
+    return "ok"
+
+
 def build_audit_summary(
     *,
     processed: int,
@@ -88,6 +108,48 @@ def build_audit_summary(
     if accepted_notes_by_reason:
         summary += f", accepted_notes_by_reason={accepted_notes_by_reason}"
     return summary
+
+
+def build_audit_payload(
+    *,
+    processed: int,
+    warnings: int,
+    failed: int,
+    failed_by_reason: dict[str, int],
+    tenants_with_notes: int,
+    notes_by_reason: dict[str, int],
+    accepted_tenants_with_notes: int = 0,
+    accepted_notes_by_reason: dict[str, int] | None = None,
+    tenant_results: list[dict] | None = None,
+    target: str,
+    limit: int | None,
+    include_archived: bool,
+) -> dict:
+    accepted_notes_by_reason = accepted_notes_by_reason or {}
+    tenant_results = tenant_results or []
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "target": target,
+        "limit": limit,
+        "include_archived": include_archived,
+        "overall_status": determine_overall_status(
+            warnings=warnings,
+            failed=failed,
+            tenants_with_notes=tenants_with_notes,
+            accepted_tenants_with_notes=accepted_tenants_with_notes,
+        ),
+        "summary": {
+            "processed": processed,
+            "warnings": warnings,
+            "failed": failed,
+            "tenants_with_notes": tenants_with_notes,
+            "accepted_tenants_with_notes": accepted_tenants_with_notes,
+            "failed_by_reason": dict(sorted(failed_by_reason.items())),
+            "notes_by_reason": dict(sorted(notes_by_reason.items())),
+            "accepted_notes_by_reason": dict(sorted(accepted_notes_by_reason.items())),
+        },
+        "tenant_results": tenant_results,
+    }
 
 
 def classify_tenant_operational_error(exc: Exception) -> str:
@@ -144,6 +206,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--include-archived",
         action="store_true",
         help="Incluye tenants archivados si se usa --all-active",
+    )
+    parser.add_argument(
+        "--format",
+        choices=("text", "json"),
+        default="text",
+        help="Formato principal de salida",
+    )
+    parser.add_argument(
+        "--json-output-file",
+        help="Ruta opcional para guardar un snapshot JSON sin cambiar la salida principal",
     )
     return parser
 
@@ -277,6 +349,7 @@ def main() -> int:
         failed_by_reason: dict[str, int] = {}
         notes_by_reason: dict[str, int] = {}
         accepted_notes_by_reason: dict[str, int] = {}
+        tenant_results: list[dict] = []
 
         for tenant in tenants:
             processed += 1
@@ -288,21 +361,31 @@ def main() -> int:
                 failed_by_reason[failure_reason] = (
                     failed_by_reason.get(failure_reason, 0) + 1
                 )
-                print(f"{tenant.slug}: failed reason={failure_reason} detail=({exc})")
+                failure_result = {
+                    "tenant_slug": tenant.slug,
+                    "status": "failed",
+                    "failure_reason": failure_reason,
+                    "failure_detail": str(exc),
+                }
+                tenant_results.append(failure_result)
+                if args.format == "text":
+                    print(f"{tenant.slug}: failed reason={failure_reason} detail=({exc})")
                 continue
 
             if result["status"] != "ok":
                 warnings += 1
+            tenant_results.append(result)
 
-            print(
-                "{slug}: status={status} policy={policy} issues={issues} unsynced_ids={ids}".format(
-                    slug=result["tenant_slug"],
-                    status=result["status"],
-                    policy=result["policy"]["maintenance_finance_sync_mode"],
-                    issues=result["critical_issues"] or ["none"],
-                    ids=result["unsynced_work_order_ids"],
+            if args.format == "text":
+                print(
+                    "{slug}: status={status} policy={policy} issues={issues} unsynced_ids={ids}".format(
+                        slug=result["tenant_slug"],
+                        status=result["status"],
+                        policy=result["policy"]["maintenance_finance_sync_mode"],
+                        issues=result["critical_issues"] or ["none"],
+                        ids=result["unsynced_work_order_ids"],
+                    )
                 )
-            )
             if result["notes"]:
                 pending_notes = [
                     note for note in result["notes"] if not is_accepted_tenant_note(note)
@@ -321,7 +404,8 @@ def main() -> int:
                         else notes_by_reason
                     )
                     target[note] = target.get(note, 0) + 1
-                print(f"{result['tenant_slug']}: notes={result['notes']}")
+                if args.format == "text":
+                    print(f"{result['tenant_slug']}: notes={result['notes']}")
 
         summary = build_audit_summary(
             processed=processed,
@@ -333,7 +417,33 @@ def main() -> int:
             accepted_tenants_with_notes=accepted_tenants_with_notes,
             accepted_notes_by_reason=accepted_notes_by_reason,
         )
-        print(summary)
+        payload = build_audit_payload(
+            processed=processed,
+            warnings=warnings,
+            failed=failed,
+            failed_by_reason=failed_by_reason,
+            tenants_with_notes=tenants_with_notes,
+            notes_by_reason=notes_by_reason,
+            accepted_tenants_with_notes=accepted_tenants_with_notes,
+            accepted_notes_by_reason=accepted_notes_by_reason,
+            tenant_results=tenant_results,
+            target=args.tenant_slug or "all-active",
+            limit=args.limit if args.all_active else None,
+            include_archived=bool(args.include_archived),
+        )
+
+        if args.json_output_file:
+            output_path = Path(args.json_output_file)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(
+                json.dumps(payload, indent=2, ensure_ascii=True) + "\n",
+                encoding="utf-8",
+            )
+
+        if args.format == "json":
+            print(json.dumps(payload, indent=2, ensure_ascii=True))
+        else:
+            print(summary)
         return 0 if warnings == 0 and failed == 0 else 1
     finally:
         control_db.close()

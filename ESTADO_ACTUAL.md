@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; antes de seguir con el siguiente subfrente del bloque 1 se realineó además la documentación estructural y de handoff para que el repo vuelva a describir correctamente el código y la PaaS actual
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`)
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad` con snapshot JSON reutilizable del audit tenant por ambiente
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`) y el gate post-deploy ya puede guardar un snapshot JSON del estado de convergencia por ambiente
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -30,6 +30,11 @@
   - [project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md) vuelve a reflejar `business_core`, `maintenance`, scripts reales de `deploy` y baseline actual de `scripts/dev`
   - [docs/index.md](/home/felipe/platform_paas/docs/index.md), [README.md](/home/felipe/platform_paas/README.md) y [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md) ya priorizan también [PROMPT_MAESTRO_SESION.md](/home/felipe/platform_paas/PROMPT_MAESTRO_SESION.md) como arranque canónico multi-sesión
   - `estructura_proyecto.txt` queda tratado como snapshot auxiliar y no como fuente canónica cuando diverge del árbol real
+- desde este corte, la auditoría activa de convergencia tenant también deja salida estructurada por ambiente:
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ya soporta `--format json` y `--json-output-file`
+  - el payload incluye `overall_status`, resumen agregado del ambiente, `failed_by_reason`, `notes_by_reason`, `accepted_notes_by_reason` y detalle por tenant
+  - [verify_backend_deploy.sh](/home/felipe/platform_paas/deploy/verify_backend_deploy.sh) ya publica ese snapshot en `operational_evidence/active_tenant_convergence_<timestamp>.json`
+  - [collect_backend_operational_evidence.sh](/home/felipe/platform_paas/deploy/collect_backend_operational_evidence.sh) ya incrusta el snapshot más reciente dentro del paquete de evidencia cuando existe
 - desde este corte queda explícito que un cambio declarado correcto no se cierra si solo funciona en un tenant o en un ambiente:
   - debe promocionarse al runtime afectado
   - debe converger tenants activos afectados

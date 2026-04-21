@@ -39,6 +39,7 @@ Luego valida capa tenant:
 - seed de defaults faltantes (`core`/`finance`) cuando corresponde
 - reparación `maintenance -> finance` para OT cerradas sin movimientos
 - auditoría crítica por tenant activo
+- snapshot JSON reutilizable del estado del ambiente y de cada tenant auditado
 - clasificación de fallos tenant por causa operativa (`invalid_db_credentials`, `db_unreachable`, `schema_incomplete`, `unknown_error`)
 - resumen explícito de tenants convergidos con notas no críticas (`tenants_with_notes`, `notes_by_reason`)
 - resumen separado de notas operativas aceptadas (`accepted_tenants_with_notes`, `accepted_notes_by_reason`)
@@ -63,6 +64,7 @@ Variables útiles:
 - `BACKEND_POST_DEPLOY_REPAIR_MAINTENANCE_FINANCE`
 - `BACKEND_POST_DEPLOY_AUDIT_ACTIVE_TENANTS`
 - `BACKEND_POST_DEPLOY_CONVERGENCE_STRICT`
+- `BACKEND_POST_DEPLOY_AUDIT_OUTPUT_DIR`
 
 Ejemplo para `staging`:
 
@@ -106,6 +108,19 @@ Además, desde este corte el gate deja dos lecturas operativas separadas:
 - `WARNING` con sugerencia de comando cuando detecta drift recuperable por `invalid_db_credentials` o `schema_incomplete`
 - `NOTICE` cuando el ambiente queda sano pero todavía arrastra `notes` no críticas de defaults o convergencia parcial
 - `NOTICE` distinto cuando el ambiente solo arrastra `accepted notes` ya institucionalizadas
+
+Y además deja un snapshot JSON en:
+
+- `${BACKEND_POST_DEPLOY_AUDIT_OUTPUT_DIR:-$PROJECT_ROOT/operational_evidence}/active_tenant_convergence_<timestamp>.json`
+
+Ese snapshot incluye:
+
+- `overall_status`
+- resumen agregado del ambiente
+- `failed_by_reason`
+- `notes_by_reason`
+- `accepted_notes_by_reason`
+- detalle por tenant auditado
 
 Desde este corte, una `note` como `legacy_finance_base_currency:USD` significa algo distinto a un seed faltante:
 
@@ -213,6 +228,7 @@ El gate deja evidencia con:
 - `journalctl` reciente
 - respuesta del `healthcheck`
 - resultado de los pasos de convergencia
+- snapshot JSON de `audit_active_tenant_convergence.py` cuando se ejecuta la auditoría activa
 
 Ubicación típica:
 

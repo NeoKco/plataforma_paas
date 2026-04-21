@@ -174,6 +174,43 @@ El detalle por `error_code` permite ver que causa estable de fallo domina por te
 La exportacion de alertas permite detectar desde fuera del backend si ya existe degradacion operativa relevante sin tener que consultar la API.
 El bloque de billing permite ver volumen de sync por proveedor y si ya se acumulan `duplicate` o `ignored` por encima de lo esperado.
 
+## 6.1 Snapshot JSON de convergencia tenant por ambiente
+
+Ademas del texto de consola del gate post-deploy, la auditoría activa tenant ya puede dejar un snapshot JSON reutilizable.
+
+Objetivo:
+
+- comparar rapido `staging` y `production`
+- guardar evidencia de ambiente sin parsear logs
+- consumir el estado del audit desde scripts, soporte o inspección manual
+
+Componente:
+
+- `backend/app/scripts/audit_active_tenant_convergence.py`
+
+Salidas nuevas:
+
+- `--format json`
+- `--json-output-file /ruta/al/snapshot.json`
+
+Campos relevantes del snapshot:
+
+- `generated_at`
+- `target`
+- `overall_status`
+- `summary.processed`
+- `summary.warnings`
+- `summary.failed`
+- `summary.failed_by_reason`
+- `summary.notes_by_reason`
+- `summary.accepted_notes_by_reason`
+- `tenant_results`
+
+Integración operativa:
+
+- `deploy/verify_backend_deploy.sh` ya guarda automáticamente ese snapshot bajo `operational_evidence/`
+- `deploy/collect_backend_operational_evidence.sh` ya embebe el snapshot más reciente dentro del paquete de evidencia cuando existe
+
 ## 7. Persistencia de trazas del ciclo del worker
 
 Ademas de los snapshots por tenant, hoy existe una persistencia resumida del ciclo completo del worker.

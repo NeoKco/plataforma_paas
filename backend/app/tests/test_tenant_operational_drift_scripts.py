@@ -4,8 +4,10 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from app.scripts.audit_active_tenant_convergence import (
+    build_audit_payload,
     build_audit_summary,
     classify_tenant_operational_error,
+    determine_overall_status,
     is_accepted_tenant_note,
 )
 from app.scripts.repair_tenant_operational_drift import (
@@ -206,6 +208,69 @@ class TenantOperationalDriftScriptsTestCase(unittest.TestCase):
             is_accepted_tenant_note("accepted_legacy_finance_base_currency:USD")
         )
         self.assertFalse(is_accepted_tenant_note("legacy_finance_base_currency:USD"))
+
+    def test_determine_overall_status_prefers_failed_over_other_signals(self) -> None:
+        self.assertEqual(
+            determine_overall_status(
+                warnings=1,
+                failed=1,
+                tenants_with_notes=3,
+                accepted_tenants_with_notes=2,
+            ),
+            "failed",
+        )
+
+    def test_determine_overall_status_distinguishes_notes_and_accepted_notes(self) -> None:
+        self.assertEqual(
+            determine_overall_status(
+                warnings=0,
+                failed=0,
+                tenants_with_notes=2,
+                accepted_tenants_with_notes=1,
+            ),
+            "ok_with_notes",
+        )
+        self.assertEqual(
+            determine_overall_status(
+                warnings=0,
+                failed=0,
+                tenants_with_notes=0,
+                accepted_tenants_with_notes=1,
+            ),
+            "ok_with_accepted_notes",
+        )
+
+    def test_build_audit_payload_includes_summary_and_results(self) -> None:
+        payload = build_audit_payload(
+            processed=2,
+            warnings=0,
+            failed=0,
+            failed_by_reason={},
+            tenants_with_notes=0,
+            notes_by_reason={},
+            accepted_tenants_with_notes=1,
+            accepted_notes_by_reason={
+                "accepted_legacy_finance_base_currency:USD": 1,
+            },
+            tenant_results=[
+                {
+                    "tenant_slug": "empresa-bootstrap",
+                    "status": "ok",
+                    "notes": ["accepted_legacy_finance_base_currency:USD"],
+                }
+            ],
+            target="all-active",
+            limit=100,
+            include_archived=False,
+        )
+
+        self.assertEqual(payload["overall_status"], "ok_with_accepted_notes")
+        self.assertEqual(payload["summary"]["processed"], 2)
+        self.assertEqual(payload["summary"]["accepted_tenants_with_notes"], 1)
+        self.assertEqual(payload["target"], "all-active")
+        self.assertEqual(payload["limit"], 100)
+        self.assertEqual(payload["tenant_results"][0]["tenant_slug"], "empresa-bootstrap")
+        self.assertIn("generated_at", payload)
 
     def test_classify_invalid_db_credentials_error(self) -> None:
         exc = RuntimeError(

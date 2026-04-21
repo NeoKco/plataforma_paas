@@ -47,4 +47,13 @@ append_command_output "Service Status" systemctl status "$SERVICE_NAME" --no-pag
 append_command_output "Recent Service Logs" journalctl -u "$SERVICE_NAME" -n 100 --no-pager
 append_command_output "Healthcheck Response" curl --include --silent --show-error "$HEALTHCHECK_URL"
 
+latest_audit_snapshot="$(ls -1t "$OUTPUT_DIR"/active_tenant_convergence_*.json 2>/dev/null | head -n 1 || true)"
+if [ -n "$latest_audit_snapshot" ] && [ -f "$latest_audit_snapshot" ]; then
+    append_section "Active Tenant Convergence JSON Snapshot"
+    {
+        echo "File: $latest_audit_snapshot"
+        cat "$latest_audit_snapshot"
+    } >> "$OUTPUT_FILE"
+fi
+
 echo "Operational evidence saved to: $OUTPUT_FILE"

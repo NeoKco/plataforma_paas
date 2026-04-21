@@ -55,11 +55,17 @@ Objetivo:
 - evitar atribuir el problema al tenant equivocado
 - clasificar rápido la causa operativa cuando un tenant falla
 - distinguir aparte si el ambiente quedó sano pero todavía arrastra `notes` no críticas
+- permitir guardar o compartir el estado del ambiente en JSON cuando haga falta comparar carriles o dejar evidencia
 - causas clasificadas hoy:
   - `invalid_db_credentials`
   - `db_unreachable`
   - `schema_incomplete`
   - `unknown_error`
+
+Salidas útiles:
+
+- texto por consola para diagnóstico rápido
+- `--format json` o `--json-output-file` cuando se necesita snapshot estructurado por ambiente
 
 ## Paso 4. Diferenciar causa tenant-local
 

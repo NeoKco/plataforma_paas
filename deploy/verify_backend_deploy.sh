@@ -14,6 +14,7 @@ BACKEND_POST_DEPLOY_SEED_DEFAULTS="${BACKEND_POST_DEPLOY_SEED_DEFAULTS:-true}"
 BACKEND_POST_DEPLOY_REPAIR_MAINTENANCE_FINANCE="${BACKEND_POST_DEPLOY_REPAIR_MAINTENANCE_FINANCE:-true}"
 BACKEND_POST_DEPLOY_AUDIT_ACTIVE_TENANTS="${BACKEND_POST_DEPLOY_AUDIT_ACTIVE_TENANTS:-true}"
 BACKEND_POST_DEPLOY_CONVERGENCE_STRICT="${BACKEND_POST_DEPLOY_CONVERGENCE_STRICT:-false}"
+BACKEND_POST_DEPLOY_AUDIT_OUTPUT_DIR="${BACKEND_POST_DEPLOY_AUDIT_OUTPUT_DIR:-$PROJECT_ROOT/operational_evidence}"
 SYNC_SCRIPT="$PROJECT_ROOT/backend/app/scripts/sync_active_tenant_schemas.py"
 SEED_DEFAULTS_SCRIPT="$PROJECT_ROOT/backend/app/scripts/seed_missing_tenant_defaults.py"
 REPAIR_MAINTENANCE_FINANCE_SCRIPT="$PROJECT_ROOT/backend/app/scripts/repair_maintenance_finance_sync.py"
@@ -65,15 +66,20 @@ print_tenant_repair_hint() {
 run_active_tenant_audit_step() {
     local audit_output_file
     local audit_exit_code=0
+    local audit_json_file=""
     audit_output_file="$(mktemp)"
+    mkdir -p "$BACKEND_POST_DEPLOY_AUDIT_OUTPUT_DIR"
+    audit_json_file="$BACKEND_POST_DEPLOY_AUDIT_OUTPUT_DIR/active_tenant_convergence_$(date +%Y%m%d_%H%M%S).json"
 
     set +e
     "$VENV_PYTHON" "$AUDIT_ACTIVE_TENANTS_SCRIPT" --all-active --limit "$BACKEND_AUTO_SYNC_LIMIT" \
+        --json-output-file "$audit_json_file" \
         >"$audit_output_file" 2>&1
     audit_exit_code=$?
     set -e
 
     cat "$audit_output_file"
+    echo "Active-tenant audit JSON snapshot: $audit_json_file"
 
     if grep -Eq 'Tenant convergence audit summary: .*tenants_with_notes=[1-9]' "$audit_output_file"; then
         echo "NOTICE: Active-tenant audit finished with non-critical notes; service is healthy but some tenants still need convergence cleanup."
