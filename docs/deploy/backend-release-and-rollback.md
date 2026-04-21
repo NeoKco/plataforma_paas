@@ -184,7 +184,7 @@ Variables útiles:
 
 - `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true`
 - `REMOTE_BACKEND_SMOKE_BASE_URL=https://orkestia.ddns.net`
-- `REMOTE_BACKEND_SMOKE_TARGET=all`
+- `REMOTE_BACKEND_SMOKE_TARGET=base`
 - `REMOTE_BACKEND_SMOKE_STRICT=true`
 - `REMOTE_BACKEND_SMOKE_REPORT_PATH=/opt/platform_paas/operational_evidence/remote_backend_smoke_<timestamp>.json`
 

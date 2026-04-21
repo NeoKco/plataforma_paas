@@ -133,6 +133,15 @@ Smoke técnico adicional ya disponible para la URL pública:
 ```bash
 cd /opt/platform_paas
 SMOKE_BASE_URL=https://orkestia.ddns.net \
+SMOKE_TARGET=base \
+python deploy/run_remote_backend_smoke.py
+```
+
+Smoke autenticado adicional, solo cuando haga falta validar login real de plataforma o tenant:
+
+```bash
+cd /opt/platform_paas
+SMOKE_BASE_URL=https://orkestia.ddns.net \
 SMOKE_PLATFORM_EMAIL=admin@platform.local \
 SMOKE_PLATFORM_PASSWORD='***' \
 SMOKE_TENANT_SLUG=empresa-bootstrap \
@@ -141,9 +150,9 @@ SMOKE_TENANT_PASSWORD='***' \
 bash scripts/dev/run_remote_backend_smoke.sh --target all
 ```
 
-Evidencia validada en esta salida:
+Evidencia runtime más reciente del baseline técnico institucionalizado:
 
-- `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260407_final.json`
+- `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260420_204638.json`
 
 ## 7. Si algo falla
 

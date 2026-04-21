@@ -91,7 +91,7 @@ Si además quieres exigir smoke funcional corto contra la URL publicada:
 PROJECT_ROOT=/opt/platform_paas \
 RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true \
 REMOTE_BACKEND_SMOKE_BASE_URL=https://orkestia.ddns.net \
-REMOTE_BACKEND_SMOKE_TARGET=all \
+REMOTE_BACKEND_SMOKE_TARGET=base \
 REMOTE_BACKEND_SMOKE_STRICT=true \
 bash deploy/run_backend_post_deploy_gate.sh
 ```

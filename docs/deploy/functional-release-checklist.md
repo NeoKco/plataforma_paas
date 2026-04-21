@@ -9,6 +9,7 @@ Este checklist complementa el release tecnico. La idea es validar que la app sig
 - cambios de contratos revisados en `docs/api/index.md`
 - si frontend consume el cambio, contratos revisados en `docs/api/frontend-contract-stability.md`
 - variables de entorno nuevas documentadas en `docs/runbooks/backend-env-catalog.md`
+- si el release usa los wrappers backend por ambiente, asumir que el baseline técnico ya corre además `base smoke` dentro del gate post-deploy
 
 ## Validaciones Funcionales Minimas
 

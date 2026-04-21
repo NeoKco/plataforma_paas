@@ -11,7 +11,7 @@ Esta seccion agrupa guias de despliegue y operacion del proyecto.
 - [Backend HTTPS con Nginx](./backend-https-nginx.md): terminacion TLS base con redirect a `443` y headers de seguridad.
 - [Checklist de Aceptacion Operativa](./operational-acceptance-checklist.md): criterio minimo para aceptar deploys y restore drills.
 - [Checklist de Release Funcional](./functional-release-checklist.md): validaciones funcionales para considerar la app usable despues de un release.
-- [Verificacion Post-Deploy Backend](./backend-post-deploy-verification.md): checks minimos despues de un release.
+- [Verificacion Post-Deploy Backend](./backend-post-deploy-verification.md): checks minimos despues de un release, incluyendo convergencia tenant y `base smoke` del carril.
 - [Backend Release y Rollback](./backend-release-and-rollback.md): base de deploy manual desde repo y rollback por ref git.
 - [Estrategia de Entornos](./environment-strategy.md): separacion base entre `development`, `staging` y `production`.
 - [Staging Single-Host](./staging-single-host.md): referencia del entorno de pruebas montado en el mini PC con backend `8200` y frontend `8081`.
