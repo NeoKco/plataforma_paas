@@ -5,6 +5,7 @@ Estado actual:
 - `Wave 2 operativa para taxonomias compartidas`
 - `Slice operativo de Duplicados ya visible en UI tenant`
 - `Slice de assets y asset_types implementado`
+- `Importador legacy endurecido para sanear texto visible`
 
 Prioridad:
 
@@ -197,6 +198,9 @@ Cuando un tenant nuevo nace con `core` habilitado, o cuando un tenant activo gan
   - `function_profiles`
   - `work_groups`
   - `task_types`
+- saneamiento visible reforzado:
+  - notas/descripciones importadas ya limpian `legacy_*` antes de persistirse en `business-core` y `maintenance`
+  - placeholders heredados visibles no deben quedar como lectura operativa final
 - `dry-run` validado:
   - fuente `kanban_db`
   - tenant destino `empresa-bootstrap`

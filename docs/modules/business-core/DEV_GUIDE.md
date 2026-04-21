@@ -397,6 +397,7 @@ Estado real:
 - la lectura principal del usuario ya no debe apoyarse en catalogos planos de `contacts` o `sites`
 - el patron recomendado pasa a ser: tabla de clientes -> ficha del cliente -> salto contextual a `maintenance`
 - ya existe un importador inicial desde `ieris_app` hacia `business-core` y `maintenance`
+- ese importador ya sanea tambien notas/descripciones visibles del dominio antes de persistirlas, sin tocar los marcadores internos que usa para idempotencia
 
 ## Importacion legacy
 
@@ -413,6 +414,11 @@ Cobertura actual:
 - `business_function_profiles`
 - `business_work_groups`
 - `business_task_types`
+
+Regla vigente del corte actual:
+
+- el importador puede seguir escribiendo marcadores internos en campos tecnicos cuando son la clave de reimportacion/idempotencia
+- pero cualquier texto visible del negocio que llegue desde `ieris_app` debe pasar por saneamiento de `legacy_*` y placeholders antes de guardarse
 
 Pendiente aun en business-core:
 

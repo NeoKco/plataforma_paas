@@ -2,6 +2,17 @@
 
 ## 2026-04-20
 
+- se endurece el importador legacy [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py) para sanear mejor texto visible antes de persistirlo:
+  - `organizations.notes`, `clients.commercial_notes` y textos visibles importados hacia `maintenance` ya limpian marcadores `legacy_*` antes de guardarse
+  - placeholders heredados como `Sin contacto` o teléfonos vacíos ya no deberían quedar como líneas visibles de historial importado
+  - los marcadores internos usados para idempotencia en `installations`, `status_logs` y `visits` se mantienen intactos
+  - validación:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_import_ieris_business_core_maintenance -v` -> `5 tests OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_business_core_validation_rules -v` -> `12 tests OK`
+    - `python3 -m py_compile backend/app/scripts/import_ieris_business_core_maintenance.py` -> `OK`
+  - resultado:
+    - el importador deja de filtrar bien solo catálogos y pasa también a proteger notas/descripciones visibles del dominio importado
+
 - `Duplicados` deja de tener auditoría persistente solo para `organizations` y pasa a exponer historial visible reciente de consolidaciones:
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora muestra `Historial reciente de consolidaciones`
   - el historial reutiliza `business_core_merge_audits` para dejar evidencia operativa legible del merge aplicado, no solo escritura ciega de backend

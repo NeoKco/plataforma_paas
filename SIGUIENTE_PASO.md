@@ -2,6 +2,15 @@
 
 ## Prioridad vigente
 
+- subcorte nuevo ya cerrado en repo dentro de `business-core`:
+  - [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py) ya sanea mejor texto visible antes de persistirlo
+  - notas/descripciones visibles importadas ya limpian marcadores `legacy_*` y placeholders heredados
+  - los marcadores técnicos usados para idempotencia siguen intactos
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_import_ieris_business_core_maintenance -v` -> `5 tests OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_business_core_validation_rules -v` -> `12 tests OK`
+  - el corte quedó cerrado en repo, no promovido a un tenant runtime en este turno
+
 - sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; `Agenda` ya quedó promovida como módulo lateral propio del portal tenant, el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, con los cuatro tenants activos auditando en verde en ambos ambientes, y desde ahora la PaaS completa queda gobernada por ownership explícito + spec mínima + cierre `SRED`
 - revalidación tenant más reciente ya cerrada:
   - `staging` se mantuvo sano `4/4`

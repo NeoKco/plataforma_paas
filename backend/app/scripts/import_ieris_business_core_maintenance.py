@@ -233,6 +233,23 @@ def normalize_visible_text(value: str | None) -> str | None:
     return normalized
 
 
+def append_visible_note(*parts: str | None) -> str | None:
+    clean = [normalize_visible_text(part) for part in parts]
+    return append_note(*clean)
+
+
+def build_visible_note_line(
+    label: str,
+    value: str | None,
+    *,
+    normalizer=normalize_visible_text,
+) -> str | None:
+    normalized = normalizer(value)
+    if normalized is None:
+        return None
+    return f"{label}: {normalized}"
+
+
 def to_bool_from_legacy_status(value: str | None) -> bool:
     normalized = (value or "").strip().lower()
     return normalized not in {"inactivo", "inactive", "false", "0"}
@@ -1079,9 +1096,9 @@ def import_business_core_and_maintenance(
             organization_kind="client",
             phone=normalize_legacy_phone(row.get("fono_contacto_1")),
             email=normalize_legacy_email(row.get("mail_contacto_1")),
-            notes=append_note(
-                normalize_text(row.get("observaciones")),
-                normalize_text(row.get("motivo_baja")),
+            notes=append_visible_note(
+                row.get("observaciones"),
+                row.get("motivo_baja"),
             ),
             counters=report["business_core"]["organizations"],
         )
@@ -1092,10 +1109,9 @@ def import_business_core_and_maintenance(
             client_code=f"LEGACY-CLIENT-{legacy_client_id}",
             service_status="active" if to_bool_from_legacy_status(row.get("estado")) else "inactive",
             commercial_notes=append_note(
-                normalize_text(row.get("tipo_cliente"))
-                and f"Tipo de cliente: {normalize_text(row.get('tipo_cliente'))}",
-                normalize_text(row.get("giro")) and f"Giro: {normalize_text(row.get('giro'))}",
-                normalize_text(row.get("observaciones")),
+                build_visible_note_line("Tipo de cliente", row.get("tipo_cliente")),
+                build_visible_note_line("Giro", row.get("giro")),
+                normalize_visible_text(row.get("observaciones")),
             ),
             is_active=to_bool_from_legacy_status(row.get("estado")),
             counters=report["business_core"]["clients"],
@@ -1234,7 +1250,7 @@ def import_business_core_and_maintenance(
             installation_name = f"{equipment_type.name} {liters}L"
 
         technical_notes = append_note(
-            normalize_text(row.get("observaciones")),
+            normalize_visible_text(row.get("observaciones")),
             liters is not None and f"legacy_litros_equipo={liters}",
             installer_org is not None and f"legacy_installer_org={installer_org.name}",
             row.get("empresa_id") is not None and f"legacy_installer_empresa_id={row.get('empresa_id')}",
@@ -1248,7 +1264,7 @@ def import_business_core_and_maintenance(
             legacy_installation_id=legacy_id,
             name=installation_name,
             installed_at=combine_legacy_datetime(row.get("fecha_instalacion"), fallback_hour=12),
-            location_note=normalize_text(row.get("postura_instalacion")),
+            location_note=normalize_visible_text(row.get("postura_instalacion")),
             technical_notes=technical_notes,
             counters=report["maintenance"]["installations"],
         )
@@ -1287,10 +1303,9 @@ def import_business_core_and_maintenance(
             legacy_group_by_id=legacy_group_by_id,
         )
         description = append_note(
-            normalize_text(row.get("descripcion")),
-            normalize_text(row.get("observaciones")),
-            normalize_text(row.get("estado_del_equipo"))
-            and f"Estado del equipo: {normalize_text(row.get('estado_del_equipo'))}",
+            normalize_visible_text(row.get("descripcion")),
+            normalize_visible_text(row.get("observaciones")),
+            build_visible_note_line("Estado del equipo", row.get("estado_del_equipo")),
             assigned_group_label and f"Grupo asignado: {assigned_group_label}",
         )
         work_order, _created = get_or_create_work_order(
@@ -1299,13 +1314,17 @@ def import_business_core_and_maintenance(
             site_id=site.id,
             installation_id=resolve_installation_for_site(site.id),
             external_reference=f"LEGACY-MAINT-{legacy_id}",
-            title=(normalize_text(row.get("descripcion")) or f"Mantencion legacy #{legacy_id}")[:180],
+            title=(normalize_visible_text(row.get("descripcion")) or f"Mantencion legacy #{legacy_id}")[:180],
             description=description,
             maintenance_status=status,
             scheduled_for=scheduled_for,
             completed_at=scheduled_for if status == "completed" else None,
             cancelled_at=scheduled_for if status == "cancelled" else None,
-            closure_notes=normalize_text(row.get("observaciones")) if status in {"completed", "cancelled"} else None,
+            closure_notes=(
+                normalize_visible_text(row.get("observaciones"))
+                if status in {"completed", "cancelled"}
+                else None
+            ),
             requested_at=combine_legacy_datetime(row.get("fecha_creacion"), fallback_hour=9),
             created_by_user_id=actor_user_id,
             counters=report["maintenance"]["work_orders"],
@@ -1367,24 +1386,28 @@ def import_business_core_and_maintenance(
             site_id=site.id,
             installation_id=resolve_installation_for_site(site.id),
             external_reference=f"LEGACY-HIST-MAINT-{legacy_id}",
-            title=(normalize_text(row.get("descripcion")) or f"Historico mantencion #{legacy_id}")[:180],
+            title=(normalize_visible_text(row.get("descripcion")) or f"Historico mantencion #{legacy_id}")[:180],
             description=append_note(
-                normalize_text(row.get("descripcion")),
-                normalize_text(row.get("observaciones")),
-                normalize_text(row.get("cliente_direccion"))
-                and f"Dirección legacy: {normalize_text(row.get('cliente_direccion'))}",
-                normalize_text(row.get("cliente_contacto"))
-                and f"Contacto legacy: {normalize_text(row.get('cliente_contacto'))}",
-                normalize_text(row.get("cliente_telefono"))
-                and f"Teléfono legacy: {normalize_text(row.get('cliente_telefono'))}",
-                normalize_text(row.get("estado_del_equipo"))
-                and f"Estado del equipo: {normalize_text(row.get('estado_del_equipo'))}",
+                normalize_visible_text(row.get("descripcion")),
+                normalize_visible_text(row.get("observaciones")),
+                build_visible_note_line("Dirección histórica", row.get("cliente_direccion")),
+                build_visible_note_line(
+                    "Contacto histórico",
+                    row.get("cliente_contacto"),
+                    normalizer=normalize_legacy_contact_name,
+                ),
+                build_visible_note_line(
+                    "Teléfono histórico",
+                    row.get("cliente_telefono"),
+                    normalizer=normalize_legacy_phone,
+                ),
+                build_visible_note_line("Estado del equipo", row.get("estado_del_equipo")),
             ),
             maintenance_status="completed",
             scheduled_for=completed_at,
             completed_at=completed_at,
             cancelled_at=None,
-            closure_notes=normalize_text(row.get("observaciones")),
+            closure_notes=normalize_visible_text(row.get("observaciones")),
             requested_at=combine_legacy_datetime(row.get("fecha_creacion"), fallback_hour=12)
             or completed_at,
             created_by_user_id=actor_user_id,

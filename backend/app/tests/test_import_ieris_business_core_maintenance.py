@@ -172,6 +172,119 @@ class ImportIerisBusinessCoreMaintenanceTestCase(unittest.TestCase):
             self.assertEqual(report["status"], "ok")
             self.assertEqual(report["mode"], "dry-run")
 
+    def test_import_sanitizes_visible_legacy_text_before_persisting(self) -> None:
+        captured: dict[str, dict] = {}
+
+        class _FakeQuery:
+            def all(self) -> list:
+                return []
+
+        class _FakeTenantDb:
+            def query(self, _model):
+                return _FakeQuery()
+
+            def delete(self, _item) -> None:
+                return None
+
+            def flush(self) -> None:
+                return None
+
+        def fake_get_or_create_organization(_tenant_db, **kwargs):
+            captured["organization"] = kwargs
+            return SimpleNamespace(id=101, name=kwargs["name"])
+
+        def fake_get_or_create_client(_tenant_db, **kwargs):
+            captured["client"] = kwargs
+            return SimpleNamespace(id=202)
+
+        def fake_get_or_create_site(_tenant_db, **kwargs):
+            captured["site"] = kwargs
+            return SimpleNamespace(id=303)
+
+        def fake_get_or_create_work_order(_tenant_db, **kwargs):
+            captured["work_order"] = kwargs
+            return SimpleNamespace(id=404), True
+
+        legacy_data = {
+            "empresa": [],
+            "clientes": [
+                {
+                    "id": 1,
+                    "nombre": "Cliente Uno",
+                    "organizacion": "Cliente Uno",
+                    "rut": "11.111.111-1",
+                    "fono_contacto_1": "+56 9 1111 1111",
+                    "mail_contacto_1": "cliente@example.com",
+                    "mail_contacto_2": None,
+                    "fono_contacto_2": None,
+                    "contacto_1": "Sin contacto",
+                    "contacto_2": None,
+                    "observaciones": "Nota visible\nlegacy_client_id=1",
+                    "motivo_baja": "legacy_status=inactive",
+                    "tipo_cliente": "Industrial\nlegacy_tipo=1",
+                    "giro": "legacy_giro=1\nServicios",
+                    "estado": "activo",
+                    "calle": "Calle Falsa",
+                    "numero_casa": "123",
+                    "comuna": "Santiago",
+                    "ciudad": "Santiago",
+                    "region": "RM",
+                }
+            ],
+            "perfil_funcional": [],
+            "work_groups": [],
+            "task_types": [],
+            "tipo_equipo": [],
+            "instalacion_sst": [],
+            "mantenciones": [
+                {
+                    "id": 50,
+                    "cliente_id": 1,
+                    "fecha_programada": "2026-01-02",
+                    "hora_programada": "09:30:00",
+                    "estado_tarea_mantencion": "completada",
+                    "descripcion": "Mantención visible\nlegacy_work_order_id=50",
+                    "observaciones": "Nota útil\nlegacy_obs=1",
+                    "estado_del_equipo": "Operativo\nlegacy_status=1",
+                    "fecha_creacion": "2026-01-01",
+                }
+            ],
+            "historico_mantenciones": [],
+        }
+
+        with patch.object(import_script, "resolve_actor_user_id", return_value=1), patch.object(
+            import_script, "get_or_create_organization", side_effect=fake_get_or_create_organization
+        ), patch.object(
+            import_script, "get_or_create_client", side_effect=fake_get_or_create_client
+        ), patch.object(
+            import_script, "get_or_create_site", side_effect=fake_get_or_create_site
+        ), patch.object(
+            import_script, "get_or_create_work_order", side_effect=fake_get_or_create_work_order
+        ), patch.object(import_script, "ensure_status_log"), patch.object(
+            import_script, "ensure_visit"
+        ):
+            result = import_script.import_business_core_and_maintenance(
+                _FakeTenantDb(),
+                legacy_data=legacy_data,
+                actor_user_id=1,
+            )
+
+        self.assertEqual(
+            captured["organization"]["notes"],
+            "Nota visible",
+        )
+        self.assertEqual(
+            captured["client"]["commercial_notes"],
+            "Tipo de cliente: Industrial\nGiro: Servicios\nNota visible",
+        )
+        self.assertEqual(captured["work_order"]["title"], "Mantención visible")
+        self.assertEqual(
+            captured["work_order"]["description"],
+            "Mantención visible\nNota útil\nEstado del equipo: Operativo",
+        )
+        self.assertEqual(captured["work_order"]["closure_notes"], "Nota útil")
+        self.assertEqual(result["business_core"]["clients"]["created"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

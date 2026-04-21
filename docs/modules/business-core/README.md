@@ -51,6 +51,10 @@ Estado actual:
 - un `client` con historial de `maintenance` ya no se elimina: desde ese punto debe desactivarse para no romper trazabilidad ni reportes
 - la captura de `Nuevo cliente` ya no deberia aceptar sin mas casos de pareja, familiar o tercero del mismo contexto operativo; si detecta coincidencias fuertes por RUT, nombre, telefono, email o direccion, debe derivar a la ficha existente para agregarlo como contacto y no como cliente paralelo
 - el importador legacy ya no solo crea `sites`; tambien puede corregir direcciones legacy existentes cuando detecta que `comuna`, `ciudad` o `region` quedaron mal cargadas en una corrida anterior
+- el importador legacy tambien sanea mejor texto visible antes de persistirlo:
+  - limpia marcadores `legacy_*` en notas visibles de `organizations`, `clients` y descripciones importadas de `maintenance`
+  - evita que placeholders como `Sin contacto` o teléfonos vacíos queden como líneas visibles de historial
+  - mantiene intactos los marcadores técnicos que siguen usándose para idempotencia del propio importador
 - `business_work_group_members` ya existe como tabla y CRUD real para modelar membresias entre usuarios tenant y grupos de trabajo
 - la vista de `work_groups` ya expone conteo de miembros y acceso directo a la gestion de `Miembros`
 - `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
@@ -106,6 +110,7 @@ Estado del importador legacy:
 
 - ya existe el primer importador combinado desde `ieris_app`
 - cubre `organizations`, `clients`, `contacts`, `sites`, `function_profiles`, `work_groups` y `task_types`
+- ya sanea mejor notas/descripciones visibles antes de persistir datos importados del dominio y de `maintenance`
 - la guia de uso principal vive en [maintenance/imports/README.md](/home/felipe/platform_paas/docs/modules/maintenance/imports/README.md) porque el mismo script tambien importa `maintenance`
 
 Nota importante:

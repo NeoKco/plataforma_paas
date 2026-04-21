@@ -1,5 +1,28 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - El importador legacy sanea mejor texto visible antes de persistirlo
+
+- objetivo:
+  - tomar el siguiente corte útil de `business-core` sin reabrir todavía merge profundo
+  - endurecer el importador `ieris_app` donde todavía podían colarse marcadores `legacy_*` en notas/descripciones visibles
+- cambios y acciones ejecutadas:
+  - [backend/app/scripts/import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py):
+    - agrega helpers para componer notas visibles saneadas
+    - limpia mejor `organizations.notes`, `clients.commercial_notes`, títulos/descripciones/cierres visibles de `maintenance` y algunos labels históricos
+    - preserva los marcadores internos usados para idempotencia en instalaciones, status logs y visits
+  - [backend/app/tests/test_import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/tests/test_import_ieris_business_core_maintenance.py):
+    - agrega prueba del flujo real de importación para fijar que el texto visible se sanea antes de persistirse
+- validaciones:
+  - repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_import_ieris_business_core_maintenance -v` -> `5 tests OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_business_core_validation_rules -v` -> `12 tests OK`
+    - `python3 -m py_compile backend/app/scripts/import_ieris_business_core_maintenance.py` -> `OK`
+- resultado:
+  - el importador deja de filtrar bien solo catálogos y pasa también a proteger notas/descripciones visibles del dominio importado
+  - el corte queda cerrado en repo y listo para una siguiente validación runtime sobre un tenant real si se prioriza
+- siguiente paso:
+  - decidir si el siguiente corte de `business-core` es aplicar/revalidar este hardening del importador sobre un tenant runtime o volver a `Duplicados` para merge guiado/documental más profundo
+
 ## 2026-04-20 - `Duplicados` deja historial visible de consolidaciones
 
 - objetivo:
