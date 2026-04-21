@@ -2,6 +2,39 @@
 
 ## 2026-04-20
 
+- `Duplicados` deja de mostrar un historial plano y pasa a explotar la evidencia ya persistida en `merge_audits`:
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora parsea `summary`, `diff_rows` y `selections` con tolerancia a payloads viejos
+  - el bloque `Historial reciente de consolidaciones` ya muestra:
+    - conteo de `campos documentados`
+    - conteo de `ajustes manuales`
+    - hasta 3 cambios relevantes `valor actual -> valor final`
+    - origen `auto` o `manual` cuando el merge de `organizations` o `contacts` dejó esa evidencia
+  - [business-core.css](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css) suma el bloque visual compacto para esos diffs
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreDuplicatesPage-e2dIZomK.js` e `index-BF7rh1QF.js`
+    - `production` publicado con `BusinessCoreDuplicatesPage-DIcZScBo.js` e `index-BBirAecI.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - el historial reciente deja de ser un ledger plano y pasa a explicar mejor qué cambió realmente en merges documentales sin abrir backend nuevo
+
+- `Duplicados` profundiza el caso `contacts` sin abrir backend nuevo:
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora muestra `Ajuste manual previo` y `Diff final por campo` también para grupos de `Contactos duplicados`
+  - el operador ya puede decidir explícitamente qué ficha aporta:
+    - `nombre visible`
+    - `email`
+    - `teléfono`
+    - `rol`
+    - `contacto principal`
+  - la auditoría persistente de merge para `contacts` ya guarda además `selections` y `diff_rows`, no solo el resumen operativo
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreDuplicatesPage-BE_vKVpu.js` e `index-ubMnGz-D.js`
+    - `production` publicado con `BusinessCoreDuplicatesPage-BUqDAula.js` e `index-DvOd3ltH.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - `contacts` deja de ser solo consolidación automática con resumen y pasa a tener una capa auditable de decisión documental visible, más cercana al patrón ya usado por `organizations`
+
 - se endurece el importador legacy [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py) para sanear mejor texto visible antes de persistirlo:
   - `organizations.notes`, `clients.commercial_notes` y textos visibles importados hacia `maintenance` ya limpian marcadores `legacy_*` antes de guardarse
   - placeholders heredados como `Sin contacto` o teléfonos vacíos ya no deberían quedar como líneas visibles de historial importado

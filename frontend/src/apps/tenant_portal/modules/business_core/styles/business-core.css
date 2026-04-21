@@ -631,6 +631,62 @@
   font-size: 0.84rem;
 }
 
+.business-core-merge-audit-card__diffs {
+  border-top: 1px solid rgba(207, 215, 230, 0.9);
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.8rem;
+}
+
+.business-core-merge-audit-card__section-title {
+  color: var(--app-text, #183153);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.business-core-merge-audit-diff-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.business-core-merge-audit-diff-row {
+  background: rgba(13, 110, 253, 0.04);
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.business-core-merge-audit-diff-row__header {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+}
+
+.business-core-merge-audit-diff-row__header span {
+  font-weight: 600;
+}
+
+.business-core-merge-audit-diff-row__values {
+  align-items: baseline;
+  color: var(--app-text-muted, #53637a);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.business-core-merge-audit-diff-row__values strong {
+  color: var(--app-text, #183153);
+}
+
+.business-core-merge-audit-diff-row__meta,
+.business-core-merge-audit-card__more {
+  color: var(--app-text-muted, #53637a);
+  font-size: 0.8rem;
+}
+
 .business-core-duplicates-merge-assistant {
   background: rgba(13, 110, 253, 0.04);
   border: 1px solid rgba(13, 110, 253, 0.12);

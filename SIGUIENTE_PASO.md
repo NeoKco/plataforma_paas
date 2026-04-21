@@ -2,6 +2,21 @@
 
 ## Prioridad vigente
 
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
+  - `Historial reciente de consolidaciones` ya no queda en modo plano
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora aprovecha `summary`, `diff_rows` y `selections`
+  - el historial visible ya muestra:
+    - `campos documentados`
+    - `ajustes manuales`
+    - hasta 3 cambios relevantes `actual -> final`
+    - origen `auto` o `manual` cuando existe
+  - publicado en:
+    - `staging` con `BusinessCoreDuplicatesPage-e2dIZomK.js` e `index-BF7rh1QF.js`
+    - `production` con `BusinessCoreDuplicatesPage-DIcZScBo.js` e `index-BBirAecI.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - subcorte nuevo ya cerrado en repo dentro de `business-core`:
   - [import_ieris_business_core_maintenance.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_business_core_maintenance.py) ya sanea mejor texto visible antes de persistirlo
   - notas/descripciones visibles importadas ya limpian marcadores `legacy_*` y placeholders heredados
@@ -14,6 +29,19 @@
     - `production` dry-run/apply reales sobre `empresa-bootstrap` -> verificación `matches=true` y saneamiento visible aplicado
   - el verificador ya no queda mal calibrado:
     - `business_core.organizations` ahora se contrasta contra `empresa + clientes`
+
+- subcorte previo ya cerrado en runtime dentro de `business-core > Duplicados`:
+  - `contacts` ya no queda solo con consolidación automática y resumen operativo
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega:
+    - `Ajuste manual previo`
+    - `Diff final por campo`
+    - persistencia de `selections` y `diff_rows` en la auditoría de merge de `contacts`
+  - publicado en:
+    - `staging` con `BusinessCoreDuplicatesPage-BE_vKVpu.js` e `index-ubMnGz-D.js`
+    - `production` con `BusinessCoreDuplicatesPage-BUqDAula.js` e `index-DvOd3ltH.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - sostener la convergencia multi-tenant por ambiente como regla operativa permanente y mover el roadmap al siguiente frente real de hardening transversal; `Agenda` ya quedó promovida como módulo lateral propio del portal tenant, el saneamiento operativo de `condominio-demo` e `ieris-ltda` ya quedó cerrado en `production` y `staging`, con los cuatro tenants activos auditando en verde en ambos ambientes, y desde ahora la PaaS completa queda gobernada por ownership explícito + spec mínima + cierre `SRED`
 - revalidación tenant más reciente ya cerrada:

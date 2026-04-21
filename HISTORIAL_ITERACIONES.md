@@ -1,5 +1,76 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - `Duplicados` vuelve legible el historial reciente usando `diff_rows` y `selections`
+
+- objetivo:
+  - cerrar el corte pendiente de legibilidad del historial visible de merges
+  - aprovechar la evidencia ya persistida sin abrir backend nuevo ni reabrir slices cerrados
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx):
+    - parsea `summary`, `diff_rows` y `selections` con tolerancia a payloads viejos
+    - agrega conteo visible de `campos documentados` y `ajustes manuales`
+    - renderiza hasta 3 cambios relevantes `valor actual -> valor final`
+    - muestra si el cambio vino por sugerencia `auto` o por decisión `manual`
+  - [frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css):
+    - agrega el bloque visual compacto del diff histórico
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-e2dIZomK.js`, `index-BF7rh1QF.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-DIcZScBo.js`, `index-BBirAecI.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - el historial visible deja de ser un resumen plano y pasa a explicar mejor qué cambió realmente en merges documentales recientes
+  - `Duplicados` queda más útil como evidencia operativa posterior al merge
+- siguiente paso:
+  - si seguimos en `business-core`, el siguiente salto útil vuelve a caer en `clients` o en otra entidad con merge guiado/documental más profundo
+
+## 2026-04-20 - `Duplicados` agrega ajuste manual y diff visible para `contacts`
+
+- objetivo:
+  - dar el siguiente paso real de profundidad en `Duplicados` sin abrir backend nuevo
+  - sacar a `contacts` del modo puramente operativo y acercarlo al patrón auditable ya existente en `organizations`
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx):
+    - agrega `Ajuste manual previo` para `contacts`
+    - agrega `Diff final por campo` para `contacts`
+    - permite decidir explícitamente por campo:
+      - `nombre visible`
+      - `email`
+      - `teléfono`
+      - `rol`
+      - `contacto principal`
+    - la auditoría persistente de merge de `contacts` ahora guarda también `selections` y `diff_rows`
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-BE_vKVpu.js`, `index-ubMnGz-D.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-BUqDAula.js`, `index-DvOd3ltH.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `contacts` deja de ser solo consolidación automática con resumen
+  - ya existe una primera capa de decisión documental auditable fuera de `organizations`
+- siguiente paso:
+  - decidir si el siguiente corte profundo cae en `clients` o si conviene reforzar primero la legibilidad del historial visible usando esos nuevos `diff_rows`
+
 ## 2026-04-20 - El importador legacy sanea mejor texto visible antes de persistirlo
 
 - objetivo:

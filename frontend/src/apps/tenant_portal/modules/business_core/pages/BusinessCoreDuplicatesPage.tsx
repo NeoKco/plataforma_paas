@@ -139,6 +139,15 @@ type ContactMergeDiffRow = {
   isChanged: boolean;
 };
 
+type MergeAuditDiffRowRecord = {
+  field: string;
+  current_value: string | null;
+  next_value: string | null;
+  source_label: string | null;
+  is_automatic: boolean;
+  is_changed: boolean;
+};
+
 type SiteAuditRow = {
   site: TenantBusinessSite;
   client: TenantBusinessClient | null;
@@ -765,6 +774,59 @@ function buildInstallationMergeAuditPayload(
   };
 }
 
+function isRecordValue(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getMergeAuditPayloadRecord(audit: TenantBusinessCoreMergeAudit) {
+  return isRecordValue(audit.payload) ? audit.payload : null;
+}
+
+function getMergeAuditSummaryPayload(audit: TenantBusinessCoreMergeAudit) {
+  const payload = getMergeAuditPayloadRecord(audit);
+  if (!payload || !isRecordValue(payload.summary)) {
+    return null;
+  }
+  return payload.summary;
+}
+
+function getMergeAuditSourceIds(audit: TenantBusinessCoreMergeAudit) {
+  const payload = getMergeAuditPayloadRecord(audit);
+  return payload && Array.isArray(payload.source_ids) ? payload.source_ids : [];
+}
+
+function getMergeAuditDiffRows(audit: TenantBusinessCoreMergeAudit): MergeAuditDiffRowRecord[] {
+  const payload = getMergeAuditPayloadRecord(audit);
+  if (!payload || !Array.isArray(payload.diff_rows)) {
+    return [];
+  }
+  return payload.diff_rows
+    .map((row) => {
+      if (!isRecordValue(row) || typeof row.field !== "string") {
+        return null;
+      }
+      return {
+        field: row.field,
+        current_value: typeof row.current_value === "string" ? row.current_value : null,
+        next_value: typeof row.next_value === "string" ? row.next_value : null,
+        source_label: typeof row.source_label === "string" ? row.source_label : null,
+        is_automatic: row.is_automatic !== false,
+        is_changed: row.is_changed !== false,
+      };
+    })
+    .filter((row): row is MergeAuditDiffRowRecord => Boolean(row));
+}
+
+function getMergeAuditManualSelectionCount(audit: TenantBusinessCoreMergeAudit) {
+  const payload = getMergeAuditPayloadRecord(audit);
+  if (!payload || !isRecordValue(payload.selections)) {
+    return 0;
+  }
+  return Object.values(payload.selections).filter(
+    (value) => typeof value === "string" && value !== "auto"
+  ).length;
+}
+
 function getMergeAuditKindLabel(
   entityKind: string,
   language: "es" | "en"
@@ -833,6 +895,55 @@ function formatMergeAuditTimestamp(value: string, language: "es" | "en"): string
     dateStyle: "short",
     timeStyle: "short",
   });
+}
+
+function getMergeAuditFieldLabel(
+  audit: TenantBusinessCoreMergeAudit,
+  field: string,
+  language: "es" | "en"
+) {
+  if (audit.entity_kind === "organization") {
+    switch (field as OrganizationMergeFieldKey) {
+      case "name":
+        return language === "es" ? "Nombre visible" : "Visible name";
+      case "legal_name":
+        return language === "es" ? "Razón social" : "Legal name";
+      case "tax_id":
+        return language === "es" ? "RUT / Tax ID" : "Tax ID";
+      case "phone":
+        return language === "es" ? "Teléfono" : "Phone";
+      case "email":
+        return "Email";
+      case "address_line":
+        return language === "es" ? "Dirección" : "Address";
+      case "commune":
+        return language === "es" ? "Comuna" : "Commune";
+      case "city":
+        return language === "es" ? "Ciudad" : "City";
+      case "region":
+        return language === "es" ? "Región" : "Region";
+      case "country_code":
+        return language === "es" ? "País" : "Country";
+      case "notes":
+        return language === "es" ? "Notas" : "Notes";
+      default:
+        return field.replace(/_/g, " ");
+    }
+  }
+  if (audit.entity_kind === "contact") {
+    return getContactMergeFieldLabel(field as ContactMergeFieldKey, language);
+  }
+  return field.replace(/_/g, " ");
+}
+
+function renderMergeAuditValue(value: string | null, language: "es" | "en") {
+  if (value === "primary") {
+    return language === "es" ? "principal" : "primary";
+  }
+  if (value === "not_primary") {
+    return language === "es" ? "no principal" : "not primary";
+  }
+  return value || "—";
 }
 
 function countOrganizationDocumentFieldsToMerge(
@@ -1265,13 +1376,15 @@ function summarizeClientContactMerge(
     };
   }
 
-  function summarizeContactDocumentMerge(group: DuplicateGroup<ContactAuditRow>) {
+  function summarizeContactDocumentMerge(
+    group: DuplicateGroup<ContactAuditRow>,
+    selections: ContactMergeSelectionMap = {}
+  ) {
     const targetId = getPreferredContactId(group);
     const target = group.members.find((member) => member.contact.id === targetId);
     if (!target) {
       return { documentFieldsToMerge: 0, primarySourcesCount: 0 };
     }
-    const selections = contactMergeSelections[group.id] ?? {};
     const sources = group.members
       .filter((member) => member.contact.id !== targetId)
       .map((member) => member.contact);
@@ -2592,7 +2705,17 @@ export function BusinessCoreDuplicatesPage() {
     if (!target || sources.length === 0) {
       return;
     }
-    const { documentFieldsToMerge, primarySourcesCount } = summarizeContactDocumentMerge(group);
+    const selections = contactMergeSelections[group.id] ?? {};
+    const { documentFieldsToMerge, primarySourcesCount } = summarizeContactDocumentMerge(
+      group,
+      selections
+    );
+    const diffRows = buildContactMergeDiffRows(
+      target.contact,
+      sources.map((member) => member.contact),
+      selections,
+      language
+    );
     const confirmed = window.confirm(
       language === "es"
         ? `Consolidar ${sources.length} contacto(s) duplicado(s) en "${target.contact.full_name}". Se integrarán ${documentFieldsToMerge} dato(s) documental(es) faltante(s), los contactos origen se desactivarán y ${primarySourcesCount > 0 && !target.contact.is_primary ? "la ficha sugerida quedará como principal" : "se conservará la mejor ficha visible"}.`
@@ -2608,9 +2731,10 @@ export function BusinessCoreDuplicatesPage() {
         await updateTenantBusinessContact(
           session.accessToken,
           target.contact.id,
-          buildMergedContactDocumentPayload(
+          resolveContactMergePayload(
             target.contact,
-            sources.map((member) => member.contact)
+            sources.map((member) => member.contact),
+            selections
           )
         );
       }
@@ -2626,7 +2750,9 @@ export function BusinessCoreDuplicatesPage() {
             target,
             sources,
             documentFieldsToMerge,
-            primarySourcesCount
+            primarySourcesCount,
+            selections,
+            diffRows
           )
         );
       } catch (auditError) {
@@ -3325,7 +3451,11 @@ export function BusinessCoreDuplicatesPage() {
   function renderContactGroup(group: DuplicateGroup<ContactAuditRow>) {
     const preferredContactId = getPreferredContactId(group);
     const sourceMembers = group.members.filter((member) => member.contact.id !== preferredContactId);
-    const { documentFieldsToMerge, primarySourcesCount } = summarizeContactDocumentMerge(group);
+    const selections = contactMergeSelections[group.id] ?? {};
+    const { documentFieldsToMerge, primarySourcesCount } = summarizeContactDocumentMerge(
+      group,
+      selections
+    );
     return (
       <div key={group.id} className="business-core-duplicates-group">
         <div className="business-core-duplicates-group__header">
@@ -3362,6 +3492,7 @@ export function BusinessCoreDuplicatesPage() {
             </button>
           </div>
         </div>
+        {renderContactMergeAssistant(group)}
         <div className="business-core-duplicates-list">
           {group.members.map((member) => {
             const isPreferred = member.contact.id === preferredContactId;
@@ -3850,22 +3981,11 @@ export function BusinessCoreDuplicatesPage() {
         ) : (
           <div className="business-core-merge-audits-list">
             {visibleMergeAudits.map((audit) => {
-              const summaryPayload =
-                audit.payload &&
-                typeof audit.payload === "object" &&
-                !Array.isArray(audit.payload) &&
-                typeof (audit.payload as Record<string, unknown>).summary === "object" &&
-                (audit.payload as Record<string, unknown>).summary &&
-                !Array.isArray((audit.payload as Record<string, unknown>).summary)
-                  ? ((audit.payload as Record<string, unknown>).summary as Record<string, unknown>)
-                  : null;
-              const sourceIds =
-                audit.payload &&
-                typeof audit.payload === "object" &&
-                !Array.isArray(audit.payload) &&
-                Array.isArray((audit.payload as Record<string, unknown>).source_ids)
-                  ? ((audit.payload as Record<string, unknown>).source_ids as unknown[])
-                  : [];
+              const summaryPayload = getMergeAuditSummaryPayload(audit);
+              const sourceIds = getMergeAuditSourceIds(audit);
+              const diffRows = getMergeAuditDiffRows(audit).filter((row) => row.is_changed);
+              const visibleDiffRows = diffRows.slice(0, 3);
+              const manualSelectionCount = getMergeAuditManualSelectionCount(audit);
 
               return (
                 <div key={audit.id} className="business-core-merge-audit-card">
@@ -3898,7 +4018,76 @@ export function BusinessCoreDuplicatesPage() {
                             </span>
                           ))
                       : null}
+                    {diffRows.length > 0 ? (
+                      <span>
+                        {language === "es" ? "campos documentados" : "documented fields"}:{" "}
+                        {diffRows.length}
+                      </span>
+                    ) : null}
+                    {manualSelectionCount > 0 ? (
+                      <span>
+                        {language === "es" ? "ajustes manuales" : "manual overrides"}:{" "}
+                        {manualSelectionCount}
+                      </span>
+                    ) : null}
                   </div>
+                  {visibleDiffRows.length > 0 ? (
+                    <div className="business-core-merge-audit-card__diffs">
+                      <div className="business-core-merge-audit-card__section-title">
+                        {language === "es"
+                          ? "Cambios documentales relevantes"
+                          : "Relevant documented changes"}
+                      </div>
+                      <div className="business-core-merge-audit-diff-list">
+                        {visibleDiffRows.map((row) => (
+                          <div
+                            key={`${audit.id}-${row.field}`}
+                            className="business-core-merge-audit-diff-row"
+                          >
+                            <div className="business-core-merge-audit-diff-row__header">
+                              <span>{getMergeAuditFieldLabel(audit, row.field, language)}</span>
+                              <AppBadge tone={row.is_automatic ? "neutral" : "info"}>
+                                {row.is_automatic
+                                  ? language === "es"
+                                    ? "auto"
+                                    : "auto"
+                                  : language === "es"
+                                    ? "manual"
+                                    : "manual"}
+                              </AppBadge>
+                            </div>
+                            <div className="business-core-merge-audit-diff-row__values">
+                              <span>
+                                {renderMergeAuditValue(row.current_value, language)}
+                              </span>
+                              <span aria-hidden="true">→</span>
+                              <strong>
+                                {renderMergeAuditValue(row.next_value, language)}
+                              </strong>
+                            </div>
+                            {row.source_label ? (
+                              <div className="business-core-merge-audit-diff-row__meta">
+                                {row.is_automatic
+                                  ? language === "es"
+                                    ? `fuente sugerida: ${row.source_label}`
+                                    : `suggested source: ${row.source_label}`
+                                  : language === "es"
+                                    ? `ajuste manual desde: ${row.source_label}`
+                                    : `manual override from: ${row.source_label}`}
+                              </div>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                      {diffRows.length > visibleDiffRows.length ? (
+                        <div className="business-core-merge-audit-card__more">
+                          {language === "es"
+                            ? `+${diffRows.length - visibleDiffRows.length} cambio(s) adicionales en el payload`
+                            : `+${diffRows.length - visibleDiffRows.length} additional change(s) in payload`}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               );
             })}

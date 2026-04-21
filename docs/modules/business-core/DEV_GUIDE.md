@@ -208,6 +208,10 @@ Resumen previo por grupo:
 - ese resumen vive en frontend usando los datasets cargados del modulo y evita disparar un backend nuevo en este corte
 - el mismo slice ahora también consume `GET /tenant/business-core/merge-audits` para renderizar historial reciente visible dentro de `Duplicados`
 - además de `organizations`, el frontend ya registra eventos de auditoría para consolidaciones de `clients`, `contacts`, `sites` e `installations`
+- el renderer visible del historial ya soporta payloads mixtos:
+  - lee `summary` cuando el audit solo trae resumen operativo
+  - lee también `diff_rows` y `selections` cuando el merge dejó evidencia documental por campo
+  - hoy esa capa enriquecida aplica sobre todo a `organizations` y `contacts` sin exigir backend nuevo
 - restricción vigente:
   - fuera de `organizations`, la auditoría actual resume ids origen y conteos operativos movidos/desactivados
   - no existe todavía diff documental profundo por campo para esas otras entidades
@@ -344,6 +348,11 @@ Reglas de consolidacion operativa vigentes:
 - la ficha `sugerida para conservar` debe priorizar mayor trazabilidad, mayor completitud visible y antiguedad
 - no debe intentarse aun merge profundo de `contacts` sin un flujo dedicado y auditable
 - `organizations` ya cuentan con un flujo de merge auditable con ledger persistente de decisión; el siguiente paso de profundidad debe ampliar esa idea al resto de las entidades
+- `contacts` ya dio el primer paso en esa dirección:
+  - existe ajuste manual previo por campo visible
+  - existe diff final por campo antes de consolidar
+  - el ledger persistente de `merge_audits` ya guarda `selections` y `diff_rows` para este caso
+  - sigue faltando identidad completa, notas libres y relaciones externas profundas
 
 Secuencia de consolidacion actual:
 

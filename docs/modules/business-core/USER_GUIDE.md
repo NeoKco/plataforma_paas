@@ -101,6 +101,7 @@ Como reconocer que estas en el slice correcto:
 - el menu superior muestra `Duplicados`
 - la portada `Resumen` muestra una tarjeta `Limpieza de duplicados`
 - cada grupo duplicado muestra un resumen previo de consolidacion antes del boton `Consolidar en sugerida`
+- cuando el merge dejo evidencia documental, el historial reciente ya muestra tambien cambios relevantes `actual -> final` y si vinieron por sugerencia `auto` o por `ajuste manual`
 
 Que veras dentro del slice:
 
@@ -130,12 +131,17 @@ Como decidir rapido:
 - si quieres concentrar la operacion en una sola ficha, `Consolidar en sugerida`
 - si en `Organizaciones` quieres decidir manualmente el dato final por campo, usa `Ajuste manual previo`
 - revisa luego `Diff final por campo` para validar el resultado exacto antes de consolidar
+- en `Contactos`, el mismo patrón ya permite decidir por adelantado qué ficha aporta nombre, email, teléfono, rol y el flag de contacto principal
+- en `Contactos`, revisa también `Diff final por campo` antes de consolidar si quieres dejar auditada la decisión visible y no solo el resultado automático
+- después del merge, revisa `Historial reciente de consolidaciones` si necesitas recordar rápido qué campos quedaron distintos y desde qué ficha se tomó el valor final
 
 Que consolida hoy:
 
 - `Organizaciones`: mueve `Contactos`, puede consolidar varios `Clientes` en una ficha sugerida, reasignar la ficha final, integrar datos visibles faltantes y deja inactivas las organizaciones origen
 - `Clientes`: mueve `Contactos`, `Direcciones` y `OT`
 - `Contactos`: integra email, teléfono o rol faltante, desactiva duplicados equivalentes y conserva una sola ficha sugerida dentro de la misma organización
+- `Contactos`: además ya permite un ajuste manual previo por campo visible y deja ese diff dentro de la auditoría persistente del merge
+- cuando el merge audit trae `diff_rows` y `selections`, el historial visible ya resume también campos documentados y ajustes manuales recientes
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
 - cada una de esas consolidaciones ya puede dejar rastro visible en `Historial reciente de consolidaciones`
@@ -146,8 +152,8 @@ Que no consolida todavia:
 - cuando hay varios `Clientes` en conflicto, la pantalla ahora intenta consolidarlos guiadamente antes de cerrar la fusión de la organización base; aun así, el criterio documental final sigue siendo operacional y no reemplaza revisión humana
 - el ajuste manual actual permite elegir por campo visible qué organización aporta cada dato, pero no versiona decisiones ni agrega una justificación formal por campo
 - el diff actual muestra cambio actual vs final por campo, y además cada merge de `organizations` deja un registro persistente de auditoría con ids origen, resumen y procedencia final de los campos visibles
-- ahora ese criterio de auditoría ya se extiende también al resto de las consolidaciones operativas base, aunque sin diff profundo por campo fuera de `organizations`
-- merge profundo de `contacts` mas alla de consolidar equivalentes dentro de la misma organización o mover/desactivar duplicados evidentes al fusionar `Clientes`
+- `contacts` ya suma un diff visible/manual por campo, pero todavía no fusiona identidad completa, notas libres ni relaciones externas más allá del corte actual
+- merge profundo de `contacts` mas alla de esa capa visible/documental asistida
 - notas historicas libres
 - fusion documental profunda entre fichas
 - auditoría histórica completa de todos los merges de identidad; por ahora la persistencia formal ya cubre `organizations`, pero el resto de las entidades sigue en modo operativo
