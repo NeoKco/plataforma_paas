@@ -121,6 +121,24 @@ type ContactAuditRow = {
   client: TenantBusinessClient | null;
 };
 
+type ContactMergeFieldKey =
+  | "full_name"
+  | "email"
+  | "phone"
+  | "role_title"
+  | "is_primary";
+
+type ContactMergeSelectionMap = Partial<Record<ContactMergeFieldKey, string>>;
+
+type ContactMergeDiffRow = {
+  field: ContactMergeFieldKey;
+  currentValue: string | null;
+  nextValue: string | null;
+  sourceLabel: string | null;
+  isAutomatic: boolean;
+  isChanged: boolean;
+};
+
 type SiteAuditRow = {
   site: TenantBusinessSite;
   client: TenantBusinessClient | null;
@@ -161,6 +179,14 @@ const ORGANIZATION_MERGE_FIELDS: OrganizationMergeFieldKey[] = [
   "region",
   "country_code",
   "notes",
+];
+
+const CONTACT_MERGE_FIELDS: ContactMergeFieldKey[] = [
+  "full_name",
+  "email",
+  "phone",
+  "role_title",
+  "is_primary",
 ];
 
 function normalizeHumanKey(value: string | null | undefined): string {
@@ -658,7 +684,9 @@ function buildContactMergeAuditPayload(
   target: ContactAuditRow,
   sources: ContactAuditRow[],
   documentFieldsToMerge: number,
-  primarySourcesCount: number
+  primarySourcesCount: number,
+  selections: ContactMergeSelectionMap,
+  diffRows: ContactMergeDiffRow[]
 ) {
   return {
     entity_kind: "contact",
@@ -675,6 +703,15 @@ function buildContactMergeAuditPayload(
         document_fields_merged: documentFieldsToMerge,
         primary_sources_count: primarySourcesCount,
       },
+      selections,
+      diff_rows: diffRows.map((row) => ({
+        field: row.field,
+        current_value: row.currentValue,
+        next_value: row.nextValue,
+        source_label: row.sourceLabel,
+        is_automatic: row.isAutomatic,
+        is_changed: row.isChanged,
+      })),
     },
   };
 }
@@ -839,11 +876,131 @@ function buildMergedContactDocumentPayload(
   });
 }
 
+function getContactFieldValue(
+  contact: TenantBusinessContact,
+  field: ContactMergeFieldKey
+) {
+  switch (field) {
+    case "full_name":
+      return contact.full_name;
+    case "email":
+      return contact.email;
+    case "phone":
+      return contact.phone;
+    case "role_title":
+      return contact.role_title;
+    case "is_primary":
+      return contact.is_primary ? "primary" : "not_primary";
+    default:
+      return null;
+  }
+}
+
+function getContactFieldDisplayValue(
+  value: string | null | undefined,
+  field: ContactMergeFieldKey,
+  language: "es" | "en"
+) {
+  if (field === "is_primary") {
+    if (value === "primary") {
+      return language === "es" ? "principal" : "primary";
+    }
+    if (value === "not_primary") {
+      return language === "es" ? "no principal" : "not primary";
+    }
+  }
+  return getMeaningfulText(value) ?? null;
+}
+
+function getContactMergeFieldLabel(
+  field: ContactMergeFieldKey,
+  language: "es" | "en"
+) {
+  if (language === "es") {
+    switch (field) {
+      case "full_name":
+        return "Nombre visible";
+      case "email":
+        return "Email";
+      case "phone":
+        return "Teléfono";
+      case "role_title":
+        return "Rol";
+      case "is_primary":
+        return "Contacto principal";
+      default:
+        return field;
+    }
+  }
+  switch (field) {
+    case "full_name":
+      return "Visible name";
+    case "email":
+      return "Email";
+    case "phone":
+      return "Phone";
+    case "role_title":
+      return "Role";
+    case "is_primary":
+      return "Primary contact";
+    default:
+      return field;
+  }
+}
+
+function resolveContactMergePayload(
+  target: TenantBusinessContact,
+  sources: TenantBusinessContact[],
+  selections: ContactMergeSelectionMap = {}
+) {
+  const autoPayload = buildMergedContactDocumentPayload(target, sources);
+  const contacts = [target, ...sources];
+  const resolved = { ...autoPayload };
+
+  CONTACT_MERGE_FIELDS.forEach((field) => {
+    const selection = selections[field];
+    if (!selection || selection === "auto") {
+      return;
+    }
+    const contactId = Number(selection.replace("contact:", ""));
+    if (!Number.isFinite(contactId)) {
+      return;
+    }
+    const selectedContact = contacts.find((contact) => contact.id === contactId);
+    if (!selectedContact) {
+      return;
+    }
+    switch (field) {
+      case "full_name":
+        resolved.full_name =
+          getMeaningfulText(selectedContact.full_name) ?? autoPayload.full_name;
+        break;
+      case "email":
+        resolved.email = getMeaningfulText(selectedContact.email);
+        break;
+      case "phone":
+        resolved.phone = getMeaningfulText(selectedContact.phone);
+        break;
+      case "role_title":
+        resolved.role_title = getMeaningfulText(selectedContact.role_title);
+        break;
+      case "is_primary":
+        resolved.is_primary = selectedContact.is_primary;
+        break;
+      default:
+        break;
+    }
+  });
+
+  return resolved;
+}
+
 function countContactDocumentFieldsToMerge(
   target: TenantBusinessContact,
-  sources: TenantBusinessContact[]
+  sources: TenantBusinessContact[],
+  selections: ContactMergeSelectionMap = {}
 ) {
-  const merged = buildMergedContactDocumentPayload(target, sources);
+  const merged = resolveContactMergePayload(target, sources, selections);
   let count = 0;
   if ((merged.email ?? null) !== (target.email ?? null)) {
     count += 1;
@@ -858,6 +1015,57 @@ function countContactDocumentFieldsToMerge(
     count += 1;
   }
   return count;
+}
+
+function buildContactMergeDiffRows(
+  target: TenantBusinessContact,
+  sources: TenantBusinessContact[],
+  selections: ContactMergeSelectionMap = {},
+  language: "es" | "en"
+): ContactMergeDiffRow[] {
+  const resolved = resolveContactMergePayload(target, sources, selections);
+  const contacts = [target, ...sources];
+
+  return CONTACT_MERGE_FIELDS.map((field) => {
+    const selection = selections[field] ?? "auto";
+    const selectedContactId =
+      selection !== "auto" ? Number(selection.replace("contact:", "")) : null;
+    const selectedContact =
+      selectedContactId !== null
+        ? contacts.find((contact) => contact.id === selectedContactId) ?? null
+        : null;
+    const currentValue = getContactFieldDisplayValue(
+      getContactFieldValue(target, field),
+      field,
+      language
+    );
+    const nextValue = getContactFieldDisplayValue(
+      field === "full_name"
+        ? resolved.full_name
+        : field === "email"
+          ? resolved.email
+          : field === "phone"
+            ? resolved.phone
+            : field === "role_title"
+              ? resolved.role_title
+              : resolved.is_primary
+                ? "primary"
+                : "not_primary",
+      field,
+      language
+    );
+
+    return {
+      field,
+      currentValue,
+      nextValue,
+      isChanged: (currentValue ?? null) !== (nextValue ?? null),
+      sourceLabel: selectedContact
+        ? stripLegacyVisibleText(selectedContact.full_name) || `#${selectedContact.id}`
+        : null,
+      isAutomatic: selection === "auto",
+    };
+  });
 }
 
 function buildContactWritePayload(
@@ -1063,11 +1271,16 @@ function summarizeClientContactMerge(
     if (!target) {
       return { documentFieldsToMerge: 0, primarySourcesCount: 0 };
     }
+    const selections = contactMergeSelections[group.id] ?? {};
     const sources = group.members
       .filter((member) => member.contact.id !== targetId)
       .map((member) => member.contact);
     return {
-      documentFieldsToMerge: countContactDocumentFieldsToMerge(target.contact, sources),
+      documentFieldsToMerge: countContactDocumentFieldsToMerge(
+        target.contact,
+        sources,
+        selections
+      ),
       primarySourcesCount: sources.filter((source) => source.is_primary).length,
     };
   }
@@ -1416,6 +1629,9 @@ export function BusinessCoreDuplicatesPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [organizationMergeSelections, setOrganizationMergeSelections] = useState<
     Record<string, OrganizationMergeSelectionMap>
+  >({});
+  const [contactMergeSelections, setContactMergeSelections] = useState<
+    Record<string, ContactMergeSelectionMap>
   >({});
 
   const organizationById = useMemo(
@@ -2551,6 +2767,20 @@ export function BusinessCoreDuplicatesPage() {
     }));
   }
 
+  function updateContactMergeSelection(
+    groupId: string,
+    field: ContactMergeFieldKey,
+    value: string
+  ) {
+    setContactMergeSelections((current) => ({
+      ...current,
+      [groupId]: {
+        ...(current[groupId] ?? {}),
+        [field]: value,
+      },
+    }));
+  }
+
   function renderOrganizationMergeAssistant(group: DuplicateGroup<OrganizationAuditRow>) {
     const preferredOrganizationId = getPreferredOrganizationId(group);
     const target =
@@ -2632,6 +2862,120 @@ export function BusinessCoreDuplicatesPage() {
               >
                 <div className="business-core-duplicates-merge-diff-item__field">
                   {getOrganizationMergeFieldLabel(row.field)}
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__values">
+                  <span>
+                    {language === "es" ? "Actual:" : "Current:"} {row.currentValue ?? "—"}
+                  </span>
+                  <span>
+                    {language === "es" ? "Final:" : "Final:"} {row.nextValue ?? "—"}
+                  </span>
+                </div>
+                <div className="business-core-duplicates-merge-diff-item__meta">
+                  {row.isAutomatic
+                    ? language === "es"
+                      ? "origen automático"
+                      : "automatic source"
+                    : `${language === "es" ? "origen manual" : "manual source"}: ${row.sourceLabel ?? "—"}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderContactMergeAssistant(group: DuplicateGroup<ContactAuditRow>) {
+    const preferredContactId = getPreferredContactId(group);
+    const target =
+      group.members.find((member) => member.contact.id === preferredContactId)?.contact ??
+      group.members[0]?.contact ??
+      null;
+    if (!target) {
+      return null;
+    }
+    const sources = group.members
+      .filter((member) => member.contact.id !== preferredContactId)
+      .map((member) => member.contact);
+    const selections = contactMergeSelections[group.id] ?? {};
+    const preview = resolveContactMergePayload(target, sources, selections);
+    const diffRows = buildContactMergeDiffRows(target, sources, selections, language);
+
+    return (
+      <div className="business-core-duplicates-merge-assistant">
+        <div className="business-core-duplicates-merge-assistant__header">
+          <strong>{language === "es" ? "Ajuste manual previo" : "Manual pre-merge adjustment"}</strong>
+          <span>
+            {language === "es"
+              ? "Si quieres, elige qué contacto aporta cada dato visible antes de consolidar."
+              : "If needed, choose which contact provides each visible field before consolidating."}
+          </span>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__grid">
+          {CONTACT_MERGE_FIELDS.map((field) => (
+            <label key={`${group.id}-${field}`} className="business-core-duplicates-merge-assistant__field">
+              <span>{getContactMergeFieldLabel(field, language)}</span>
+              <select
+                className="form-select form-select-sm"
+                value={selections[field] ?? "auto"}
+                onChange={(event) =>
+                  updateContactMergeSelection(group.id, field, event.target.value)
+                }
+              >
+                <option value="auto">
+                  {language === "es" ? "Automático sugerido" : "Suggested automatic"}
+                </option>
+                {[target, ...sources].map((contact) => {
+                  const fieldValue = getContactFieldDisplayValue(
+                    getContactFieldValue(contact, field),
+                    field,
+                    language
+                  );
+                  return (
+                    <option key={`${field}-${contact.id}`} value={`contact:${contact.id}`}>
+                      {`${stripLegacyVisibleText(contact.full_name) || `#${contact.id}`} · ${fieldValue ?? (language === "es" ? "sin dato" : "no value")}`}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          ))}
+        </div>
+        <div className="business-core-duplicates-merge-assistant__preview">
+          <div className="business-core-cell__meta">
+            {language === "es"
+              ? "Vista previa del contacto objetivo"
+              : "Target contact preview"}
+          </div>
+          <div className="business-core-duplicates-group__summary">
+            <span>{preview.full_name}</span>
+            {preview.email ? <span>{preview.email}</span> : null}
+            {preview.phone ? <span>{preview.phone}</span> : null}
+            {preview.role_title ? <span>{preview.role_title}</span> : null}
+            <span>
+              {preview.is_primary
+                ? language === "es"
+                  ? "quedará principal"
+                  : "will remain primary"
+                : language === "es"
+                  ? "quedará secundario"
+                  : "will remain secondary"}
+            </span>
+          </div>
+        </div>
+        <div className="business-core-duplicates-merge-assistant__diff">
+          <div className="business-core-cell__meta">
+            {language === "es" ? "Diff final por campo" : "Final field diff"}
+          </div>
+          <div className="business-core-duplicates-merge-diff-list">
+            {diffRows.map((row) => (
+              <div
+                key={`${group.id}-${row.field}`}
+                className={`business-core-duplicates-merge-diff-item${row.isChanged ? " is-changed" : ""}`}
+              >
+                <div className="business-core-duplicates-merge-diff-item__field">
+                  {getContactMergeFieldLabel(row.field, language)}
                 </div>
                 <div className="business-core-duplicates-merge-diff-item__values">
                   <span>
