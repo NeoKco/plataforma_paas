@@ -2,6 +2,23 @@
 
 ## 2026-04-20
 
+- `Duplicados` deja de tener auditoría persistente solo para `organizations` y pasa a exponer historial visible reciente de consolidaciones:
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora muestra `Historial reciente de consolidaciones`
+  - el historial reutiliza `business_core_merge_audits` para dejar evidencia operativa legible del merge aplicado, no solo escritura ciega de backend
+  - el frontend ahora registra auditoría también para consolidaciones de:
+    - `clients`
+    - `contacts`
+    - `sites`
+    - `installations`
+  - `organizations` mantiene su auditoría enriquecida con diff, selección por campo e ids origen
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreDuplicatesPage-CZHv-Oy_.js` e `index-DuJf_Kmo.js`
+    - `production` publicado con `BusinessCoreDuplicatesPage-Bqa3hfAm.js` e `index-DJZ1ww-t.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - la depuración deja trazabilidad visible de merges recientes y ya no depende solo del estado actual de la base
+
 - se profundiza la adopcion de `assets` por `maintenance` sin inventar una relacion dura nueva `instalacion <-> activo`:
   - [BusinessCoreAssetsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreAssetsPage.tsx) ahora soporta foco operativo por `siteId`, `source=maintenance`, búsqueda contextual (`q`) y filtro visible por estado
   - la vista suma además una franja operativa con:

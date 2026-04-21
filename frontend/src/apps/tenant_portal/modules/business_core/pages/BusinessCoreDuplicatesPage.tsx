@@ -36,6 +36,8 @@ import {
 } from "../services/organizationsService";
 import {
   createTenantBusinessCoreMergeAudit,
+  getTenantBusinessCoreMergeAudits,
+  type TenantBusinessCoreMergeAudit,
 } from "../services/mergeAuditsService";
 import {
   deleteTenantBusinessSite,
@@ -620,6 +622,180 @@ function buildOrganizationMergeAuditPayload(
       })),
     },
   };
+}
+
+function buildClientMergeAuditPayload(
+  target: ClientAuditRow,
+  sources: ClientAuditRow[],
+  summary: ReturnType<typeof summarizeClientContactMerge>,
+  totalSites: number,
+  totalWorkOrders: number
+) {
+  return {
+    entity_kind: "client",
+    entity_id: target.client.id,
+    summary: `client:${target.client.id} merged from ${sources.length} source(s)`,
+    payload: {
+      target: {
+        id: target.client.id,
+        organization_id: target.client.organization_id,
+        name: target.organization?.name ?? null,
+      },
+      source_ids: sources.map((source) => source.client.id),
+      source_organization_ids: sources.map((source) => source.client.organization_id),
+      summary: {
+        sites_moved: totalSites,
+        work_orders_moved: totalWorkOrders,
+        contacts_to_move: summary.contactsToMove,
+        contacts_to_deactivate: summary.contactsToDeactivate,
+        source_organizations_remaining: summary.sourceOrganizations,
+      },
+    },
+  };
+}
+
+function buildContactMergeAuditPayload(
+  target: ContactAuditRow,
+  sources: ContactAuditRow[],
+  documentFieldsToMerge: number,
+  primarySourcesCount: number
+) {
+  return {
+    entity_kind: "contact",
+    entity_id: target.contact.id,
+    summary: `contact:${target.contact.id} merged from ${sources.length} source(s)`,
+    payload: {
+      target: {
+        id: target.contact.id,
+        organization_id: target.contact.organization_id,
+        full_name: target.contact.full_name,
+      },
+      source_ids: sources.map((source) => source.contact.id),
+      summary: {
+        document_fields_merged: documentFieldsToMerge,
+        primary_sources_count: primarySourcesCount,
+      },
+    },
+  };
+}
+
+function buildSiteMergeAuditPayload(
+  target: SiteAuditRow,
+  sources: SiteAuditRow[],
+  totalInstallations: number,
+  totalWorkOrders: number
+) {
+  return {
+    entity_kind: "site",
+    entity_id: target.site.id,
+    summary: `site:${target.site.id} merged from ${sources.length} source(s)`,
+    payload: {
+      target: {
+        id: target.site.id,
+        client_id: target.site.client_id,
+        label: getVisibleAddressLabel(target.site),
+      },
+      source_ids: sources.map((source) => source.site.id),
+      summary: {
+        installations_moved: totalInstallations,
+        work_orders_moved: totalWorkOrders,
+      },
+    },
+  };
+}
+
+function buildInstallationMergeAuditPayload(
+  target: InstallationAuditRow,
+  sources: InstallationAuditRow[],
+  totalWorkOrders: number
+) {
+  return {
+    entity_kind: "installation",
+    entity_id: target.installation.id,
+    summary: `installation:${target.installation.id} merged from ${sources.length} source(s)`,
+    payload: {
+      target: {
+        id: target.installation.id,
+        site_id: target.installation.site_id,
+        name: target.installation.name,
+        serial_number: target.installation.serial_number,
+      },
+      source_ids: sources.map((source) => source.installation.id),
+      summary: {
+        work_orders_moved: totalWorkOrders,
+      },
+    },
+  };
+}
+
+function getMergeAuditKindLabel(
+  entityKind: string,
+  language: "es" | "en"
+): string {
+  switch (entityKind) {
+    case "organization":
+      return language === "es" ? "Organización" : "Organization";
+    case "client":
+      return language === "es" ? "Cliente" : "Client";
+    case "contact":
+      return language === "es" ? "Contacto" : "Contact";
+    case "site":
+      return language === "es" ? "Dirección" : "Address";
+    case "installation":
+      return language === "es" ? "Instalación" : "Installation";
+    default:
+      return entityKind;
+  }
+}
+
+function getEntityKindFromFilter(
+  entityFilter: DuplicateEntityKind | "all"
+): string | null {
+  switch (entityFilter) {
+    case "organizations":
+      return "organization";
+    case "clients":
+      return "client";
+    case "contacts":
+      return "contact";
+    case "sites":
+      return "site";
+    case "installations":
+      return "installation";
+    default:
+      return null;
+  }
+}
+
+function getMergeAuditPrimaryLabel(audit: TenantBusinessCoreMergeAudit): string {
+  const payload = audit.payload ?? {};
+  const target = typeof payload.target === "object" && payload.target ? payload.target : null;
+  if (!target || Array.isArray(target)) {
+    return audit.summary;
+  }
+  const record = target as Record<string, unknown>;
+  return (
+    (typeof record.name === "string" && record.name) ||
+    (typeof record.full_name === "string" && record.full_name) ||
+    (typeof record.label === "string" && record.label) ||
+    audit.summary
+  );
+}
+
+function getMergeAuditSearchText(audit: TenantBusinessCoreMergeAudit): string {
+  const payloadText = audit.payload ? JSON.stringify(audit.payload) : "";
+  return [audit.entity_kind, audit.summary, audit.requested_by_email ?? "", payloadText].join(" ");
+}
+
+function formatMergeAuditTimestamp(value: string, language: "es" | "en"): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return parsed.toLocaleString(language === "es" ? "es-CL" : "en-US", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
 }
 
 function countOrganizationDocumentFieldsToMerge(
@@ -1231,6 +1407,7 @@ export function BusinessCoreDuplicatesPage() {
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [equipmentTypes, setEquipmentTypes] = useState<TenantMaintenanceEquipmentType[]>([]);
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
+  const [mergeAudits, setMergeAudits] = useState<TenantBusinessCoreMergeAudit[]>([]);
   const [search, setSearch] = useState("");
   const [entityFilter, setEntityFilter] = useState<DuplicateEntityKind | "all">("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -1320,7 +1497,7 @@ export function BusinessCoreDuplicatesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [clientsResponse, contactsResponse, organizationsResponse, sitesResponse, installationsResponse, equipmentTypesResponse, workOrdersResponse] =
+      const [clientsResponse, contactsResponse, organizationsResponse, sitesResponse, installationsResponse, equipmentTypesResponse, workOrdersResponse, mergeAuditsResponse] =
         await Promise.all([
           getTenantBusinessClients(session.accessToken, { includeInactive: true }),
           getTenantBusinessContacts(session.accessToken, { includeInactive: true }),
@@ -1329,6 +1506,7 @@ export function BusinessCoreDuplicatesPage() {
           getTenantMaintenanceInstallations(session.accessToken, { includeInactive: true }),
           getTenantMaintenanceEquipmentTypes(session.accessToken, { includeInactive: true }),
           getTenantMaintenanceWorkOrders(session.accessToken),
+          getTenantBusinessCoreMergeAudits(session.accessToken, { limit: 30 }),
         ]);
       setClients(clientsResponse.data);
       setContacts(contactsResponse.data);
@@ -1337,6 +1515,7 @@ export function BusinessCoreDuplicatesPage() {
       setInstallations(installationsResponse.data);
       setEquipmentTypes(equipmentTypesResponse.data);
       setWorkOrders(workOrdersResponse.data);
+      setMergeAudits(mergeAuditsResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -1471,6 +1650,19 @@ export function BusinessCoreDuplicatesPage() {
     () => filterGroups(installationGroups, "installations"),
     [installationGroups, entityFilter, search]
   );
+  const visibleMergeAudits = useMemo(() => {
+    const normalizedSearch = normalizeHumanKey(search);
+    const expectedEntityKind = getEntityKindFromFilter(entityFilter);
+    return mergeAudits.filter((audit) => {
+      if (expectedEntityKind && audit.entity_kind !== expectedEntityKind) {
+        return false;
+      }
+      if (!normalizedSearch) {
+        return true;
+      }
+      return normalizeHumanKey(getMergeAuditSearchText(audit)).includes(normalizedSearch);
+    });
+  }, [entityFilter, mergeAudits, search]);
 
   const totalVisibleGroups =
     visibleOrganizationGroups.length +
@@ -1891,6 +2083,20 @@ export function BusinessCoreDuplicatesPage() {
           await updateTenantBusinessClientStatus(session.accessToken, source.client.id, false);
         }
       }
+      try {
+        await createTenantBusinessCoreMergeAudit(
+          session.accessToken,
+          buildClientMergeAuditPayload(
+            target,
+            sources,
+            { contactsToMove, contactsToDeactivate, sourceOrganizations },
+            totalSites,
+            totalWorkOrders
+          )
+        );
+      } catch (auditError) {
+        console.warn("Unable to persist client merge audit", auditError);
+      }
       setFeedback(
         language === "es"
           ? `Consolidación aplicada sobre ${sources.length} ficha(s) duplicada(s), incluyendo contactos reutilizables hacia la ficha sugerida.`
@@ -2139,6 +2345,14 @@ export function BusinessCoreDuplicatesPage() {
           await updateTenantBusinessSiteStatus(session.accessToken, source.site.id, false);
         }
       }
+      try {
+        await createTenantBusinessCoreMergeAudit(
+          session.accessToken,
+          buildSiteMergeAuditPayload(target, sources, totalInstallations, totalWorkOrders)
+        );
+      } catch (auditError) {
+        console.warn("Unable to persist site merge audit", auditError);
+      }
       setFeedback(
         language === "es"
           ? `Consolidación aplicada sobre ${sources.length} dirección(es) duplicada(s).`
@@ -2188,6 +2402,19 @@ export function BusinessCoreDuplicatesPage() {
         if (source.contact.is_active) {
           await updateTenantBusinessContactStatus(session.accessToken, source.contact.id, false);
         }
+      }
+      try {
+        await createTenantBusinessCoreMergeAudit(
+          session.accessToken,
+          buildContactMergeAuditPayload(
+            target,
+            sources,
+            documentFieldsToMerge,
+            primarySourcesCount
+          )
+        );
+      } catch (auditError) {
+        console.warn("Unable to persist contact merge audit", auditError);
       }
       setFeedback(
         language === "es"
@@ -2251,6 +2478,14 @@ export function BusinessCoreDuplicatesPage() {
             false
           );
         }
+      }
+      try {
+        await createTenantBusinessCoreMergeAudit(
+          session.accessToken,
+          buildInstallationMergeAuditPayload(target, sources, totalWorkOrders)
+        );
+      } catch (auditError) {
+        console.warn("Unable to persist installation merge audit", auditError);
       }
       setFeedback(
         language === "es"
@@ -3248,6 +3483,83 @@ export function BusinessCoreDuplicatesPage() {
             ? "La interfaz marca una ficha sugerida para conservar por grupo. Si la duplicada ya tiene historial, rol principal, cliente asociado o trazabilidad, conviene desactivarla o consolidarla hacia la sugerida; si está vacía, puedes borrarla."
             : "The interface marks one suggested record to keep per group. If the duplicate already has history, a primary role, a linked client, or traceability, it is better to deactivate it or consolidate it into the suggested one; if it is empty, you can delete it."}
         </div>
+      </PanelCard>
+
+      <PanelCard
+        title={
+          language === "es"
+            ? "Historial reciente de consolidaciones"
+            : "Recent consolidation history"
+        }
+        subtitle={
+          language === "es"
+            ? "Evidencia operativa de merges ya aplicados para no depender solo del estado actual de la base."
+            : "Operational evidence of merges already applied so you do not depend only on the current database state."
+        }
+      >
+        {visibleMergeAudits.length === 0 ? (
+          <div className="business-core-cell__meta">
+            {language === "es"
+              ? "No hay consolidaciones recientes bajo el filtro actual."
+              : "There are no recent consolidations under the current filter."}
+          </div>
+        ) : (
+          <div className="business-core-merge-audits-list">
+            {visibleMergeAudits.map((audit) => {
+              const summaryPayload =
+                audit.payload &&
+                typeof audit.payload === "object" &&
+                !Array.isArray(audit.payload) &&
+                typeof (audit.payload as Record<string, unknown>).summary === "object" &&
+                (audit.payload as Record<string, unknown>).summary &&
+                !Array.isArray((audit.payload as Record<string, unknown>).summary)
+                  ? ((audit.payload as Record<string, unknown>).summary as Record<string, unknown>)
+                  : null;
+              const sourceIds =
+                audit.payload &&
+                typeof audit.payload === "object" &&
+                !Array.isArray(audit.payload) &&
+                Array.isArray((audit.payload as Record<string, unknown>).source_ids)
+                  ? ((audit.payload as Record<string, unknown>).source_ids as unknown[])
+                  : [];
+
+              return (
+                <div key={audit.id} className="business-core-merge-audit-card">
+                  <div className="business-core-merge-audit-card__header">
+                    <div>
+                      <div className="business-core-merge-audit-card__title">
+                        {getMergeAuditPrimaryLabel(audit)}
+                      </div>
+                      <div className="business-core-merge-audit-card__meta">
+                        {formatMergeAuditTimestamp(audit.created_at, language)} ·{" "}
+                        {audit.requested_by_email ||
+                          (language === "es" ? "usuario no informado" : "unknown user")}
+                      </div>
+                    </div>
+                    <AppBadge tone="info">
+                      {getMergeAuditKindLabel(audit.entity_kind, language)}
+                    </AppBadge>
+                  </div>
+                  <div className="business-core-merge-audit-card__summary">
+                    <span>
+                      {language === "es" ? "fuentes fusionadas" : "merged sources"}:{" "}
+                      {sourceIds.length}
+                    </span>
+                    {summaryPayload
+                      ? Object.entries(summaryPayload)
+                          .slice(0, 3)
+                          .map(([key, value]) => (
+                            <span key={key}>
+                              {key.replace(/_/g, " ")}: {String(value)}
+                            </span>
+                          ))
+                      : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </PanelCard>
 
       <PanelCard

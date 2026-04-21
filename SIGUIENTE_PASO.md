@@ -230,7 +230,7 @@
         - el expediente técnico de instalación ya muestra resumen del inventario reusable del sitio y CTA a inventario completo
       - siguiente salto útil ahora dentro de `business-core`:
         - endurecer el importador inicial desde `ieris_app`
-        - o profundizar la depuración de duplicados hacia consolidación más guiada
+        - o profundizar la depuración de duplicados hacia consolidación más guiada y diff más profundo fuera de `organizations`
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

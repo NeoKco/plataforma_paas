@@ -91,7 +91,9 @@ Estado actual del slice `Duplicados`:
 - sugerencia de ficha a conservar por grupo
 - desactivacion segura
 - consolidacion operativa con resumen previo del impacto
+- historial visible reciente de consolidaciones
 - cobertura actual para `organizations`, `clients`, `contacts`, `sites` e `installations`
+- auditoría persistente ya visible para merges de `organizations`, `clients`, `contacts`, `sites` e `installations`
 
 ## Fase 4. Assets y adopcion
 
@@ -140,6 +142,7 @@ Completado recientemente:
 - `assets` y `asset_types`: completado
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
 - auditoria operativa de duplicados: UI ya lista para `organizations`, `clients`, `contacts`, `sites` e `installations`, con sugerencia de ficha a conservar, consolidacion operativa y desactivacion segura; falta merge/asimilacion profunda guiada
+- historial visible de merges: listo para las consolidaciones operativas base del slice
 - merge profundo de `organizations` y consolidacion documental de `contacts`: ya resuelve asimilacion guiada de múltiples clientes en conflicto, integra campos visibles base, permite selección manual por campo, expone diff final previo y registra una auditoria persistente del merge; falta criterio documental profundo y fusión manual asistida de identidad completa para el resto de las entidades
 - integración con `projects`: pendiente
 - integración con `iot`: pendiente

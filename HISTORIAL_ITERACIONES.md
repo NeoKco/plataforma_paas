@@ -1,5 +1,38 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - `Duplicados` deja historial visible de consolidaciones
+
+- objetivo:
+  - profundizar `business-core` sin abrir el frente más incierto del importador legacy
+  - dejar evidencia visible de merges recientes dentro de `Duplicados`, no solo persistencia muda en backend
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx):
+    - agrega bloque `Historial reciente de consolidaciones`
+    - consume `merge_audits` recientes y los filtra con el mismo contexto de búsqueda/tipo
+    - empieza a registrar auditoría también para consolidaciones de `clients`, `contacts`, `sites` e `installations`
+  - [frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css):
+    - agrega estilos del historial visible de merges
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-CZHv-Oy_.js`, `index-DuJf_Kmo.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-Bqa3hfAm.js`, `index-DJZ1ww-t.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `Duplicados` ya no depende solo del estado actual de la base para explicar qué merge se ejecutó antes
+  - la auditoría visible queda extendida también a `clients`, `contacts`, `sites` e `installations`
+- siguiente paso:
+  - si seguimos en `business-core`, el siguiente salto útil vuelve a quedar entre endurecer el importador `ieris_app` o profundizar merge guiado/documental más allá de `organizations`
+
 ## 2026-04-20 - `business-core` profundiza adopción de `assets` en `maintenance`
 
 - objetivo:

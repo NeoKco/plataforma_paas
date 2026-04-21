@@ -206,6 +206,11 @@ Resumen previo por grupo:
 - tras consolidar `organizations`, el frontend registra además una auditoría persistente del merge con el diff final, los ids origen y el resumen operativo en `business_core_merge_audits`
 - para `contacts`, el resumen previo indica cuantas fichas origen se desactivaran, cuantos primarios conviene revisar y cuantos campos visibles se integraran antes de consolidar
 - ese resumen vive en frontend usando los datasets cargados del modulo y evita disparar un backend nuevo en este corte
+- el mismo slice ahora también consume `GET /tenant/business-core/merge-audits` para renderizar historial reciente visible dentro de `Duplicados`
+- además de `organizations`, el frontend ya registra eventos de auditoría para consolidaciones de `clients`, `contacts`, `sites` e `installations`
+- restricción vigente:
+  - fuera de `organizations`, la auditoría actual resume ids origen y conteos operativos movidos/desactivados
+  - no existe todavía diff documental profundo por campo para esas otras entidades
 
 ### 5. Contact-Site Links
 

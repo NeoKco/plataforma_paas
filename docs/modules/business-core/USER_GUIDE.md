@@ -105,6 +105,7 @@ Como reconocer que estas en el slice correcto:
 Que veras dentro del slice:
 
 - un bloque `Auditoría de duplicados`
+- un bloque `Historial reciente de consolidaciones`
 - filtros por texto y por tipo de entidad
 - grupos de `Organizaciones duplicadas`
 - grupos de `Clientes duplicados`
@@ -137,6 +138,7 @@ Que consolida hoy:
 - `Contactos`: integra email, teléfono o rol faltante, desactiva duplicados equivalentes y conserva una sola ficha sugerida dentro de la misma organización
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
+- cada una de esas consolidaciones ya puede dejar rastro visible en `Historial reciente de consolidaciones`
 
 Que no consolida todavia:
 
@@ -144,6 +146,7 @@ Que no consolida todavia:
 - cuando hay varios `Clientes` en conflicto, la pantalla ahora intenta consolidarlos guiadamente antes de cerrar la fusión de la organización base; aun así, el criterio documental final sigue siendo operacional y no reemplaza revisión humana
 - el ajuste manual actual permite elegir por campo visible qué organización aporta cada dato, pero no versiona decisiones ni agrega una justificación formal por campo
 - el diff actual muestra cambio actual vs final por campo, y además cada merge de `organizations` deja un registro persistente de auditoría con ids origen, resumen y procedencia final de los campos visibles
+- ahora ese criterio de auditoría ya se extiende también al resto de las consolidaciones operativas base, aunque sin diff profundo por campo fuera de `organizations`
 - merge profundo de `contacts` mas alla de consolidar equivalentes dentro de la misma organización o mover/desactivar duplicados evidentes al fusionar `Clientes`
 - notas historicas libres
 - fusion documental profunda entre fichas
