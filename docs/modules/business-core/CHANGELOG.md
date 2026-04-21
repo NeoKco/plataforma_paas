@@ -1,5 +1,28 @@
 # Business Core Changelog
 
+## 2026-04-20
+
+- se profundiza la adopcion de `assets` por `maintenance` sin inventar una relacion dura nueva `instalacion <-> activo`:
+  - [BusinessCoreAssetsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreAssetsPage.tsx) ahora soporta foco operativo por `siteId`, `source=maintenance`, búsqueda contextual (`q`) y filtro visible por estado
+  - la vista suma además una franja operativa con:
+    - contexto actual del sitio
+    - conteo visible
+    - activos/inactivos visibles
+    - cantidad de tipos visibles
+  - la tabla agrega un `Snapshot técnico` con código/serie, fabricante/modelo, último servicio y garantía
+  - las acciones de tabla ahora pueden volver directo a `Maintenance -> Installations` del mismo sitio
+- `maintenance` ahora baja mejor a ese inventario compartido:
+  - [MaintenanceInstallationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceInstallationsPage.tsx) abre `Activos sitio` con foco contextual desde la instalación actual
+  - [MaintenanceInstallationTechnicalRecordModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceInstallationTechnicalRecordModal.tsx) ahora muestra resumen rápido de activos del sitio y CTA a inventario completo
+  - [BusinessCoreCatalogPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreCatalogPage.tsx) ya permite inyectar una franja operativa antes de la tabla para este tipo de slices transversales
+- validación:
+  - `npm run build` -> `OK`
+  - `staging` publicado con `BusinessCoreAssetsPage-D4U_A5lM.js`, `MaintenanceInstallationsPage-KnpKJ0ku.js`, `index-DjoB7vJZ.js`
+  - `production` publicado con `BusinessCoreAssetsPage-D2vi1HX1.js`, `MaintenanceInstallationsPage-DqGixmjU.js`, `index-DDpZQ1bz.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- resultado:
+  - `business-core` deja de ofrecer `assets` como catálogo aislado y pasa a ser inventario reusable con foco contextual real desde `maintenance`
+
 ## 2026-04-06
 
 - se alinea la capa transversal del frontend del módulo con el helper compartido `pickLocalizedText()` para reducir ternarios manuales en navegación y catálogos reutilizables

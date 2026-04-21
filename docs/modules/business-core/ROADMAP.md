@@ -116,6 +116,10 @@ Completado recientemente:
 - `business_asset_types`: tabla, API, vista administrativa y migracion tenant
 - `business_assets`: tabla, API, vista administrativa y migracion tenant
 - `business_organization_addresses`: primera ola de direccion propia para empresas/proveedores
+- adopcion visible de `assets` por `maintenance`:
+  - `Maintenance -> Instalaciones` ya puede abrir `Activos` con foco contextual del mismo sitio
+  - `BusinessCoreAssetsPage` ya ofrece búsqueda contextual, filtro por estado, métricas visibles y retorno rápido a `Instalaciones`
+  - el expediente técnico de instalación ya muestra resumen y CTA a inventario completo del sitio
 
 ## Riesgos a evitar
 
@@ -126,7 +130,7 @@ Completado recientemente:
 ## Siguiente paso recomendado
 
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
-- profundizar la adopcion de `assets` por `maintenance` e `iot`
+- profundizar la adopcion de `assets` por `iot`
 - endurecer el importador inicial desde `ieris_app`
 - profundizar la depuracion de duplicados para soportar consolidacion profunda de entidades y no solo reasignacion operativa + desactivacion segura
 

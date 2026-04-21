@@ -198,6 +198,18 @@ export function MaintenanceInstallationsPage() {
     return locality ? `${base} · ${locality}` : base;
   }
 
+  function buildAssetsFocusHref(installation: TenantMaintenanceInstallation): string {
+    const params = new URLSearchParams({
+      siteId: String(installation.site_id),
+      source: "maintenance",
+    });
+    const focusQuery = normalizeNullable(installation.serial_number) || installation.name.trim();
+    if (focusQuery) {
+      params.set("q", focusQuery);
+    }
+    return `/tenant-portal/business-core/assets?${params.toString()}`;
+  }
+
   useEffect(() => {
     void loadData();
   }, [session?.accessToken]);
@@ -569,9 +581,9 @@ export function MaintenanceInstallationsPage() {
               <button
                 className="btn btn-sm btn-outline-success"
                 type="button"
-                onClick={() => navigate(`/tenant-portal/business-core/assets?siteId=${item.site_id}`)}
+                onClick={() => navigate(buildAssetsFocusHref(item))}
               >
-                {localizeDynamic(currentLanguage, "Activos", "Assets")}
+                {localizeDynamic(currentLanguage, "Activos sitio", "Site assets")}
               </button>
               <button
                 className="btn btn-sm btn-outline-info"
@@ -631,6 +643,7 @@ export function MaintenanceInstallationsPage() {
         effectiveTimeZone={effectiveTimeZone}
         isOpen={Boolean(technicalRecordInstallation)}
         language={language}
+        assetsHref={technicalRecordInstallation ? buildAssetsFocusHref(technicalRecordInstallation) : null}
         onClose={closeTechnicalRecord}
       />
     </>

@@ -52,6 +52,7 @@ Estado de este segundo bloque:
 
 - `business_asset_types`: implementado
 - `business_assets`: implementado
+- adopción visible por `maintenance`: ya existe foco contextual por `siteId` + `source=maintenance` + búsqueda `q` en la vista tenant de `assets`
 
 ## Modelo inicial sugerido
 
@@ -160,6 +161,7 @@ Observacion:
 - los modales de captura del dominio deberian seguir una plantilla comun: `ancho` para altas principales y `compacto` para ediciones puntuales, con bloques claros y formularios densos pero legibles
 - en `clients`, la captura inicial deberia soportar `contacto principal` y `contacto secundario`; contactos adicionales quedan para gestion posterior en la ficha del cliente
 - `BusinessCoreCatalogPage` deberia comportarse con el mismo patron: tabla visible por defecto y formulario solo bajo demanda en modal
+- ese patrón ya admite también una franja operativa previa a la tabla cuando el slice necesita contexto transversal; el primer uso real es `assets` abierto desde `maintenance`
 - `BusinessCoreOverviewPage` ya puede usar directamente `organizations` y `clients` para mostrar ultimas altas visibles del dominio; no hace falta crear primero un endpoint nuevo mientras la lectura siga siendo ligera y acotada
 - en esa portada, la lectura debe ser acotada y util: 2 `organizations` visibles y 5 `clients`, usando la `organization` asociada para exponer nombre, `tax_id`, contacto base y estado de servicio del cliente.
 - `sort_order` puede seguir existiendo en el modelo para ordenamiento tecnico, pero la UI normal del tenant no deberia exponerlo mientras no haya una necesidad operativa concreta.
@@ -170,6 +172,10 @@ Observacion:
 - la eliminacion de `clients` no debe entenderse como limpieza en cascada de negocio; si el cliente ya tiene mantenciones registradas, el backend debe bloquear el borrado y exigir desactivacion.
 - en la alta de `clients`, la proteccion anti-duplicado debe vivir antes del primer `POST`, porque el flujo actual crea `organization`, `client`, `contacts` y `site` en varias llamadas. La UX debe interceptar coincidencias fuertes y redirigir a la ficha existente para agregar contactos en vez de abrir otra cartera paralela.
 - cuando esa proteccion preventiva no alcanzo y la base ya quedo contaminada, el dominio debe ofrecer una auditoria operativa de duplicados: el corte actual puede resolverlo en frontend agrupando `organizations`, `clients`, `contacts`, `sites` e `installations` por claves normalizadas exactas, calculando dependencias con `work_orders`, sugiriendo una ficha a conservar y habilitando `DELETE`, desactivacion segura o consolidacion operativa segun el nivel de historial.
+- en `assets`, sigue vigente una restricción deliberada:
+  - no existe aún una FK ni contrato explícito `maintenance_installation.asset_id`
+  - la adopción actual trabaja por contexto de `site`, tipo visible y búsqueda técnica
+  - si en el futuro se endurece esa relación, debe definirse como slice contractual nuevo y no como extensión implícita del filtro actual
 
 Slice frontend actual de duplicados:
 

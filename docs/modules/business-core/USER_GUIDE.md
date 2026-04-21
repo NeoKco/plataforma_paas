@@ -66,6 +66,13 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - la captura de `Nuevo cliente` deberia advertir coincidencias fuertes por RUT, nombre, telefono, email o direccion y desviar al usuario hacia la ficha existente antes de duplicar la cartera.
 - cuando ya existen duplicados en la base, la pantalla `Depuración` debe agrupar `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
 - la vista `Activos` permite mantener el inventario instalado por sitio y `Tipos de activo` define la taxonomia reusable para ese inventario.
+- cuando entras a `Activos` desde `Maintenance -> Instalaciones`, la vista puede abrir con foco contextual del mismo sitio y una búsqueda prellenada por nombre o serie de la instalación.
+- ese foco no significa que exista todavía una relación rígida `instalación = activo`; por ahora sirve para revisar rápido el inventario reusable del mismo sitio antes de seguir operando en `maintenance`.
+- dentro de `Activos`, la lectura operativa ahora debería permitir:
+  - ver cuántos activos del sitio están visibles
+  - separar activos e inactivos
+  - ubicar por nombre, serie, código, fabricante o modelo
+  - volver a `Instalaciones` del mismo sitio sin reconstruir el contexto manualmente
 
 Regla vigente:
 

@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T22:08:13-04:00",
+  "updated_at": "2026-04-20T22:24:21-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos, infraestructura/deploy y calidad técnica + rollback también en runtime real. staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles, el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate, el rollback ya opera desde SOURCE_REPO_ROOT y el base smoke ya quedó institucionalizado por defecto en los wrappers y en el workflow manual. Además, platform_admin > Tenants ya muestra contexto de alertas activas y jerarquía de prioridad/acción, Provisioning ya suma plan operativo sugerido con copy/densidad compactados, Dashboard/Billing/Tenants ya cerraron el mismo pase de compactación visible y la decisión estructural sobre una barra operativa compartida ya quedó resuelta con un componente reusable. El foco correcto ya no es debatir ese patrón sino decidir si frontend fino se considera suficientemente cerrado para pasar al siguiente frente del roadmap, manteniendo convergencia/secretos fuera de la UI por ahora.",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos, infraestructura/deploy y calidad técnica + rollback también en runtime real. staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles, el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate, el rollback ya opera desde SOURCE_REPO_ROOT y el base smoke ya quedó institucionalizado por defecto en los wrappers y en el workflow manual. Además, el primer frente de frontend fino ya quedó suficientemente cerrado, la barra operativa compartida quedó resuelta con un componente reusable y el foco activo ya pasó a business-core de adopción profunda: `Maintenance -> Instalaciones` ya abre `Activos sitio` con foco contextual, `BusinessCoreAssetsPage` ya opera con métricas/filtros visibles y el expediente técnico de instalación ya resume inventario reusable del sitio. Si seguimos en este frente, el siguiente corte útil es endurecer el importador legacy o profundizar Duplicados.",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime, rollback alineado al repo fuente y smoke base embebido por defecto como evidencia repetible",
   "active_modules": [
     "platform-core",
@@ -77,6 +77,11 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "business-core avanza un slice real de adopción profunda: assets ya pueden abrirse desde Maintenance -> Instalaciones con foco contextual por sitio e instalación",
+    "BusinessCoreAssetsPage ahora expone búsqueda contextual, filtro por estado, métricas visibles y retorno rápido a Maintenance -> Installations",
+    "MaintenanceInstallationTechnicalRecordModal ahora resume activos visibles/activos/inactivos/tipos del sitio y agrega CTA a inventario completo",
+    "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles BusinessCoreAssetsPage-D4U_A5lM.js MaintenanceInstallationsPage-KnpKJ0ku.js index-DjoB7vJZ.js y static readiness OK",
+    "production frontend republicado con API_BASE_URL=https://orkestia.ddns.net, bundles BusinessCoreAssetsPage-D2vi1HX1.js MaintenanceInstallationsPage-DqGixmjU.js index-DDpZQ1bz.js y static readiness OK",
     "OperationalSummaryStrip agregado como componente compartido para la franja operativa visible de platform_admin",
     "Dashboard, Billing, Provisioning y Tenants ya reutilizan OperationalSummaryStrip en vez de repetir markup local",
     "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles BillingPage-CmBhOeZQ.js DashboardPage-BIpgsZA9.js ProvisioningPage-geHOKmrE.js TenantsPage-DeWp8UHT.js index-Bskj0zMi.js y static readiness OK",
@@ -326,7 +331,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "definir si el frente actual de frontend fino ya quedó suficientemente compacto para pasar al siguiente frente del roadmap; la barra operativa compartida ya quedó resuelta con OperationalSummaryStrip y convergencia/secretos deben seguir fuera de UI salvo contrato explícito de producto",
+  "next_decision_required": "definir cuál es el siguiente corte de business-core de adopción profunda: endurecer el importador legacy desde ieris_app o profundizar Duplicados; la barra operativa compartida de frontend ya quedó resuelta y convergencia/secretos deben seguir fuera de UI salvo contrato explícito de producto",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

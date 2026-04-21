@@ -19,6 +19,7 @@ import { getTenantBusinessAssets, type TenantBusinessAsset } from "../../../busi
 
 type InstallationRecordInstallation = {
   id: number;
+  site_id: number;
   name: string;
   serial_number: string | null;
   manufacturer: string | null;
@@ -40,6 +41,7 @@ type Props = {
   effectiveTimeZone?: string | null;
   isOpen: boolean;
   language: "es" | "en";
+  assetsHref: string | null;
   onClose: () => void;
 };
 
@@ -98,6 +100,7 @@ export function MaintenanceInstallationTechnicalRecordModal({
   effectiveTimeZone,
   isOpen,
   language,
+  assetsHref,
   onClose,
 }: Props) {
   const [isLoading, setIsLoading] = useState(false);
@@ -122,7 +125,7 @@ export function MaintenanceInstallationTechnicalRecordModal({
         setWorkOrders(orders);
 
         const assetsResponse = await getTenantBusinessAssets(accessToken, {
-          siteId: (installation as { site_id?: number }).site_id,
+          siteId: installation.site_id,
           includeInactive: true,
         });
         setSiteAssets(assetsResponse.data);
@@ -205,6 +208,15 @@ export function MaintenanceInstallationTechnicalRecordModal({
 
   const recentOrders = useMemo(() => workOrders.slice(0, 5), [workOrders]);
   const recentAssets = useMemo(() => siteAssets.slice(0, 5), [siteAssets]);
+  const activeSiteAssets = useMemo(
+    () => siteAssets.filter((asset) => asset.is_active).length,
+    [siteAssets]
+  );
+  const inactiveSiteAssets = siteAssets.length - activeSiteAssets;
+  const siteAssetTypeCount = useMemo(
+    () => new Set(siteAssets.map((asset) => asset.asset_type_id)).size,
+    [siteAssets]
+  );
 
   if (!isOpen || !installation) {
     return null;
@@ -244,7 +256,19 @@ export function MaintenanceInstallationTechnicalRecordModal({
                 ? "Inventario reusable de Business Core vinculado al mismo sitio."
                 : "Reusable Business Core inventory linked to the same site."
             }
+            actions={
+              assetsHref ? (
+                <a className="btn btn-sm btn-outline-primary" href={assetsHref}>
+                  {language === "es" ? "Abrir inventario completo" : "Open full inventory"}
+                </a>
+              ) : null
+            }
           >
+            <div className="maintenance-history-entry__meta mb-3">
+              {language === "es"
+                ? `${siteAssets.length} activos visibles · ${activeSiteAssets} activos · ${inactiveSiteAssets} inactivos · ${siteAssetTypeCount} tipos`
+                : `${siteAssets.length} visible assets · ${activeSiteAssets} active · ${inactiveSiteAssets} inactive · ${siteAssetTypeCount} types`}
+            </div>
             {recentAssets.length === 0 ? (
               <div className="text-muted">
                 {language === "es" ? "No hay activos registrados para este sitio." : "There are no assets registered for this site."}

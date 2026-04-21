@@ -1,5 +1,48 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - `business-core` profundiza adopción de `assets` en `maintenance`
+
+- objetivo:
+  - salir del frente `frontend fino` y abrir un slice real del roadmap dentro de `business-core`
+  - profundizar la adopción visible de `assets` por `maintenance` sin inventar todavía una relación rígida `instalación <-> activo`
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreAssetsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreAssetsPage.tsx):
+    - agrega foco contextual por `siteId`, `source=maintenance` y `q`
+    - agrega filtro visible por estado
+    - agrega métricas visibles del inventario filtrado
+    - agrega `Snapshot técnico` en la tabla
+    - agrega retorno rápido a `Maintenance -> Installations`
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceInstallationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceInstallationsPage.tsx):
+    - reemplaza `Activos` por `Activos sitio`
+    - abre `business-core/assets` con foco contextual de sitio e instalación
+  - [frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceInstallationTechnicalRecordModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceInstallationTechnicalRecordModal.tsx):
+    - resume activos visibles/activos/inactivos/tipos del sitio
+    - agrega CTA a inventario completo
+  - [frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreCatalogPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreCatalogPage.tsx):
+    - habilita franja operativa previa a la tabla para slices transversales
+  - [frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css):
+    - agrega estilos del bloque operativo de `assets`
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreAssetsPage-D4U_A5lM.js`, `MaintenanceInstallationsPage-KnpKJ0ku.js`, `index-DjoB7vJZ.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreAssetsPage-D2vi1HX1.js`, `MaintenanceInstallationsPage-DqGixmjU.js`, `index-DDpZQ1bz.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `assets` deja de ser un catálogo aislado y pasa a operar mejor como inventario reusable desde `maintenance`
+  - el frente activo del roadmap ya deja de ser `frontend fino` y pasa a `business-core` de adopción profunda
+- siguiente paso:
+  - si seguimos dentro de `business-core`, el siguiente corte útil es endurecer el importador inicial desde `ieris_app` o profundizar `Duplicados`
+
 ## 2026-04-20 - `platform_admin` cierra la decisión estructural de franja operativa compartida
 
 - objetivo:

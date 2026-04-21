@@ -221,14 +221,16 @@
       - `accepted notes` ya institucionalizadas
     - decidir si el siguiente bloque de producto es `registro y activación de módulos` (etapa 15) o el siguiente módulo grande del roadmap
     - entrar ya al siguiente subfrente concreto del bloque 1 con la documentación estructural reordenada y sin deuda de handoff
-    - siguiente subfrente sugerido ahora dentro del mismo bloque 1:
-      - el baseline backend ya quedó cerrado y este primer corte de observabilidad visible + jerarquía operativa en `platform_admin` también
-      - el salto útil ahora, después de cerrar la compactación visible inicial, es más estructural:
-        - la decisión estructural ya quedó cerrada:
-          [OperationalSummaryStrip.tsx](/home/felipe/platform_paas/frontend/src/components/common/OperationalSummaryStrip.tsx) ya existe como primitivo compartido y quedó reutilizado en `Dashboard`, `Billing`, `Provisioning` y `Tenants`
-        - mantener `secret_posture` y snapshots de convergencia fuera de la UI salvo que exista un contrato de producto explícito para exponerlos
-        - el siguiente salto útil ya no es seguir limando copy por inercia:
-          si no aparece deuda visible nueva, corresponde pasar al siguiente frente del roadmap
+    - siguiente subfrente ya ejecutado fuera de `platform_admin`:
+      - la decisión estructural de `frontend fino` ya quedó cerrada con [OperationalSummaryStrip.tsx](/home/felipe/platform_paas/frontend/src/components/common/OperationalSummaryStrip.tsx)
+      - el foco real ya pasó a `business-core` de adopción profunda
+      - primer corte cerrado ahí:
+        - `Maintenance -> Instalaciones` ya abre `Activos sitio` con foco contextual por `siteId`, `source=maintenance` y búsqueda técnica inicial
+        - `BusinessCoreAssetsPage` ya separa activos visibles/activos/inactivos/tipos visibles y deja retorno rápido a `Instalaciones`
+        - el expediente técnico de instalación ya muestra resumen del inventario reusable del sitio y CTA a inventario completo
+      - siguiente salto útil ahora dentro de `business-core`:
+        - endurecer el importador inicial desde `ieris_app`
+        - o profundizar la depuración de duplicados hacia consolidación más guiada
     - decidir si el helper `--sync-env-file` debe quedar manual/explicito o integrarse en un flujo más guiado para carriles que comparten rol PostgreSQL
     - endurecer el gate post-deploy para diferenciar claramente:
       - servicio sano

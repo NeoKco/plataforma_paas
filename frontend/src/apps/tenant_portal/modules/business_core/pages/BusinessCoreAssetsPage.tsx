@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { AppToolbar } from "../../../../../design-system/AppLayout";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { BusinessCoreCatalogPage } from "../components/common/BusinessCoreCatalogPage";
+import { PanelCard } from "../../../../../components/common/PanelCard";
 import { getTenantBusinessSites, type TenantBusinessSite } from "../services/sitesService";
 import { getTenantBusinessAssetTypes, type TenantBusinessAssetType } from "../services/assetTypesService";
 import {
@@ -43,11 +44,33 @@ function normalizeNullable(value: string | null): string | null {
   return trimmed ? trimmed : null;
 }
 
+function normalizeAssetStatusFilter(value: string | null): "all" | "active" | "inactive" {
+  if (value === "active" || value === "inactive") {
+    return value;
+  }
+  return "all";
+}
+
+function normalizeQuery(value: string | null): string {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function formatAssetDate(value: string | null): string {
+  if (!value) {
+    return "—";
+  }
+  return value.slice(0, 10);
+}
+
 export function BusinessCoreAssetsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
-  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const requestedSiteId = Number(searchParams.get("siteId") || 0);
+  const requestedQuery = searchParams.get("q")?.trim() ?? "";
+  const requestedStatus = normalizeAssetStatusFilter(searchParams.get("status"));
+  const requestedSource = searchParams.get("source")?.trim() ?? "";
   const [items, setItems] = useState<TenantBusinessAsset[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [assetTypes, setAssetTypes] = useState<TenantBusinessAssetType[]>([]);
@@ -60,9 +83,54 @@ export function BusinessCoreAssetsPage() {
 
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
   const assetTypeById = useMemo(() => new Map(assetTypes.map((type) => [type.id, type])), [assetTypes]);
-  const visibleItems = useMemo(
+  const currentSite = useMemo(
+    () => (requestedSiteId > 0 ? siteById.get(requestedSiteId) ?? null : null),
+    [requestedSiteId, siteById]
+  );
+  const siteScopedItems = useMemo(
     () => (requestedSiteId > 0 ? items.filter((item) => item.site_id === requestedSiteId) : items),
     [items, requestedSiteId]
+  );
+  const visibleItems = useMemo(
+    () =>
+      siteScopedItems.filter((item) => {
+        if (requestedStatus === "active" && !item.is_active) {
+          return false;
+        }
+        if (requestedStatus === "inactive" && item.is_active) {
+          return false;
+        }
+        const query = normalizeQuery(requestedQuery);
+        if (!query) {
+          return true;
+        }
+        const haystack = [
+          item.name,
+          item.asset_code,
+          item.serial_number,
+          item.manufacturer,
+          item.model,
+          item.asset_status,
+          item.location_note,
+          item.technical_notes,
+          item.site_label,
+          item.asset_type_name,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(query);
+      }),
+    [requestedQuery, requestedStatus, siteScopedItems]
+  );
+  const activeVisibleCount = useMemo(
+    () => visibleItems.filter((item) => item.is_active).length,
+    [visibleItems]
+  );
+  const inactiveVisibleCount = visibleItems.length - activeVisibleCount;
+  const assetTypeCount = useMemo(
+    () => new Set(visibleItems.map((item) => item.asset_type_id)).size,
+    [visibleItems]
   );
 
   async function loadItems() {
@@ -95,7 +163,47 @@ export function BusinessCoreAssetsPage() {
 
   useEffect(() => {
     void loadItems();
-  }, [session?.accessToken]);
+  }, [requestedSiteId, session?.accessToken]);
+
+  function updateFocusParams(next: {
+    query?: string;
+    status?: "all" | "active" | "inactive";
+    siteId?: number;
+    source?: string;
+  }) {
+    const params = new URLSearchParams(searchParams);
+    if (next.query !== undefined) {
+      const value = next.query.trim();
+      if (value) {
+        params.set("q", value);
+      } else {
+        params.delete("q");
+      }
+    }
+    if (next.status !== undefined) {
+      if (next.status === "all") {
+        params.delete("status");
+      } else {
+        params.set("status", next.status);
+      }
+    }
+    if (next.siteId !== undefined) {
+      if (next.siteId > 0) {
+        params.set("siteId", String(next.siteId));
+      } else {
+        params.delete("siteId");
+      }
+    }
+    if (next.source !== undefined) {
+      const value = next.source.trim();
+      if (value) {
+        params.set("source", value);
+      } else {
+        params.delete("source");
+      }
+    }
+    setSearchParams(params);
+  }
 
   function startCreate() {
     setEditingId(null);
@@ -191,6 +299,10 @@ export function BusinessCoreAssetsPage() {
     }
   }
 
+  function clearFocus() {
+    setSearchParams(new URLSearchParams());
+  }
+
   return (
     <BusinessCoreCatalogPage
       titleEs="Activos"
@@ -213,6 +325,125 @@ export function BusinessCoreAssetsPage() {
       onCancel={startCreate}
       onReload={loadItems}
       onNew={startCreate}
+      renderTableIntro={({ language: currentLanguage }) => (
+        <PanelCard
+          title={
+            currentLanguage === "es"
+              ? "Foco operativo de activos"
+              : "Operational asset focus"
+          }
+          subtitle={
+            currentLanguage === "es"
+              ? "Usa este bloque para revisar el inventario del sitio y volver rápido a Maintenance sin perder contexto."
+              : "Use this block to review the site inventory and jump back to Maintenance without losing context."
+          }
+          actions={
+            <AppToolbar compact>
+              {(requestedSiteId > 0 || requestedQuery || requestedStatus !== "all") && (
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  onClick={clearFocus}
+                >
+                  {currentLanguage === "es" ? "Limpiar foco" : "Clear focus"}
+                </button>
+              )}
+            </AppToolbar>
+          }
+        >
+          <div className="business-core-assets-toolbar">
+            <div className="business-core-assets-toolbar__inputs">
+              <div>
+                <label className="form-label">
+                  {currentLanguage === "es" ? "Buscar activo" : "Search asset"}
+                </label>
+                <input
+                  className="form-control"
+                  type="search"
+                  value={requestedQuery}
+                  placeholder={
+                    currentLanguage === "es"
+                      ? "Nombre, serie, código, fabricante, modelo..."
+                      : "Name, serial, code, manufacturer, model..."
+                  }
+                  onChange={(event) => updateFocusParams({ query: event.target.value })}
+                />
+              </div>
+              <div>
+                <label className="form-label">
+                  {currentLanguage === "es" ? "Estado visible" : "Visible status"}
+                </label>
+                <select
+                  className="form-select"
+                  value={requestedStatus}
+                  onChange={(event) =>
+                    updateFocusParams({
+                      status: normalizeAssetStatusFilter(event.target.value),
+                    })
+                  }
+                >
+                  <option value="all">
+                    {currentLanguage === "es" ? "todos" : "all"}
+                  </option>
+                  <option value="active">
+                    {currentLanguage === "es" ? "solo activos" : "active only"}
+                  </option>
+                  <option value="inactive">
+                    {currentLanguage === "es" ? "solo inactivos" : "inactive only"}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div className="business-core-assets-metrics">
+              <div className="business-core-assets-metric">
+                <strong>{visibleItems.length}</strong>
+                <span>{currentLanguage === "es" ? "activos visibles" : "visible assets"}</span>
+              </div>
+              <div className="business-core-assets-metric">
+                <strong>{activeVisibleCount}</strong>
+                <span>{currentLanguage === "es" ? "visibles activos" : "visible active"}</span>
+              </div>
+              <div className="business-core-assets-metric">
+                <strong>{inactiveVisibleCount}</strong>
+                <span>{currentLanguage === "es" ? "visibles inactivos" : "visible inactive"}</span>
+              </div>
+              <div className="business-core-assets-metric">
+                <strong>{assetTypeCount}</strong>
+                <span>{currentLanguage === "es" ? "tipos visibles" : "visible types"}</span>
+              </div>
+            </div>
+
+            <div className="business-core-assets-context">
+              <div className="business-core-assets-context__eyebrow">
+                {requestedSource === "maintenance"
+                  ? currentLanguage === "es"
+                    ? "Contexto abierto desde maintenance"
+                    : "Context opened from maintenance"
+                  : currentLanguage === "es"
+                    ? "Contexto actual"
+                    : "Current context"}
+              </div>
+              <div className="business-core-assets-context__title">
+                {currentSite
+                  ? currentSite.address_line || currentSite.name
+                  : currentLanguage === "es"
+                    ? "inventario completo"
+                    : "full inventory"}
+              </div>
+              <div className="business-core-assets-context__detail">
+                {currentSite
+                  ? currentLanguage === "es"
+                    ? `Sitio filtrado para revisar activos del mismo cliente antes de volver a Mantenciones.`
+                    : "Site filtered to review assets from the same client before going back to Maintenance."
+                  : currentLanguage === "es"
+                    ? "Lectura transversal del inventario reusable del tenant."
+                    : "Cross-tenant view of the reusable inventory."}
+              </div>
+            </div>
+          </div>
+        </PanelCard>
+      )}
       fields={[
         {
           key: "site_id",
@@ -274,6 +505,29 @@ export function BusinessCoreAssetsPage() {
           render: (item) => item.serial_number || "—",
         },
         {
+          key: "technical",
+          headerEs: "Snapshot técnico",
+          headerEn: "Technical snapshot",
+          render: (item, currentLanguage) => (
+            <div>
+              <div className="business-core-cell__title">
+                {item.asset_code || item.serial_number || "—"}
+              </div>
+              <div className="business-core-cell__meta">
+                {[item.manufacturer, item.model].filter(Boolean).join(" · ") || "—"}
+              </div>
+              <div className="business-core-cell__meta">
+                {currentLanguage === "es" ? "último servicio" : "last service"}:{" "}
+                {formatAssetDate(item.last_service_at)}
+              </div>
+              <div className="business-core-cell__meta">
+                {currentLanguage === "es" ? "garantía" : "warranty"}:{" "}
+                {formatAssetDate(item.warranty_until)}
+              </div>
+            </div>
+          ),
+        },
+        {
           key: "status",
           headerEs: "Estado",
           headerEn: "Status",
@@ -295,6 +549,19 @@ export function BusinessCoreAssetsPage() {
           headerEn: "Actions",
           render: (item, currentLanguage) => (
             <AppToolbar compact>
+              <button
+                className="btn btn-sm btn-outline-info"
+                type="button"
+                onClick={() =>
+                  navigate(
+                    `/tenant-portal/maintenance/installations?clientId=${
+                      siteById.get(item.site_id)?.client_id || 0
+                    }&siteId=${item.site_id}`
+                  )
+                }
+              >
+                {currentLanguage === "es" ? "Instalaciones" : "Installations"}
+              </button>
               <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => startEdit(item)}>
                 {currentLanguage === "es" ? "Editar" : "Edit"}
               </button>

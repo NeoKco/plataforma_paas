@@ -54,6 +54,7 @@ type BusinessCoreCatalogPageProps<TRow, TForm> = {
   onReload: () => Promise<void>;
   onNew: () => void;
   renderEditorExtra?: (context: { language: string; editingId: number | null; form: TForm }) => React.ReactNode;
+  renderTableIntro?: (context: { language: string; rows: TRow[] }) => React.ReactNode;
   columns: Array<{
     key: string;
     headerEs: string;
@@ -92,6 +93,7 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
   onReload,
   onNew,
   renderEditorExtra,
+  renderTableIntro,
   columns,
 }: BusinessCoreCatalogPageProps<TRow, TForm>) {
   const { language } = useLanguage();
@@ -199,6 +201,8 @@ export function BusinessCoreCatalogPage<TRow, TForm extends Record<string, unkno
       {isLoading ? (
         <LoadingBlock label={localizedLoadingLabel} />
       ) : null}
+
+      {!isLoading && renderTableIntro ? renderTableIntro({ language, rows }) : null}
 
       <DataTableCard
         title={pickLocalizedText(language, {
