@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-20T22:13:00-04:00",
+  "updated_at": "2026-04-20T22:08:13-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos, infraestructura/deploy y calidad técnica + rollback también en runtime real. staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles, el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate, el rollback ya opera desde SOURCE_REPO_ROOT y el base smoke ya quedó institucionalizado por defecto en los wrappers y en el workflow manual. Además, platform_admin > Tenants ya muestra contexto de alertas activas y jerarquía de prioridad/acción, Provisioning ya suma plan operativo sugerido con copy/densidad compactados, Dashboard y Billing ya cerraron el mismo pase de compactación visible y la decisión vigente es mantener señales de convergencia/secretos fuera de la UI por ahora. El foco correcto sigue en frontend fino.",
+  "current_focus": "La PaaS ya tiene gobernanza de datos + SRED + paquete normativo formal con enforcement mínimo para continuidad entre sesiones/IA; el frente residual de finance ya quedó cerrado con convivencia legacy aceptada para empresa-bootstrap, la documentación estructural ya volvió a alinearse con el árbol real del repo y el bloque 1 ya avanzó por auditoría/observabilidad, secretos, infraestructura/deploy y calidad técnica + rollback también en runtime real. staging y production ya generan snapshots JSON de convergencia por ambiente, secret_posture ya quedó comprobada en ambos carriles, el wrapper backend ya promueve backend/ desde el repo fuente al árbol runtime antes de tests/restart/gate, el rollback ya opera desde SOURCE_REPO_ROOT y el base smoke ya quedó institucionalizado por defecto en los wrappers y en el workflow manual. Además, platform_admin > Tenants ya muestra contexto de alertas activas y jerarquía de prioridad/acción, Provisioning ya suma plan operativo sugerido con copy/densidad compactados, Dashboard/Billing/Tenants ya cerraron el mismo pase de compactación visible y la decisión estructural sobre una barra operativa compartida ya quedó resuelta con un componente reusable. El foco correcto ya no es debatir ese patrón sino decidir si frontend fino se considera suficientemente cerrado para pasar al siguiente frente del roadmap, manteniendo convergencia/secretos fuera de la UI por ahora.",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime, rollback alineado al repo fuente y smoke base embebido por defecto como evidencia repetible",
   "active_modules": [
     "platform-core",
@@ -77,6 +77,13 @@
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo"
   ],
   "completed_recently": [
+    "OperationalSummaryStrip agregado como componente compartido para la franja operativa visible de platform_admin",
+    "Dashboard, Billing, Provisioning y Tenants ya reutilizan OperationalSummaryStrip en vez de repetir markup local",
+    "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles BillingPage-CmBhOeZQ.js DashboardPage-BIpgsZA9.js ProvisioningPage-geHOKmrE.js TenantsPage-DeWp8UHT.js index-Bskj0zMi.js y static readiness OK",
+    "production frontend republicado con API_BASE_URL=https://orkestia.ddns.net, bundles BillingPage-BJq8o01c.js DashboardPage-CUST6W6o.js ProvisioningPage-DPOBMgfK.js TenantsPage-DnAyuWvX.js index-CFiiA4bc.js y static readiness OK",
+    "Tenants ya recibió una pasada profunda de compactación editorial en identidad, portal, portabilidad, provisioning, rotación DB y ayudas de acciones administrativas",
+    "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles BillingPage-CHMVem7z.js DashboardPage-CZCdIUAv.js ProvisioningPage-Bsz1nmc0.js TenantsPage-DvmPnQ0q.js index-CZG3TfQN.js y static readiness OK",
+    "production frontend republicado con API_BASE_URL=https://orkestia.ddns.net, bundles BillingPage-CD9vy4K6.js DashboardPage-Y3yaB9Cz.js ProvisioningPage-r9ErRLjR.js TenantsPage-Boo67a7K.js index--EPJSJsP.js y static readiness OK",
     "se recorta ayuda secundaria en Dashboard, Provisioning y Billing sin abrir UI nueva; la lectura inicial queda más corta y consistente",
     "se cierra la decisión de no subir secret_posture ni snapshots de convergencia a UI visible por ahora; quedan en evidencia/runbook",
     "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles BillingPage-CrCSNwQ_.js DashboardPage-Lxdw4m9X.js ProvisioningPage-CIjIa5to.js TenantsPage-CwoDOf96.js index-CR7LtYrt.js y static readiness OK",
@@ -319,7 +326,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "definir el siguiente subcorte de frontend fino en platform_admin después de cerrar la compactación visible inicial y mantener convergencia/secretos fuera de UI: decidir si conviene una barra operativa compartida y revisar si Tenants todavía necesita una pasada adicional de copy secundaria en bloques más profundos",
+  "next_decision_required": "definir si el frente actual de frontend fino ya quedó suficientemente compacto para pasar al siguiente frente del roadmap; la barra operativa compartida ya quedó resuelta con OperationalSummaryStrip y convergencia/secretos deben seguir fuera de UI salvo contrato explícito de producto",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

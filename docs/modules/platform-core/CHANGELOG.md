@@ -2,6 +2,36 @@
 
 ## 2026-04-20
 
+- se cierra la decisión estructural de franja operativa compartida en `platform_admin`:
+  - [OperationalSummaryStrip.tsx](/home/felipe/platform_paas/frontend/src/components/common/OperationalSummaryStrip.tsx) agrega el primitivo compartido `OperationalSummaryStrip` con contrato `OperationalSummaryCard`
+  - el componente ya reemplaza markup repetido en:
+    - [DashboardPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx)
+    - [BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx)
+    - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx)
+    - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx)
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BillingPage-CmBhOeZQ.js`, `DashboardPage-BIpgsZA9.js`, `ProvisioningPage-geHOKmrE.js`, `TenantsPage-DeWp8UHT.js`, `index-Bskj0zMi.js`
+    - `production` publicado con `BillingPage-BJq8o01c.js`, `DashboardPage-CUST6W6o.js`, `ProvisioningPage-DPOBMgfK.js`, `TenantsPage-DnAyuWvX.js`, `index-CFiiA4bc.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - el primer frente de `frontend fino` ya quedó también con una base compartida, no solo con microajustes de copy
+
+- `Tenants` cierra también la pasada profunda de compactación editorial:
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) recorta copy secundaria en:
+    - identidad/portal
+    - portabilidad
+    - provisioning
+    - rotación DB
+    - subtítulo y ayudas profundas de `Acciones administrativas`
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BillingPage-CHMVem7z.js`, `DashboardPage-CZCdIUAv.js`, `ProvisioningPage-Bsz1nmc0.js`, `TenantsPage-DvmPnQ0q.js`, `index-CZG3TfQN.js`
+    - `production` publicado con `BillingPage-CD9vy4K6.js`, `DashboardPage-Y3yaB9Cz.js`, `ProvisioningPage-r9ErRLjR.js`, `TenantsPage-Boo67a7K.js`, `index--EPJSJsP.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - el primer frente de `frontend fino` puede considerarse suficientemente compacto para pasar a una decisión más estructural
+
 - se cierra otro pase de compactación visible en `platform_admin`:
   - [DashboardPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx) recorta descripción inicial, subtítulos y hints de entrada
   - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) recorta `Señales abiertas`, `Observabilidad` y ayuda de filtros

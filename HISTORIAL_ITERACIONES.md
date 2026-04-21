@@ -1,5 +1,77 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-20 - `platform_admin` cierra la decisión estructural de franja operativa compartida
+
+- objetivo:
+  - dejar de repetir markup de resumen operativo en `Dashboard`, `Billing`, `Provisioning` y `Tenants`
+  - cerrar la duda de si valía la pena una barra operativa compartida antes de salir del frente `frontend fino`
+- cambios y acciones ejecutadas:
+  - [frontend/src/components/common/OperationalSummaryStrip.tsx](/home/felipe/platform_paas/frontend/src/components/common/OperationalSummaryStrip.tsx):
+    - agrega el primitivo compartido `OperationalSummaryStrip`
+    - define el contrato `OperationalSummaryCard`
+  - [frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/dashboard/DashboardPage.tsx):
+    - migra la franja `Ruta rápida` al componente compartido
+  - [frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx):
+    - migra la franja `Ruta rápida` al componente compartido
+  - [frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx):
+    - migra `Plan operativo sugerido` al componente compartido
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - migra la franja operativa de `Postura operativa tenant` al componente compartido
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BillingPage-CmBhOeZQ.js`, `DashboardPage-BIpgsZA9.js`, `ProvisioningPage-geHOKmrE.js`, `TenantsPage-DeWp8UHT.js`, `index-Bskj0zMi.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BillingPage-BJq8o01c.js`, `DashboardPage-CUST6W6o.js`, `ProvisioningPage-DPOBMgfK.js`, `TenantsPage-DnAyuWvX.js`, `index-CFiiA4bc.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `frontend fino` deja de ser solo compactación editorial y ya tiene un primitivo UI compartido para la lectura operativa inicial de `platform_admin`
+  - la decisión sobre una barra operativa compartida queda cerrada
+- siguiente paso:
+  - si no aparece deuda visible nueva, pasar al siguiente frente del roadmap en vez de seguir limando copy
+
+## 2026-04-20 - `Tenants` cierra la pasada profunda de compactación de copy
+
+- objetivo:
+  - cerrar el último tramo evidente de ayuda secundaria redundante dentro del workspace `Tenants`
+  - evitar seguir empujando microedición si ya no cambia la lectura operativa principal
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - compacta subtítulo de identidad
+    - compacta ayuda de portal tenant y tenant archivado
+    - compacta portabilidad export/import
+    - compacta provisioning y rotación de credenciales DB
+    - compacta subtítulo general de `Acciones administrativas`
+    - compacta ayudas profundas de plan, límites, schema sync y reset de acceso portal
+  - Comprobando que lo último realizado corresponde y quedó bien...
+  - se publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BillingPage-CHMVem7z.js`, `DashboardPage-CZCdIUAv.js`, `ProvisioningPage-Bsz1nmc0.js`, `TenantsPage-DvmPnQ0q.js`, `index-CZG3TfQN.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BillingPage-CD9vy4K6.js`, `DashboardPage-Y3yaB9Cz.js`, `ProvisioningPage-r9ErRLjR.js`, `TenantsPage-Boo67a7K.js`, `index--EPJSJsP.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `Tenants` ya no arrastra el bloque más evidente de ayuda editorial redundante
+  - el patrón actual puede considerarse suficientemente compacto para este frente
+- siguiente paso:
+  - decidir si hace falta una barra operativa compartida o si conviene pasar al siguiente frente del roadmap
+
 ## 2026-04-20 - Limpieza final de ayuda secundaria en `Dashboard`, `Provisioning` y `Billing`
 
 - objetivo:

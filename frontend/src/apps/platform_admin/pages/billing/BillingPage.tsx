@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { ConfirmDialog } from "../../../../components/common/ConfirmDialog";
 import { MetricCard } from "../../../../components/common/MetricCard";
+import {
+  OperationalSummaryStrip,
+  type OperationalSummaryCard,
+} from "../../../../components/common/OperationalSummaryStrip";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
@@ -59,13 +63,6 @@ type PendingConfirmation = {
   details: string[];
   confirmLabel: string;
   action: () => Promise<{ message?: string }>;
-};
-
-type BillingFrontlineCard = {
-  key: string;
-  tone: "success" | "info" | "warning" | "danger" | "neutral";
-  title: string;
-  detail: string;
 };
 
 export function BillingPage() {
@@ -189,7 +186,7 @@ export function BillingPage() {
     tenantEvents?.total_events,
   ]);
 
-  const frontlineCards = useMemo<BillingFrontlineCard[]>(() => {
+  const frontlineCards = useMemo<OperationalSummaryCard[]>(() => {
     const activeAlerts = platformAlerts?.total_alerts || 0;
     const alertHistoryRows = platformAlertHistory?.total_alerts || 0;
     const tenantEventsCount = tenantEvents?.total_events || 0;
@@ -197,6 +194,7 @@ export function BillingPage() {
     return [
       {
         key: "alerts",
+        eyebrow: language === "es" ? "Ruta rápida" : "Quick route",
         tone: activeAlerts > 0 ? "warning" : "success",
         title:
           activeAlerts > 0
@@ -213,6 +211,7 @@ export function BillingPage() {
       },
       {
         key: "tenant",
+        eyebrow: language === "es" ? "Ruta rápida" : "Quick route",
         tone:
           selectedTenant && tenantEventsCount > 0
             ? "info"
@@ -238,6 +237,7 @@ export function BillingPage() {
       },
       {
         key: "history",
+        eyebrow: language === "es" ? "Ruta rápida" : "Quick route",
         tone: alertHistoryRows > 0 ? "info" : "success",
         title:
           alertHistoryRows > 0
@@ -680,20 +680,7 @@ export function BillingPage() {
         />
       </div>
 
-      <div className="ops-summary-strip">
-        {frontlineCards.map((card) => (
-          <div
-            key={card.key}
-            className={`ops-summary-card ops-summary-card--${card.tone}`}
-          >
-            <div className="ops-summary-card__eyebrow">
-              {language === "es" ? "Ruta rápida" : "Quick route"}
-            </div>
-            <div className="ops-summary-card__title">{card.title}</div>
-            <div className="ops-summary-card__detail">{card.detail}</div>
-          </div>
-        ))}
-      </div>
+      <OperationalSummaryStrip cards={frontlineCards} />
 
       <PanelCard
         title={language === "es" ? "Señales abiertas" : "Open signals"}

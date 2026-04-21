@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { ConfirmDialog } from "../../../../components/common/ConfirmDialog";
 import { MetricCard } from "../../../../components/common/MetricCard";
+import {
+  OperationalSummaryStrip,
+  type OperationalSummaryCard,
+} from "../../../../components/common/OperationalSummaryStrip";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
@@ -1169,6 +1173,56 @@ export function ProvisioningPage() {
       overview,
     ]
   );
+  const provisioningSummaryCards = useMemo<OperationalSummaryCard[]>(
+    () => [
+      {
+        key: "priority",
+        eyebrow: language === "es" ? "Prioridad visible" : "Visible priority",
+        tone: provisioningFrontlineGuide.tone,
+        title: provisioningFrontlineGuide.title,
+        detail: provisioningFrontlineGuide.detail,
+      },
+      {
+        key: "scope",
+        eyebrow: language === "es" ? "Ámbito actual" : "Current scope",
+        tone: "info",
+        title: normalizedTenantSlugFilter
+          ? normalizedTenantSlugFilter
+          : language === "es"
+            ? "todos los tenants"
+            : "all tenants",
+        detail: provisioningFrontlineGuide.scopeLabel,
+      },
+      {
+        key: "dlq",
+        eyebrow: language === "es" ? "DLQ broker-only" : "Broker-only DLQ",
+        tone: isBrokerDispatchActive ? "success" : "warning",
+        title: isBrokerDispatchActive
+          ? language === "es"
+            ? "superficie activa"
+            : "active surface"
+          : language === "es"
+            ? "lectura limitada"
+            : "limited read",
+        detail: isBrokerDispatchActive
+          ? language === "es"
+            ? "Puedes operar requeue y lote visible desde este ambiente."
+            : "You can operate requeue and visible batches from this environment."
+          : language === "es"
+            ? "La lectura DLQ completa debe validarse en un carril con dispatch broker."
+            : "Full DLQ reads must be validated in an environment running the broker dispatch.",
+      },
+    ],
+    [
+      isBrokerDispatchActive,
+      language,
+      normalizedTenantSlugFilter,
+      provisioningFrontlineGuide.detail,
+      provisioningFrontlineGuide.scopeLabel,
+      provisioningFrontlineGuide.title,
+      provisioningFrontlineGuide.tone,
+    ]
+  );
 
   async function loadProvisioningWorkspace(overrides?: Partial<DlqFormFilters>) {
     if (!session?.accessToken) {
@@ -2223,57 +2277,7 @@ export function ProvisioningPage() {
             : "Prioritize first and only then move into the longer detail."
         }
       >
-        <div className="ops-summary-strip">
-          <div className={`ops-summary-card ops-summary-card--${provisioningFrontlineGuide.tone}`}>
-            <div className="ops-summary-card__eyebrow">
-              {language === "es" ? "Prioridad visible" : "Visible priority"}
-            </div>
-            <div className="ops-summary-card__title">{provisioningFrontlineGuide.title}</div>
-            <div className="ops-summary-card__detail">{provisioningFrontlineGuide.detail}</div>
-          </div>
-          <div className="ops-summary-card ops-summary-card--info">
-            <div className="ops-summary-card__eyebrow">
-              {language === "es" ? "Ámbito actual" : "Current scope"}
-            </div>
-            <div className="ops-summary-card__title">
-              {normalizedTenantSlugFilter
-                ? normalizedTenantSlugFilter
-                : language === "es"
-                  ? "todos los tenants"
-                  : "all tenants"}
-            </div>
-            <div className="ops-summary-card__detail">
-              {provisioningFrontlineGuide.scopeLabel}
-            </div>
-          </div>
-          <div
-            className={`ops-summary-card ops-summary-card--${
-              isBrokerDispatchActive ? "success" : "warning"
-            }`}
-          >
-            <div className="ops-summary-card__eyebrow">
-              {language === "es" ? "DLQ broker-only" : "Broker-only DLQ"}
-            </div>
-            <div className="ops-summary-card__title">
-              {isBrokerDispatchActive
-                ? language === "es"
-                  ? "superficie activa"
-                  : "active surface"
-                : language === "es"
-                  ? "lectura limitada"
-                  : "limited read"}
-            </div>
-            <div className="ops-summary-card__detail">
-              {isBrokerDispatchActive
-                ? language === "es"
-                  ? "Puedes operar requeue y lote visible desde este ambiente."
-                  : "You can operate requeue and visible batches from this environment."
-                : language === "es"
-                  ? "La lectura DLQ completa debe validarse en un carril con dispatch broker."
-                  : "Full DLQ reads must be validated in an environment running the broker dispatch."}
-            </div>
-          </div>
-        </div>
+        <OperationalSummaryStrip cards={provisioningSummaryCards} />
         <div className="tenant-context-actions tenant-context-actions--compact">
           <div className="tenant-help-text">
             {language === "es"

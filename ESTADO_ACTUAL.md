@@ -3,8 +3,8 @@
 ## Última actualización
 
 - fecha: 2026-04-20
-- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos`, `infraestructura/deploy` y `calidad técnica + rollback`, el `base smoke` ya quedó institucionalizado como baseline explícito del release backend por ambiente y `frontend fino` ya cerró un pase inicial de compactación visible en `Tenants`, `Provisioning`, `Dashboard` y `Billing`
-- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, `Contexto de alertas activas` y una franja de prioridad/acción más clara, `Provisioning` ya suma `Plan operativo sugerido` con saltos rápidos a jobs, alertas, observabilidad o DLQ, `Dashboard` ya refleja la misma jerarquía operacional con `Prioridades visibles`, `Acciones rápidas`, labels compactos y una franja `Ruta rápida`, y `Billing` ya entra con la misma lógica visual compactando `Señales abiertas`, `Workspace tenant`, labels cortos y franja `Ruta rápida`; además, el último subcorte limpió ayuda repetida secundaria en `Dashboard`, `Provisioning` y `Billing`; el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en `staging` y `production`, ambos ambientes siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, el rollback ya no asume que `/opt/...` es git sino que opera desde `SOURCE_REPO_ROOT`, y los wrappers `staging`/`production` ya activan por defecto `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` con `REMOTE_BACKEND_SMOKE_TARGET=base`
+- foco de iteración: hardening transversal de convergencia post-deploy ya dejó cerrado el frente residual de `finance`; tras realinear documentación estructural y handoff, el bloque 1 ya avanzó por `auditoría/observabilidad`, `secretos`, `infraestructura/deploy` y `calidad técnica + rollback`, el `base smoke` ya quedó institucionalizado como baseline explícito del release backend por ambiente y `frontend fino` ya dejó de ser solo compactación editorial: ahora también tiene un primitivo compartido real para la franja operativa visible de `platform_admin`
+- estado general: `Agenda` ya vive como entrada propia en la barra lateral tenant, `platform_admin > Tenants` ya muestra `Postura operativa tenant`, `Contexto de alertas activas` y una franja de prioridad/acción más clara, `Provisioning` ya suma `Plan operativo sugerido` con saltos rápidos a jobs, alertas, observabilidad o DLQ, `Dashboard` ya refleja la misma jerarquía operacional con `Prioridades visibles`, `Acciones rápidas`, labels compactos y una franja `Ruta rápida`, y `Billing` ya entra con la misma lógica visual compactando `Señales abiertas`, `Workspace tenant`, labels cortos y franja `Ruta rápida`; además, el último subcorte no solo limpió ayuda repetida secundaria en `Dashboard`, `Provisioning`, `Billing` y en los bloques profundos de `Tenants`, sino que cerró la decisión estructural de extraer [OperationalSummaryStrip.tsx](/home/felipe/platform_paas/frontend/src/components/common/OperationalSummaryStrip.tsx) como componente compartido reutilizado por los cuatro workspaces y ya publicado en `staging` y `production`; el hardening de auditoría/reparación tenant-local ya quedó promovido con evidencia real en ambos ambientes, ambos siguen 4/4 limpios en convergencia crítica y `empresa-bootstrap` ya no queda como deuda abierta sino como `accepted_legacy_finance_base_currency:USD`; en repo, además, ya quedaron alineados los punteros de estructura y continuidad (`project-structure.md`, `docs/index.md`, `README.md`, `implementation-governance.md`), el gate post-deploy ya guarda un snapshot JSON del estado de convergencia por ambiente, el script canónico de drift ya expone `secret_posture` y protege por defecto el `.env` legacy ante sincronizaciones accidentales, el wrapper backend ya promueve automáticamente `backend/` desde `/home/felipe/platform_paas` hacia `/opt/platform_paas_staging/backend` o `/opt/platform_paas/backend` antes de tests/restart/gate, el rollback ya no asume que `/opt/...` es git sino que opera desde `SOURCE_REPO_ROOT`, y los wrappers `staging`/`production` ya activan por defecto `RUN_REMOTE_BACKEND_SMOKE_POST_DEPLOY=true` con `REMOTE_BACKEND_SMOKE_TARGET=base`
 
 ## Resumen ejecutivo en 30 segundos
 
@@ -259,6 +259,22 @@
   - bundles actuales:
     - `staging`: `BillingPage-CrCSNwQ_.js`, `DashboardPage-Lxdw4m9X.js`, `ProvisioningPage-CIjIa5to.js`, `TenantsPage-CwoDOf96.js`, `index-CR7LtYrt.js`
     - `production`: `BillingPage-BgRnLPTq.js`, `DashboardPage-FIEfSOxY.js`, `ProvisioningPage-C1FPLJZ8.js`, `TenantsPage-BWayidnb.js`, `index-MB3Dw1B2.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+    - `production`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- refinamiento adicional ya promovido dentro del mismo frente:
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) compacta también copy secundaria en bloques profundos:
+    - identidad y acceso rápido al portal
+    - portabilidad export/import
+    - provisioning y rotación de credenciales DB
+    - subtítulo general de `Acciones administrativas`
+    - ayudas profundas de plan, límites, schema sync y reset de acceso portal
+  - resultado:
+    - el patrón visible queda suficientemente compacto sin seguir empujando señales técnicas internas a la UI
+  - bundles actuales:
+    - `staging`: `BillingPage-CHMVem7z.js`, `DashboardPage-CZCdIUAv.js`, `ProvisioningPage-Bsz1nmc0.js`, `TenantsPage-DvmPnQ0q.js`, `index-CZG3TfQN.js`
+    - `production`: `BillingPage-CD9vy4K6.js`, `DashboardPage-Y3yaB9Cz.js`, `ProvisioningPage-r9ErRLjR.js`, `TenantsPage-Boo67a7K.js`, `index--EPJSJsP.js`
   - validación:
     - `npm run build` -> `OK`
     - `staging`: `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`

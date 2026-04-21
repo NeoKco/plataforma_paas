@@ -5,6 +5,10 @@ import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { MetricCard } from "../../../../components/common/MetricCard";
+import {
+  OperationalSummaryStrip,
+  type OperationalSummaryCard,
+} from "../../../../components/common/OperationalSummaryStrip";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
 import { AppBadge } from "../../../../design-system/AppBadge";
@@ -29,13 +33,6 @@ import type {
   ProvisioningJobMetricsResponse,
   ProvisioningOperationalAlertsResponse,
 } from "../../../../types";
-
-type DashboardFrontlineCard = {
-  key: string;
-  tone: "success" | "info" | "warning" | "danger" | "neutral";
-  title: string;
-  detail: string;
-};
 
 export function DashboardPage() {
   const { session } = useAuth();
@@ -172,10 +169,11 @@ export function DashboardPage() {
     );
   }, [billingSummary?.data]);
 
-  const frontlineCards = useMemo<DashboardFrontlineCard[]>(() => {
+  const frontlineCards = useMemo<OperationalSummaryCard[]>(() => {
     return [
       {
         key: "tenants",
+        eyebrow: language === "es" ? "Ruta rápida" : "Quick route",
         tone: tenantAttentionRows.length > 0 ? "warning" : "success",
         title:
           tenantAttentionRows.length > 0
@@ -192,6 +190,7 @@ export function DashboardPage() {
       },
       {
         key: "provisioning",
+        eyebrow: language === "es" ? "Ruta rápida" : "Quick route",
         tone:
           kpis.provisioningFailedTenants > 0
             ? "danger"
@@ -217,6 +216,7 @@ export function DashboardPage() {
       },
       {
         key: "billing",
+        eyebrow: language === "es" ? "Ruta rápida" : "Quick route",
         tone: kpis.activeBillingAlerts > 0 || kpis.tenantsPastDue > 0 ? "warning" : "success",
         title:
           kpis.activeBillingAlerts > 0
@@ -390,20 +390,7 @@ export function DashboardPage() {
             />
           </div>
 
-          <div className="ops-summary-strip">
-            {frontlineCards.map((card) => (
-              <div
-                key={card.key}
-                className={`ops-summary-card ops-summary-card--${card.tone}`}
-              >
-                <div className="ops-summary-card__eyebrow">
-                  {language === "es" ? "Ruta rápida" : "Quick route"}
-                </div>
-                <div className="ops-summary-card__title">{card.title}</div>
-                <div className="ops-summary-card__detail">{card.detail}</div>
-              </div>
-            ))}
-          </div>
+          <OperationalSummaryStrip cards={frontlineCards} />
 
           <div className="dashboard-section-grid">
             <PanelCard

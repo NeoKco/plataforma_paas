@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmDialog } from "../../../../components/common/ConfirmDialog";
+import {
+  OperationalSummaryStrip,
+  type OperationalSummaryCard,
+} from "../../../../components/common/OperationalSummaryStrip";
 import { PanelCard } from "../../../../components/common/PanelCard";
 import { PageHeader } from "../../../../components/common/PageHeader";
 import { StatusBadge } from "../../../../components/common/StatusBadge";
@@ -159,14 +163,6 @@ type TenantProvisioningAlertContext = {
   latestCapturedAt: string | null;
   showProvisioningLink: boolean;
   provisioningLink: string;
-};
-
-type TenantOperationalSummaryCard = {
-  key: string;
-  eyebrow: string;
-  tone: AppBadgeTone;
-  title: string;
-  detail: string;
 };
 
 export function TenantsPage() {
@@ -2311,14 +2307,14 @@ export function TenantsPage() {
                 title={selectedTenantSummary.name}
                 subtitle={
                   language === "es"
-                    ? "Identidad operativa central y contexto efectivo de plataforma."
+                    ? "Identidad central y contexto operativo actual."
                     : "Central operational identity and effective platform context."
                 }
               >
                 <div className="tenant-context-actions">
                   <div className="tenant-help-text">
                     {language === "es"
-                      ? "Acceso rápido para superadmin al portal tenant con el slug ya precargado."
+                      ? "Acceso rápido superadmin al portal tenant."
                       : "Quick superadmin access to the tenant portal with the slug prefilled."}
                   </div>
                   <div className="tenant-context-actions__buttons">
@@ -2335,7 +2331,7 @@ export function TenantsPage() {
                       <>
                         <div className="tenant-help-text">
                           {language === "es"
-                            ? "Este tenant está archivado. Usa el bloque de restauración para reabrirlo con un lifecycle explícito."
+                            ? "Este tenant está archivado. Reábrelo desde el bloque de restauración."
                             : "This tenant is archived. Use the restore block to reopen it with an explicit lifecycle."}
                         </div>
                         {selectedTenantSummary.db_configured ? (
@@ -2379,7 +2375,7 @@ export function TenantsPage() {
                     ) : tenantPortalHref ? (
                       <div className="tenant-help-text">
                         {language === "es"
-                          ? "El portal tenant solo queda disponible cuando el tenant está activo, su provisioning ya terminó correctamente y la configuración DB tenant quedó completa."
+                          ? "El portal solo queda disponible cuando el tenant está activo y su DB quedó lista."
                           : "The tenant portal is only available when the tenant is active, provisioning finished successfully and tenant DB configuration is complete."}
                       </div>
                     ) : null}
@@ -2479,18 +2475,7 @@ export function TenantsPage() {
                   }
                 >
                   {tenantOperationalSummaryCards.length > 0 ? (
-                    <div className="ops-summary-strip">
-                      {tenantOperationalSummaryCards.map((card) => (
-                        <div
-                          key={card.key}
-                          className={`ops-summary-card ops-summary-card--${card.tone}`}
-                        >
-                          <div className="ops-summary-card__eyebrow">{card.eyebrow}</div>
-                          <div className="ops-summary-card__title">{card.title}</div>
-                          <div className="ops-summary-card__detail">{card.detail}</div>
-                        </div>
-                      ))}
-                    </div>
+                    <OperationalSummaryStrip cards={tenantOperationalSummaryCards} />
                   ) : null}
 
                   <div className="tenant-detail-grid">
@@ -2732,14 +2717,14 @@ export function TenantsPage() {
                 title={language === "es" ? "Portabilidad tenant" : "Tenant portability"}
                 subtitle={
                   language === "es"
-                    ? "Genera un paquete portable `CSV + manifest + zip` para respaldo operativo y migración parcial."
+                    ? "Genera un paquete portable para respaldo y migración parcial."
                     : "Generate a portable `CSV + manifest + zip` package for operational backup and partial migration."
                 }
               >
                 <div className="tenant-context-actions tenant-context-actions--compact">
                   <div className="tenant-help-text">
                     {language === "es"
-                      ? "Puedes exportar el tenant completo soportado por portabilidad actual o solo los datos funcionales. Ningún modo reemplaza el backup PostgreSQL."
+                      ? "Puedes exportar tenant completo soportado o solo datos funcionales. No reemplaza backup PostgreSQL."
                       : "You can export the supported full tenant package or only the functional data. Neither mode replaces PostgreSQL backup."}
                   </div>
                   <div className="tenant-context-actions__buttons">
@@ -2839,14 +2824,14 @@ export function TenantsPage() {
                 }
                 subtitle={
                   language === "es"
-                    ? "Carga un paquete `zip + manifest + csv` exportado por la plataforma y ejecútalo primero en `dry_run` antes de aplicar."
+                    ? "Carga un paquete exportado por la plataforma y ejecútalo primero en `dry_run`."
                     : "Upload a platform-generated `zip + manifest + csv` package and run it in `dry_run` before applying."
                 }
               >
                 <div className="tenant-context-actions tenant-context-actions--compact">
                   <div className="tenant-help-text">
                     {language === "es"
-                      ? "La importación acepta paquetes completos y paquetes de solo datos funcionales. La estrategia actual sigue siendo `skip_existing`."
+                      ? "Acepta paquetes completos y de solo datos funcionales. La estrategia sigue siendo `skip_existing`."
                       : "Import accepts full packages and functional-data-only packages. The current strategy is still `skip_existing`."}
                   </div>
                 </div>
@@ -3073,12 +3058,12 @@ export function TenantsPage() {
               {accessPolicy ? (
                 <PanelCard
                   title={language === "es" ? "Política de acceso" : "Access policy"}
-                  subtitle={
-                    language === "es"
-                      ? "Lectura efectiva del enforcement de lifecycle y billing."
-                      : "Effective read of lifecycle and billing enforcement."
-                  }
-                >
+                subtitle={
+                  language === "es"
+                    ? "Lectura efectiva de lifecycle y billing."
+                    : "Effective read of lifecycle and billing enforcement."
+                }
+              >
                   <div className="tenant-access-grid">
                     <DetailField
                       label={language === "es" ? "Permitido" : "Allowed"}
@@ -3119,7 +3104,7 @@ export function TenantsPage() {
                 title="Provisioning"
                 subtitle={
                   language === "es"
-                    ? "Estado del job técnico que prepara la base tenant y deja el acceso bootstrap listo."
+                    ? "Estado del job que prepara la base tenant."
                     : "State of the technical job that prepares the tenant database and leaves bootstrap access ready."
                 }
               >
@@ -3188,7 +3173,7 @@ export function TenantsPage() {
                     <div className="tenant-context-actions tenant-context-actions--compact">
                       <div className="tenant-help-text">
                         {language === "es"
-                          ? "Crear tenant dispara provisioning automáticamente. Aquí puedes ver si la base tenant quedó lista o si el job necesita intervención."
+                          ? "Crear tenant dispara provisioning automático. Aquí ves si la base quedó lista o requiere intervención."
                           : "Creating a tenant triggers provisioning automatically. Here you can see whether the tenant database is ready or whether the job needs intervention."}
                       </div>
                       <div className="tenant-context-actions__buttons">
@@ -3240,14 +3225,14 @@ export function TenantsPage() {
                   <>
                     <div className="text-secondary">
                       {language === "es"
-                        ? "Este tenant todavía no tiene jobs visibles de provisioning. Si acaba de ser creado, recarga el catálogo o abre la consola de provisioning para revisar la cola global."
+                        ? "Este tenant todavía no tiene jobs visibles. Si acaba de crearse, recarga o abre Provisioning."
                         : "This tenant still has no visible provisioning jobs. If it was just created, reload the catalog or open the provisioning console to review the global queue."}
                     </div>
                     {!selectedTenantSummary.db_configured ? (
                       <div className="tenant-context-actions tenant-context-actions--compact">
                         <div className="tenant-help-text">
                           {language === "es"
-                            ? "El tenant sigue sin configuración DB completa. Puedes crear ahora un job nuevo de provisioning para prepararlo."
+                            ? "El tenant sigue sin DB completa. Puedes crear ahora un job nuevo de provisioning."
                             : "The tenant still lacks complete DB configuration. You can create a new provisioning job now to prepare it."}
                         </div>
                         <div className="tenant-context-actions__buttons">
@@ -3358,7 +3343,7 @@ export function TenantsPage() {
                     <div className="tenant-context-actions tenant-context-actions--compact">
                       <div className="tenant-help-text">
                         {language === "es"
-                          ? "Si necesitas endurecer operación o sospechas exposición de secretos técnicos, puedes rotar la contraseña DB tenant sin afectar el acceso del portal tenant. Esta no es la contraseña del usuario del portal tenant; esa credencial de acceso se gestiona aparte."
+                          ? "Rota la contraseña DB tenant si sospechas exposición técnica. No cambia la contraseña del portal."
                           : "If you need to harden operations or suspect technical secret exposure, you can rotate the tenant DB password without affecting tenant portal access. This is not the tenant portal user password; that access credential is managed separately."}
                       </div>
                       <div className="tenant-context-actions__buttons">
@@ -3380,7 +3365,7 @@ export function TenantsPage() {
                 title={language === "es" ? "Acciones administrativas" : "Administrative actions"}
                 subtitle={
                   language === "es"
-                    ? "Gobierna lifecycle, mantenimiento, billing, plan, límites y operación técnica del tenant seleccionado."
+                    ? "Lifecycle, mantenimiento, billing, plan, límites y operación técnica."
                     : "Govern lifecycle, maintenance, billing, plan, limits and technical operations for the selected tenant."
                 }
               >
@@ -3952,7 +3937,7 @@ export function TenantsPage() {
                       ) : null}
                       <p className="tenant-help-text mt-2 mb-0">
                         {language === "es"
-                          ? "Solo puedes aplicar planes definidos en la política de backend. Si no seleccionas ninguno, el tenant opera sin plan asociado y no habilita módulos por esta vía."
+                          ? "Solo puedes aplicar planes definidos en backend. Sin plan, no habilitas módulos por esta vía."
                           : "You can only apply plans defined in the backend policy. If you do not select one, the tenant operates without an associated plan and no modules are enabled through this path."}
                       </p>
                     </div>
@@ -4008,7 +3993,7 @@ export function TenantsPage() {
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mt-2 mb-0">
                         {language === "es"
-                          ? "Déjalo vacío para volver al plan o a la configuración global. Usa `0` para quitar el límite de esa categoría."
+                          ? "Vacío vuelve al plan/global. `0` quita el límite de esa categoría."
                           : "Leave it empty to return to the plan or global configuration. Use `0` to remove the limit for that category."}
                       </p>
                     </div>
@@ -4159,7 +4144,7 @@ export function TenantsPage() {
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mb-0">
                         {language === "es"
-                          ? <>Ejecuta la sincronización de migraciones tenant cuando falten tablas como <code>finance_entries</code> o la base tenant aún no esté al día.</>
+                          ? <>Sincroniza migraciones tenant cuando falten tablas como <code>finance_entries</code> o la base no esté al día.</>
                           : <>Run tenant schema sync when tables such as <code>finance_entries</code> are missing or the tenant database is still not up to date.</>}
                       </p>
                     </div>
@@ -4184,7 +4169,7 @@ export function TenantsPage() {
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mb-0">
                         {language === "es"
-                          ? "Usa este bloque para reiniciar la contraseña de un usuario del portal tenant cuando la olvidó. No cambia la credencial técnica de la base tenant."
+                          ? "Reinicia la contraseña de un usuario del portal. No cambia la credencial técnica de la base."
                           : "Use this block to reset a tenant portal user password when it was forgotten. It does not change the tenant database technical credential."}
                       </p>
                     </div>
@@ -4231,7 +4216,7 @@ export function TenantsPage() {
                     <div className="app-form-field app-form-field--full">
                       <p className="tenant-help-text mb-0">
                         {language === "es"
-                          ? "La lista se carga desde la base tenant activa. Si no aparecen usuarios, revisa el acceso técnico del tenant o su bootstrap de usuarios."
+                          ? "La lista sale de la base tenant activa. Si no aparecen usuarios, revisa acceso técnico o bootstrap."
                           : "The list is loaded from the active tenant database. If users do not appear, review the tenant technical access or its user bootstrap."}
                       </p>
                     </div>
@@ -4239,7 +4224,7 @@ export function TenantsPage() {
                       <div className="app-form-field app-form-field--full">
                         <p className="tenant-help-text mb-0">
                           {language === "es"
-                            ? "Contraseña temporal lista: puedes abrir el portal con el botón rápido. Se guarda solo en este navegador por algunos minutos."
+                            ? "Contraseña temporal lista: puedes abrir el portal con el botón rápido."
                             : "Temporary password ready: you can open the portal with the quick button. It is only stored in this browser for a few minutes."}
                         </p>
                       </div>
@@ -4987,12 +4972,12 @@ function getTenantOperationalSummaryCards(
   language: "es" | "en",
   tenantOperationalPosture: TenantOperationalPosture | null,
   tenantProvisioningAlertContext: TenantProvisioningAlertContext | null
-): TenantOperationalSummaryCard[] {
+): OperationalSummaryCard[] {
   if (!tenantOperationalPosture) {
     return [];
   }
 
-  const cards: TenantOperationalSummaryCard[] = [
+  const cards: OperationalSummaryCard[] = [
     {
       key: "posture",
       eyebrow: language === "es" ? "Prioridad actual" : "Current priority",
