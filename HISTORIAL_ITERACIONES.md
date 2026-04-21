@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-21 - `Organizations` alinea la primera ola visible de `organization addresses`
+
+- objetivo:
+  - dejar `Organizations` con captura de dirección más alineada con `Sites` y `Clients`
+  - cerrar el hueco visible donde `organization addresses` existía pero seguía en entrada cruda de `address_line`
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx):
+    - cambia captura a `calle` + `número`
+    - deriva `address_line` antes de persistir
+    - agrega salida directa a `Google Maps` desde la fila visible
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreOrganizationsPage-BX2saAvq.js`, `index-DP2Xm3ue.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreOrganizationsPage-Vbe8Tm1-.js`, `index-i32hNPSk.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `organization addresses` deja de verse como input crudo y gana una lectura/edición más operativa
+- siguiente paso:
+  - si seguimos en `business-core`, el siguiente salto útil vuelve a quedar en merge/asimilación más rica o en adopción más profunda de `assets` fuera de `maintenance`
+
 ## 2026-04-21 - `Duplicados` agrega ajuste manual y diff visible para `installations`
 
 - objetivo:

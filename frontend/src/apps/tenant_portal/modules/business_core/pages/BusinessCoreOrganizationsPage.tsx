@@ -22,8 +22,14 @@ import {
   type TenantBusinessOrganization,
   type TenantBusinessOrganizationWriteRequest,
 } from "../services/organizationsService";
+import {
+  buildAddressLine,
+  parseAddressLine,
+} from "../utils/addressPresentation";
 
 type OrganizationForm = TenantBusinessOrganizationWriteRequest & {
+  street: string;
+  streetNumber: string;
   primary_contact_name: string;
   primary_contact_phone: string;
   primary_contact_email: string;
@@ -38,6 +44,8 @@ function buildDefaultForm(): OrganizationForm {
     phone: null,
     email: null,
     address_line: null,
+    street: "",
+    streetNumber: "",
     commune: null,
     city: null,
     region: null,
@@ -54,6 +62,22 @@ function buildDefaultForm(): OrganizationForm {
 function normalizeNullable(value: string | null): string | null {
   const trimmed = value?.trim() ?? "";
   return trimmed ? trimmed : null;
+}
+
+function buildGoogleMapsUrl(organization: TenantBusinessOrganization) {
+  const query = [
+    organization.address_line,
+    organization.commune,
+    organization.city,
+    organization.region,
+    organization.country_code || "Chile",
+  ]
+    .filter(Boolean)
+    .join(", ");
+  if (!query) {
+    return null;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
 export function BusinessCoreOrganizationsPage() {
@@ -112,6 +136,7 @@ export function BusinessCoreOrganizationsPage() {
   }
 
   function startEdit(organization: TenantBusinessOrganization) {
+    const parsedAddress = parseAddressLine(organization.address_line);
     const primaryContact =
       contactsByOrganizationId.get(organization.id)?.find((contact) => contact.is_primary) ??
       contactsByOrganizationId.get(organization.id)?.[0] ??
@@ -127,6 +152,8 @@ export function BusinessCoreOrganizationsPage() {
       phone: organization.phone,
       email: organization.email,
       address_line: organization.address_line,
+      street: parsedAddress.street,
+      streetNumber: parsedAddress.streetNumber,
       commune: organization.commune,
       city: organization.city,
       region: organization.region,
@@ -144,6 +171,7 @@ export function BusinessCoreOrganizationsPage() {
     if (!session?.accessToken) {
       return;
     }
+    const composedAddressLine = buildAddressLine(form.street, form.streetNumber);
     const payload: TenantBusinessOrganizationWriteRequest = {
       ...form,
       name: form.name.trim(),
@@ -151,11 +179,11 @@ export function BusinessCoreOrganizationsPage() {
       tax_id: normalizeNullable(form.tax_id),
       phone: normalizeNullable(form.phone),
       email: normalizeNullable(form.email),
-        address_line: normalizeNullable(form.address_line),
-        commune: normalizeNullable(form.commune),
-        city: normalizeNullable(form.city),
-        region: normalizeNullable(form.region),
-        country_code: normalizeNullable(form.country_code) ?? "CL",
+      address_line: normalizeNullable(composedAddressLine),
+      commune: normalizeNullable(form.commune),
+      city: normalizeNullable(form.city),
+      region: normalizeNullable(form.region),
+      country_code: normalizeNullable(form.country_code) ?? "CL",
       notes: stripLegacyVisibleText(normalizeNullable(form.notes)),
     };
     setIsSubmitting(true);
@@ -280,7 +308,8 @@ export function BusinessCoreOrganizationsPage() {
         },
         { key: "phone", labelEs: "Teléfono central", labelEn: "Main phone" },
         { key: "email", labelEs: "Email central", labelEn: "Main email", type: "email" },
-        { key: "address_line", labelEs: "Dirección", labelEn: "Address" },
+        { key: "street", labelEs: "Calle", labelEn: "Street" },
+        { key: "streetNumber", labelEs: "Número", labelEn: "Number" },
         { key: "commune", labelEs: "Comuna", labelEn: "Commune" },
         { key: "city", labelEs: "Ciudad", labelEn: "City" },
         { key: "region", labelEs: "Región", labelEn: "Region" },
@@ -371,6 +400,16 @@ export function BusinessCoreOrganizationsPage() {
           headerEn: "Actions",
           render: (organization, currentLanguage) => (
             <AppToolbar compact>
+              {buildGoogleMapsUrl(organization) ? (
+                <a
+                  className="btn btn-sm btn-outline-secondary"
+                  href={buildGoogleMapsUrl(organization) ?? undefined}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Google Maps
+                </a>
+              ) : null}
               <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => startEdit(organization)}>
                 {currentLanguage === "es" ? "Editar" : "Edit"}
               </button>

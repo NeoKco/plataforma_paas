@@ -176,6 +176,22 @@ Señal importante:
 - si no encuentras la pantalla, no esta dentro de `Clientes` ni dentro de `Direcciones`
 - vive como slice propio dentro de `Core de negocio`
 
+## Empresas y contrapartes
+
+La vista `Empresas y contrapartes operativas` ya no captura dirección como una sola línea cruda.
+
+Que cambia en este corte:
+
+- la dirección visible se captura como `Calle` + `Número`
+- desde ahí la vista deriva `address_line` antes de guardar
+- si la contraparte ya tiene dirección visible, la tabla deja un acceso directo a `Google Maps`
+
+Uso recomendado:
+
+1. abrir `Core de negocio -> Empresas`
+2. capturar `Calle`, `Número`, `Comuna`, `Ciudad` y `Región`
+3. usar `Google Maps` desde la fila si quieres validar rápido ubicación o llegada operativa
+
 ## Lectura simple por modulo
 
 `Maintenance` deberia leer desde aqui:

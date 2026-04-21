@@ -2,6 +2,17 @@
 
 ## 2026-04-21
 
+- `Organizations` endurece la primera ola visible de `organization addresses`:
+  - [BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx) ahora captura dirección en modo estructurado con `calle` + `número` y deriva `address_line` antes de persistir
+  - la tabla visible ahora mantiene salida directa a `Google Maps` cuando la contraparte ya tiene dirección cargada
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreOrganizationsPage-BX2saAvq.js` e `index-DP2Xm3ue.js`
+    - `production` publicado con `BusinessCoreOrganizationsPage-Vbe8Tm1-.js` e `index-i32hNPSk.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - la primera ola de `organization addresses` deja de quedar como captura cruda de `address_line` y pasa a una lectura/edición más alineada con `Sites` y `Clients`
+
 - `Duplicados` profundiza ahora el caso `installations` con una primera capa guiada/documental propia:
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora muestra `Ajuste manual previo` también para grupos de `Instalaciones duplicadas`
   - el operador ya puede decidir qué ficha instalación aporta:

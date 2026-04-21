@@ -2,6 +2,19 @@
 
 ## Prioridad vigente
 
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Organizations`:
+  - la primera ola visible de `organization addresses` ya no queda en modo crudo
+  - [BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx) ahora:
+    - captura `calle` + `número`
+    - deriva `address_line` al guardar
+    - deja salida directa a `Google Maps` desde la tabla cuando hay dirección visible
+  - publicado en:
+    - `staging` con `BusinessCoreOrganizationsPage-BX2saAvq.js` e `index-DP2Xm3ue.js`
+    - `production` con `BusinessCoreOrganizationsPage-Vbe8Tm1-.js` e `index-i32hNPSk.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
   - `installations` ya no queda solo con consolidación operativa de OT
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega:

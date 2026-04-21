@@ -148,6 +148,7 @@ Completado recientemente:
 - `work_group_members`: backend/frontend base listo
 - `assets` y `asset_types`: completado
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
+- `organization addresses`: primera ola visible ya alineada con captura estructurada y salida operativa a mapa
 - auditoria operativa de duplicados: UI ya lista para `organizations`, `clients`, `contacts`, `sites` e `installations`, con sugerencia de ficha a conservar, consolidacion operativa y desactivacion segura; falta merge/asimilacion profunda guiada
 - historial visible de merges: listo para las consolidaciones operativas base del slice
 - merge profundo de `organizations` y consolidacion documental de `contacts`, `sites` e `installations`: ya resuelve asimilacion guiada de múltiples clientes en conflicto, integra campos visibles base, permite selección manual por campo, expone diff final previo y registra una auditoria persistente del merge; falta criterio documental profundo y fusión manual asistida de identidad completa para el resto de las entidades
