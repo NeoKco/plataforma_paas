@@ -305,11 +305,14 @@ export function BusinessCoreCommonOrganizationNamePage() {
       <PageHeader
         eyebrow={t("Core de negocio", "Business core")}
         icon="business-core"
-        title={t("Nombre común de organización", "Common organization name")}
+        title={t(
+          "Clientes sin organización común definida",
+          "Clients without a defined common organization"
+        )}
         description={
           t(
-            "Vista dedicada para normalizar la organización común sin confundir la lectura principal de clientes.",
-            "Dedicated view to normalize the common organization name without cluttering the main clients reading view."
+            "Aquí trabajas solo los clientes que todavía no tienen definida una organización común en 'Organización / Razón social'.",
+            "Work here only on clients that still do not have a common organization defined in 'Organization / legal name'."
           )
         }
         actions={
@@ -318,8 +321,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
               label={t("Ayuda", "Help")}
               helpText={
                 t(
-                  "Aquí solo aparecen clientes que todavía no tienen cargado 'Organización / Razón social'. Cuando aplicas un nombre común, salen de esta lista.",
-                  "Only clients without 'Organization / legal name' appear here. Once you apply a common name, they leave this list."
+                  "Aquí solo aparecen clientes sin organización común definida. Cuando completas 'Organización / Razón social', salen de esta lista.",
+                  "Only clients without a defined common organization appear here. Once you fill 'Organization / legal name', they leave this list."
                 )
               }
             />
@@ -358,10 +361,10 @@ export function BusinessCoreCommonOrganizationNamePage() {
       ) : null}
 
       <PanelCard
-        title={t("Backlog pendiente", "Pending backlog")}
+        title={t("Pendientes por completar", "Pending to complete")}
         subtitle={t(
-          "Solo se muestran clientes sin 'Organización / Razón social'. La idea es que este listado se vaya reduciendo.",
-          "Only clients without 'Organization / legal name' are shown. The goal is to reduce this list over time."
+          "Solo se muestran clientes sin organización común definida. Cuando se completa 'Organización / Razón social', salen de esta lista.",
+          "Only clients without a defined common organization are shown. Once 'Organization / legal name' is completed, they leave this list."
         )}
       >
         <div className="business-core-manual-merge">
@@ -415,10 +418,13 @@ export function BusinessCoreCommonOrganizationNamePage() {
       </PanelCard>
 
       <DataTableCard
-        title={t("Clientes sin organización común", "Clients without a common organization")}
+        title={t(
+          "Clientes sin organización común definida",
+          "Clients without a defined common organization"
+        )}
         subtitle={t(
-          "Busca por cliente, contacto o dirección. Cuando una fila se atiende, desaparece de esta lista.",
-          "Search by client, contact, or address. Once a row is processed, it disappears from this list."
+          "Busca por cliente, contacto o dirección. Cuando se completa 'Organización / Razón social', la fila desaparece de esta lista.",
+          "Search by client, contact, or address. Once 'Organization / legal name' is completed, the row disappears from this list."
         )}
         rows={filteredRows}
         actions={
