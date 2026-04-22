@@ -33,6 +33,10 @@ import {
   type TenantBusinessOrganization,
 } from "../services/organizationsService";
 import {
+  getTenantBusinessAssets,
+  type TenantBusinessAsset,
+} from "../services/assetsService";
+import {
   createTenantBusinessSite,
   deleteTenantBusinessSite,
   getTenantBusinessSites,
@@ -116,6 +120,7 @@ export function BusinessCoreClientDetailPage() {
   const [organization, setOrganization] = useState<TenantBusinessOrganization | null>(null);
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [addresses, setAddresses] = useState<TenantBusinessSite[]>([]);
+  const [assets, setAssets] = useState<TenantBusinessAsset[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [maintenanceHistory, setMaintenanceHistory] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
   const [tenantUsers, setTenantUsers] = useState<TenantUsersItem[]>([]);
@@ -144,6 +149,15 @@ export function BusinessCoreClientDetailPage() {
     const siteIds = new Set(addresses.map((address) => address.id));
     return installations.filter((installation) => siteIds.has(installation.site_id));
   }, [addresses, installations]);
+  const assetsBySiteId = useMemo(() => {
+    const grouped = new Map<number, TenantBusinessAsset[]>();
+    assets.forEach((asset) => {
+      const current = grouped.get(asset.site_id) ?? [];
+      current.push(asset);
+      grouped.set(asset.site_id, current);
+    });
+    return grouped;
+  }, [assets]);
   const recentWorkOrders = useMemo(() => maintenanceHistory.slice(0, 5), [maintenanceHistory]);
   const tenantUserById = useMemo(
     () => new Map(tenantUsers.map((user) => [user.id, user])),
@@ -168,6 +182,7 @@ export function BusinessCoreClientDetailPage() {
         organizationResponse,
         contactsResponse,
         addressesResponse,
+        assetsResponse,
         installationsResponse,
         historyResponse,
         tenantUsersResponse,
@@ -178,6 +193,7 @@ export function BusinessCoreClientDetailPage() {
           organizationId: clientData.organization_id,
         }),
         getTenantBusinessSites(session.accessToken, { clientId: clientData.id }),
+        getTenantBusinessAssets(session.accessToken, { includeInactive: true }),
         getTenantMaintenanceInstallations(session.accessToken),
         getTenantMaintenanceHistory(session.accessToken, { clientId: clientData.id }),
         getTenantUsers(session.accessToken),
@@ -186,6 +202,7 @@ export function BusinessCoreClientDetailPage() {
       setOrganization(organizationResponse.data);
       setContacts(contactsResponse.data);
       setAddresses(addressesResponse.data);
+      setAssets(assetsResponse.data);
       setInstallations(installationsResponse.data);
       setMaintenanceHistory(historyResponse.data);
       setTenantUsers(tenantUsersResponse.data);
@@ -251,6 +268,17 @@ export function BusinessCoreClientDetailPage() {
     }
 
     return t("sin responsable asignado", "no assigned operator");
+  }
+
+  function buildAssetsHref(site: TenantBusinessSite): string {
+    const params = new URLSearchParams({
+      siteId: String(site.id),
+      source: "business-core",
+    });
+    if (site.address_line) {
+      params.set("q", site.address_line);
+    }
+    return `/tenant-portal/business-core/assets?${params.toString()}`;
   }
 
   useEffect(() => {
@@ -633,6 +661,10 @@ export function BusinessCoreClientDetailPage() {
           <div className="business-core-stack">
             {addresses.map((site) => {
               const mapsUrl = buildGoogleMapsUrl(site);
+              const siteAssets = assetsBySiteId.get(site.id) ?? [];
+              const activeSiteAssets = siteAssets.filter((asset) => asset.is_active).length;
+              const inactiveSiteAssets = siteAssets.length - activeSiteAssets;
+              const siteAssetTypeCount = new Set(siteAssets.map((asset) => asset.asset_type_id)).size;
               return (
                 <div className="business-core-related-card" key={site.id}>
                   <div className="business-core-related-title">
@@ -648,6 +680,14 @@ export function BusinessCoreClientDetailPage() {
                       {site.reference_notes}
                     </div>
                   ) : null}
+                  <div className="business-core-cell__meta">
+                    {siteAssets.length > 0
+                      ? t(
+                          `${siteAssets.length} activos visibles · ${activeSiteAssets} activos · ${inactiveSiteAssets} inactivos · ${siteAssetTypeCount} tipos`,
+                          `${siteAssets.length} visible assets · ${activeSiteAssets} active · ${inactiveSiteAssets} inactive · ${siteAssetTypeCount} types`
+                        )
+                      : t("sin activos registrados todavía", "no assets registered yet")}
+                  </div>
                   <div className="business-core-card__actions">
                     <button
                       className="btn btn-sm btn-outline-primary"
@@ -656,6 +696,12 @@ export function BusinessCoreClientDetailPage() {
                     >
                       {t("Editar", "Edit")}
                     </button>
+                    <Link
+                      className="btn btn-sm btn-outline-secondary"
+                      to={buildAssetsHref(site)}
+                    >
+                      {t("Activos sitio", "Site assets")}
+                    </Link>
                     {mapsUrl ? (
                       <a
                         className="btn btn-sm btn-outline-secondary"
@@ -1051,6 +1097,14 @@ export function BusinessCoreClientDetailPage() {
                       >
                         {t("Agendar mantención", "Schedule maintenance")}
                       </Link>
+                      {targetAddress ? (
+                        <Link
+                          className="btn btn-sm btn-outline-secondary"
+                          to={buildAssetsHref(targetAddress)}
+                        >
+                          {t("Activos sitio", "Site assets")}
+                        </Link>
+                      ) : null}
                     </div>
                   </div>
                 );

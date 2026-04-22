@@ -39,6 +39,8 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - `Direcciones` es el nombre visible para la entidad tecnica `site`.
 - cada ficha de cliente debe consolidar identidad, contactos y direcciones, incluyendo acceso a Google Maps cuando exista direccion usable.
 - la tabla de `Clientes` tambien debe permitir busqueda por nombre, RUT, contacto o direccion, para no obligar al usuario a cambiar de pantalla solo para ubicar una ficha.
+- la ficha del cliente ya no deberia dejar `Activos` como un catálogo separado sin contexto: cada direccion puede resumir cuántos activos visibles tiene el sitio y dejar un CTA `Activos sitio`.
+- cuando una ficha ya tiene direcciones y mantenimiento asociado, la lectura correcta deberia permitir revisar activos del mismo sitio sin perder el contexto del cliente.
 - en la tabla de `Clientes`, la columna de contacto deberia avisar de forma breve cuando existe uno o mas contactos de respaldo, sin obligar a abrir de inmediato la ficha.
 - el `codigo de direccion` no forma parte de la captura normal del usuario: es un identificador tecnico interno y no deberia editarse desde pantallas operativas.
 - en la captura normal de direcciones no deberia pedirse `Nombre dirección` separado de `Dirección`; la UX correcta es pedir `Calle` y `Número`, y construir internamente el identificador tecnico si hace falta.
@@ -57,6 +59,8 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - tampoco deberian mostrarse placeholders heredados como `Sin Mail`, `Sin Fono` o `Sin contacto` como si fueran datos validos de contacto.
 - la portada `Resumen` del dominio ya puede mostrar ultimas altas reales de `Empresas` y `Clientes`; no deberia quedarse como una portada ciega si ya existe catalogo operativo detras.
 - en `Resumen`, `Empresas` debe quedar acotado a las 2 ultimas altas visibles y `Clientes` a los 5 ultimos, mostrando nombre, RUT, contacto base y estado de servicio en vez de tarjetas vagas sin valor operativo.
+- `Resumen` ya no deberia dejar `assets` fuera de escena: también puede mostrar cuántos activos visibles existen y qué sitios concentran inventario reusable hoy.
+- desde `Resumen`, el operador ya debería poder saltar a `Activos sitio` o a la ficha del cliente sin reconstruir el contexto manualmente.
 - en la ficha del cliente, `Mantenciones realizadas` no deberia leer la bandeja operativa abierta; debe mostrar solo trabajo cerrado de ese cliente, tomado desde historial tecnico, incluyendo estado final, responsable tecnico o grupo cuando exista, y la descripcion util de lo que ocurrio con el equipo.
 - la direccion propia de una empresa o proveedor sigue siendo una necesidad real, pero conviene resolverla como parte del modelo y no como un campo suelto pegado al modal. Hasta que exista esa ola, el foco de `Empresas` debe ser identidad + contacto principal.
 - si intentas registrar un cliente repetido, el control correcto no debe depender de la pantalla: la contraparte base no debe duplicarse y una misma organizacion no deberia tener mas de un cliente asociado.
@@ -73,6 +77,10 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
   - separar activos e inactivos
   - ubicar por nombre, serie, código, fabricante o modelo
   - volver a `Instalaciones` del mismo sitio sin reconstruir el contexto manualmente
+- dentro de la ficha del cliente, la lectura operativa ahora también debería permitir:
+  - ver por cada dirección si ese sitio tiene activos visibles
+  - distinguir rápido si no hay activos todavía
+  - saltar al inventario filtrado del mismo sitio sin buscarlo de nuevo
 
 Regla vigente:
 

@@ -21,13 +21,32 @@ import {
   type TenantBusinessClient,
 } from "../services/clientsService";
 import {
+  getTenantBusinessAssets,
+  type TenantBusinessAsset,
+} from "../services/assetsService";
+import {
   getTenantBusinessOrganizations,
   type TenantBusinessOrganization,
 } from "../services/organizationsService";
+import {
+  getTenantBusinessSites,
+  type TenantBusinessSite,
+} from "../services/sitesService";
+import { getVisibleAddressLabel } from "../utils/addressPresentation";
 
 type LatestClientRow = {
   client: TenantBusinessClient;
   organization: TenantBusinessOrganization | null;
+};
+
+type AssetSiteRow = {
+  site: TenantBusinessSite;
+  client: TenantBusinessClient | null;
+  organization: TenantBusinessOrganization | null;
+  totalAssets: number;
+  activeAssets: number;
+  inactiveAssets: number;
+  assetTypesCount: number;
 };
 
 function formatDateTime(
@@ -44,6 +63,8 @@ export function BusinessCoreOverviewPage() {
   const navigate = useNavigate();
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [sites, setSites] = useState<TenantBusinessSite[]>([]);
+  const [assets, setAssets] = useState<TenantBusinessAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
@@ -63,14 +84,29 @@ export function BusinessCoreOverviewPage() {
       getTenantBusinessClients(session.accessToken, {
         includeInactive: true,
       }),
+      getTenantBusinessSites(session.accessToken, {
+        includeInactive: true,
+      }),
+      getTenantBusinessAssets(session.accessToken, {
+        includeInactive: true,
+      }),
     ])
-      .then(([organizationsResponse, clientsResponse]) => {
+      .then(
+        ([
+          organizationsResponse,
+          clientsResponse,
+          sitesResponse,
+          assetsResponse,
+        ]) => {
         if (!isMounted) {
           return;
         }
         setOrganizations(organizationsResponse.data);
         setClients(clientsResponse.data);
-      })
+        setSites(sitesResponse.data);
+        setAssets(assetsResponse.data);
+        }
+      )
       .catch((rawError) => {
         if (!isMounted) {
           return;
@@ -117,6 +153,56 @@ export function BusinessCoreOverviewPage() {
       }));
   }, [clients, organizations]);
 
+  const visibleAssets = useMemo(
+    () => assets.filter((asset) => asset.is_active),
+    [assets]
+  );
+
+  const topAssetSites = useMemo<AssetSiteRow[]>(() => {
+    const clientsById = new Map(clients.map((client) => [client.id, client]));
+    const organizationsById = new Map(
+      organizations.map((organization) => [organization.id, organization])
+    );
+    const assetsBySiteId = new Map<number, TenantBusinessAsset[]>();
+
+    assets.forEach((asset) => {
+      const current = assetsBySiteId.get(asset.site_id) ?? [];
+      current.push(asset);
+      assetsBySiteId.set(asset.site_id, current);
+    });
+
+    return sites
+      .map((site) => {
+        const siteAssets = assetsBySiteId.get(site.id) ?? [];
+        const client = clientsById.get(site.client_id) ?? null;
+        const organization = client
+          ? organizationsById.get(client.organization_id) ?? null
+          : null;
+        const activeAssets = siteAssets.filter((asset) => asset.is_active).length;
+        const assetTypesCount = new Set(
+          siteAssets.map((asset) => asset.asset_type_name).filter(Boolean)
+        ).size;
+
+        return {
+          site,
+          client,
+          organization,
+          totalAssets: siteAssets.length,
+          activeAssets,
+          inactiveAssets: siteAssets.length - activeAssets,
+          assetTypesCount,
+        };
+      })
+      .filter((row) => row.totalAssets > 0)
+      .sort((left, right) => {
+        if (right.totalAssets !== left.totalAssets) {
+          return right.totalAssets - left.totalAssets;
+        }
+        return right.activeAssets - left.activeAssets;
+      })
+      .slice(0, 4);
+  }, [assets, clients, organizations, sites]);
+
   const spotlightStats = useMemo(
     () => [
       {
@@ -135,13 +221,13 @@ export function BusinessCoreOverviewPage() {
       },
       {
         label: pickLocalizedText(language, {
-          es: "Consumidores",
-          en: "Consumers",
+          es: "Activos visibles",
+          en: "Visible assets",
         }),
-        value: "3",
+        value: visibleAssets.length,
       },
     ],
-    [clients.length, language, visibleOrganizations.length]
+    [clients.length, language, visibleAssets.length, visibleOrganizations.length]
   );
 
   return (
@@ -230,18 +316,26 @@ export function BusinessCoreOverviewPage() {
         </div>
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "Consumidores" : "Consumers"}
-            value="3"
-            hint={language === "es" ? "Maintenance, Projects, IoT" : "Maintenance, Projects, IoT"}
+            label={language === "es" ? "Activos visibles" : "Visible assets"}
+            value={visibleAssets.length}
+            hint={
+              language === "es"
+                ? "Inventario reusable hoy disponible"
+                : "Reusable inventory currently available"
+            }
             icon="categories"
             tone="warning"
           />
         </div>
         <div className="col-12 col-md-6 col-xl-3">
           <MetricCard
-            label={language === "es" ? "Riesgo evitado" : "Risk avoided"}
-            value={language === "es" ? "Duplicación" : "Duplication"}
-            hint={language === "es" ? "No mezclar dominio en módulos operativos" : "No domain duplication in operational modules"}
+            label={language === "es" ? "Sitios con activos" : "Sites with assets"}
+            value={topAssetSites.length}
+            hint={
+              language === "es"
+                ? "Lectura rápida del inventario por sitio"
+                : "Quick inventory signal by site"
+            }
             icon="focus"
             tone="success"
           />
@@ -355,6 +449,79 @@ export function BusinessCoreOverviewPage() {
                   {language === "es"
                     ? "Aún no hay clientes creados."
                     : "There are no clients yet."}
+                </div>
+              )}
+            </div>
+          </PanelCard>
+
+          <PanelCard
+            title={
+              language === "es"
+                ? "Activos reutilizables por sitio"
+                : "Reusable assets by site"
+            }
+            subtitle={
+              language === "es"
+                ? "Entrada rápida a los sitios que hoy ya concentran inventario visible dentro del dominio."
+                : "Quick view of the sites that already concentrate visible inventory in the domain."
+            }
+          >
+            <div className="business-core-stack">
+              {topAssetSites.length > 0 ? (
+                topAssetSites.map((row) => (
+                  <div className="business-core-related-card" key={row.site.id}>
+                    <div className="business-core-related-title">
+                      {getVisibleAddressLabel(row.site)}
+                      <StatusBadge value={row.activeAssets > 0 ? "active" : "inactive"} />
+                    </div>
+                    <div className="business-core-cell__meta">
+                      {row.organization?.name ||
+                        row.organization?.legal_name ||
+                        (language === "es" ? "Sin cliente asociado" : "No linked client")}
+                    </div>
+                    <div className="business-core-cell__meta">
+                      {language === "es" ? "Activos visibles" : "Visible assets"}:{" "}
+                      {row.totalAssets} · {language === "es" ? "Activos" : "Active"}:{" "}
+                      {row.activeAssets} · {language === "es" ? "Inactivos" : "Inactive"}:{" "}
+                      {row.inactiveAssets}
+                    </div>
+                    <div className="business-core-cell__meta">
+                      {language === "es" ? "Tipos presentes" : "Types present"}:{" "}
+                      {row.assetTypesCount}
+                    </div>
+                    <div className="business-core-card__actions">
+                      {row.client ? (
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          type="button"
+                          onClick={() =>
+                            navigate(`/tenant-portal/business-core/clients/${row.client?.id}`)
+                          }
+                        >
+                          {language === "es" ? "Abrir ficha cliente" : "Open client detail"}
+                        </button>
+                      ) : null}
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        type="button"
+                        onClick={() =>
+                          navigate(
+                            `/tenant-portal/business-core/assets?siteId=${row.site.id}&source=business-core&q=${encodeURIComponent(
+                              row.site.address_line ?? ""
+                            )}`
+                          )
+                        }
+                      >
+                        {language === "es" ? "Activos sitio" : "Site assets"}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-secondary">
+                  {language === "es"
+                    ? "Aún no hay sitios con inventario visible."
+                    : "There are no sites with visible inventory yet."}
                 </div>
               )}
             </div>

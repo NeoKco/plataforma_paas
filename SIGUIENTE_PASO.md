@@ -2,6 +2,35 @@
 
 ## Prioridad vigente
 
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Resumen`:
+  - `Resumen` ya no queda como portada casi estática del dominio
+  - [BusinessCoreOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOverviewPage.tsx) ahora:
+    - carga `sites` y `assets`
+    - muestra métricas vivas `Activos visibles` y `Sitios con activos`
+    - agrega `Activos reutilizables por sitio`
+    - deja CTA contextual a `Activos sitio` y a la ficha del cliente
+  - publicado en:
+    - `staging` con `BusinessCoreOverviewPage-Bil7XgeJ.js` e `index-DCKISKuO.js`
+    - `production` con `BusinessCoreOverviewPage-Cy9CbNRU.js` e `index-CuiXehcz.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Client detail`:
+  - la ficha del cliente ya no deja `assets` solo como catálogo separado o lectura exclusiva de `maintenance`
+  - [BusinessCoreClientDetailPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientDetailPage.tsx) ahora:
+    - carga `assets` del tenant y los agrupa por `site_id`
+    - resume activos visibles por cada dirección del cliente
+    - distingue activos/inactivos y cantidad de tipos presentes
+    - deja CTA `Activos sitio` hacia el inventario filtrado del mismo sitio
+    - también agrega ese salto contextual desde instalaciones relacionadas cuando la ficha ya tiene dirección asociada
+  - publicado en:
+    - `staging` con `BusinessCoreClientDetailPage-Bs67OtEF.js` e `index-MsvE9936.js`
+    - `production` con `BusinessCoreClientDetailPage-2CcHoCz5.js` e `index-1I4zx2PP.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Organizations`:
   - la primera ola visible de `organization addresses` ya no queda en modo crudo
   - [BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx) ahora:
@@ -218,6 +247,12 @@
   - entrada propia en la barra lateral
   - fuente actual: calendario operativo de `maintenance`
   - siguiente evolución natural: agregar fuentes de otros módulos cuando existan contratos reales
+
+## Siguiente decisión útil
+
+- si seguimos en `business-core`, el siguiente corte con mejor retorno ya no es repetir el mismo patrón en la misma ficha:
+  - o profundizamos merge/asimilación guiada más rica
+  - o empujamos adopción visible de `assets` fuera de `maintenance`, `Client detail` y `Resumen`, por ejemplo en `Organizations` o futuros contratos con `iot`
 - gobernanza transversal ya institucionalizada:
   - usar [data-ownership-matrix.md](/home/felipe/platform_paas/docs/architecture/data-ownership-matrix.md) para cualquier cambio que toque datos, ownership o integraciones entre módulos
   - usar [slice-spec-template.md](/home/felipe/platform_paas/docs/architecture/slice-spec-template.md) para cualquier slice relevante, transversal o de riesgo operativo real

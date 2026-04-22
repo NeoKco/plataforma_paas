@@ -2,6 +2,34 @@
 
 ## 2026-04-21
 
+- `Resumen` ya muestra una señal operativa real de `assets` dentro de `business-core`:
+  - [BusinessCoreOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOverviewPage.tsx) ahora carga también `sites` y `assets`
+  - las métricas visibles dejan de usar placeholders y ahora muestran `Activos visibles` y `Sitios con activos`
+  - el overview agrega `Activos reutilizables por sitio`, con top de sitios, conteos visibles y CTA a `Activos sitio` o a la ficha del cliente cuando corresponde
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreOverviewPage-Bil7XgeJ.js` e `index-DCKISKuO.js`
+    - `production` publicado con `BusinessCoreOverviewPage-Cy9CbNRU.js` e `index-CuiXehcz.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - `Resumen` deja de ser una portada casi estática y pasa a mostrar inventario reusable visible desde la entrada del módulo
+
+- la ficha de cliente ahora hace visible la adopcion de `assets` sin salir de `business-core`:
+  - [BusinessCoreClientDetailPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientDetailPage.tsx) ahora carga `assets` del tenant y los agrupa por `site_id`
+  - cada bloque de `Direcciones del cliente` ya muestra:
+    - conteo visible de activos del sitio
+    - activos/inactivos
+    - cantidad de tipos presentes
+    - CTA `Activos sitio` al inventario filtrado del mismo sitio
+  - las instalaciones relacionadas desde la misma ficha también dejan salida contextual a `Activos sitio` cuando hay dirección asociada
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreClientDetailPage-Bs67OtEF.js` e `index-MsvE9936.js`
+    - `production` publicado con `BusinessCoreClientDetailPage-2CcHoCz5.js` e `index-1I4zx2PP.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - `assets` deja de verse solo como catálogo global o contexto de `maintenance`; la ficha de cliente ya ofrece lectura reusable por dirección/sitio
+
 - `Organizations` endurece la primera ola visible de `organization addresses`:
   - [BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx) ahora captura dirección en modo estructurado con `calle` + `número` y deriva `address_line` antes de persistir
   - la tabla visible ahora mantiene salida directa a `Google Maps` cuando la contraparte ya tiene dirección cargada

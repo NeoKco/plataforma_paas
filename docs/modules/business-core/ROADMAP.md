@@ -129,6 +129,11 @@ Completado recientemente:
   - `Maintenance -> Instalaciones` ya puede abrir `Activos` con foco contextual del mismo sitio
   - `BusinessCoreAssetsPage` ya ofrece búsqueda contextual, filtro por estado, métricas visibles y retorno rápido a `Instalaciones`
   - el expediente técnico de instalación ya muestra resumen y CTA a inventario completo del sitio
+- adopcion visible de `assets` fuera de `maintenance`:
+  - `BusinessCoreClientDetailPage` ya resume activos por dirección/sitio dentro de la ficha del cliente
+  - cada dirección ya expone conteo visible de activos, activos/inactivos y cantidad de tipos presentes
+  - la ficha ya deja CTA `Activos sitio` hacia inventario filtrado del mismo sitio
+  - `BusinessCoreOverviewPage` ya expone una señal rápida de inventario reusable en `Resumen`, con métricas vivas y top de sitios con activos visibles
 
 ## Riesgos a evitar
 
@@ -141,6 +146,7 @@ Completado recientemente:
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - profundizar la adopcion de `assets` por `iot`
 - endurecer el importador inicial desde `ieris_app`
+- profundizar la adopcion visible de `assets` fuera de `maintenance`, reutilizando mejor `Organizations`, contratos con `iot` o una lectura operacional todavía más rica en `Resumen`
 - profundizar la depuracion de duplicados hacia otras entidades para soportar consolidacion guiada/documental más allá del caso ya enriquecido de `organizations`, `clients`, `contacts`, `sites` e `installations`
 
 ## Backlog pendiente visible

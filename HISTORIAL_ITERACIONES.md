@@ -1,5 +1,69 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-21 - `Resumen` ya muestra señal rápida de inventario reusable
+
+- objetivo:
+  - dejar `BusinessCoreOverviewPage` menos estática
+  - hacer visible la adopción de `assets` desde la entrada del módulo, no solo desde `maintenance` o la ficha del cliente
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOverviewPage.tsx):
+    - carga también `sites` y `assets`
+    - reemplaza métricas placeholder por `Activos visibles` y `Sitios con activos`
+    - agrega el bloque `Activos reutilizables por sitio`
+    - deja CTA contextual a `Activos sitio` y a la ficha del cliente
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreOverviewPage-Bil7XgeJ.js`, `index-DCKISKuO.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreOverviewPage-Cy9CbNRU.js`, `index-CuiXehcz.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `Resumen` deja de ser solo portada de altas recientes
+  - la entrada del módulo ya deja lectura rápida del inventario reusable del dominio
+- siguiente paso:
+  - decidir si el siguiente salto útil cae en merge/asimilación más rica o en otra ola visible de adopción de `assets`
+
+## 2026-04-21 - `Client detail` hace visible `assets` por dirección/sitio
+
+- objetivo:
+  - extender la adopción visible de `assets` fuera de `maintenance`
+  - reutilizar la ficha del cliente como lectura operativa de inventario del mismo sitio sin abrir todavía una relación dura `installation.asset_id`
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientDetailPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientDetailPage.tsx):
+    - carga `assets` del tenant con `includeInactive: true`
+    - agrupa activos por `site_id`
+    - resume activos visibles por cada dirección del cliente
+    - distingue activos/inactivos y cantidad de tipos presentes
+    - agrega CTA `Activos sitio` hacia la vista filtrada del mismo sitio
+    - agrega el mismo salto contextual desde instalaciones relacionadas cuando existe dirección asociada
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientDetailPage-Bs67OtEF.js`, `index-MsvE9936.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientDetailPage-2CcHoCz5.js`, `index-1I4zx2PP.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `assets` deja de ser lectura solo global o exclusiva de `maintenance`
+  - la ficha del cliente ya sirve también como punto de entrada contextual al inventario del sitio
+- siguiente paso:
+  - decidir si el siguiente salto útil cae en merge/asimilación más rica o en otra ola visible de adopción de `assets`
+
 ## 2026-04-21 - `Organizations` alinea la primera ola visible de `organization addresses`
 
 - objetivo:
