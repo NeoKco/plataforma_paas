@@ -11,7 +11,10 @@ Regla vigente para identidad visible:
 - `organization.name` representa la empresa / compañía / contraparte base
 - `organization.legal_name` representa la razón social o nombre legal de esa contraparte base
 - `social_community_groups.name` representa el nombre social común compartido por varios clientes
-- la vista `Nombre común` crea o reutiliza `social_community_groups` y no debe pisar `organization.name` ni `organization.legal_name`
+- `Grupos sociales` es el catálogo principal para crear y mantener `social_community_groups`
+- `Grupos sociales` ya tiene CRUD visible propio en `Tenant portal -> Core de negocio -> Grupos sociales`
+- `Clientes` ya deja seleccionar `Grupo social común` directamente al crear o editar una ficha
+- la vista `Sugerencias` crea o reutiliza `social_community_groups` solo como apoyo legacy por similitud y no debe pisar `organization.name` ni `organization.legal_name`
 
 Donde encontrar la pantalla de duplicados:
 
@@ -67,7 +70,9 @@ Estado actual:
 - `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
 - no existe un responsable por sitio/dirección en el modelo actual: la regla de negocio usa grupo + líder por mantención o instalación
 - la vista `Duplicados` ya detecta grupos duplicados de `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas o desactivar duplicados hacia esa ficha antes de borrar para apoyar la limpieza operativa de la BD
-- la vista `Nombre común` ya sirve para asignar manualmente un grupo social común entre clientes candidatos por similitud real, sin mover ni borrar datos
+- la vista `Grupos sociales` ya sirve como catálogo principal para crear, editar, activar/desactivar y borrar grupos sociales comunes
+- la captura de `Nuevo cliente` y `Editar cliente` ya permite seleccionar directamente el `Grupo social común`
+- la vista `Sugerencias` queda solo como apoyo para clientes legacy candidatos por similitud real, sin mover ni borrar datos
 
 ## Slice operativo actual: Duplicados
 
@@ -96,7 +101,12 @@ Alcance real de la consolidacion actual:
 
 Slice complementario vigente:
 
-- `Nombre común` no consolida fichas ni mueve referencias
+- `Grupos sociales` es el flujo principal:
+  - crea y mantiene el catálogo `social_community_groups`
+  - expone `name`, `commune`, `sector`, `zone`, `territorial_classification`, `notes`, `is_active`
+  - debe usarse desde su propio CRUD y desde el selector directo del modal de cliente
+  - debe usarse antes o durante la captura normal de clientes
+- `Sugerencias` no consolida fichas ni mueve referencias
 - detecta candidatos por similitud real de organización
 - permite marcar clientes y escribir un `Nombre social común final`
 - crea o reutiliza `social_community_groups`

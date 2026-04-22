@@ -43,6 +43,8 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
   - cuántos grupos sociales ya son visibles
   - cuántos pendientes quedan por asignar
   - en cada fila, la columna `Grupo social común` resume nombre común y tamaño del grupo
+- `Grupos sociales` es ahora el flujo principal para crear y mantener esas agrupaciones sociales compartidas
+- el modal de `Nuevo cliente` y `Editar cliente` ya deja seleccionar directamente el `Grupo social común`
 - una misma identidad base puede existir como `organization`, pero la vista `Empresas` no debe usarse para revisar la cartera comercial completa.
 - por defecto, la pantalla `Empresas` excluye las organizaciones ya usadas como clientes para evitar mezclar ambas lecturas.
 - en `Empresas`, la tabla operativa debe mostrar tambien el `contacto principal` con telefono y mail, para permitir lectura rapida sin abrir otros catalogos.
@@ -82,22 +84,20 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - si aparece la pareja, un familiar o un tercero ligado al mismo domicilio o contexto operativo, no deberia crearse como cliente nuevo por defecto; primero debe revisarse si corresponde agregarlo como contacto del cliente existente.
 - la captura de `Nuevo cliente` deberia advertir coincidencias fuertes por RUT, nombre, telefono, email o direccion y desviar al usuario hacia la ficha existente antes de duplicar la cartera.
 - cuando ya existen duplicados en la base, la pantalla `Duplicados` debe agrupar `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
-- si el operador ya sabe de antemano que varios clientes pertenecen a la misma contraparte real, no hace falta esperar a que `Duplicados` los detecte:
-  - `Core de negocio` ahora ofrece la vista `Nombre común`
-  - el flujo correcto es:
-    1. entrar a `Core de negocio -> Nombre común`
-    2. revisar los grupos detectados por similitud de organización
-    3. marcar solo los clientes que realmente deban compartir la misma organización social común
-    4. escribir el `Nombre social común final`
-    5. confirmar la actualización
-  - esa vista ya no muestra solo vacíos:
-    - muestra grupos detectados por similitud real de organización
-    - por ejemplo mismo `RUT / Tax ID`, mismo nombre visible o nombre muy parecido
+- si el operador ya conoce el grupo social correcto, el flujo principal ahora es:
+  1. entrar a `Core de negocio -> Grupos sociales`
+  2. crear o editar el grupo social compartido
+  3. volver a `Clientes`
+  4. seleccionar ese `Grupo social común` directamente en `Nuevo cliente` o `Editar cliente`
+  5. guardar la ficha sin tocar `Empresa`, `Razón social`, contactos ni direcciones
+- la vista `Sugerencias` queda como flujo auxiliar:
+  - detecta candidatos legacy por similitud real de organización
+  - por ejemplo mismo `RUT / Tax ID`, mismo nombre visible o nombre muy parecido
   - `Grupo detectado` solo agrupa candidatos; no es el nombre que se guardará
   - el único valor que se guardará es el que el operador escriba en `Nombre social común final`
-  - cuando un grupo queda homologado con el mismo nombre común, deja de aparecer
-  - ese flujo crea o reutiliza un `social_community_group` y asigna los clientes seleccionados a ese grupo
+  - cuando un grupo queda apuntando al mismo `social_community_group`, deja de aparecer
   - no toca `Nombre cliente`, empresa base, razón social legal, contactos, direcciones ni mantenciones
+  - no reemplaza el CRUD principal de `Grupos sociales`; solo ayuda a limpiar clientes legacy que llegaron sin grupo definido o con variantes parecidas
   - en otras palabras:
     - `Nombre cliente` sigue en `organization.name`
     - la razón social sigue en `organization.legal_name`

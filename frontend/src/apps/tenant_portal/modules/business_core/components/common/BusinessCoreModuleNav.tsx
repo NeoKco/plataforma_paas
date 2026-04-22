@@ -21,8 +21,12 @@ export function BusinessCoreModuleNav() {
       label: pickLocalizedText(language, { es: "Clientes", en: "Clients" }),
     },
     {
+      to: "/tenant-portal/business-core/social-community-groups",
+      label: pickLocalizedText(language, { es: "Grupos sociales", en: "Social groups" }),
+    },
+    {
       to: "/tenant-portal/business-core/common-organization-name",
-      label: pickLocalizedText(language, { es: "Nombre común", en: "Common name" }),
+      label: pickLocalizedText(language, { es: "Sugerencias", en: "Suggestions" }),
     },
     {
       to: "/tenant-portal/business-core/duplicates",

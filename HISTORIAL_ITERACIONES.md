@@ -1,5 +1,39 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - `Grupos sociales` pasa a ser el flujo principal y `Sugerencias` queda como apoyo legacy
+
+- objetivo:
+  - dejar explícito en UX y flujo operativo que el catálogo social real vive en un CRUD propio y no en la pantalla de similitud
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreSocialCommunityGroupsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreSocialCommunityGroupsPage.tsx):
+    - agrega CRUD visible del catálogo `social_community_groups`
+    - expone `name`, `commune`, `sector`, `zone`, `territorial_classification`, `notes`, `is_active`
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
+    - agrega selector directo `Grupo social común` en `Nuevo cliente` y `Editar cliente`
+    - deja CTA claros a `Grupos sociales` y `Sugerencias`
+  - [frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreModuleNav.tsx):
+    - publica `Grupos sociales` como entrada principal
+    - renombra la ruta auxiliar de similitud a `Sugerencias`
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx):
+    - refuerza su rol como limpieza legacy por similitud
+- validaciones:
+  - `cd frontend && npm run build` -> `OK`
+  - `staging`:
+    - rebuild con `VITE_API_BASE_URL=http://192.168.7.42:8081`
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreSocialCommunityGroupsPage-CwR9lsTe.js`, `BusinessCoreClientsPage-CkRMRy_7.js`, `BusinessCoreCommonOrganizationNamePage-BFhOSpRi.js`, `BusinessCoreModuleNav-DrFVooZf.js`, `socialCommunityGroupsService-CFX7KgUa.js`, `index-DmBKNpH2.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - rebuild con `VITE_API_BASE_URL=https://orkestia.ddns.net`
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreSocialCommunityGroupsPage-CL-Fl870.js`, `BusinessCoreClientsPage-ChQYL3FG.js`, `BusinessCoreCommonOrganizationNamePage-ChgcLnx2.js`, `BusinessCoreModuleNav-BEQA41Jl.js`, `socialCommunityGroupsService-B9_SS5Fr.js`, `index-TQpjvjhD.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - el flujo normal ya no parte por similitud
+  - primero se crea o corrige el grupo en `Grupos sociales`
+  - luego se asigna en la ficha del cliente
+  - `Sugerencias` queda solo para homologación legacy segura sin mover ni borrar datos
+
 ## 2026-04-22 - separación estructural entre contraparte base y grupo social común
 
 - objetivo:

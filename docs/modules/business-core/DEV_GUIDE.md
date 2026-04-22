@@ -68,7 +68,9 @@ Estado de este segundo bloque:
   - columna operativa por fila con nombre común y tamaño de grupo
 - `BusinessCoreClientsPage` ya no debe asumir unificación de fichas para la homologación operativa de organizaciones:
   - la lectura principal de cartera queda limpia
-  - la acción manual vive en `BusinessCoreCommonOrganizationNamePage`
+  - el flujo principal vive en `BusinessCoreSocialCommunityGroupsPage` + selector directo del cliente
+  - la navegación visible ya expone `Grupos sociales` como CRUD principal y `Sugerencias` como apoyo legacy
+  - la acción auxiliar legacy vive en `BusinessCoreCommonOrganizationNamePage`
   - `Nombre social común final` es obligatorio
   - el flujo crea o reutiliza `social_community_groups`
   - el flujo solo actualiza `business_clients.social_community_group_id`
@@ -156,7 +158,10 @@ Campos base:
 Observacion:
 
 - esta tabla resuelve el concepto de organización social común que no corresponde mezclar con `business_organizations`
-- su consumo visible principal hoy vive en `BusinessCoreCommonOrganizationNamePage` y en lecturas operativas de `Clients` / `MaintenanceReports`
+- su consumo visible principal hoy vive en `BusinessCoreSocialCommunityGroupsPage`, en el selector directo de `Clients` y en lecturas operativas de `Clients` / `MaintenanceReports`
+- rutas/frontend actuales:
+  - `/tenant-portal/business-core/social-community-groups` -> CRUD principal
+  - `/tenant-portal/business-core/common-organization-name` -> sugerencias legacy por similitud
 - la migración tenant `v0039_social_community_groups` ya crea la tabla, agrega `business_clients.social_community_group_id` y backfillea grupos desde `organization.legal_name` cuando existían homologaciones legacy
 
 ### 3. Contacts

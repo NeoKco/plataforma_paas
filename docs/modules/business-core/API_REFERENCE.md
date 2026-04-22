@@ -79,6 +79,8 @@ Estado actual:
 
 Sin abrir endpoints nuevos, la UI tenant ya soporta estos flujos sobre contratos existentes:
 
+- CRUD principal de `Grupos sociales` usando `social_community_groups`
+- selección directa de `Grupo social común` al crear o editar `clients`
 - asignacion manual de `Grupo social común` usando `social_community_groups`
 - auditoria de duplicados de `organizations`, `clients`, `contacts`, `sites` e `installations`
 - sugerencia de ficha a conservar por grupo duplicado
@@ -98,9 +100,17 @@ Ruta frontend tenant visible:
 
 Ruta frontend tenant adicional:
 
+- `/tenant-portal/business-core/social-community-groups`
+- acceso UI: `Tenant portal -> Core de negocio -> Grupos sociales`
+- la pantalla permite CRUD directo sobre `social_community_groups`
+- el flujo normal del negocio debería partir aquí cuando el grupo social ya es conocido
+- el mismo catálogo queda disponible desde el selector `Grupo social común` en `Nuevo cliente` y `Editar cliente`
+
+- ruta auxiliar legacy:
 - `/tenant-portal/business-core/common-organization-name`
-- acceso UI: `Tenant portal -> Core de negocio -> Nombre común`
+- acceso UI: `Tenant portal -> Core de negocio -> Sugerencias`
 - la pantalla detecta candidatos por similitud entre empresas base y asigna manualmente `social_community_group_id`
+- este flujo no reemplaza el CRUD principal; solo sirve para limpieza legacy cuando el grupo social correcto todavía no estaba catalogado
 - no modifica `organization.name`, `organization.legal_name`, contactos, sitios ni mantenciones
 
 Ledger de merges disponible:

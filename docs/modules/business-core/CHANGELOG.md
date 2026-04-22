@@ -2,6 +2,21 @@
 
 ## 2026-04-22
 
+- cierre del rediseño UX para `social_community_groups`:
+  - se agrega [BusinessCoreSocialCommunityGroupsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreSocialCommunityGroupsPage.tsx) como CRUD visible principal del catálogo social
+  - [BusinessCoreModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreModuleNav.tsx) ahora separa explícitamente:
+    - `Grupos sociales` como flujo principal
+    - `Sugerencias` como flujo auxiliar legacy
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya deja seleccionar `Grupo social común` directamente en `Nuevo cliente` y `Editar cliente`
+  - [socialCommunityGroupsService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/services/socialCommunityGroupsService.ts) ya soporta actualización de estado y borrado del catálogo
+  - impacto funcional:
+    - el flujo normal ya no parte por similitud
+    - primero se crea o corrige el grupo en `Grupos sociales`
+    - luego se asigna al cliente desde su propio modal
+    - `Sugerencias` queda solo como apoyo para datos legacy
+  - validación repo:
+    - `cd frontend && npm run build` -> `OK`
+
 - corrección estructural del modelo para separar contraparte base vs organización social común:
   - se agrega [social_community_group.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/models/social_community_group.py) con la tabla `social_community_groups`
   - `business_clients` ya suma `social_community_group_id`

@@ -78,3 +78,31 @@ export function updateTenantSocialCommunityGroup(
     }
   );
 }
+
+export function updateTenantSocialCommunityGroupStatus(
+  accessToken: string,
+  groupId: number,
+  isActive: boolean
+) {
+  return apiRequest<TenantSocialCommunityGroupMutationResponse>(
+    `/tenant/business-core/social-community-groups/${groupId}/status`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: { is_active: isActive },
+    }
+  );
+}
+
+export function deleteTenantSocialCommunityGroup(
+  accessToken: string,
+  groupId: number
+) {
+  return apiRequest<TenantSocialCommunityGroupMutationResponse>(
+    `/tenant/business-core/social-community-groups/${groupId}`,
+    {
+      method: "DELETE",
+      token: accessToken,
+    }
+  );
+}

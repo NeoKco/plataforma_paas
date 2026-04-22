@@ -685,13 +685,13 @@ export function BusinessCoreCommonOrganizationNamePage() {
         eyebrow={t("Core de negocio", "Business core")}
         icon="business-core"
         title={t(
-          "Clientes candidatos a organización social común",
-          "Clients that may need a social community group"
+          "Sugerencias de grupo social",
+          "Social group suggestions"
         )}
         description={
           t(
-            "Aquí aparecen clientes con empresas base de nombre parecido. Tú marcas los que sí correspondan y les asignas manualmente un grupo social común en social_community_groups.",
-            "This page shows clients whose base companies have similar names. You pick the ones that truly belong together and manually assign a shared social community group."
+            "Vista auxiliar para limpiar clientes legacy por similitud de empresa base. El flujo principal ahora vive en 'Grupos sociales' y en el selector directo del cliente.",
+            "Auxiliary view to clean legacy clients by base-company similarity. The main flow now lives in 'Social groups' and in the direct selector inside each client."
           )
         }
         actions={
@@ -700,8 +700,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
               label={t("Ayuda", "Help")}
               helpText={
                 t(
-                  "Aquí no se buscan vacíos; se muestran candidatos por similitud de nombre. 'Grupo detectado' solo sirve para agrupar candidatos. El único valor que se guardará es el que tú escribas en 'Nombre social común final', junto con comuna, sector, zona y clasificación territorial/social si quieres completarlos.",
-                  "This page does not search for blanks; it shows candidates based on name similarity. 'Detected group' is only a grouping label. The only value that will be saved is the one you type into 'Final social community name', together with commune, sector, zone, and territorial/social classification if you want to complete them."
+                  "Aquí no se crean clientes ni empresas. Solo se revisan candidatos legacy por similitud de nombre. 'Grupo detectado' solo sirve para agrupar candidatos. El flujo normal es crear o mantener el catálogo en 'Grupos sociales' y luego seleccionarlo directamente en cada cliente.",
+                  "This page does not create clients or companies. It only reviews legacy candidates by name similarity. 'Detected group' is only a grouping label. The normal flow is to maintain the catalog in 'Social groups' and then select it directly for each client."
                 )
               }
             />
@@ -711,6 +711,13 @@ export function BusinessCoreCommonOrganizationNamePage() {
               onClick={() => void loadData()}
             >
               {t("Recargar", "Reload")}
+            </button>
+            <button
+              className="btn btn-outline-primary"
+              type="button"
+              onClick={() => navigate("/tenant-portal/business-core/social-community-groups")}
+            >
+              {t("Ir a grupos sociales", "Open social groups")}
             </button>
             <button
               className="btn btn-outline-dark"
@@ -740,16 +747,16 @@ export function BusinessCoreCommonOrganizationNamePage() {
       ) : null}
 
       <PanelCard
-        title={t("Candidatos por similitud", "Similarity candidates")}
+        title={t("Sugerencias por similitud", "Similarity suggestions")}
         subtitle={t(
-          "Solo se muestran grupos de clientes con empresas base de nombre parecido. Tú eliges a cuáles asignarles el grupo social común que escribes arriba; cuando todos los candidatos relevantes quedan apuntando al mismo social_community_group, desaparecen de esta vista.",
-          "Only client groups with similar base-company names are shown. You choose which ones receive the shared social community group you type above; once all relevant candidates point to the same social_community_group, they disappear from this view."
+          "Aquí solo aparecen candidatos legacy con empresas base de nombre parecido. Cuando ya exista el grupo correcto en el catálogo, puedes asignarlo desde aquí o directamente desde la ficha del cliente.",
+          "Only legacy candidates with similar base-company names appear here. Once the correct group exists in the catalog, you can assign it here or directly from the client record."
         )}
       >
         <div className="business-core-manual-merge">
           <div className="business-core-manual-merge__summary">
             <span>
-              {candidateGroupCount} {t("grupos sugeridos", "suggested groups")}
+              {candidateGroupCount} {t("grupos detectados", "detected groups")}
             </span>
             <span>
               {selectedRows.length} {t("seleccionados", "selected")}
@@ -835,8 +842,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
           </div>
           <div className="business-core-manual-merge__note">
             {t(
-              "Se creará o reutilizará un registro en social_community_groups con el nombre y los datos territoriales/sociales que escribas arriba. Luego los clientes seleccionados quedarán apuntando a ese grupo. No modifica empresa base, nombre cliente, contactos, direcciones ni mantenciones.",
-              "A record in social_community_groups will be created or reused with the name and territorial/social data you type above. Then the selected clients will point to that group. It does not modify the base company, client name, contacts, addresses, or maintenance records."
+              "Si el grupo ya existe en el catálogo, se reutilizará. Si no existe, se creará con el nombre y los datos territoriales/sociales que escribas arriba. Luego los clientes seleccionados quedarán apuntando a ese grupo. No modifica empresa base, nombre cliente, contactos, direcciones ni mantenciones.",
+              "If the group already exists in the catalog, it will be reused. Otherwise, it will be created with the name and territorial/social data you type above. Then the selected clients will point to that group. It does not modify the base company, client name, contacts, addresses, or maintenance records."
             )}
           </div>
           <div className="business-core-card__actions">
@@ -864,12 +871,12 @@ export function BusinessCoreCommonOrganizationNamePage() {
 
       <DataTableCard
         title={t(
-          "Clientes candidatos a organización común",
-          "Clients with a common organization candidate"
+          "Clientes legacy con sugerencia de grupo social",
+          "Legacy clients with a social group suggestion"
         )}
         subtitle={t(
-          "Busca por cliente, empresa base, contacto o dirección. 'Grupo detectado' solo agrupa candidatos; el grupo social que se guardará es el que escribas arriba.",
-          "Search by client, base company, contact, or address. 'Detected group' only groups candidates; the social group that will be saved is the one you type above."
+          "Busca por cliente, empresa base, contacto o dirección. 'Grupo detectado' solo agrupa candidatos legacy; el grupo social que se guardará es el del catálogo que escribas o reutilices arriba.",
+          "Search by client, base company, contact, or address. 'Detected group' only groups legacy candidates; the social group that will be saved is the catalog record you type or reuse above."
         )}
         rows={filteredRows}
         actions={

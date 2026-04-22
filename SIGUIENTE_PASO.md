@@ -4,7 +4,9 @@
 
 - memoria viva y documentación ya rearmonizadas al estado real actual:
   - `business-core` ya documenta `Duplicados` con su naming vigente
-  - `Nombre común` ya queda descrito como asignación manual segura de `social_community_groups`
+  - `Grupos sociales` ya queda descrito como flujo principal del catálogo social y CRUD visible principal
+  - `Clientes` ya deja asignar `Grupo social común` desde `Nuevo cliente` y `Editar cliente`
+  - `Sugerencias` ya queda descrita como asignación auxiliar segura de `social_community_groups`
   - `maintenance` ya deja explícita la separación correcta:
     - `Cliente` -> `organization.name`
     - `Organización / Razón social` -> `organization.legal_name`
@@ -44,7 +46,7 @@
   - cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual ya corregido
   - corte recomendado:
     - profundizar una tercera ola visible de `organization addresses`, ya no solo en tabla resumida sino en lectura/edición más rica por organización
-    - reforzar `Organizations` y `Clients` con filtros o detalle por grupo social común para que la nueva entidad quede operativamente estable sin abrir consolidación profunda nueva
+    - reforzar `Organizations`, `Clients` y `Grupos sociales` con filtros o detalle por grupo social común para que la nueva entidad quede operativamente estable sin abrir consolidación profunda nueva
     - cerrar el uso residual de copy/layout ambiguo entre empresa base, razón social legal y grupo social común
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:

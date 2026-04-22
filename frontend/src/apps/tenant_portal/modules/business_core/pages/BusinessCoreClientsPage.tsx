@@ -72,6 +72,7 @@ type ClientModalState = {
 type ClientModalForm = {
   organizationName: string;
   legalName: string;
+  socialCommunityGroupId: string;
   taxId: string;
   phone: string;
   email: string;
@@ -125,6 +126,7 @@ function buildDefaultModalForm(): ClientModalForm {
   return {
     organizationName: "",
     legalName: "",
+    socialCommunityGroupId: "",
     taxId: "",
     phone: "",
     email: "",
@@ -588,6 +590,7 @@ export function BusinessCoreClientsPage() {
     setModalForm({
       organizationName: row.organization?.name ?? "",
       legalName: row.organization?.legal_name ?? "",
+      socialCommunityGroupId: row.client.social_community_group_id ? String(row.client.social_community_group_id) : "",
       taxId: row.organization?.tax_id ?? "",
       phone: row.organization?.phone ?? "",
       email: row.organization?.email ?? "",
@@ -768,10 +771,9 @@ export function BusinessCoreClientsPage() {
 
       const clientPayload: TenantBusinessClientWriteRequest = {
         organization_id: organization.id,
-        social_community_group_id:
-          modalState.mode === "edit" && modalState.clientId
-            ? clientRowById.get(modalState.clientId)?.client.social_community_group_id ?? null
-            : null,
+        social_community_group_id: modalForm.socialCommunityGroupId
+          ? Number(modalForm.socialCommunityGroupId)
+          : null,
         client_code: null,
         service_status: modalForm.serviceStatus,
         commercial_notes: normalizeNullable(modalForm.commercialNotes),
@@ -967,9 +969,16 @@ export function BusinessCoreClientsPage() {
             <button
               className="btn btn-outline-primary"
               type="button"
+              onClick={() => navigate("/tenant-portal/business-core/social-community-groups")}
+            >
+              {t("Grupos sociales", "Social groups")}
+            </button>
+            <button
+              className="btn btn-outline-dark"
+              type="button"
               onClick={() => navigate("/tenant-portal/business-core/common-organization-name")}
             >
-              {t("Nombre común", "Common name")}
+              {t("Sugerencias", "Suggestions")}
             </button>
             <button className="btn btn-primary" type="button" onClick={openCreateModal}>
               {t("Nuevo cliente", "New client")}
@@ -1095,8 +1104,8 @@ export function BusinessCoreClientsPage() {
                             "only this client currently uses this social group"
                           )
                       : t(
-                          "usa Nombre común cuando varios clientes pertenezcan a la misma organización social",
-                          "use Common name when several clients belong to the same social organization"
+                          "usa Grupos sociales para asignarlo directamente, o Sugerencias si necesitas limpiar clientes legacy por similitud",
+                          "use Social groups to assign it directly, or Suggestions if you need to clean legacy clients by similarity"
                         )}
                   </div>
                   {commonName && row.organization?.name && commonName !== row.organization.name ? (
@@ -1358,6 +1367,44 @@ export function BusinessCoreClientsPage() {
                         }))
                       }
                     />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">
+                      {t("Grupo social común", "Shared social group")}
+                    </label>
+                    <select
+                      className="form-select"
+                      value={modalForm.socialCommunityGroupId}
+                      onChange={(event) =>
+                        setModalForm((current) => ({
+                          ...current,
+                          socialCommunityGroupId: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">
+                        {t("Sin grupo social asignado", "No social group assigned")}
+                      </option>
+                      {socialCommunityGroups
+                        .filter(
+                          (group) =>
+                            group.is_active || String(group.id) === modalForm.socialCommunityGroupId
+                        )
+                        .sort((left, right) => left.name.localeCompare(right.name))
+                        .map((group) => (
+                          <option key={group.id} value={String(group.id)}>
+                            {group.name}
+                            {group.commune ? ` · ${group.commune}` : ""}
+                            {!group.is_active ? ` · ${t("inactivo", "inactive")}` : ""}
+                          </option>
+                        ))}
+                    </select>
+                    <div className="business-core-cell__meta mt-1">
+                      {t(
+                        "Crea o corrige grupos sociales en el catálogo 'Grupos sociales'. Usa 'Sugerencias' solo para limpiar clientes legacy por similitud.",
+                        "Create or edit social groups in the 'Social groups' catalog. Use 'Suggestions' only to clean up legacy clients by similarity."
+                      )}
+                    </div>
                   </div>
                   <div className="col-12 col-md-6">
                     <label className="form-label">RUT / Tax ID</label>

@@ -145,7 +145,12 @@ Completado recientemente:
 - corrección estructural del dominio social común:
   - `social_community_groups` ya existe como tabla propia
   - `business_clients` ya suma `social_community_group_id`
-  - `BusinessCoreCommonOrganizationNamePage` ya deja marcar varios clientes candidatos y fijar un `Nombre social común final`
+  - `BusinessCoreSocialCommunityGroupsPage` ya deja CRUD visible del catálogo de grupos sociales
+  - `BusinessCoreClientsPage` ya deja seleccionar directamente el grupo social al crear o editar clientes
+  - `BusinessCoreModuleNav` ya deja explícito ese cambio de UX:
+    - `Grupos sociales` = flujo principal
+    - `Sugerencias` = apoyo legacy por similitud
+  - `BusinessCoreCommonOrganizationNamePage` queda como apoyo legacy por similitud y ya deja marcar varios clientes candidatos y fijar un `Nombre social común final`
   - la vista ya detecta grupos por similitud real de organización
   - el flujo crea o reutiliza `social_community_groups`
   - no mueve `direcciones`, `mantenciones` ni `contactos`
@@ -186,7 +191,7 @@ Completado recientemente:
 - cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual recién corregido
 - siguiente corte recomendado:
   - profundizar la siguiente ola visible de `organization addresses` dentro de `business-core`, ya no solo como tabla resumida sino como lectura/edición más rica por organización
-  - reforzar `Organizations` y `Clients` con filtros o detalle por grupo social común para que la nueva entidad quede operativamente estable sin volver a abrir consolidación profunda nueva
+  - reforzar `Organizations`, `Clients` y `Grupos sociales` con filtros o detalle por grupo social común para que la nueva entidad quede operativamente estable sin volver a abrir consolidación profunda nueva
   - o abrir el siguiente frente formal del roadmap maestro si `business-core` ya quedó suficientemente estable
 - `iot` no necesita abrirse todavía; solo debe seguir reutilizando `sites` y `assets` cuando se implemente
 - endurecer el importador inicial desde `ieris_app`
