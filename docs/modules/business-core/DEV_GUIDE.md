@@ -62,9 +62,9 @@ Estado de este segundo bloque:
   - contacto principal listo
   - cantidad de clientes ligados a esa organización
 - `BusinessCoreClientsPage` ya puede derivar lectura operacional del grupo social común desde `business_clients.social_community_group_id`:
-  - cantidad de clientes ya homologados
+  - cantidad de clientes con grupo social definido
   - grupos visibles de tamaño > 1
-  - pendientes por homologar
+  - pendientes por asignar
   - columna operativa por fila con nombre común y tamaño de grupo
 - `BusinessCoreClientsPage` ya no debe asumir unificación de fichas para la homologación operativa de organizaciones:
   - la lectura principal de cartera queda limpia

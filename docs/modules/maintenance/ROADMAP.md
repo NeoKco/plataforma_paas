@@ -109,7 +109,8 @@ Alcance:
 - la `Ficha de mantención` ya reúne contexto operativo, snapshots más ricos por cliente/instalación/responsables, fechas clave, cierre técnico, `status_logs` y `visits`
 - `Resumen`, `Pendientes`, `Mantenciones`, `Agenda`, `Instalaciones`, `Historial` y `Reportes` ya separan correctamente:
   - cliente individual/base (`name`)
-  - organización común homologada (`legal_name`)
+  - razón social / nombre legal de la contraparte (`legal_name`)
+  - grupo social común (`social_community_groups.name`) cuando la pantalla realmente trabaja con la agrupación social compartida
 - `Mantenciones` ya expone `Plantillas` como slice visible para crear, editar y archivar plantillas de costeo sin depender de `Pendientes` o de una OT puntual
 - `Mantenciones`, `Historial` y la ficha ya leen `Tipo de tarea` desde `maintenance_schedules.task_type_id` y `Perfil funcional` desde membresías reales de `business_work_groups`
 - `Mantenciones` y `Visitas` ya validan que técnico y grupo correspondan a una membresía activa y vigente antes de guardar
@@ -181,7 +182,7 @@ Avance actual:
   - trazabilidad de visitas ejecutadas
   - cobertura de flujo preventivo
   - instalaciones activas sin servicio reciente ni OT abierta
-- `Reportes` ya suma además un listado histórico de mantenciones realizadas filtrable por `Organización / razón social` con `cliente`, `contacto principal`, `dirección`, `instalación` y `fecha realizada`
+- `Reportes` ya suma además un listado histórico de mantenciones realizadas filtrable por `Grupo social común`, manteniendo a la vista también `cliente`, `contacto principal`, `dirección`, `instalación` y `fecha realizada`
 - la `Ficha de mantención`, `Mantenciones` e `Historial` ya dejan visible el `Contacto principal` del cliente sin bajar a `business-core`
 - `Checklist y evidencias` ya agrega un primer slice móvil de captura en terreno:
   - atajos rápidos para saltar entre cierre, checklist y evidencias dentro de la modal

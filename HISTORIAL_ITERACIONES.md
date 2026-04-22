@@ -23,6 +23,7 @@
   - `cd frontend && npm run build` -> `OK`
 - resultado:
   - el proyecto deja de depender de `legal_name` como parche semántico para organización social común
+  - el modelo ya quedó promovido después en `staging` y `production` con `4/4` tenants sincronizados en `v0039_social_community_groups`
 
 ## 2026-04-22 - segunda ola visible de `organization addresses` y lectura operacional por organización
 
@@ -117,8 +118,9 @@
     - `backend.app.tests.test_migration_flow` + `test_tenant_data_portability_service` + `test_business_core_catalog_routes` -> `61 tests OK`
     - `cd frontend && npm run build` -> `OK`
   - runtime:
-    - `staging`: deploy backend `528 tests OK`
-    - `production`: deploy backend `528 tests OK`
+    - `staging`: deploy backend `529 tests OK`, `processed=4, synced=4, failed=0`
+    - `production`: primer intento detecta fallo tenant-local de convergencia en `empresa-bootstrap`
+    - `production`: migración endurecida y redeploy final `529 tests OK`, `processed=4, synced=4, failed=0`
     - `staging` y `production`: publish frontend + `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
 - resultado:
   - la separación semántica entre contraparte base y grupo social común ya queda activa en runtime
@@ -173,7 +175,7 @@
     - elimina reasignación de `direcciones`, `mantenciones` y `contactos`
     - elimina borrado / desactivación de clientes y organizaciones origen
     - deja el bloque como `Nombre común de organización`
-    - actualiza solo `legal_name` para los clientes marcados
+    - en ese corte previo actualizaba solo `legal_name` para los clientes marcados
   - runtime `production`:
     - se inspeccionó el grupo `Los Arbolitos`
     - se detectó una sola ficha claramente dañada con `name = legal_name`
@@ -209,7 +211,7 @@
     - en su primer corte mostró solo clientes sin `Organización / Razón social`
     - dentro del mismo frente quedó corregida para detectar candidatos por similitud real de organización
     - permite selección múltiple y captura de `Nombre común final`
-    - el comportamiento vigente aplica el mismo valor de `Organización / Razón social` a los clientes marcados
+    - ese comportamiento fue luego supersedido por el modelo final `social_community_groups`
   - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
     - elimina el recuadro operativo del listado principal
     - deja un acceso liviano hacia la vista nueva
@@ -268,7 +270,7 @@
 - resultado:
   - este experimento quedó revertido el `2026-04-22`
   - no corresponde al comportamiento vigente
-  - fue reemplazado por el slice seguro `Nombre común`, que solo actualiza `legal_name`
+  - fue reemplazado primero por un slice seguro intermedio sobre `legal_name` y luego por el modelo final `social_community_groups`, que solo asigna `business_clients.social_community_group_id`
 - siguiente paso:
   - mover la operación fuera de `Clientes` y acotarla a homologación segura sin mover ni borrar datos
 
@@ -276,7 +278,7 @@
 
 - objetivo:
   - dejar el dato de contacto del cliente accesible sin salir de `Mantenciones` ni `Historial`
-  - agregar en `Reportes` un listado histórico de trabajo realmente realizado, filtrable por `Organización / razón social`
+  - agregar en `Reportes` un listado histórico de trabajo realmente realizado; en su primera versión se filtró por `Organización / razón social` y luego ese criterio quedó supersedido por `Grupo social común`
 - cambios y acciones ejecutadas:
   - [frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceWorkOrderDetailModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceWorkOrderDetailModal.tsx):
     - agrega `Contacto principal` dentro de la ficha operativa e histórica
@@ -286,6 +288,8 @@
     - deja visible `Contacto principal` en la tabla de mantenciones abiertas
   - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx):
     - carga `business-core.contacts`
+  - nota posterior:
+    - este corte quedó supersedido en `2026-04-22` por la lectura final de `Grupo social común` desde `social_community_groups`; se mantiene aquí solo como trazabilidad de la primera versión del reporte
     - deja visible `Contacto principal` en tabla, cards y ficha histórica
   - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx):
     - agrega filtro `Organización / razón social`
@@ -3124,7 +3128,7 @@
   - las programaciones creadas sin mantención cerrada en 2026 fueron removidas con cleanup explícito
   - la regla vigente ya no debe leerse desde esta entrada histórica, sino desde la corrección posterior
 
-# 2026-04-22 - Homologación por similitud en Nombre común
+# 2026-04-22 - Homologación por similitud en Nombre común (corte intermedio luego supersedido)
 
 - objetivo:
   - corregir la vista `business-core > Nombre común` para que no dependa de `Organización / Razón social` vacío y muestre candidatos reales de homologación
@@ -3140,13 +3144,13 @@
     - nombre muy parecido por prefijo
     - mismos primeros términos significativos
   - la vista ahora muestra:
-    - `Grupo sugerido`
+    - `Grupo detectado`
     - `Señal`
-    - `Organización actual`
+    - `Empresa base actual`
   - el flujo mantiene la regla segura:
-    - solo actualiza `Organización / Razón social`
+    - en ese corte intermedio solo actualizaba `legal_name`
     - no toca `Nombre cliente`, contactos, direcciones ni mantenciones
-  - cuando todas las filas del grupo comparten el mismo `Organización / Razón social`, el grupo deja de aparecer
+  - cuando todas las filas del grupo compartían el mismo valor objetivo, el grupo dejaba de aparecer
 - validaciones:
   - `npm run build`: `OK`
   - publish frontend `staging`: `OK`
@@ -3161,6 +3165,9 @@
   - `backend.app.tests.test_business_core_validation_rules`: `13 tests OK`
   - backend deploy `staging`: `528 tests OK`
   - backend deploy `production`: `528 tests OK`
+- estado final del frente:
+  - este corte quedó supersedido el mismo `2026-04-22` por la introducción de `social_community_groups`
+  - la detección por similitud se mantiene, pero ya no escribe `legal_name`; ahora crea o reutiliza un grupo social común y asigna `business_clients.social_community_group_id`
 
 # 2026-04-15 - Default task_type en OT abiertas
 

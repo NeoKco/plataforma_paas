@@ -134,10 +134,10 @@ Completado recientemente:
     - presencia de nombre común visible
     - cantidad de clientes ligados a esa organización
 - `BusinessCoreClientsPage` ya complementa la cartera con lectura operacional del grupo social común:
-  - ahora resume arriba cuántos clientes ya tienen organización común definida
-  - muestra cuántos grupos comunes ya son visibles
-  - deja cuantificados los pendientes por homologar
-  - la tabla ya agrega una columna `Organización común` con nombre común, tamaño de grupo y referencia al nombre base cuando difiere
+  - ahora resume arriba cuántos clientes ya tienen grupo social definido
+  - muestra cuántos grupos sociales ya son visibles
+  - deja cuantificados los pendientes por asignar
+  - la tabla ya agrega una columna `Grupo social común` con nombre común, tamaño de grupo y referencia a la empresa base cuando difiere
 - validación runtime del corte:
   - `staging` publicado con `BusinessCoreOrganizationsPage-VnU7qZVb.js`, `BusinessCoreClientsPage-BQOgiFnx.js` e `index-CZrao2nk.js`
   - `production` publicado con `BusinessCoreOrganizationsPage-C7Fmz1ra.js`, `BusinessCoreClientsPage-CLjBUz_w.js` e `index-CCZS1hZ6.js`
@@ -150,6 +150,9 @@ Completado recientemente:
   - el flujo crea o reutiliza `social_community_groups`
   - no mueve `direcciones`, `mantenciones` ni `contactos`
   - no elige ficha destino ni borra/desactiva organizaciones
+  - el modelo ya quedó promovido y convergido en runtime:
+    - `staging` 4/4 tenants sincronizados en `v0039_social_community_groups`
+    - `production` 4/4 tenants sincronizados en `v0039_social_community_groups`
 - ajuste de integración consumidora ya cerrado:
   - `maintenance` ya volvió a separar correctamente `Cliente` y `Organización / Razón social`
   - la regla vigente es:

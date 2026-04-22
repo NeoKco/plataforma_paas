@@ -29,10 +29,10 @@
     - contacto principal listo
     - clientes ya ligados
   - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ahora cuantifica:
-    - organizaciones comunes definidas
+    - grupos sociales definidos
     - grupos ya visibles
-    - pendientes por homologar
-    - y lo refleja también por fila en la columna `Organización común`
+    - pendientes por asignar
+    - y lo refleja también por fila en la columna `Grupo social común`
   - publicado en:
     - `staging` con `BusinessCoreOrganizationsPage-VnU7qZVb.js`, `BusinessCoreClientsPage-BQOgiFnx.js` e `index-CZrao2nk.js`
     - `production` con `BusinessCoreOrganizationsPage-C7Fmz1ra.js`, `BusinessCoreClientsPage-CLjBUz_w.js` e `index-CCZS1hZ6.js`
@@ -45,29 +45,29 @@
   - corte recomendado:
     - profundizar una tercera ola visible de `organization addresses`, ya no solo en tabla resumida sino en lectura/edición más rica por organización
     - reforzar `Organizations` y `Clients` con filtros o detalle por grupo social común para que la nueva entidad quede operativamente estable sin abrir consolidación profunda nueva
-    - cerrar el uso residual de `legal_name` como simple razón social/empresa legal en los puntos de lectura que todavía necesiten copy o layout más claro
+    - cerrar el uso residual de copy/layout ambiguo entre empresa base, razón social legal y grupo social común
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
-  - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la normalización de `Organización / Razón social`
+  - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la asignación del `Grupo social común`
   - el flujo nuevo deja:
     - página separada del listado principal de `Clientes`
     - selección múltiple de clientes candidatos
-    - captura de `Nombre común final`
-    - actualización exclusiva del campo `Organización / Razón social`
+    - captura de `Nombre social común final`
+    - actualización exclusiva de `business_clients.social_community_group_id`
     - preservación completa de `Nombre cliente`, contactos, direcciones y mantenciones
-    - salida automática de la lista una vez que el grupo ya queda homologado
+    - salida automática de la lista una vez que el grupo ya queda asignado al mismo `social_community_group`
   - decisión operativa del corte:
     - no se agregan aliases visibles ni un catálogo extra de nombres anteriores
     - `Clientes` vuelve a quedar como lectura limpia y el backlog operativo se trabaja aparte
   - corrección adicional ya cerrada:
-    - la vista deja de depender de `Organización / Razón social` vacío
+    - la vista deja de depender de vacíos en `Organización / Razón social`
     - ahora detecta candidatos por similitud real de organización usando:
       - `RUT / Tax ID`
       - nombre visible exacto
       - nombre muy parecido por prefijo
       - primeros términos significativos iguales
     - el copy de la página ya quedó alineado a esa lógica para no sugerir falsamente que busca solo vacíos
-    - además, el backend ya permite homologar `Organización / Razón social` sin rebotar por duplicados históricos del `name` interno cuando ese `name` no cambió
+    - el modelo final ya no depende de homologar `legal_name`; crea o reutiliza `social_community_groups`
   - publicado en:
     - `staging` con `BusinessCoreClientsPage-CTwvH0eT.js`, `BusinessCoreCommonOrganizationNamePage-KEoW3auo.js` e `index-CB8FoUVQ.js`
     - `production` con `BusinessCoreClientsPage-CkbQtwBC.js`, `BusinessCoreCommonOrganizationNamePage-xHgOr5i7.js` e `index-bJiWdsRO.js`
@@ -75,7 +75,7 @@
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
     - `backend.app.tests.test_business_core_validation_rules` -> `13 tests OK`
-    - backend deploy `staging` y `production` -> `528 tests OK`
+    - backend deploy final del modelo `social_community_groups` en `staging` y `production` -> `529 tests OK`
   - corrección de datos asociada:
     - `production` restauró `client_id=192 / organization_id=216` a `name=Cecilia Tabales`
     - `legal_name` queda en `Los Arbolitos`
@@ -83,9 +83,10 @@
 
 - subcorte nuevo ya cerrado en runtime dentro de `maintenance`:
   - `Mantenciones` e `Historial` ya dejan visible `Contacto principal` tanto en la lectura exterior como en `Ver ficha`
-  - `Reportes` ya agrega un listado histórico de mantenciones realizadas filtrable por `Organización / razón social`
+  - `Reportes` ya agrega un listado histórico de mantenciones realizadas filtrable por `Grupo social común`
   - el listado nuevo muestra:
     - cliente
+    - grupo social común
     - contacto principal
     - dirección
     - instalación

@@ -9,6 +9,7 @@
     - crea la nueva tabla
     - agrega `business_clients.social_community_group_id`
     - backfillea grupos desde homologaciones legacy guardadas en `organization.legal_name`
+    - quedó endurecida para convergencia runtime idempotente por tenant después del caso `empresa-bootstrap` en `production`
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya no actualiza `organization.legal_name`; ahora crea o reutiliza `social_community_groups` y asigna clientes a ese grupo
   - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya mide y muestra el grupo social común desde `social_community_group_id`
   - [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx) ya filtra y reporta por `Grupo social común` en vez de usar `legal_name` como parche semántico
@@ -19,6 +20,12 @@
   - validación:
     - `backend.app.tests.test_migration_flow` + `test_tenant_data_portability_service` + `test_business_core_catalog_routes` -> `61 tests OK`
     - `cd frontend && npm run build` -> `OK`
+  - promoción runtime cerrada:
+    - `staging` backend redeploy -> `529 tests OK`, convergencia tenant `processed=4, synced=4, failed=0`
+    - `production` backend redeploy -> `529 tests OK`, convergencia tenant `processed=4, synced=4, failed=0`
+    - `staging` frontend publicado con `BusinessCoreCommonOrganizationNamePage-C387uQ8C.js`, `BusinessCoreClientsPage-DnO3zTs9.js`, `BusinessCoreOrganizationsPage-WOodety6.js`, `MaintenanceReportsPage-CCT1wmKC.js`, `index-CnaRPzxb.js`
+    - `production` frontend publicado con `BusinessCoreCommonOrganizationNamePage-DRP20mOE.js`, `BusinessCoreClientsPage-BxlXEHIc.js`, `BusinessCoreOrganizationsPage-C_uKzOOH.js`, `MaintenanceReportsPage-Bf4Kn3T3.js`, `index-BYBhhsXu.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - `Organizations` y `Clients` cierran la segunda ola visible de `organization addresses` y lectura operacional por organización:
   - [BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx) ahora carga también `clients` para sintetizar señal operacional real sin endpoint nuevo
@@ -28,10 +35,10 @@
     - `Clientes ya ligados`
   - la tabla suma `Lectura operativa` para distinguir rápido si la organización ya tiene dirección propia, nombre común visible y cuántos clientes siguen ligados
   - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ahora resume:
-    - clientes con organización común definida
-    - grupos ya visibles
-    - pendientes por homologar
-  - `Clients` agrega también la columna `Organización común`, mostrando nombre común, tamaño del grupo y referencia al nombre base cuando difiere
+    - clientes con grupo social definido
+    - grupos sociales ya visibles
+    - pendientes por asignar
+  - `Clients` agrega también la columna `Grupo social común`, mostrando nombre común, tamaño del grupo y referencia a la empresa base cuando difiere
   - [business-core.css](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css) suma la clase `business-core-summary-metric` para esa franja resumida
   - validación:
     - `npm run build` -> `OK`
@@ -39,7 +46,10 @@
     - `production` publicado con `BusinessCoreOrganizationsPage-C7Fmz1ra.js`, `BusinessCoreClientsPage-CLjBUz_w.js` e `index-CCZS1hZ6.js`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
-- `Nombre común de organización` corrige el bloqueo por duplicados históricos del `name` interno:
+- corte intermedio supersedido dentro del mismo frente:
+  - antes de crear `social_community_groups`, `Nombre común` intentó homologar sobre `organization.legal_name`
+  - ese comportamiento ya no es el vigente
+  - el hotfix siguiente se conserva solo como trazabilidad técnica del problema detectado en ese corte
   - [organization_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/services/organization_service.py) ya no rechaza una actualización cuando solo cambia `legal_name` y el `name` interno no cambió
   - esto permite homologar grupos como `Cerrillos` / `cerrillos` sin reabrir el conflicto del nombre base histórico
   - la regla nueva mantiene la protección de unicidad cuando sí se intenta cambiar `name` o `tax_id`
@@ -49,19 +59,22 @@
     - `staging` backend deploy -> `528 tests OK`
     - `production` backend deploy -> `528 tests OK`
 
-- `Nombre común de organización` deja de depender de `Organización / Razón social` vacío y pasa a detectar candidatos por similitud:
+- corte intermedio supersedido dentro del mismo frente:
+  - la detección por similitud ya no alimenta una actualización directa de `organization.legal_name`
+  - ahora alimenta la asignación de `social_community_group_id`
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ahora arma grupos candidatos cuando las organizaciones comparten:
     - `RUT / Tax ID`
     - nombre visible exacto
     - nombre muy parecido por prefijo
     - mismos primeros términos significativos
   - la vista ya no se presenta como backlog de vacíos sino como homologación manual de nombres parecidos
-  - cada fila muestra `Grupo sugerido`, `Señal` y `Organización actual`
+  - cada fila muestra `Grupo detectado`, `Señal` y `Empresa base actual`
   - el flujo sigue siendo seguro:
-    - solo actualiza `Organización / Razón social`
+    - crea o reutiliza `social_community_groups`
+    - solo actualiza `business_clients.social_community_group_id`
     - no toca `Nombre cliente`
     - no toca contactos, direcciones ni mantenciones
-  - cuando todas las organizaciones del grupo comparten el mismo `Organización / Razón social`, el grupo deja de aparecer
+  - cuando todos los clientes del grupo comparten el mismo `Grupo social común`, el grupo deja de aparecer
   - validación:
     - `npm run build` -> `OK`
     - `staging` publicado con `BusinessCoreCommonOrganizationNamePage-KEoW3auo.js`, `BusinessCoreClientsPage-CTwvH0eT.js` e `index-CB8FoUVQ.js`
@@ -88,8 +101,9 @@
   - el flujo manual ya no vive en `Clientes`; queda movido a la vista dedicada `Nombre común`
   - el flujo manual ahora solo:
     - permite marcar uno o más clientes
-    - exige capturar el `Nombre común final`
-    - actualiza únicamente el campo `Organización / Razón social`
+    - exige capturar el `Nombre social común final`
+    - crea o reutiliza un `social_community_group`
+    - actualiza únicamente `business_clients.social_community_group_id`
   - ya no:
     - elige ficha destino
     - mueve `Direcciones`
@@ -128,7 +142,7 @@
   - estado final:
     - este slice quedó revertido el `2026-04-22`
     - ya no corresponde al comportamiento vigente
-    - fue reemplazado por la vista dedicada `Nombre común`, que solo actualiza `legal_name` y no mueve ni borra datos
+    - fue reemplazado por la vista dedicada `Nombre común`, que solo asigna `social_community_group_id` y no mueve ni borra datos
   - validación:
     - `npm run build` -> `OK`
     - `staging` publicado con `BusinessCoreClientsPage-D968XWa4.js` e `index-BzS8fn17.js`

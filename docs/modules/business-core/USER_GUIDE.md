@@ -39,9 +39,9 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
   - si el contacto principal ya quedó listo
   - cuántos clientes siguen ligados a esa misma organización
 - `Clientes` ya puede mostrar una lectura operacional del grupo social común:
-  - cuántos clientes ya tienen organización común definida
-  - cuántos grupos comunes ya son visibles
-  - cuántos pendientes quedan por homologar
+  - cuántos clientes ya tienen grupo social definido
+  - cuántos grupos sociales ya son visibles
+  - cuántos pendientes quedan por asignar
   - en cada fila, la columna `Grupo social común` resume nombre común y tamaño del grupo
 - una misma identidad base puede existir como `organization`, pero la vista `Empresas` no debe usarse para revisar la cartera comercial completa.
 - por defecto, la pantalla `Empresas` excluye las organizaciones ya usadas como clientes para evitar mezclar ambas lecturas.

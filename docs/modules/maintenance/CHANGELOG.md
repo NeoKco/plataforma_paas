@@ -2,6 +2,14 @@
 
 ## 2026-04-22
 
+- `Reportes` ya consume el modelo final de grupo social común:
+  - [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx) ya filtra y lista por `Grupo social común`
+  - la lectura sale de `social_community_groups.name`, no de `organization.legal_name`
+  - el corte quedó republicado en `staging` y `production` dentro del rollout del modelo `social_community_groups`
+  - bundles runtime más recientes:
+    - `staging`: `MaintenanceReportsPage-CCT1wmKC.js`
+    - `production`: `MaintenanceReportsPage-Bf4Kn3T3.js`
+
 - corrección de regresión visual en `maintenance`: `Cliente` vuelve a leer el nombre individual/base y deja el nombre común solo en campos de organización:
   - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx)
   - [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx)
@@ -11,9 +19,9 @@
   - [MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx)
   - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx)
 - criterio correcto final:
-- `Cliente` usa `organization.name`
-- `Organización / Razón social` usa `organization.legal_name`
-- `Grupo social común` pasa a usar `social_community_groups.name` cuando la pantalla realmente habla de la agrupación social compartida
+  - `Cliente` usa `organization.name`
+  - `Organización / Razón social` usa `organization.legal_name`
+  - `Grupo social común` usa `social_community_groups.name` cuando la pantalla realmente habla de la agrupación social compartida
   - solo si falta uno, se cae al otro como fallback
 - `Reportes` mantiene la columna de organización común y vuelve a dejar la columna `Cliente` con el nombre individual/base
 - `Pendientes` vuelve a separar correctamente:
@@ -31,7 +39,7 @@
   - la [MaintenanceWorkOrderDetailModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceWorkOrderDetailModal.tsx) muestra nombre y detalle operativo del contacto principal
   - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx) agrega esa lectura también en la tabla de mantenciones abiertas
   - [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx) la deja visible en tabla, cards y ficha histórica
-- `Reportes` agrega un nuevo listado histórico de mantenciones realizadas filtrable por `Organización / razón social` en [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx)
+- `Reportes` agrega en su primera versión un nuevo listado histórico de mantenciones realizadas en [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx)
   - muestra:
     - organización / razón social
     - cliente
@@ -40,6 +48,7 @@
     - instalación
     - fecha realizada
   - el corte se deja deliberadamente sobre mantenciones `completed` para no mezclar trabajo ejecutado con anulaciones
+  - este corte quedó luego supersedido en `2026-04-22` por la lectura final de `Grupo social común` desde `social_community_groups`
 - validación:
   - `cd frontend && npm run build` -> `OK`
   - frontend publicado en `staging` y `production`
