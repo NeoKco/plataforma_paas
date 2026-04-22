@@ -227,10 +227,7 @@ export function MaintenanceReportsPage() {
   function getOrganizationOptionLabel(organization: TenantBusinessOrganization | null | undefined) {
     const commercialName = stripLegacyVisibleText(organization?.name);
     const legalName = stripLegacyVisibleText(organization?.legal_name);
-    if (commercialName && legalName && commercialName !== legalName) {
-      return `${commercialName} · ${legalName}`;
-    }
-    return commercialName || legalName || (language === "es" ? "Organización sin nombre" : "Unnamed organization");
+    return legalName || commercialName || (language === "es" ? "Organización sin nombre" : "Unnamed organization");
   }
 
   function getOrganizationLegalLabel(clientId: number) {
@@ -244,8 +241,8 @@ export function MaintenanceReportsPage() {
 
   function getClientLabel(clientId: number) {
     return (
-      stripLegacyVisibleText(getOrganization(clientId)?.name) ||
       stripLegacyVisibleText(getOrganization(clientId)?.legal_name) ||
+      stripLegacyVisibleText(getOrganization(clientId)?.name) ||
       (language === "es" ? "Cliente sin nombre" : "Unnamed client")
     );
   }
