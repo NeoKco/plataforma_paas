@@ -171,6 +171,64 @@
   min-width: min(28rem, 100%);
 }
 
+.business-core-manual-merge {
+  display: grid;
+  gap: 1rem;
+}
+
+.business-core-manual-merge__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.business-core-manual-merge__summary span {
+  border: 1px solid var(--app-border, #cfd7e6);
+  border-radius: 999px;
+  color: var(--app-text, #183153);
+  font-size: 0.875rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.business-core-manual-merge__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 992px) {
+  .business-core-manual-merge__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.business-core-manual-merge__field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.business-core-manual-merge__field span {
+  color: var(--app-text, #183153);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.business-core-manual-merge__note {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.875rem;
+}
+
+.business-core-selection-toggle {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.business-core-selection-toggle span {
+  color: var(--app-text-muted, #6b7a90);
+  font-size: 0.8rem;
+}
+
 .business-core-form-modal {
   width: min(1380px, 96vw);
   max-width: none;

@@ -2,6 +2,28 @@
 
 ## 2026-04-21
 
+- `Clients` ahora suma una `Unificación manual de organización` sin depender de detección automática de nombres parecidos:
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ahora permite:
+    - marcar varios clientes conocidos como parte de la misma contraparte real
+    - elegir cuál ficha cliente queda viva
+    - definir el `Nombre común final` de la organización
+  - el flujo ejecuta una unificación real, no solo renombrado visual:
+    - reasigna `Direcciones`
+    - reasigna `Mantenciones` / `OT`
+    - mueve o consolida `Contactos`
+    - intenta borrar clientes/organizaciones origen cuando ya quedaron sin dependencias
+    - si no puede borrar alguna ficha origen, la deja desactivada como fallback seguro
+  - decisión operativa del slice:
+    - no se agregan aliases visibles ni nombres anteriores como dato funcional
+    - el objetivo es dejar una ficha final con un nombre común de organización
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreClientsPage-D968XWa4.js` e `index-BzS8fn17.js`
+    - `production` publicado con `BusinessCoreClientsPage-BowQNUbR.js` e `index-DDP514Rq.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - ya no hace falta entrar primero a `Duplicados` para unificar manualmente clientes que el operador conoce de antemano como parte de la misma organización real
+
 - `Duplicados` profundiza otra vez `installations`, ahora incorporando fechas técnicas y garantía:
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora deja ajustar y auditar también:
     - `Fecha instalación`

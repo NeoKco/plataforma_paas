@@ -123,6 +123,10 @@ Pendiente documentado:
 
 Completado recientemente:
 
+- unificación manual de organización por selección de clientes:
+  - `BusinessCoreClientsPage` ya deja marcar varios clientes, elegir la ficha destino y fijar un `Nombre común final`
+  - el flujo ya mueve `direcciones`, `mantenciones` y `contactos` hacia la ficha elegida
+  - el cleanup intenta borrar clientes/organizaciones origen y, si no puede, los desactiva como fallback seguro
 - `business_asset_types`: tabla, API, vista administrativa y migracion tenant
 - `business_assets`: tabla, API, vista administrativa y migracion tenant
 - `business_organization_addresses`: primera ola de direccion propia para empresas/proveedores

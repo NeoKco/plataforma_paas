@@ -1,5 +1,42 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-21 - `Clients` suma unificación manual de organización por selección de clientes
+
+- objetivo:
+  - permitir unificar organizaciones reales conocidas por el operador sin depender primero de detección automática en `Duplicados`
+  - dejar una sola ficha final con `Nombre común final`, sin aliases visibles ni renombrado superficial de varias organizaciones a la vez
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
+    - agrega selección múltiple directa en la tabla principal de `Clientes`
+    - agrega el bloque `Unificación manual de organización`
+    - permite elegir qué ficha cliente queda viva
+    - exige capturar `Nombre común final`
+    - reasigna `direcciones`, `mantenciones` y `contactos` a la ficha destino
+    - intenta borrar clientes/organizaciones origen después de vaciarlos; si algo todavía depende de ellos, cae a desactivación segura
+  - [frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css):
+    - agrega estilos del bloque operativo de unificación manual y del selector rápido por fila
+  - se deja trazabilidad formal del flujo en auditoría de merge:
+    - `entity_kind=organization`
+    - `flow=manual_client_selection_unification`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - build con `API_BASE_URL=http://192.168.7.42:8081`
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientsPage-D968XWa4.js`, `index-BzS8fn17.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - build con `API_BASE_URL=https://orkestia.ddns.net`
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientsPage-BowQNUbR.js`, `index-DDP514Rq.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - el operador ya puede unificar desde la cartera cliente varias fichas que sabe que pertenecen a la misma organización real
+  - el slice deja de depender de una detección automática o de seguir profundizando `Duplicados`
+- siguiente paso:
+  - si este flujo responde bien en operación, retomar el roadmap fuera de `Duplicados`
+
 ## 2026-04-21 - `maintenance` hace visible el contacto principal y agrega reporte histórico por organización
 
 - objetivo:

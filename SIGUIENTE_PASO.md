@@ -2,6 +2,24 @@
 
 ## Prioridad vigente
 
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Clients`:
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya permite `Unificación manual de organización`
+  - el flujo nuevo deja:
+    - selección múltiple de clientes en la tabla principal
+    - elección explícita de la ficha cliente que se conserva
+    - captura de `Nombre común final`
+    - reasignación de direcciones, mantenciones y contactos hacia la ficha destino
+    - intento de borrado de clientes/organizaciones origen; fallback a desactivación si no quedan completamente libres
+  - decisión operativa del corte:
+    - no se agregan aliases visibles ni un catálogo extra de nombres anteriores
+    - el objetivo es resolver la unificación real desde la cartera, no seguir profundizando `Duplicados`
+  - publicado en:
+    - `staging` con `BusinessCoreClientsPage-D968XWa4.js` e `index-BzS8fn17.js`
+    - `production` con `BusinessCoreClientsPage-BowQNUbR.js` e `index-DDP514Rq.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - subcorte nuevo ya cerrado en runtime dentro de `maintenance`:
   - `Mantenciones` e `Historial` ya dejan visible `Contacto principal` tanto en la lectura exterior como en `Ver ficha`
   - `Reportes` ya agrega un listado histórico de mantenciones realizadas filtrable por `Organización / razón social`
@@ -21,7 +39,7 @@
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
-- una vez promovido este slice de `maintenance`, el siguiente paso correcto ya no es seguir profundizando `Duplicados` por inercia:
+- una vez cerrado también este slice manual de unificación, el siguiente paso correcto ya no es seguir profundizando `Duplicados` por inercia:
   - conviene retomar el roadmap fuera de ese frente
   - el candidato natural vuelve a ser cierre de `business-core` fuera de `Duplicados` o el siguiente bloque formal del roadmap maestro
 
