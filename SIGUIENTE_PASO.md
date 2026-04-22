@@ -6,17 +6,25 @@
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la normalización de `Organización / Razón social`
   - el flujo nuevo deja:
     - página separada del listado principal de `Clientes`
-    - selección múltiple de clientes pendientes
+    - selección múltiple de clientes candidatos
     - captura de `Nombre común final`
     - actualización exclusiva del campo `Organización / Razón social`
     - preservación completa de `Nombre cliente`, contactos, direcciones y mantenciones
-    - salida automática de la lista una vez que el cliente ya queda atendido
+    - salida automática de la lista una vez que el grupo ya queda homologado
   - decisión operativa del corte:
     - no se agregan aliases visibles ni un catálogo extra de nombres anteriores
     - `Clientes` vuelve a quedar como lectura limpia y el backlog operativo se trabaja aparte
+  - corrección adicional ya cerrada:
+    - la vista deja de depender de `Organización / Razón social` vacío
+    - ahora detecta candidatos por similitud real de organización usando:
+      - `RUT / Tax ID`
+      - nombre visible exacto
+      - nombre muy parecido por prefijo
+      - primeros términos significativos iguales
+    - el copy de la página ya quedó alineado a esa lógica para no sugerir falsamente que busca solo vacíos
   - publicado en:
-    - `staging` con `BusinessCoreClientsPage-BZ12J4Jg.js`, `BusinessCoreCommonOrganizationNamePage-xQyxCZ3I.js` e `index-CqbqzIS_.js`
-    - `production` con `BusinessCoreClientsPage-Dks7G0Q5.js`, `BusinessCoreCommonOrganizationNamePage-D2e3cKPD.js` e `index-CJrHdM0M.js`
+    - `staging` con `BusinessCoreClientsPage-CTwvH0eT.js`, `BusinessCoreCommonOrganizationNamePage-KEoW3auo.js` e `index-CB8FoUVQ.js`
+    - `production` con `BusinessCoreClientsPage-CkbQtwBC.js`, `BusinessCoreCommonOrganizationNamePage-xHgOr5i7.js` e `index-bJiWdsRO.js`
   - validación:
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles

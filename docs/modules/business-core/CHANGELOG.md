@@ -2,6 +2,25 @@
 
 ## 2026-04-22
 
+- `Nombre común de organización` deja de depender de `Organización / Razón social` vacío y pasa a detectar candidatos por similitud:
+  - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ahora arma grupos candidatos cuando las organizaciones comparten:
+    - `RUT / Tax ID`
+    - nombre visible exacto
+    - nombre muy parecido por prefijo
+    - mismos primeros términos significativos
+  - la vista ya no se presenta como backlog de vacíos sino como homologación manual de nombres parecidos
+  - cada fila muestra `Grupo sugerido`, `Señal` y `Organización actual`
+  - el flujo sigue siendo seguro:
+    - solo actualiza `Organización / Razón social`
+    - no toca `Nombre cliente`
+    - no toca contactos, direcciones ni mantenciones
+  - cuando todas las organizaciones del grupo comparten el mismo `Organización / Razón social`, el grupo deja de aparecer
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreCommonOrganizationNamePage-KEoW3auo.js`, `BusinessCoreClientsPage-CTwvH0eT.js` e `index-CB8FoUVQ.js`
+    - `production` publicado con `BusinessCoreCommonOrganizationNamePage-xHgOr5i7.js`, `BusinessCoreClientsPage-CkbQtwBC.js` e `index-bJiWdsRO.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - `Nombre común de organización` se mueve fuera de `Clientes` y queda como página dedicada:
   - se agrega [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx)
   - se publica la ruta `/tenant-portal/business-core/common-organization-name`

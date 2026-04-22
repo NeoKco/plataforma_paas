@@ -2962,6 +2962,35 @@
   - las programaciones creadas sin mantención cerrada en 2026 fueron removidas con cleanup explícito
   - la regla vigente ya no debe leerse desde esta entrada histórica, sino desde la corrección posterior
 
+# 2026-04-22 - Homologación por similitud en Nombre común
+
+- objetivo:
+  - corregir la vista `business-core > Nombre común` para que no dependa de `Organización / Razón social` vacío y muestre candidatos reales de homologación
+- diagnóstico:
+  - la primera versión de la página era útil solo para completar vacíos
+  - no respondía al caso real del negocio:
+    - organizaciones con nombres parecidos ya cargados pero sin un nombre común homologado
+  - por eso podía verse `0 filas` aunque sí existieran variantes como nombre corto vs nombre extendido
+- cambios principales:
+  - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ahora detecta grupos candidatos por:
+    - mismo `RUT / Tax ID`
+    - mismo nombre visible
+    - nombre muy parecido por prefijo
+    - mismos primeros términos significativos
+  - la vista ahora muestra:
+    - `Grupo sugerido`
+    - `Señal`
+    - `Organización actual`
+  - el flujo mantiene la regla segura:
+    - solo actualiza `Organización / Razón social`
+    - no toca `Nombre cliente`, contactos, direcciones ni mantenciones
+  - cuando todas las filas del grupo comparten el mismo `Organización / Razón social`, el grupo deja de aparecer
+- validaciones:
+  - `npm run build`: `OK`
+  - publish frontend `staging`: `OK`
+  - publish frontend `production`: `OK`
+  - `check_frontend_static_readiness.sh`: `0 fallos, 0 advertencias` en ambos carriles
+
 # 2026-04-15 - Default task_type en OT abiertas
 
 - objetivo:

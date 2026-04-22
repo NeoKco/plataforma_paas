@@ -38,9 +38,273 @@ type ClientRow = {
   addresses: TenantBusinessSite[];
 };
 
+type SimilarityReason = "tax_id" | "exact_name" | "prefix_name" | "token_prefix";
+
+type SimilarityCandidateRow = ClientRow & {
+  candidateGroupId: string;
+  candidateGroupName: string;
+  candidateReasonCodes: SimilarityReason[];
+  groupSize: number;
+  currentCommonNames: string[];
+};
+
 function normalizeNullable(value: string | null | undefined): string | null {
   const trimmed = value?.trim() ?? "";
   return trimmed ? trimmed : null;
+}
+
+function normalizeHumanKey(value: string | null | undefined): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeTaxIdKey(value: string | null | undefined): string {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^0-9A-Z]/g, "")
+    .trim();
+}
+
+const ORGANIZATION_NAME_NOISE_TOKENS = new Set([
+  "spa",
+  "ltda",
+  "limitada",
+  "eirl",
+  "sa",
+  "saa",
+  "sociedad",
+  "empresa",
+  "empresas",
+  "comercial",
+  "comercializadora",
+  "servicio",
+  "servicios",
+  "inversiones",
+  "holding",
+]);
+
+function getComparableOrganizationNames(
+  organization: TenantBusinessOrganization | null
+): string[] {
+  if (!organization) {
+    return [];
+  }
+  return Array.from(
+    new Set(
+      [organization.name, organization.legal_name]
+        .map((value) => normalizeNullable(value))
+        .filter((value): value is string => Boolean(value))
+    )
+  );
+}
+
+function getOrganizationNameTokens(organization: TenantBusinessOrganization | null): string[] {
+  const baseName = getComparableOrganizationNames(organization)
+    .map((value) => normalizeHumanKey(value))
+    .find(Boolean);
+  if (!baseName) {
+    return [];
+  }
+  return baseName
+    .split(" ")
+    .filter(
+      (token) => token.length > 1 && !ORGANIZATION_NAME_NOISE_TOKENS.has(token)
+    );
+}
+
+function getFirstTokenPairKey(organization: TenantBusinessOrganization | null): string | null {
+  const tokens = getOrganizationNameTokens(organization);
+  if (tokens.length < 2) {
+    return null;
+  }
+  return tokens.slice(0, 2).join(" ");
+}
+
+function matchSimilarityReasons(left: ClientRow, right: ClientRow): SimilarityReason[] {
+  if (!left.organization || !right.organization) {
+    return [];
+  }
+
+  const reasons = new Set<SimilarityReason>();
+  const leftTaxId = normalizeTaxIdKey(left.organization.tax_id);
+  const rightTaxId = normalizeTaxIdKey(right.organization.tax_id);
+  if (leftTaxId && rightTaxId && leftTaxId === rightTaxId) {
+    reasons.add("tax_id");
+  }
+
+  const leftNames = getComparableOrganizationNames(left.organization).map((value) =>
+    normalizeHumanKey(value)
+  );
+  const rightNames = getComparableOrganizationNames(right.organization).map((value) =>
+    normalizeHumanKey(value)
+  );
+
+  leftNames.forEach((leftName) => {
+    rightNames.forEach((rightName) => {
+      if (!leftName || !rightName) {
+        return;
+      }
+      if (leftName === rightName) {
+        reasons.add("exact_name");
+        return;
+      }
+      const shorterName = leftName.length <= rightName.length ? leftName : rightName;
+      const longerName = leftName.length > rightName.length ? leftName : rightName;
+      if (shorterName.length >= 8 && longerName.startsWith(shorterName)) {
+        reasons.add("prefix_name");
+      }
+    });
+  });
+
+  const leftTokenPair = getFirstTokenPairKey(left.organization);
+  const rightTokenPair = getFirstTokenPairKey(right.organization);
+  if (leftTokenPair && rightTokenPair && leftTokenPair === rightTokenPair) {
+    reasons.add("token_prefix");
+  }
+
+  return Array.from(reasons);
+}
+
+function pickSuggestedCommonName(rows: ClientRow[]): string {
+  const candidates = rows
+    .flatMap((row) =>
+      getComparableOrganizationNames(row.organization).map((value) => value.trim())
+    )
+    .filter(Boolean);
+  if (candidates.length === 0) {
+    return "—";
+  }
+  return [...new Set(candidates)].sort(
+    (left, right) => left.length - right.length || left.localeCompare(right)
+  )[0];
+}
+
+function buildSimilarityCandidates(rows: ClientRow[]): SimilarityCandidateRow[] {
+  const eligibleRows = rows.filter((row) => row.organization);
+  const adjacency = new Map<number, Set<number>>();
+  const pairReasons = new Map<string, SimilarityReason[]>();
+
+  function addEdge(leftId: number, rightId: number, reasons: SimilarityReason[]) {
+    adjacency.set(leftId, new Set([...(adjacency.get(leftId) ?? []), rightId]));
+    adjacency.set(rightId, new Set([...(adjacency.get(rightId) ?? []), leftId]));
+    pairReasons.set(
+      `${Math.min(leftId, rightId)}:${Math.max(leftId, rightId)}`,
+      reasons
+    );
+  }
+
+  for (let index = 0; index < eligibleRows.length; index += 1) {
+    const current = eligibleRows[index];
+    for (let peerIndex = index + 1; peerIndex < eligibleRows.length; peerIndex += 1) {
+      const peer = eligibleRows[peerIndex];
+      const reasons = matchSimilarityReasons(current, peer);
+      if (reasons.length > 0) {
+        addEdge(current.client.id, peer.client.id, reasons);
+      }
+    }
+  }
+
+  const rowByClientId = new Map(eligibleRows.map((row) => [row.client.id, row]));
+  const visited = new Set<number>();
+  const candidates: SimilarityCandidateRow[] = [];
+
+  eligibleRows.forEach((row) => {
+    if (visited.has(row.client.id) || !adjacency.has(row.client.id)) {
+      return;
+    }
+    const stack = [row.client.id];
+    const componentIds: number[] = [];
+    while (stack.length > 0) {
+      const currentId = stack.pop();
+      if (currentId === undefined || visited.has(currentId)) {
+        continue;
+      }
+      visited.add(currentId);
+      componentIds.push(currentId);
+      (adjacency.get(currentId) ?? []).forEach((neighborId) => {
+        if (!visited.has(neighborId)) {
+          stack.push(neighborId);
+        }
+      });
+    }
+
+    if (componentIds.length < 2) {
+      return;
+    }
+
+    const componentRows = componentIds
+      .map((clientId) => rowByClientId.get(clientId) ?? null)
+      .filter((candidateRow): candidateRow is ClientRow => Boolean(candidateRow));
+
+    const currentCommonNames = Array.from(
+      new Set(
+        componentRows
+          .map((candidateRow) => normalizeNullable(candidateRow.organization?.legal_name))
+          .filter((value): value is string => Boolean(value))
+      )
+    );
+    if (
+      currentCommonNames.length === 1 &&
+      componentRows.every((candidateRow) =>
+        normalizeHumanKey(candidateRow.organization?.legal_name) ===
+        normalizeHumanKey(currentCommonNames[0])
+      )
+    ) {
+      return;
+    }
+
+    const groupReasons = new Set<SimilarityReason>();
+    componentIds.forEach((leftId, leftIndex) => {
+      componentIds.slice(leftIndex + 1).forEach((rightId) => {
+        (
+          pairReasons.get(`${Math.min(leftId, rightId)}:${Math.max(leftId, rightId)}`) ?? []
+        ).forEach((reason) => groupReasons.add(reason));
+      });
+    });
+
+    const suggestedCommonName = pickSuggestedCommonName(componentRows);
+    componentRows.forEach((candidateRow) => {
+      const rowReasonCodes = new Set<SimilarityReason>();
+      componentIds.forEach((peerId) => {
+        if (peerId === candidateRow.client.id) {
+          return;
+        }
+        (
+          pairReasons.get(
+            `${Math.min(candidateRow.client.id, peerId)}:${Math.max(candidateRow.client.id, peerId)}`
+          ) ?? []
+        ).forEach((reason) => rowReasonCodes.add(reason));
+      });
+      if (rowReasonCodes.size === 0) {
+        groupReasons.forEach((reason) => rowReasonCodes.add(reason));
+      }
+      candidates.push({
+        ...candidateRow,
+        candidateGroupId: `${suggestedCommonName}:${componentIds.join("-")}`,
+        candidateGroupName: suggestedCommonName,
+        candidateReasonCodes: Array.from(rowReasonCodes),
+        groupSize: componentRows.length,
+        currentCommonNames,
+      });
+    });
+  });
+
+  return candidates.sort((left, right) => {
+    if (right.groupSize !== left.groupSize) {
+      return right.groupSize - left.groupSize;
+    }
+    if (left.candidateGroupName !== right.candidateGroupName) {
+      return left.candidateGroupName.localeCompare(right.candidateGroupName);
+    }
+    return (left.organization?.name ?? "").localeCompare(right.organization?.name ?? "");
+  });
 }
 
 function buildOrganizationWritePayload(
@@ -80,6 +344,24 @@ function buildGoogleMapsUrl(address: TenantBusinessSite): string | null {
     return null;
   }
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
+function getSimilarityReasonLabel(
+  reason: SimilarityReason,
+  t: (es: string, en: string) => string
+): string {
+  switch (reason) {
+    case "tax_id":
+      return t("Mismo RUT / Tax ID", "Same tax ID");
+    case "exact_name":
+      return t("Mismo nombre visible", "Same visible name");
+    case "prefix_name":
+      return t("Nombre muy parecido", "Very similar name");
+    case "token_prefix":
+      return t("Primeros términos iguales", "Same leading terms");
+    default:
+      return reason;
+  }
 }
 
 export function BusinessCoreCommonOrganizationNamePage() {
@@ -135,28 +417,29 @@ export function BusinessCoreCommonOrganizationNamePage() {
     [addressesByClientId, clients, contactsByOrganizationId, organizationById]
   );
 
-  const pendingRows = useMemo(
-    () =>
-      clientRows.filter(
-        (row) => !normalizeNullable(row.organization?.legal_name)
-      ),
-    [clientRows]
+  const candidateRows = useMemo(() => buildSimilarityCandidates(clientRows), [clientRows]);
+
+  const candidateRowByClientId = useMemo(
+    () => new Map(candidateRows.map((row) => [row.client.id, row])),
+    [candidateRows]
   );
 
-  const pendingRowByClientId = useMemo(
-    () => new Map(pendingRows.map((row) => [row.client.id, row])),
-    [pendingRows]
+  const candidateGroupCount = useMemo(
+    () => new Set(candidateRows.map((row) => row.candidateGroupId)).size,
+    [candidateRows]
   );
 
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) {
-      return pendingRows;
+      return candidateRows;
     }
-    return pendingRows.filter((row) => {
+    return candidateRows.filter((row) => {
       const primaryContact = row.contacts.find((contact) => contact.is_primary) ?? row.contacts[0];
       const primaryAddress = row.addresses[0];
       const haystack = [
+        row.candidateGroupName,
+        ...row.currentCommonNames,
         row.organization?.name,
         row.organization?.tax_id,
         primaryContact?.full_name,
@@ -173,14 +456,14 @@ export function BusinessCoreCommonOrganizationNamePage() {
         .toLowerCase();
       return haystack.includes(term);
     });
-  }, [pendingRows, search]);
+  }, [candidateRows, search]);
 
   const selectedRows = useMemo(
     () =>
       selectedClientIds
-        .map((clientId) => pendingRowByClientId.get(clientId) ?? null)
-        .filter((row): row is ClientRow => Boolean(row)),
-    [pendingRowByClientId, selectedClientIds]
+        .map((clientId) => candidateRowByClientId.get(clientId) ?? null)
+        .filter((row): row is SimilarityCandidateRow => Boolean(row)),
+    [candidateRowByClientId, selectedClientIds]
   );
 
   async function loadData() {
@@ -213,8 +496,10 @@ export function BusinessCoreCommonOrganizationNamePage() {
   }, [session?.accessToken]);
 
   useEffect(() => {
-    setSelectedClientIds((current) => current.filter((clientId) => pendingRowByClientId.has(clientId)));
-  }, [pendingRowByClientId]);
+    setSelectedClientIds((current) =>
+      current.filter((clientId) => candidateRowByClientId.has(clientId))
+    );
+  }, [candidateRowByClientId]);
 
   function toggleClientSelection(clientId: number) {
     setSelectedClientIds((current) =>
@@ -237,8 +522,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
       setError(
         new Error(
           t(
-            "Selecciona al menos un cliente pendiente para aplicar nombre común.",
-            "Select at least one pending client to apply a common name."
+            "Selecciona al menos un cliente candidato para aplicar nombre común.",
+            "Select at least one candidate client to apply a common name."
           )
         ) as ApiError
       );
@@ -259,8 +544,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
 
     const confirmed = window.confirm(
       t(
-        `Aplicar "${finalOrganizationName}" a ${selectedRows.length} cliente(s) pendientes. Esto solo actualizará "Organización / Razón social" y luego esas filas saldrán de esta vista.`,
-        `Apply "${finalOrganizationName}" to ${selectedRows.length} pending client(s). This only updates "Organization / legal name" and those rows will then leave this view.`
+        `Aplicar "${finalOrganizationName}" a ${selectedRows.length} cliente(s) candidatos. Esto solo actualizará "Organización / Razón social" y los grupos homologados dejarán de aparecer en esta vista.`,
+        `Apply "${finalOrganizationName}" to ${selectedRows.length} candidate client(s). This only updates "Organization / legal name" and aligned groups will stop appearing in this view.`
       )
     );
     if (!confirmed) {
@@ -287,8 +572,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
       }
       setFeedback(
         t(
-          `Nombre común aplicado en ${selectedRows.length} cliente(s). Las filas ya atendidas salen de esta vista.`,
-          `Common name applied to ${selectedRows.length} client(s). Processed rows now leave this view.`
+          `Nombre común aplicado en ${selectedRows.length} cliente(s). Los grupos ya homologados salen de esta vista.`,
+          `Common name applied to ${selectedRows.length} client(s). Aligned groups now leave this view.`
         )
       );
       clearSelection();
@@ -306,13 +591,13 @@ export function BusinessCoreCommonOrganizationNamePage() {
         eyebrow={t("Core de negocio", "Business core")}
         icon="business-core"
         title={t(
-          "Clientes sin organización común definida",
-          "Clients without a defined common organization"
+          "Clientes candidatos a organización común",
+          "Clients with a common organization candidate"
         )}
         description={
           t(
-            "Aquí trabajas solo los clientes que todavía no tienen definida una organización común en 'Organización / Razón social'.",
-            "Work here only on clients that still do not have a common organization defined in 'Organization / legal name'."
+            "Aquí aparecen clientes con organizaciones de nombre parecido. Seleccionas los que realmente correspondan y defines un nombre común en 'Organización / Razón social'.",
+            "This page shows clients whose organizations have similar names. Select the ones that truly belong together and define a common name in 'Organization / legal name'."
           )
         }
         actions={
@@ -321,8 +606,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
               label={t("Ayuda", "Help")}
               helpText={
                 t(
-                  "Aquí solo aparecen clientes sin organización común definida. Cuando completas 'Organización / Razón social', salen de esta lista.",
-                  "Only clients without a defined common organization appear here. Once you fill 'Organization / legal name', they leave this list."
+                  "Aquí no se buscan vacíos; se muestran candidatos por similitud de nombre. Cuando todos los clientes del grupo comparten el mismo valor en 'Organización / Razón social', dejan de aparecer aquí.",
+                  "This page does not search for blanks; it shows candidates based on name similarity. Once every client in the group shares the same 'Organization / legal name', they stop appearing here."
                 )
               }
             />
@@ -357,23 +642,26 @@ export function BusinessCoreCommonOrganizationNamePage() {
         />
       ) : null}
       {isLoading ? (
-        <LoadingBlock label={t("Cargando clientes pendientes...", "Loading pending clients...")} />
+        <LoadingBlock label={t("Cargando candidatos por similitud...", "Loading similarity candidates...")} />
       ) : null}
 
       <PanelCard
-        title={t("Pendientes por completar", "Pending to complete")}
+        title={t("Candidatos por similitud", "Similarity candidates")}
         subtitle={t(
-          "Solo se muestran clientes sin organización común definida. Cuando se completa 'Organización / Razón social', salen de esta lista.",
-          "Only clients without a defined common organization are shown. Once 'Organization / legal name' is completed, they leave this list."
+          "Solo se muestran grupos de clientes con organizaciones de nombre parecido. Cuando el grupo queda homologado con un mismo valor en 'Organización / Razón social', desaparece de esta vista.",
+          "Only client groups with similar organization names are shown. Once a whole group is aligned under the same 'Organization / legal name', it disappears from this view."
         )}
       >
         <div className="business-core-manual-merge">
           <div className="business-core-manual-merge__summary">
             <span>
-              {pendingRows.length} {t("pendientes", "pending")}
+              {candidateGroupCount} {t("grupos sugeridos", "suggested groups")}
             </span>
             <span>
               {selectedRows.length} {t("seleccionados", "selected")}
+            </span>
+            <span>
+              {candidateRows.length} {t("clientes candidatos", "candidate clients")}
             </span>
           </div>
           <div className="business-core-manual-merge__grid">
@@ -419,12 +707,12 @@ export function BusinessCoreCommonOrganizationNamePage() {
 
       <DataTableCard
         title={t(
-          "Clientes sin organización común definida",
-          "Clients without a defined common organization"
+          "Clientes candidatos a organización común",
+          "Clients with a common organization candidate"
         )}
         subtitle={t(
-          "Busca por cliente, contacto o dirección. Cuando se completa 'Organización / Razón social', la fila desaparece de esta lista.",
-          "Search by client, contact, or address. Once 'Organization / legal name' is completed, the row disappears from this list."
+          "Busca por cliente, organización actual, contacto o dirección. Aquí solo se ven grupos con nombres parecidos que todavía no quedaron homologados.",
+          "Search by client, current organization, contact, or address. Only groups with similar names that are not yet aligned are shown here."
         )}
         rows={filteredRows}
         actions={
@@ -432,8 +720,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
             className="form-control business-core-search"
             type="search"
             placeholder={t(
-              "Buscar por cliente, contacto o dirección",
-              "Search by client, contact, or address"
+              "Buscar por cliente, organización, contacto o dirección",
+              "Search by client, organization, contact, or address"
             )}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -456,6 +744,27 @@ export function BusinessCoreCommonOrganizationNamePage() {
             ),
           },
           {
+            key: "candidate",
+            header: t("Grupo sugerido", "Suggested group"),
+            render: (row) => (
+              <div>
+                <div className="business-core-cell__title">{row.candidateGroupName}</div>
+                <div className="business-core-cell__meta">
+                  {row.groupSize} {t("clientes en el grupo", "clients in group")}
+                </div>
+                {row.currentCommonNames.length > 0 ? (
+                  <div className="business-core-cell__meta">
+                    {t("Homologado actual:", "Current aligned name:")} {row.currentCommonNames.join(" · ")}
+                  </div>
+                ) : (
+                  <div className="business-core-cell__meta">
+                    {t("Sin homologación previa", "No previous aligned name")}
+                  </div>
+                )}
+              </div>
+            ),
+          },
+          {
             key: "client",
             header: t("Cliente", "Client"),
             render: (row) => (
@@ -465,6 +774,31 @@ export function BusinessCoreCommonOrganizationNamePage() {
                 </div>
                 <div className="business-core-cell__meta">
                   {row.organization?.tax_id || "—"}
+                </div>
+                {row.organization?.legal_name ? (
+                  <div className="business-core-cell__meta">
+                    {t("Organización actual:", "Current legal name:")} {row.organization.legal_name}
+                  </div>
+                ) : null}
+              </div>
+            ),
+          },
+          {
+            key: "reason",
+            header: t("Señal", "Signal"),
+            render: (row) => (
+              <div>
+                <div className="business-core-cell__title">
+                  {row.candidateReasonCodes
+                    .slice(0, 2)
+                    .map((reason) => getSimilarityReasonLabel(reason, t))
+                    .join(" · ") || "—"}
+                </div>
+                <div className="business-core-cell__meta">
+                  {t(
+                    "Revisión manual recomendada antes de homologar.",
+                    "Manual review is recommended before aligning."
+                  )}
                 </div>
               </div>
             ),
