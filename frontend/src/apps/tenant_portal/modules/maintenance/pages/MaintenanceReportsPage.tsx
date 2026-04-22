@@ -241,8 +241,8 @@ export function MaintenanceReportsPage() {
 
   function getClientLabel(clientId: number) {
     return (
-      stripLegacyVisibleText(getOrganization(clientId)?.legal_name) ||
       stripLegacyVisibleText(getOrganization(clientId)?.name) ||
+      stripLegacyVisibleText(getOrganization(clientId)?.legal_name) ||
       (language === "es" ? "Cliente sin nombre" : "Unnamed client")
     );
   }

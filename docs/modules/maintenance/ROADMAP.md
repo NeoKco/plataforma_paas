@@ -107,7 +107,9 @@ Alcance:
 
 - `Mantenciones` y `Historial` ya exponen `Ver ficha` como lectura secundaria compartida por OT
 - la `Ficha de mantención` ya reúne contexto operativo, snapshots más ricos por cliente/instalación/responsables, fechas clave, cierre técnico, `status_logs` y `visits`
-- `Resumen`, `Pendientes`, `Mantenciones`, `Agenda`, `Instalaciones`, `Historial` y `Reportes` ya priorizan el nombre común homologado de organización (`legal_name`) por sobre variantes internas (`name`)
+- `Resumen`, `Pendientes`, `Mantenciones`, `Agenda`, `Instalaciones`, `Historial` y `Reportes` ya separan correctamente:
+  - cliente individual/base (`name`)
+  - organización común homologada (`legal_name`)
 - `Mantenciones` ya expone `Plantillas` como slice visible para crear, editar y archivar plantillas de costeo sin depender de `Pendientes` o de una OT puntual
 - `Mantenciones`, `Historial` y la ficha ya leen `Tipo de tarea` desde `maintenance_schedules.task_type_id` y `Perfil funcional` desde membresías reales de `business_work_groups`
 - `Mantenciones` y `Visitas` ya validan que técnico y grupo correspondan a una membresía activa y vigente antes de guardar

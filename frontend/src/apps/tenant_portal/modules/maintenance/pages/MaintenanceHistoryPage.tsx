@@ -771,8 +771,8 @@ export function MaintenanceHistoryPage() {
     const client = clientById.get(clientId);
     const organization = organizationById.get(client?.organization_id ?? -1);
     return (
-      stripLegacyVisibleText(organization?.legal_name) ||
       stripLegacyVisibleText(organization?.name) ||
+      stripLegacyVisibleText(organization?.legal_name) ||
       t("Cliente sin nombre", "Unnamed client")
     );
   }

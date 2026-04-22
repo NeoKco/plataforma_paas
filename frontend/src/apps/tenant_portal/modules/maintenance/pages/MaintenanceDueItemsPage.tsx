@@ -703,7 +703,13 @@ export function MaintenanceDueItemsPage() {
   }
 
   function getClientName(clientId: number): string {
-    return getOrganizationName(clientId);
+    const client = clientById.get(clientId);
+    const organization = organizationById.get(client?.organization_id ?? -1);
+    return (
+      stripLegacyVisibleText(organization?.name) ||
+      stripLegacyVisibleText(organization?.legal_name) ||
+      (language === "es" ? "Cliente sin nombre" : "Unnamed client")
+    );
   }
 
   function getClientOptionLabel(client: TenantBusinessClient): string {

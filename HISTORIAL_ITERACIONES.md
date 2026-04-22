@@ -1,40 +1,40 @@
 # HISTORIAL_ITERACIONES
 
-## 2026-04-22 - `maintenance` alinea la lectura visible al nombre común homologado
+## 2026-04-22 - corrección visual de `maintenance`: cliente y organización vuelven a separarse bien
 
 - objetivo:
-  - hacer que `maintenance` consuma de forma estable el nombre común homologado en `business-core`
-  - evitar que el operador siga viendo variantes internas históricas de organización después de normalizar `Organización / Razón social`
+  - corregir la regresión donde `Cliente` pasó a mostrar el nombre común de organización
+  - restaurar la separación correcta entre nombre individual/base y organización común homologada
 - cambios y acciones ejecutadas:
   - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx):
-    - prioriza `organization.legal_name` por sobre `organization.name`
+    - `Cliente` vuelve a priorizar `organization.name`
   - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx):
-    - prioriza `organization.legal_name` por sobre `organization.name`
+    - `Cliente` vuelve a priorizar `organization.name`
   - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx):
-    - prioriza `organization.legal_name` en la lectura visible del cliente
-    - deja de mezclar `name · legal_name` en la etiqueta visible del selector de organización
+    - mantiene `Organización / Razón social` como lectura de `legal_name`
+    - devuelve `Cliente` al nombre individual/base (`name`)
   - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx):
-    - prioriza `organization.legal_name`
+    - vuelve a mostrar el cliente individual/base
   - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceInstallationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceInstallationsPage.tsx):
-    - prioriza `organization.legal_name`
+    - vuelve a mostrar el cliente individual/base
   - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx):
-    - prioriza `organization.legal_name`
+    - vuelve a separar `Cliente` y `Organización`
   - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx):
-    - prioriza `organization.legal_name`
+    - vuelve a mostrar el cliente individual/base
 - validaciones:
   - repo:
     - `npm run build` -> `OK`
   - `staging`:
     - republish con `VITE_API_BASE_URL=http://192.168.7.42:8081`
-    - bundles visibles más recientes: `MaintenanceCalendarPage-uCS2MuI1.js`, `MaintenanceDueItemsPage-BAa25ec_.js`, `MaintenanceHistoryPage-CNgncJeg.js`, `MaintenanceInstallationsPage-DhRfD_B9.js`, `MaintenanceOverviewPage-DH-doZLn.js`, `MaintenanceReportsPage-Co0NFb3L.js`, `MaintenanceWorkOrdersPage-DvMdqJvg.js`, `index-Dhi943-6.js`
+    - bundles visibles más recientes: `MaintenanceCalendarPage-D0PLsADF.js`, `MaintenanceDueItemsPage-FnpxpXQ6.js`, `MaintenanceHistoryPage-_50scN67.js`, `MaintenanceInstallationsPage-RF6D4QJC.js`, `MaintenanceOverviewPage-pVZCT_dX.js`, `MaintenanceReportsPage-Bz_SdAhj.js`, `MaintenanceWorkOrdersPage-D1FncLBZ.js`, `index-DdjPKdAc.js`
     - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
   - `production`:
-    - republish con `API_BASE_URL=https://orkestia.ddns.net`
-    - bundles visibles más recientes: `MaintenanceCalendarPage-EmhMTPhI.js`, `MaintenanceDueItemsPage-AQCVZjow.js`, `MaintenanceHistoryPage-D6erutbG.js`, `MaintenanceInstallationsPage-DYRgzs-_.js`, `MaintenanceOverviewPage-CorRkrBV.js`, `MaintenanceReportsPage-DczJ4fTD.js`, `MaintenanceWorkOrdersPage-DiAdgxWB.js`, `index-BSvc41aG.js`
+    - republish con `VITE_API_BASE_URL=https://orkestia.ddns.net`
+    - bundles visibles más recientes: `MaintenanceCalendarPage-wqfXq5it.js`, `MaintenanceDueItemsPage-DgvXXU02.js`, `MaintenanceHistoryPage-TE8vIBV6.js`, `MaintenanceInstallationsPage-BLMCAB8X.js`, `MaintenanceOverviewPage-BXtgHUIM.js`, `MaintenanceReportsPage-DNXo_77O.js`, `MaintenanceWorkOrdersPage-BkzZ13ql.js`, `index-CHLF9wql.js`
     - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
 - resultado:
-  - `maintenance` ya refleja el nombre común homologado en la lectura diaria del operador
-  - el valor normalizado en `business-core` ya deja de perderse al volver a `Mantenciones`
+  - `maintenance` vuelve a mostrar correctamente el cliente individual/base
+  - la organización común sigue visible solo en filtros o columnas donde realmente corresponde
 
 ## 2026-04-22 - corrección del slice manual de organización en `Clients`
 
@@ -77,14 +77,15 @@
 
 - objetivo:
   - sacar la normalización de organización fuera del listado principal de `Clientes`
-  - dejar una vista de trabajo dedicada que muestre solo clientes pendientes
-  - hacer que el backlog se reduzca automáticamente a medida que se normaliza
+  - dejar una vista de trabajo dedicada para homologar grupos candidatos
+  - sacar esta operación del listado principal y evitar confusión con la cartera cliente
 - cambios y acciones ejecutadas:
   - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx):
     - crea la vista nueva `Nombre común de organización`
-    - muestra solo clientes sin `Organización / Razón social`
+    - en su primer corte mostró solo clientes sin `Organización / Razón social`
+    - dentro del mismo frente quedó corregida para detectar candidatos por similitud real de organización
     - permite selección múltiple y captura de `Nombre común final`
-    - al aplicar el cambio, los clientes atendidos salen de la lista
+    - el comportamiento vigente aplica el mismo valor de `Organización / Razón social` a los clientes marcados
   - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
     - elimina el recuadro operativo del listado principal
     - deja un acceso liviano hacia la vista nueva
@@ -107,9 +108,9 @@
     - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
 - resultado:
   - `Clientes` deja de mezclar lectura comercial con trabajo de normalización
-  - la vista nueva sirve como backlog operativo que se va vaciando a medida que se normalizan organizaciones
+  - el comportamiento final del slice ya no depende de vacíos sino de candidatos por similitud real
 
-## 2026-04-21 - `Clients` suma unificación manual de organización por selección de clientes
+## 2026-04-21 - `Clients` suma un primer experimento de unificación manual de organización por selección de clientes
 
 - objetivo:
   - permitir unificar organizaciones reales conocidas por el operador sin depender primero de detección automática en `Duplicados`
@@ -141,10 +142,11 @@
     - bundles visibles más recientes: `BusinessCoreClientsPage-BowQNUbR.js`, `index-DDP514Rq.js`
     - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
 - resultado:
-  - el operador ya puede unificar desde la cartera cliente varias fichas que sabe que pertenecen a la misma organización real
-  - el slice deja de depender de una detección automática o de seguir profundizando `Duplicados`
+  - este experimento quedó revertido el `2026-04-22`
+  - no corresponde al comportamiento vigente
+  - fue reemplazado por el slice seguro `Nombre común`, que solo actualiza `legal_name`
 - siguiente paso:
-  - si este flujo responde bien en operación, retomar el roadmap fuera de `Duplicados`
+  - mover la operación fuera de `Clientes` y acotarla a homologación segura sin mover ni borrar datos
 
 ## 2026-04-21 - `maintenance` hace visible el contacto principal y agrega reporte histórico por organización
 

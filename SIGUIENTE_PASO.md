@@ -3,11 +3,11 @@
 ## Prioridad vigente
 
 - subcorte nuevo ya cerrado en runtime dentro de `maintenance`:
-  - `Resumen`, `Pendientes`, `Mantenciones`, `Agenda`, `Instalaciones`, `Historial` y `Reportes` ya priorizan el nombre común homologado de organización (`legal_name`) por sobre variantes internas (`name`)
-  - [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx) ya no mezcla `name · legal_name` en el selector visible cuando existe un nombre común definido
+  - corrección visual final: `Cliente` vuelve a leer el nombre individual/base y la organización común queda solo donde el campo realmente corresponde a organización
+  - [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx) mantiene `Organización / Razón social` como columna propia y vuelve a dejar `Cliente` con el nombre individual/base
   - publicado en:
-    - `staging` con `MaintenanceCalendarPage-uCS2MuI1.js`, `MaintenanceDueItemsPage-BAa25ec_.js`, `MaintenanceHistoryPage-CNgncJeg.js`, `MaintenanceInstallationsPage-DhRfD_B9.js`, `MaintenanceOverviewPage-DH-doZLn.js`, `MaintenanceReportsPage-Co0NFb3L.js`, `MaintenanceWorkOrdersPage-DvMdqJvg.js` e `index-Dhi943-6.js`
-    - `production` con `MaintenanceCalendarPage-EmhMTPhI.js`, `MaintenanceDueItemsPage-AQCVZjow.js`, `MaintenanceHistoryPage-D6erutbG.js`, `MaintenanceInstallationsPage-DYRgzs-_.js`, `MaintenanceOverviewPage-CorRkrBV.js`, `MaintenanceReportsPage-DczJ4fTD.js`, `MaintenanceWorkOrdersPage-DiAdgxWB.js` e `index-BSvc41aG.js`
+    - `staging` con `MaintenanceCalendarPage-D0PLsADF.js`, `MaintenanceDueItemsPage-FnpxpXQ6.js`, `MaintenanceHistoryPage-_50scN67.js`, `MaintenanceInstallationsPage-RF6D4QJC.js`, `MaintenanceOverviewPage-pVZCT_dX.js`, `MaintenanceReportsPage-Bz_SdAhj.js`, `MaintenanceWorkOrdersPage-D1FncLBZ.js` e `index-DdjPKdAc.js`
+    - `production` con `MaintenanceCalendarPage-wqfXq5it.js`, `MaintenanceDueItemsPage-DgvXXU02.js`, `MaintenanceHistoryPage-TE8vIBV6.js`, `MaintenanceInstallationsPage-BLMCAB8X.js`, `MaintenanceOverviewPage-BXtgHUIM.js`, `MaintenanceReportsPage-DNXo_77O.js`, `MaintenanceWorkOrdersPage-BkzZ13ql.js` e `index-CHLF9wql.js`
   - validación:
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles

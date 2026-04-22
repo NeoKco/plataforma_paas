@@ -36,9 +36,9 @@
   - se publica la ruta `/tenant-portal/business-core/common-organization-name`
   - [BusinessCoreModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreModuleNav.tsx) suma la entrada `Nombre común`
   - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) vuelve a quedar como lectura principal de cartera, sin recuadro operativo de normalización
-  - la nueva vista deja solo backlog pendiente:
-    - muestra exclusivamente clientes sin `Organización / Razón social`
-    - al aplicar un nombre común, esas filas salen de la lista
+  - ese primer corte quedó supersedido dentro del mismo frente:
+    - la vista ya no opera por `Organización / Razón social` vacío
+    - el comportamiento vigente detecta candidatos por similitud real de organización
   - validación:
     - `staging` publicado con `BusinessCoreClientsPage-BZ12J4Jg.js`, `BusinessCoreCommonOrganizationNamePage-xQyxCZ3I.js` e `index-CqbqzIS_.js`
     - `production` publicado con `BusinessCoreClientsPage-Dks7G0Q5.js`, `BusinessCoreCommonOrganizationNamePage-D2e3cKPD.js` e `index-CJrHdM0M.js`
@@ -74,20 +74,24 @@
 
 ## 2026-04-21
 
-- `Clients` ahora suma una `Unificación manual de organización` sin depender de detección automática de nombres parecidos:
+- `Clients` sumó experimentalmente una `Unificación manual de organización` sin depender de detección automática de nombres parecidos:
   - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ahora permite:
     - marcar varios clientes conocidos como parte de la misma contraparte real
     - elegir cuál ficha cliente queda viva
     - definir el `Nombre común final` de la organización
-  - el flujo ejecuta una unificación real, no solo renombrado visual:
+  - ese corte ejecutaba una unificación real, no solo renombrado visual:
     - reasigna `Direcciones`
     - reasigna `Mantenciones` / `OT`
     - mueve o consolida `Contactos`
     - intenta borrar clientes/organizaciones origen cuando ya quedaron sin dependencias
     - si no puede borrar alguna ficha origen, la deja desactivada como fallback seguro
-  - decisión operativa del slice:
+  - decisión operativa de ese experimento:
     - no se agregan aliases visibles ni nombres anteriores como dato funcional
     - el objetivo es dejar una ficha final con un nombre común de organización
+  - estado final:
+    - este slice quedó revertido el `2026-04-22`
+    - ya no corresponde al comportamiento vigente
+    - fue reemplazado por la vista dedicada `Nombre común`, que solo actualiza `legal_name` y no mueve ni borra datos
   - validación:
     - `npm run build` -> `OK`
     - `staging` publicado con `BusinessCoreClientsPage-D968XWa4.js` e `index-BzS8fn17.js`

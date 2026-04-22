@@ -129,6 +129,12 @@ Completado recientemente:
   - el flujo solo actualiza `Organización / Razón social`
   - no mueve `direcciones`, `mantenciones` ni `contactos`
   - no elige ficha destino ni borra/desactiva organizaciones
+- ajuste de integración consumidora ya cerrado:
+  - `maintenance` ya volvió a separar correctamente `Cliente` y `Organización / Razón social`
+  - la regla vigente es:
+    - `Cliente` -> `organization.name`
+    - `Organización / Razón social` -> `organization.legal_name`
+  - esto evita que la homologación del nombre común pise visualmente el nombre individual/base en operación diaria
 - `business_asset_types`: tabla, API, vista administrativa y migracion tenant
 - `business_assets`: tabla, API, vista administrativa y migracion tenant
 - `business_organization_addresses`: primera ola de direccion propia para empresas/proveedores

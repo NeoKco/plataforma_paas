@@ -609,8 +609,8 @@ export function MaintenanceCalendarPage({
     const client = clientById.get(clientId);
     const organization = organizationById.get(client?.organization_id ?? -1);
     return (
-      stripLegacyVisibleText(organization?.legal_name) ||
       stripLegacyVisibleText(organization?.name) ||
+      stripLegacyVisibleText(organization?.legal_name) ||
       (language === "es" ? "Cliente sin nombre" : "Unnamed client")
     );
   }
