@@ -43,11 +43,10 @@
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - siguiente paso correcto del roadmap:
-  - cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual ya corregido
+  - el corte recomendado de tercera ola visible de `organization addresses` + filtros/detalle por grupo social común ya queda cerrado en repo
   - corte recomendado:
-    - profundizar una tercera ola visible de `organization addresses`, ya no solo en tabla resumida sino en lectura/edición más rica por organización
-    - reforzar `Organizations`, `Clients` y `Grupos sociales` con filtros o detalle por grupo social común para que la nueva entidad quede operativamente estable sin abrir consolidación profunda nueva
-    - cerrar el uso residual de copy/layout ambiguo entre empresa base, razón social legal y grupo social común
+    - decidir si `business-core` ya quedó suficientemente estable para abrir el siguiente frente formal del roadmap maestro
+    - o, si se quiere un último ajuste dentro del dominio, pasar a detalle/edición todavía más rica por organización sin tocar de nuevo la semántica del modelo
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la asignación del `Grupo social común`

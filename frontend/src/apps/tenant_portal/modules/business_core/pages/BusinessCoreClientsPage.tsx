@@ -117,6 +117,20 @@ type CommonOrganizationSummary = {
   pendingClients: number;
 };
 
+function metadataLabelForGroup(
+  row: ClientRow,
+  metadataByClientId: Map<number, { commonName: string | null; groupSize: number; isGrouped: boolean }>,
+  t: (es: string, en: string) => string
+) {
+  const metadata = metadataByClientId.get(row.client.id) ?? null;
+  if (!metadata?.commonName) {
+    return t("sin grupo social operativo", "no operational social group");
+  }
+  return metadata.isGrouped
+    ? t("grupo visible en cartera", "group visible in portfolio")
+    : t("grupo asignado solo a esta ficha", "group assigned only to this record");
+}
+
 type DuplicateClientCandidate = {
   row: ClientRow;
   reasons: string[];
@@ -323,6 +337,7 @@ export function BusinessCoreClientsPage() {
   const [addresses, setAddresses] = useState<TenantBusinessSite[]>([]);
   const [assets, setAssets] = useState<TenantBusinessAsset[]>([]);
   const [search, setSearch] = useState("");
+  const [groupFilter, setGroupFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -479,12 +494,46 @@ export function BusinessCoreClientsPage() {
     };
   }, [clientRows, socialCommunityGroupById]);
 
+  const socialCommunityFilterOptions = useMemo(
+    () =>
+      socialCommunityGroups
+        .slice()
+        .sort((left, right) => left.name.localeCompare(right.name))
+        .map((group) => {
+          const linkedClients = clientRows.filter(
+            (row) => row.client.social_community_group_id === group.id
+          ).length;
+          return {
+            value: `group:${group.id}`,
+            label: linkedClients ? `${group.name} · ${linkedClients}` : group.name,
+          };
+        }),
+    [clientRows, socialCommunityGroups]
+  );
+
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) {
-      return clientRows;
-    }
     return clientRows.filter((row) => {
+      const metadata =
+        commonOrganizationMetaByClientId.metadataByClientId.get(row.client.id) ?? null;
+      const passesGroupFilter =
+        groupFilter === "all"
+          ? true
+          : groupFilter === "defined"
+            ? Boolean(row.client.social_community_group_id)
+            : groupFilter === "pending"
+              ? !row.client.social_community_group_id
+              : groupFilter === "grouped"
+                ? Boolean(metadata?.isGrouped)
+                : groupFilter.startsWith("group:")
+                  ? row.client.social_community_group_id === Number(groupFilter.slice(6))
+                  : true;
+      if (!passesGroupFilter) {
+        return false;
+      }
+      if (!term) {
+        return true;
+      }
       const primaryContact = row.contacts.find((contact) => contact.is_primary) ?? row.contacts[0];
       const primaryAddress = row.addresses[0];
       const socialCommunityName = getClientSocialCommunityName(
@@ -513,7 +562,13 @@ export function BusinessCoreClientsPage() {
         .toLowerCase();
       return haystack.includes(term);
     });
-  }, [clientRows, search, socialCommunityGroupById]);
+  }, [
+    clientRows,
+    commonOrganizationMetaByClientId.metadataByClientId,
+    groupFilter,
+    search,
+    socialCommunityGroupById,
+  ]);
 
   async function loadData() {
     if (!session?.accessToken) {
@@ -1052,18 +1107,36 @@ export function BusinessCoreClientsPage() {
         }
         rows={filteredRows}
         actions={
-          <input
-            className="form-control business-core-search"
-            type="search"
-            placeholder={
-              t(
-                "Buscar por cliente, RUT, contacto, organización o dirección",
-                "Search by client, tax ID, contact, organization, or address"
-              )
-            }
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
+          <div className="d-flex flex-wrap gap-2 justify-content-end">
+            <select
+              className="form-select"
+              style={{ minWidth: "18rem" }}
+              value={groupFilter}
+              onChange={(event) => setGroupFilter(event.target.value)}
+            >
+              <option value="all">{t("Todos los grupos sociales", "All social groups")}</option>
+              <option value="defined">{t("Con grupo definido", "With defined group")}</option>
+              <option value="grouped">{t("Con grupo visible (2+)", "With visible group (2+)")}</option>
+              <option value="pending">{t("Pendientes por asignar", "Pending assignment")}</option>
+              {socialCommunityFilterOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <input
+              className="form-control business-core-search"
+              type="search"
+              placeholder={
+                t(
+                  "Buscar por cliente, RUT, contacto, organización o dirección",
+                  "Search by client, tax ID, contact, organization, or address"
+                )
+              }
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
         }
         columns={[
           {
@@ -1087,6 +1160,9 @@ export function BusinessCoreClientsPage() {
               const metadata =
                 commonOrganizationMetaByClientId.metadataByClientId.get(row.client.id) ?? null;
               const commonName = metadata?.commonName ?? null;
+              const group = row.client.social_community_group_id
+                ? socialCommunityGroupById.get(row.client.social_community_group_id) ?? null
+                : null;
               return (
                 <div>
                   <div className="business-core-cell__title">
@@ -1111,6 +1187,13 @@ export function BusinessCoreClientsPage() {
                   {commonName && row.organization?.name && commonName !== row.organization.name ? (
                     <div className="business-core-cell__meta">
                       {t("cliente base:", "base client:")} {row.organization.name}
+                    </div>
+                  ) : null}
+                  {group?.commune || group?.territorial_classification ? (
+                    <div className="business-core-cell__meta">
+                      {[group?.commune, group?.territorial_classification]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </div>
                   ) : null}
                 </div>
@@ -1216,6 +1299,13 @@ export function BusinessCoreClientsPage() {
                     {t(
                       `${assetSummary?.sitesWithAssets ?? 0} sitios con activos`,
                       `${assetSummary?.sitesWithAssets ?? 0} sites with assets`
+                    )}
+                  </div>
+                  <div className="business-core-cell__meta">
+                    {metadataLabelForGroup(
+                      row,
+                      commonOrganizationMetaByClientId.metadataByClientId,
+                      t
                     )}
                   </div>
                   {assetsHref && assetSummary?.totalAssets ? (

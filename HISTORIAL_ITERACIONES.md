@@ -1,5 +1,38 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - tercera ola visible de dirección propia y filtros operativos por grupo social
+
+- objetivo:
+  - reforzar `Organizations`, `Clients` y `Grupos sociales` sin abrir backend nuevo ni volver a mezclar conceptos
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx):
+    - ya distingue dirección `completa`, `parcial` o `sin dirección`
+    - agrega columna `Dirección propia`
+    - agrega columna `Cobertura social`
+    - deriva si los clientes ligados ya tienen grupo social definido o siguen pendientes
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
+    - agrega filtro real por grupo social y por estado de asignación
+    - en la columna `Grupo social común` muestra también contexto territorial/clasificación cuando existe
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreSocialCommunityGroupsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreSocialCommunityGroupsPage.tsx):
+    - resume grupos en uso
+    - suma columna `Cobertura`
+    - muestra clientes ligados y activos/inactivos por grupo
+- validaciones:
+  - `cd frontend && npm run build` -> `OK`
+  - `staging`:
+    - rebuild con `VITE_API_BASE_URL=http://192.168.7.42:8081`
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreOrganizationsPage-SZNAjj4x.js`, `BusinessCoreClientsPage-Czb61GHx.js`, `BusinessCoreSocialCommunityGroupsPage-CygPwtD4.js`, `BusinessCoreCommonOrganizationNamePage-Duc9C7Vl.js`, `index-DK2lLH_9.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - rebuild con `VITE_API_BASE_URL=https://orkestia.ddns.net`
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreOrganizationsPage-CLlis1R1.js`, `BusinessCoreClientsPage-CGOF_S12.js`, `BusinessCoreSocialCommunityGroupsPage-D6XFyHWl.js`, `BusinessCoreCommonOrganizationNamePage-BKYh6HeR.js`, `index-BfxowxkW.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `business-core` queda más estable para operación diaria sin reabrir la discusión semántica del modelo
+  - el siguiente paso ya puede salir de este mismo slice
+
 ## 2026-04-22 - `Grupos sociales` pasa a ser el flujo principal y `Sugerencias` queda como apoyo legacy
 
 - objetivo:

@@ -61,6 +61,11 @@ Estado de este segundo bloque:
   - dirección propia lista o faltante
   - contacto principal listo
   - cantidad de clientes ligados a esa organización
+- el siguiente corte visible ya queda cerrado en frontend sin abrir backend nuevo:
+  - `Organizations` ahora también deriva cobertura social de esos clientes usando `social_community_group_id`
+  - la vista distingue dirección `complete|partial|missing`
+  - la cartera `Clients` ya expone filtro real por grupo social o por estado de asignación
+  - `Grupos sociales` ya resume cobertura real del catálogo con conteos de clientes ligados
 - `BusinessCoreClientsPage` ya puede derivar lectura operacional del grupo social común desde `business_clients.social_community_group_id`:
   - cantidad de clientes con grupo social definido
   - grupos visibles de tamaño > 1

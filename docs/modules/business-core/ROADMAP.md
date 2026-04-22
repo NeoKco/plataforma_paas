@@ -123,6 +123,14 @@ Pendiente documentado:
 
 Completado recientemente:
 
+- tercera ola visible de `organization addresses` y estabilización operativa del grupo social común:
+  - `BusinessCoreOrganizationsPage` ya distingue dirección `completa`, `parcial` o `sin dirección`
+  - la tabla ahora separa `Dirección propia`, `Lectura operativa` y `Cobertura social`
+  - `Organizations` ya deja ver si los clientes ligados tienen grupo social definido o pendientes por asignar
+  - `BusinessCoreClientsPage` ya deja filtrar la cartera por grupo social concreto o por estado de asignación
+  - `BusinessCoreSocialCommunityGroupsPage` ya resume cobertura real del catálogo con clientes ligados y grupos efectivamente en uso
+  - este corte no abre backend nuevo ni reabre la semántica del modelo
+
 - segunda ola visible de `organization addresses` y lectura operacional por organización:
   - `BusinessCoreOrganizationsPage` ya carga también `clients` para sintetizar señal operacional rápida sin backend nuevo
   - la vista ya muestra:

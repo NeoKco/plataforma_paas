@@ -38,13 +38,19 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
   - si la organización ya tiene dirección propia visible
   - si el contacto principal ya quedó listo
   - cuántos clientes siguen ligados a esa misma organización
+  - si esa dirección ya está completa o sigue parcial
+  - si esos clientes ya tienen grupo social definido o siguen pendientes por asignar
 - `Clientes` ya puede mostrar una lectura operacional del grupo social común:
   - cuántos clientes ya tienen grupo social definido
   - cuántos grupos sociales ya son visibles
   - cuántos pendientes quedan por asignar
   - en cada fila, la columna `Grupo social común` resume nombre común y tamaño del grupo
+  - la cartera ahora también puede filtrarse por grupo social concreto o por estado de asignación
 - `Grupos sociales` es ahora el flujo principal para crear y mantener esas agrupaciones sociales compartidas
 - el modal de `Nuevo cliente` y `Editar cliente` ya deja seleccionar directamente el `Grupo social común`
+- `Grupos sociales` ya no es solo un catálogo ciego:
+  - ahora muestra cuántos clientes están ligados a cada grupo
+  - distingue grupos en uso y grupos aún listos para asignación
 - una misma identidad base puede existir como `organization`, pero la vista `Empresas` no debe usarse para revisar la cartera comercial completa.
 - por defecto, la pantalla `Empresas` excluye las organizaciones ya usadas como clientes para evitar mezclar ambas lecturas.
 - en `Empresas`, la tabla operativa debe mostrar tambien el `contacto principal` con telefono y mail, para permitir lectura rapida sin abrir otros catalogos.

@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { AppBadge } from "../../../../../design-system/AppBadge";
 import { pickLocalizedText, useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { BusinessCoreCatalogPage } from "../components/common/BusinessCoreCatalogPage";
+import {
+  getTenantBusinessClients,
+  type TenantBusinessClient,
+} from "../services/clientsService";
 import {
   createTenantSocialCommunityGroup,
   deleteTenantSocialCommunityGroup,
@@ -38,6 +42,7 @@ export function BusinessCoreSocialCommunityGroupsPage() {
   const { language } = useLanguage();
   const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const [items, setItems] = useState<TenantSocialCommunityGroup[]>([]);
+  const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -45,15 +50,37 @@ export function BusinessCoreSocialCommunityGroupsPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [form, setForm] = useState<TenantSocialCommunityGroupWriteRequest>(buildDefaultForm());
 
+  const usageByGroupId = useMemo(() => {
+    const grouped = new Map<number, { linkedClients: number; activeClients: number }>();
+    clients.forEach((client) => {
+      if (!client.social_community_group_id) {
+        return;
+      }
+      const current = grouped.get(client.social_community_group_id) ?? {
+        linkedClients: 0,
+        activeClients: 0,
+      };
+      grouped.set(client.social_community_group_id, {
+        linkedClients: current.linkedClients + 1,
+        activeClients: current.activeClients + (client.is_active ? 1 : 0),
+      });
+    });
+    return grouped;
+  }, [clients]);
+
   async function loadItems() {
     if (!session?.accessToken) return;
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getTenantSocialCommunityGroups(session.accessToken, {
-        includeInactive: true,
-      });
-      setItems(response.data);
+      const [groupsResponse, clientsResponse] = await Promise.all([
+        getTenantSocialCommunityGroups(session.accessToken, {
+          includeInactive: true,
+        }),
+        getTenantBusinessClients(session.accessToken, { includeInactive: true }),
+      ]);
+      setItems(groupsResponse.data);
+      setClients(clientsResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -174,7 +201,7 @@ export function BusinessCoreSocialCommunityGroupsPage() {
       onNew={startCreate}
       renderTableIntro={({ language: currentLanguage, rows }) => (
         <div className="row g-3">
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-3">
             <PanelCard
               title={currentLanguage === "en" ? "Active" : "Activos"}
             >
@@ -183,7 +210,7 @@ export function BusinessCoreSocialCommunityGroupsPage() {
               </div>
             </PanelCard>
           </div>
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-3">
             <PanelCard
               title={currentLanguage === "en" ? "With commune" : "Con comuna"}
             >
@@ -192,7 +219,7 @@ export function BusinessCoreSocialCommunityGroupsPage() {
               </div>
             </PanelCard>
           </div>
-          <div className="col-12 col-md-4">
+          <div className="col-12 col-md-3">
             <PanelCard
               title={
                 currentLanguage === "en" ? "With classification" : "Con clasificación"
@@ -200,6 +227,39 @@ export function BusinessCoreSocialCommunityGroupsPage() {
             >
               <div className="business-core-summary-metric">
                 {rows.filter((item) => Boolean(item.territorial_classification)).length}
+              </div>
+            </PanelCard>
+          </div>
+          <div className="col-12 col-md-3">
+            <PanelCard
+              title={currentLanguage === "en" ? "In use" : "En uso"}
+            >
+              <div className="business-core-summary-metric">
+                {rows.filter((item) => (usageByGroupId.get(item.id)?.linkedClients ?? 0) > 0).length}
+              </div>
+            </PanelCard>
+          </div>
+          <div className="col-12 col-md-6">
+            <PanelCard
+              title={currentLanguage === "en" ? "Linked clients" : "Clientes ligados"}
+            >
+              <div className="business-core-summary-metric">
+                {rows.reduce(
+                  (accumulator, item) =>
+                    accumulator + (usageByGroupId.get(item.id)?.linkedClients ?? 0),
+                  0
+                )}
+              </div>
+            </PanelCard>
+          </div>
+          <div className="col-12 col-md-6">
+            <PanelCard
+              title={currentLanguage === "en" ? "Direct assignment ready" : "Listo para asignación directa"}
+            >
+              <div className="business-core-cell__meta">
+                {currentLanguage === "es"
+                  ? "Este catálogo ya debe alimentar el selector de Clientes. Si un grupo ya existe aquí, no deberías volver a resolverlo por similitud."
+                  : "This catalog should already feed the Clients selector. If a group already exists here, you should not resolve it again by similarity."}
               </div>
             </PanelCard>
           </div>
@@ -263,6 +323,37 @@ export function BusinessCoreSocialCommunityGroupsPage() {
           headerEs: "Clasificación",
           headerEn: "Classification",
           render: (item) => item.territorial_classification || "—",
+        },
+        {
+          key: "coverage",
+          headerEs: "Cobertura",
+          headerEn: "Coverage",
+          render: (item) => {
+            const usage = usageByGroupId.get(item.id);
+            return (
+              <div>
+                <div className="business-core-cell__title">
+                  {usage?.linkedClients
+                    ? t(`${usage.linkedClients} clientes`, `${usage.linkedClients} clients`)
+                    : t("sin clientes ligados", "no linked clients")}
+                </div>
+                <div className="business-core-cell__meta">
+                  {usage?.linkedClients
+                    ? t(
+                        `${usage.activeClients} activos · ${usage.linkedClients - usage.activeClients} inactivos`,
+                        `${usage.activeClients} active · ${usage.linkedClients - usage.activeClients} inactive`
+                      )
+                    : t(
+                        "catálogo listo para asignación directa",
+                        "catalog ready for direct assignment"
+                      )}
+                </div>
+                <div className="business-core-cell__meta">
+                  {[item.commune, item.zone].filter(Boolean).join(" · ") || "—"}
+                </div>
+              </div>
+            );
+          },
         },
         {
           key: "status",

@@ -11,6 +11,10 @@ import {
   type TenantBusinessClient,
 } from "../services/clientsService";
 import {
+  getTenantSocialCommunityGroups,
+  type TenantSocialCommunityGroup,
+} from "../services/socialCommunityGroupsService";
+import {
   createTenantBusinessContact,
   getTenantBusinessContacts,
   updateTenantBusinessContact,
@@ -30,6 +34,7 @@ import {
   buildAddressLine,
   parseAddressLine,
 } from "../utils/addressPresentation";
+import { getClientSocialCommunityName } from "../utils/socialCommunityPresentation";
 
 type OrganizationForm = TenantBusinessOrganizationWriteRequest & {
   street: string;
@@ -84,12 +89,35 @@ function buildGoogleMapsUrl(organization: TenantBusinessOrganization) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
+function getAddressReadiness(
+  organization: TenantBusinessOrganization
+): "missing" | "partial" | "complete" {
+  const hasAnyAddressField = Boolean(
+    organization.address_line || organization.commune || organization.city || organization.region
+  );
+  if (!hasAnyAddressField) {
+    return "missing";
+  }
+  if (
+    organization.address_line &&
+    organization.commune &&
+    organization.city &&
+    organization.region
+  ) {
+    return "complete";
+  }
+  return "partial";
+}
+
 export function BusinessCoreOrganizationsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [socialCommunityGroups, setSocialCommunityGroups] = useState<
+    TenantSocialCommunityGroup[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -115,6 +143,55 @@ export function BusinessCoreOrganizationsPage() {
     return grouped;
   }, [clients]);
 
+  const socialCommunityGroupById = useMemo(
+    () => new Map(socialCommunityGroups.map((group) => [group.id, group])),
+    [socialCommunityGroups]
+  );
+
+  const socialCoverageByOrganizationId = useMemo(() => {
+    const grouped = new Map<
+      number,
+      {
+        linkedClients: number;
+        definedClients: number;
+        pendingClients: number;
+        groupNames: string[];
+      }
+    >();
+    organizations.forEach((organization) => {
+      grouped.set(organization.id, {
+        linkedClients: 0,
+        definedClients: 0,
+        pendingClients: 0,
+        groupNames: [],
+      });
+    });
+    clients.forEach((client) => {
+      const current = grouped.get(client.organization_id) ?? {
+        linkedClients: 0,
+        definedClients: 0,
+        pendingClients: 0,
+        groupNames: [],
+      };
+      const organization = organizations.find((item) => item.id === client.organization_id) ?? null;
+      const commonName = getClientSocialCommunityName(
+        client,
+        organization,
+        socialCommunityGroupById,
+        { fallbackToLegacyLegalName: false }
+      );
+      grouped.set(client.organization_id, {
+        linkedClients: current.linkedClients + 1,
+        definedClients: current.definedClients + (commonName ? 1 : 0),
+        pendingClients: current.pendingClients + (commonName ? 0 : 1),
+        groupNames: commonName
+          ? Array.from(new Set([...current.groupNames, commonName])).sort()
+          : current.groupNames,
+      });
+    });
+    return grouped;
+  }, [clients, organizations, socialCommunityGroupById]);
+
   async function loadOrganizations() {
     if (!session?.accessToken) {
       return;
@@ -122,16 +199,23 @@ export function BusinessCoreOrganizationsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [organizationsResponse, contactsResponse, clientsResponse] = await Promise.all([
+      const [
+        organizationsResponse,
+        contactsResponse,
+        clientsResponse,
+        socialCommunityGroupsResponse,
+      ] = await Promise.all([
         getTenantBusinessOrganizations(session.accessToken, {
           excludeClientOrganizations: true,
         }),
         getTenantBusinessContacts(session.accessToken),
         getTenantBusinessClients(session.accessToken, { includeInactive: true }),
+        getTenantSocialCommunityGroups(session.accessToken, { includeInactive: true }),
       ]);
       setOrganizations(organizationsResponse.data);
       setContacts(contactsResponse.data);
       setClients(clientsResponse.data);
+      setSocialCommunityGroups(socialCommunityGroupsResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -310,6 +394,9 @@ export function BusinessCoreOrganizationsPage() {
         const organizationsWithAddress = rows.filter((organization) =>
           Boolean(organization.address_line)
         ).length;
+        const organizationsWithCompleteAddress = rows.filter(
+          (organization) => getAddressReadiness(organization) === "complete"
+        ).length;
         const organizationsWithPrimaryContact = rows.filter((organization) => {
           const primaryContact =
             contactsByOrganizationId.get(organization.id)?.find((contact) => contact.is_primary) ??
@@ -317,13 +404,14 @@ export function BusinessCoreOrganizationsPage() {
             null;
           return Boolean(primaryContact);
         }).length;
-        const linkedClientOrganizations = rows.filter(
-          (organization) => (clientCountByOrganizationId.get(organization.id) ?? 0) > 0
-        ).length;
+        const organizationsWithDefinedSocialGroups = rows.filter((organization) => {
+          const coverage = socialCoverageByOrganizationId.get(organization.id);
+          return Boolean(coverage?.groupNames.length);
+        }).length;
 
         return (
           <div className="row g-3">
-            <div className="col-12 col-md-4">
+            <div className="col-12 col-md-3">
               <div className="panel-card">
                 <div className="panel-card__header">
                   <h2 className="panel-card__title">
@@ -340,7 +428,24 @@ export function BusinessCoreOrganizationsPage() {
                 <div className="business-core-summary-metric">{organizationsWithAddress}</div>
               </div>
             </div>
-            <div className="col-12 col-md-4">
+            <div className="col-12 col-md-3">
+              <div className="panel-card">
+                <div className="panel-card__header">
+                  <h2 className="panel-card__title">
+                    {currentLanguage === "es" ? "Dirección completa" : "Complete address"}
+                  </h2>
+                  <p className="panel-card__subtitle mb-0">
+                    {currentLanguage === "es"
+                      ? "Contrapartes con calle, comuna, ciudad y región listas para lectura operativa."
+                      : "Counterparts with street, commune, city, and region ready for operational reading."}
+                  </p>
+                </div>
+                <div className="business-core-summary-metric">
+                  {organizationsWithCompleteAddress}
+                </div>
+              </div>
+            </div>
+            <div className="col-12 col-md-3">
               <div className="panel-card">
                 <div className="panel-card__header">
                   <h2 className="panel-card__title">
@@ -357,21 +462,23 @@ export function BusinessCoreOrganizationsPage() {
                 </div>
               </div>
             </div>
-            <div className="col-12 col-md-4">
+            <div className="col-12 col-md-3">
               <div className="panel-card">
                 <div className="panel-card__header">
                   <h2 className="panel-card__title">
                     {currentLanguage === "es"
-                      ? "Clientes ya ligados"
-                      : "Already linked clients"}
+                      ? "Grupos sociales ligados"
+                      : "Linked social groups"}
                   </h2>
                   <p className="panel-card__subtitle mb-0">
                     {currentLanguage === "es"
-                      ? "Organizaciones de esta vista que ya quedaron asociadas a uno o más clientes."
-                      : "Organizations in this view already linked to one or more clients."}
+                      ? "Contrapartes de esta vista cuyos clientes ya quedaron agrupados socialmente."
+                      : "Counterparts in this view whose clients already share a social grouping."}
                   </p>
                 </div>
-                <div className="business-core-summary-metric">{linkedClientOrganizations}</div>
+                <div className="business-core-summary-metric">
+                  {organizationsWithDefinedSocialGroups}
+                </div>
               </div>
             </div>
           </div>
@@ -453,24 +560,75 @@ export function BusinessCoreOrganizationsPage() {
           },
         },
         {
+          key: "addressReadiness",
+          headerEs: "Dirección propia",
+          headerEn: "Own address",
+          render: (organization, currentLanguage) => {
+            const readiness = getAddressReadiness(organization);
+            const mapsUrl = buildGoogleMapsUrl(organization);
+            return (
+              <div>
+                <div className="business-core-cell__title">
+                  {readiness === "complete"
+                    ? currentLanguage === "es"
+                      ? "completa"
+                      : "complete"
+                    : readiness === "partial"
+                      ? currentLanguage === "es"
+                        ? "parcial"
+                        : "partial"
+                      : currentLanguage === "es"
+                        ? "sin dirección"
+                        : "no address"}
+                </div>
+                <div className="business-core-cell__meta">
+                  {organization.address_line
+                    ? [organization.address_line, organization.commune, organization.city]
+                        .filter(Boolean)
+                        .join(" · ")
+                    : currentLanguage === "es"
+                      ? "falta capturar calle o número"
+                      : "street or number still missing"}
+                </div>
+                <div className="business-core-cell__meta">
+                  {readiness === "partial"
+                    ? currentLanguage === "es"
+                      ? "conviene completar comuna, ciudad o región"
+                      : "complete commune, city, or region"
+                    : mapsUrl
+                      ? currentLanguage === "es"
+                        ? "lista para mapa y lectura diaria"
+                        : "ready for maps and daily reading"
+                      : "—"}
+                </div>
+              </div>
+            );
+          },
+        },
+        {
           key: "operationalPosture",
           headerEs: "Lectura operativa",
           headerEn: "Operational posture",
           render: (organization, currentLanguage) => {
             const linkedClients = clientCountByOrganizationId.get(organization.id) ?? 0;
-            const hasAddress = Boolean(organization.address_line);
+            const coverage = socialCoverageByOrganizationId.get(organization.id);
+            const readiness = getAddressReadiness(organization);
             const hasDifferentiatedLegalName =
               Boolean(organization.legal_name) && organization.legal_name !== organization.name;
             return (
               <div>
                 <div className="business-core-cell__title">
-                  {hasAddress
+                  {readiness === "complete"
                     ? currentLanguage === "es"
-                      ? "dirección lista"
-                      : "address ready"
+                      ? "lectura estable"
+                      : "stable reading"
+                    : readiness === "partial"
+                      ? currentLanguage === "es"
+                        ? "lectura parcial"
+                        : "partial reading"
                     : currentLanguage === "es"
-                      ? "sin dirección propia"
-                      : "no own address"}
+                      ? "lectura básica"
+                      : "basic reading"}
                 </div>
                 <div className="business-core-cell__meta">
                   {linkedClients
@@ -482,13 +640,57 @@ export function BusinessCoreOrganizationsPage() {
                       : "no linked clients in this view"}
                 </div>
                 <div className="business-core-cell__meta">
-                  {hasDifferentiatedLegalName
+                  {coverage?.groupNames.length
+                    ? currentLanguage === "es"
+                      ? `${coverage.groupNames.length} grupo(s) social(es) visibles`
+                      : `${coverage.groupNames.length} visible social group(s)`
+                    : hasDifferentiatedLegalName
                     ? currentLanguage === "es"
                       ? `razón social: ${organization.legal_name}`
                       : `legal name: ${organization.legal_name}`
                     : currentLanguage === "es"
                       ? "sin razón social diferenciada"
                       : "no differentiated legal name"}
+                </div>
+              </div>
+            );
+          },
+        },
+        {
+          key: "socialCoverage",
+          headerEs: "Cobertura social",
+          headerEn: "Social coverage",
+          render: (organization, currentLanguage) => {
+            const coverage = socialCoverageByOrganizationId.get(organization.id);
+            const firstGroups = coverage?.groupNames.slice(0, 2) ?? [];
+            return (
+              <div>
+                <div className="business-core-cell__title">
+                  {coverage?.groupNames.length
+                    ? firstGroups.join(" · ")
+                    : currentLanguage === "es"
+                      ? "sin grupo social visible"
+                      : "no visible social group"}
+                </div>
+                <div className="business-core-cell__meta">
+                  {coverage?.linkedClients
+                    ? currentLanguage === "es"
+                      ? `${coverage.definedClients}/${coverage.linkedClients} clientes con grupo`
+                      : `${coverage.definedClients}/${coverage.linkedClients} clients with group`
+                    : currentLanguage === "es"
+                      ? "sin clientes ligados"
+                      : "no linked clients"}
+                </div>
+                <div className="business-core-cell__meta">
+                  {coverage?.pendingClients
+                    ? currentLanguage === "es"
+                      ? `${coverage.pendingClients} pendiente(s) por asignar`
+                      : `${coverage.pendingClients} pending assignment(s)`
+                    : coverage?.linkedClients
+                      ? currentLanguage === "es"
+                        ? "sin pendientes visibles"
+                        : "no visible pending assignments"
+                      : "—"}
                 </div>
               </div>
             );

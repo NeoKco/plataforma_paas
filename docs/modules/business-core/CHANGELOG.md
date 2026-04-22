@@ -2,6 +2,24 @@
 
 ## 2026-04-22
 
+- tercera ola visible de `organization addresses` y estabilización operativa de `social_community_groups`:
+  - [BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx) ahora deja una lectura más rica de dirección propia:
+    - distingue `completa`, `parcial` o `sin dirección`
+    - separa `Dirección propia`, `Lectura operativa` y `Cobertura social`
+    - muestra si la contraparte ya tiene clientes ligados con grupo social definido o pendientes por asignar
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya agrega filtro real por grupo social:
+    - todos
+    - con grupo definido
+    - con grupo visible (`2+`)
+    - pendientes
+    - grupo específico
+  - [BusinessCoreSocialCommunityGroupsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreSocialCommunityGroupsPage.tsx) ya muestra cobertura de uso del catálogo:
+    - clientes ligados
+    - activos/inactivos
+    - grupos efectivamente en uso
+  - validación repo:
+    - `cd frontend && npm run build` -> `OK`
+
 - cierre del rediseño UX para `social_community_groups`:
   - se agrega [BusinessCoreSocialCommunityGroupsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreSocialCommunityGroupsPage.tsx) como CRUD visible principal del catálogo social
   - [BusinessCoreModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreModuleNav.tsx) ahora separa explícitamente:
