@@ -165,21 +165,33 @@ class BusinessOrganizationService:
             raise ValueError("El tipo de organizacion es obligatorio")
 
         normalized_name = normalize_human_key(payload["name"])
+        current_normalized_name = (
+            normalize_human_key(current_organization.name)
+            if current_organization is not None
+            else None
+        )
         organizations = self.organization_repository.list_all(
             tenant_db,
             include_inactive=True,
             exclude_client_organizations=False,
         )
-        for organization in organizations:
-            if current_organization is not None and organization.id == current_organization.id:
-                continue
-            if normalize_human_key(organization.name) == normalized_name:
-                raise ValueError("Ya existe una organizacion con ese nombre")
-
-        if payload["tax_id"]:
-            normalized_tax_id = normalize_tax_id_key(payload["tax_id"])
+        if current_organization is None or normalized_name != current_normalized_name:
             for organization in organizations:
                 if current_organization is not None and organization.id == current_organization.id:
                     continue
-                if normalize_tax_id_key(organization.tax_id) == normalized_tax_id:
-                    raise ValueError("Ya existe una organizacion con ese identificador tributario")
+                if normalize_human_key(organization.name) == normalized_name:
+                    raise ValueError("Ya existe una organizacion con ese nombre")
+
+        if payload["tax_id"]:
+            normalized_tax_id = normalize_tax_id_key(payload["tax_id"])
+            current_normalized_tax_id = (
+                normalize_tax_id_key(current_organization.tax_id)
+                if current_organization is not None and current_organization.tax_id
+                else None
+            )
+            if current_organization is None or normalized_tax_id != current_normalized_tax_id:
+                for organization in organizations:
+                    if current_organization is not None and organization.id == current_organization.id:
+                        continue
+                    if normalize_tax_id_key(organization.tax_id) == normalized_tax_id:
+                        raise ValueError("Ya existe una organizacion con ese identificador tributario")

@@ -2990,6 +2990,15 @@
   - publish frontend `staging`: `OK`
   - publish frontend `production`: `OK`
   - `check_frontend_static_readiness.sh`: `0 fallos, 0 advertencias` en ambos carriles
+- corrección adicional del mismo corte:
+  - al intentar homologar grupos como `Cerrillos` / `cerrillos`, el backend estaba revalidando el `name` interno aunque el operador solo cambiara `legal_name`
+  - eso hacía fallar el guardado con `Ya existe una organizacion con ese nombre`
+  - [organization_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/services/organization_service.py) ahora solo revalida unicidad de `name` y `tax_id` cuando esos campos cambian de verdad
+  - el cambio deja seguir protegiendo altas y ediciones reales del nombre base, pero ya no bloquea la homologación del nombre común visible
+- validaciones adicionales:
+  - `backend.app.tests.test_business_core_validation_rules`: `13 tests OK`
+  - backend deploy `staging`: `528 tests OK`
+  - backend deploy `production`: `528 tests OK`
 
 # 2026-04-15 - Default task_type en OT abiertas
 

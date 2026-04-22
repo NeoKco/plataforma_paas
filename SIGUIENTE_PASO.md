@@ -22,12 +22,15 @@
       - nombre muy parecido por prefijo
       - primeros términos significativos iguales
     - el copy de la página ya quedó alineado a esa lógica para no sugerir falsamente que busca solo vacíos
+    - además, el backend ya permite homologar `Organización / Razón social` sin rebotar por duplicados históricos del `name` interno cuando ese `name` no cambió
   - publicado en:
     - `staging` con `BusinessCoreClientsPage-CTwvH0eT.js`, `BusinessCoreCommonOrganizationNamePage-KEoW3auo.js` e `index-CB8FoUVQ.js`
     - `production` con `BusinessCoreClientsPage-CkbQtwBC.js`, `BusinessCoreCommonOrganizationNamePage-xHgOr5i7.js` e `index-bJiWdsRO.js`
   - validación:
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+    - `backend.app.tests.test_business_core_validation_rules` -> `13 tests OK`
+    - backend deploy `staging` y `production` -> `528 tests OK`
   - corrección de datos asociada:
     - `production` restauró `client_id=192 / organization_id=216` a `name=Cecilia Tabales`
     - `legal_name` queda en `Los Arbolitos`

@@ -2,6 +2,16 @@
 
 ## 2026-04-22
 
+- `Nombre común de organización` corrige el bloqueo por duplicados históricos del `name` interno:
+  - [organization_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/services/organization_service.py) ya no rechaza una actualización cuando solo cambia `legal_name` y el `name` interno no cambió
+  - esto permite homologar grupos como `Cerrillos` / `cerrillos` sin reabrir el conflicto del nombre base histórico
+  - la regla nueva mantiene la protección de unicidad cuando sí se intenta cambiar `name` o `tax_id`
+  - cobertura agregada en [test_business_core_validation_rules.py](/home/felipe/platform_paas/backend/app/tests/test_business_core_validation_rules.py)
+  - validación:
+    - `backend.app.tests.test_business_core_validation_rules` -> `13 tests OK`
+    - `staging` backend deploy -> `528 tests OK`
+    - `production` backend deploy -> `528 tests OK`
+
 - `Nombre común de organización` deja de depender de `Organización / Razón social` vacío y pasa a detectar candidatos por similitud:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ahora arma grupos candidatos cuando las organizaciones comparten:
     - `RUT / Tax ID`

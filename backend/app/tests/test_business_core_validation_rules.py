@@ -11,6 +11,7 @@ from app.apps.tenant_modules.business_core.schemas import (  # noqa: E402
     BusinessClientCreateRequest,
     BusinessContactCreateRequest,
     BusinessOrganizationCreateRequest,
+    BusinessOrganizationUpdateRequest,
     BusinessSiteCreateRequest,
     BusinessWorkGroupMemberCreateRequest,
 )
@@ -84,6 +85,61 @@ class BusinessCoreValidationRulesTestCase(unittest.TestCase):
             "Ya existe una organizacion con ese identificador tributario",
             str(exc.exception),
         )
+
+    def test_organization_update_allows_legal_name_change_when_internal_name_is_unchanged(self) -> None:
+        repository = Mock()
+        current_organization = SimpleNamespace(
+            id=7,
+            name="Cerrillos",
+            legal_name="cerrillos",
+            tax_id=None,
+            organization_kind="client",
+            phone=None,
+            email=None,
+            address_line=None,
+            commune=None,
+            city=None,
+            region=None,
+            country_code="CL",
+            notes=None,
+            is_active=True,
+            sort_order=100,
+        )
+        duplicate_historical_organization = SimpleNamespace(
+            id=9,
+            name="cerrillos",
+            legal_name="Cerrillos",
+            tax_id=None,
+            organization_kind="client",
+        )
+        repository.get_by_id.return_value = current_organization
+        repository.list_all.return_value = [current_organization, duplicate_historical_organization]
+        repository.save.side_effect = lambda _tenant_db, organization: organization
+        service = BusinessOrganizationService(organization_repository=repository)
+
+        updated = service.update_organization(
+            object(),
+            7,
+            BusinessOrganizationUpdateRequest(
+                name="Cerrillos",
+                legal_name="Cerrillos",
+                tax_id=None,
+                organization_kind="client",
+                phone=None,
+                email=None,
+                address_line=None,
+                commune=None,
+                city=None,
+                region=None,
+                country_code="CL",
+                notes=None,
+                is_active=True,
+                sort_order=100,
+            ),
+        )
+
+        self.assertEqual(updated.name, "Cerrillos")
+        self.assertEqual(updated.legal_name, "Cerrillos")
 
     def test_client_rejects_duplicate_organization_association(self) -> None:
         client_repository = Mock()
