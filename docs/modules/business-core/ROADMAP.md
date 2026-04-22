@@ -7,6 +7,8 @@ Estado actual:
 - `Slice de assets y asset_types implementado`
 - `Importador legacy endurecido para sanear texto visible`
 - `Importador legacy revalidado en runtime sobre empresa-bootstrap`
+- `Modelo social_community_groups ya activo y publicado`
+- `Organizations`, `Clients` y `Grupos sociales` ya cubren la tercera ola visible de dirección propia + cobertura social`
 
 Prioridad:
 
@@ -118,6 +120,22 @@ Alcance:
 Pendiente documentado:
 
 - `business_assets`
+
+## Cierre operativo actual
+
+Estado:
+
+- `Suficientemente estable para salir del frente activo`
+
+Decisión:
+
+- el dominio ya no requiere otra ola inmediata de UI o semántica para seguir siendo usable
+- `Duplicados`, `Grupos sociales`, `Clientes`, `Organizations` y el ajuste consumido por `maintenance` ya dejan trazabilidad suficiente para operación diaria
+- cualquier profundización adicional dentro de `business-core` queda como mejora futura o necesidad explícita, no como bloqueo del roadmap maestro
+
+Siguiente frente recomendado:
+
+- `platform-core hardening + E2E sobre Provisioning y DLQ`
 - `business_asset_types`
 - `business_organization_addresses`
 

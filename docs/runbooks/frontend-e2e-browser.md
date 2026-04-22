@@ -270,6 +270,11 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target matrix
   - `family-recommendation`
   - `tenant-focus`
   - `technical`
+  - `matrix`
+
+- el dispatch de specs broker-only ya no se mantiene duplicado a mano:
+  - [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh) centraliza el mapeo `target -> specs`
+  - lo reutilizan tanto [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh) como [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) y el workflow manual [.github/workflows/frontend-broker-dlq-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-broker-dlq-e2e.yml)
 
 Baseline recomendado para desarrollo local:
 
@@ -504,8 +509,8 @@ Institucionalización del baseline:
 - para ejecución local repetible existe además [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh), pensado para developers que quieren reproducir el baseline sin recordar la secuencia completa manual
 - ese helper local también acepta `--target all|platform|tenant` para revalidar solo el subset afectado sin correr siempre toda la baseline principal
 - para la validación complementaria broker-only existe además [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), pensado para reproducir los smokes DLQ sin rearmar manualmente el stack paralelo
-- para una pasada CI manual de esos mismos `3` smokes broker-only existe [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), que prepara PostgreSQL + Redis y ejecuta únicamente ese bloque DLQ
-- el `workflow_dispatch` de ese job permite escoger `target=all|batch|row|filters` para revalidar solo el subset afectado cuando el cambio no toca todo el bloque DLQ
+- para una pasada CI manual del bloque broker-only existe [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), que prepara PostgreSQL + Redis y ejecuta únicamente ese pack DLQ/Provisioning
+- el `workflow_dispatch` de ese job ya permite escoger `target=all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix` para revalidar solo el subset afectado cuando el cambio no toca todo el bloque
 
 Notas del flujo `finance` que conviene recordar:
 

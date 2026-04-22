@@ -281,11 +281,11 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target matrix
 - ese helper local acepta además `--target all|platform|tenant`, útil para revalidar solo la mitad necesaria sin correr toda la baseline principal
 - los smokes `platform_admin` que crean tenants efímeros `e2e-*` ya quedan limpiados automáticamente al terminar [scripts/dev/run_local_browser_baseline.sh](../../scripts/dev/run_local_browser_baseline.sh) y [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh); si se necesita conservarlos temporalmente, ambos helpers aceptan `--skip-e2e-cleanup`
 - para barridos manuales o recuperación operativa sigue disponible [cleanup_e2e_tenants.py](/home/felipe/platform_paas/backend/app/scripts/cleanup_e2e_tenants.py), que usa `archive -> deprovision -> delete`
-- para validar específicamente los `3` smokes DLQ broker-only existe [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), que levanta un stack paralelo `broker` sobre Redis y ejecuta solo esos casos
-- ese helper local acepta además `--target all|batch|row|filters`, útil para revalidar un smoke DLQ concreto sin correr todo el bloque
+- para validar específicamente el bloque broker-only DLQ existe [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), que levanta un stack paralelo `broker` sobre Redis y delega el subset Playwright al runner compartido [run_broker_dlq_playwright_target.sh](../../scripts/dev/run_broker_dlq_playwright_target.sh)
+- ese helper local acepta hoy `--target all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix`, útil para revalidar un smoke o subgrupo broker-only concreto sin correr todo el bloque
 - el helper published broker-only de `staging` acepta hoy `--target all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix`
 - para CI manual de esos casos broker-only existe además [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), pensado para lanzarse con `workflow_dispatch`
-- ese workflow manual acepta además `target=all|batch|row|filters`, útil para revalidar solo un smoke DLQ concreto cuando se toca esa zona
+- ese workflow manual ya quedó alineado al mismo runner compartido y acepta `target=all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix`
 
 Notas:
 

@@ -87,6 +87,7 @@ Estado práctico de cierre:
 - validación browser de prioridad por `tenant` visible dentro de `Provisioning`, para aislar primero un tenant cargado antes de operar sus familias DLQ
 - validación browser de diagnóstico técnico `DLQ / BD` dentro de `Provisioning`, para distinguir si el problema visible dominante cae en rol postgres, base postgres, esquema tenant o drop de base tenant
 - validación browser de matriz broker-only `tenant + capa técnica` dentro de `Provisioning`, para aislar la combinación operativa correcta entre tenant y capa técnica visible
+- hardening E2E broker-only ya institucionalizado con runner compartido único para `local`, `staging published` y `workflow_dispatch` manual
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`

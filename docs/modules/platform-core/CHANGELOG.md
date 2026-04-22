@@ -1026,3 +1026,29 @@ Resumen curado del bloque central.
 - `finance` y `platform-core` quedan como referencia para siguientes módulos
 - `tenant_portal` y middleware tenant dejan de tratar `maintenance` como implícito dentro de `core`; desde ahora es un entitlement contractual explícito (`maintenance`)
 - `Tenants` deja visible también en copy que `Mantenciones` ya no viaja implícito dentro de `Core negocio`
+## 2026-04-22
+
+- se endurece el paquete E2E broker-only de `Provisioning/DLQ` para no seguir manteniendo targets duplicados entre helper local, helper published y workflow manual
+- se agrega el runner compartido [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh)
+- [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh) ya delega el mapping `target -> specs` a ese runner y deja de quedarse solo en `all|batch|row|filters`
+- [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) ya consume el mismo runner compartido
+- [.github/workflows/frontend-broker-dlq-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-broker-dlq-e2e.yml) ya amplía `workflow_dispatch.target` a:
+  - `all`
+  - `batch`
+  - `row`
+  - `filters`
+  - `guided`
+  - `family`
+  - `family-requeue`
+  - `family-batch`
+  - `family-recommendation`
+  - `tenant-focus`
+  - `technical`
+  - `matrix`
+- documentación alineada en:
+  - [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md)
+  - [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
+  - [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+- validación:
+  - `bash -n scripts/dev/run_broker_dlq_playwright_target.sh scripts/dev/run_local_broker_dlq_baseline.sh scripts/dev/run_staging_published_broker_dlq_smoke.sh` -> `OK`
+  - `TARGET=matrix scripts/dev/run_broker_dlq_playwright_target.sh --list` -> `OK`

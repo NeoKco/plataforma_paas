@@ -17,6 +17,14 @@ on:
           - batch
           - row
           - filters
+          - guided
+          - family
+          - family-requeue
+          - family-batch
+          - family-recommendation
+          - tenant-focus
+          - technical
+          - matrix
 
 jobs:
   frontend-broker-dlq-e2e:
@@ -221,30 +229,9 @@ jobs:
           PY
 
       - name: Run broker-only DLQ browser smokes
-        working-directory: frontend
         run: |
-          TARGET="${{ github.event.inputs.target || 'all' }}"
-          case "$TARGET" in
-            all)
-              npx playwright test \
-                e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts \
-                e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts \
-                e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
-              ;;
-            batch)
-              npx playwright test e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts
-              ;;
-            row)
-              npx playwright test e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts
-              ;;
-            filters)
-              npx playwright test e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
-              ;;
-            *)
-              echo "Target broker-only no soportado: $TARGET" >&2
-              exit 1
-              ;;
-          esac
+          TARGET="${{ github.event.inputs.target || 'all' }}" FRONTEND_DIR="$GITHUB_WORKSPACE/frontend" \
+            "$GITHUB_WORKSPACE/scripts/dev/run_broker_dlq_playwright_target.sh"
 
       - name: Upload Playwright report
         if: always()

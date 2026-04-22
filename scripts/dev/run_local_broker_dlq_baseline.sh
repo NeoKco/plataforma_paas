@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
 FRONTEND_DIR="$ROOT_DIR/frontend"
+RUNNER_SCRIPT="$ROOT_DIR/scripts/dev/run_broker_dlq_playwright_target.sh"
 PYTHON_BIN="${E2E_BACKEND_PYTHON:-$ROOT_DIR/platform_paas_venv/bin/python}"
 BACKEND_HOST="${BROKER_BACKEND_HOST:-127.0.0.1}"
 BACKEND_PORT="${BROKER_BACKEND_PORT:-8001}"
@@ -22,12 +23,14 @@ E2E_CLEANUP_PREFIX="${E2E_CLEANUP_PREFIX:-e2e-}"
 usage() {
   cat <<'EOF'
 Uso:
-  scripts/dev/run_local_broker_dlq_baseline.sh [--target all|batch|row|filters]
+  scripts/dev/run_local_broker_dlq_baseline.sh [--target VALUE]
 
-Ejecuta la validación local broker-only para los 3 smokes DLQ de provisioning.
+Ejecuta la validación local broker-only para la superficie DLQ/Provisioning publicada.
 
 Opciones:
-  --target VALUE   Selecciona `all`, `batch`, `row` o `filters`
+  --target VALUE   Uno de: all, batch, row, filters, guided, family,
+                   family-requeue, family-batch, family-recommendation,
+                   tenant-focus, technical, matrix
   --skip-e2e-cleanup Omite el cleanup final de tenants `e2e-*`
   --help           Muestra esta ayuda
 
@@ -68,6 +71,11 @@ done
 
 if [[ ! -x "$PYTHON_BIN" ]]; then
   echo "Python backend no encontrado en $PYTHON_BIN" >&2
+  exit 1
+fi
+
+if [[ ! -x "$RUNNER_SCRIPT" ]]; then
+  echo "Runner broker-only no encontrado o no ejecutable: $RUNNER_SCRIPT" >&2
   exit 1
 fi
 
@@ -167,29 +175,6 @@ FRONTEND_PID="$(cat /tmp/platform-local-broker-dlq-frontend.pid)"
 wait_for_http "http://$FRONTEND_HOST:$FRONTEND_PORT"
 
 echo "==> Ejecutando smokes broker-only DLQ"
-(
-  cd "$FRONTEND_DIR"
-  case "$TARGET" in
-    all)
-      npx playwright test \
-        e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
-      ;;
-    batch)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts
-      ;;
-    row)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts
-      ;;
-    filters)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
-      ;;
-    *)
-      echo "Target broker-only no soportado: $TARGET" >&2
-      exit 1
-      ;;
-  esac
-)
+TARGET="$TARGET" FRONTEND_DIR="$FRONTEND_DIR" "$RUNNER_SCRIPT"
 
 echo "==> Validación broker-only DLQ completada"

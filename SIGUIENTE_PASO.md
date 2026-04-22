@@ -43,10 +43,37 @@
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - siguiente paso correcto del roadmap:
-  - el corte recomendado de tercera ola visible de `organization addresses` + filtros/detalle por grupo social común ya queda cerrado en repo
-  - corte recomendado:
-    - decidir si `business-core` ya quedó suficientemente estable para abrir el siguiente frente formal del roadmap maestro
-    - o, si se quiere un último ajuste dentro del dominio, pasar a detalle/edición todavía más rica por organización sin tocar de nuevo la semántica del modelo
+  - el corte recomendado de tercera ola visible de `organization addresses` + filtros/detalle por grupo social común ya queda cerrado en runtime
+  - decisión ya cerrada:
+    - `business-core` ya quedó suficientemente estable para salir del frente activo sin seguirlo limando por inercia
+    - el siguiente frente formal del roadmap maestro pasa a `platform-core hardening + E2E sobre Provisioning y DLQ`
+  - alcance recomendado del siguiente frente:
+    - endurecer smoke/E2E publicados sobre Provisioning y DLQ
+    - reforzar operación visible de `platform_admin`
+    - no reabrir `business-core` salvo evidencia nueva o necesidad explícita
+
+- subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
+  - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual
+  - [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh) pasa a ser runner compartido del pack broker-only
+  - [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh) y [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) ya consumen ese mismo runner
+  - [.github/workflows/frontend-broker-dlq-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-broker-dlq-e2e.yml) ya expone el set completo:
+    - `all`
+    - `batch`
+    - `row`
+    - `filters`
+    - `guided`
+    - `family`
+    - `family-requeue`
+    - `family-batch`
+    - `family-recommendation`
+    - `tenant-focus`
+    - `technical`
+    - `matrix`
+  - validación:
+    - `bash -n scripts/dev/run_broker_dlq_playwright_target.sh scripts/dev/run_local_broker_dlq_baseline.sh scripts/dev/run_staging_published_broker_dlq_smoke.sh` -> `OK`
+    - `TARGET=matrix scripts/dev/run_broker_dlq_playwright_target.sh --list` -> `OK`
+  - siguiente paso recomendado dentro de este frente:
+    - institucionalizar un baseline published curado de `Provisioning/DLQ` que corra siempre `dispatch-capability + surface-gating + observabilidad visible`, y sume el bloque broker-only solo cuando el entorno realmente usa `broker`
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la asignación del `Grupo social común`

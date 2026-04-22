@@ -1,5 +1,63 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - `platform-core` endurece el runner E2E broker-only de Provisioning/DLQ
+
+- objetivo:
+  - abrir el frente nuevo `platform-core hardening + E2E` con un subcorte concreto de alto retorno: dejar de duplicar el mapping `target -> specs` entre helper local, helper published y workflow manual broker-only
+- cambios y acciones ejecutadas:
+  - [scripts/dev/run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh):
+    - runner compartido nuevo para el pack broker-only de `Provisioning/DLQ`
+    - soporta:
+      - `all`
+      - `batch`
+      - `row`
+      - `filters`
+      - `guided`
+      - `family`
+      - `family-requeue`
+      - `family-batch`
+      - `family-recommendation`
+      - `tenant-focus`
+      - `technical`
+      - `matrix`
+    - soporta además `--list` para validar wiring/compilación sin ejecutar el smoke completo
+  - [scripts/dev/run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh):
+    - ya delega el dispatch al runner compartido
+    - deja de quedar anclado a solo `all|batch|row|filters`
+  - [scripts/dev/run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh):
+    - ya delega el mismo dispatch al runner compartido
+  - [.github/workflows/frontend-broker-dlq-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-broker-dlq-e2e.yml):
+    - `workflow_dispatch.target` ya queda alineado al mismo set completo de targets broker-only
+  - documentación alineada en:
+    - [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md)
+    - [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
+    - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+    - [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
+    - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- validaciones:
+  - `bash -n scripts/dev/run_broker_dlq_playwright_target.sh scripts/dev/run_local_broker_dlq_baseline.sh scripts/dev/run_staging_published_broker_dlq_smoke.sh` -> `OK`
+  - `TARGET=matrix scripts/dev/run_broker_dlq_playwright_target.sh --list` -> `OK`
+- resultado:
+  - el frente broker-only deja de depender de memoria manual o de mantener matrices paralelas de targets
+  - el siguiente subcorte del frente ya puede concentrarse en baseline published curado o en operación visible, no en wiring repetido
+
+## 2026-04-22 - `business-core` queda suficientemente estable y el roadmap sale del dominio
+
+- objetivo:
+  - cerrar explícitamente el frente activo de `business-core` después de estabilizar `social_community_groups`, `Organizations`, `Clients`, `Grupos sociales`, `Sugerencias` y la separación ya consumida por `maintenance`
+- cambios y acciones ejecutadas:
+  - [ESTADO_ACTUAL.md](/home/felipe/platform_paas/ESTADO_ACTUAL.md):
+    - deja explícito que `business-core` ya no es el frente activo principal
+  - [SIGUIENTE_PASO.md](/home/felipe/platform_paas/SIGUIENTE_PASO.md):
+    - cierra la decisión y mueve el siguiente frente formal a `platform-core hardening + E2E sobre Provisioning y DLQ`
+  - [docs/modules/business-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/business-core/ROADMAP.md):
+    - agrega un bloque de cierre operativo actual y deja `business-core` como suficientemente estable
+  - [HANDOFF_STATE.json](/home/felipe/platform_paas/HANDOFF_STATE.json):
+    - ya deja el handoff apuntando al siguiente frente formal sin reabrir `business-core` por defecto
+- resultado:
+  - `business-core` deja de arrastrar slices por inercia
+  - el roadmap ya puede moverse al siguiente frente formal sin reabrir este dominio salvo evidencia nueva o necesidad explícita
+
 ## 2026-04-22 - tercera ola visible de dirección propia y filtros operativos por grupo social
 
 - objetivo:

@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FRONTEND_DIR="$ROOT_DIR/frontend"
+RUNNER_SCRIPT="$ROOT_DIR/scripts/dev/run_broker_dlq_playwright_target.sh"
 TARGET="${TARGET:-all}"
 STAGING_ROOT="${STAGING_ROOT:-/opt/platform_paas_staging}"
 STAGING_ENV_SOURCE="${STAGING_ENV_SOURCE:-$STAGING_ROOT/.env.staging}"
@@ -64,6 +65,11 @@ if [[ ! -d "$FRONTEND_DIR" ]]; then
   exit 1
 fi
 
+if [[ ! -x "$RUNNER_SCRIPT" ]]; then
+  echo "Runner broker-only no encontrado o no ejecutable: $RUNNER_SCRIPT" >&2
+  exit 1
+fi
+
 if [[ ! -x "$STAGING_BACKEND_PYTHON" ]]; then
   echo "Python backend de staging no encontrado en $STAGING_BACKEND_PYTHON" >&2
   exit 1
@@ -105,61 +111,6 @@ export E2E_BACKEND_PYTHON="$STAGING_BACKEND_PYTHON"
 export E2E_BACKEND_ENV_FILE="$STAGING_ENV_TMP"
 
 echo "==> Ejecutando smokes broker-only de staging publicado"
-(
-  cd "$FRONTEND_DIR"
-  case "$TARGET" in
-    all)
-      npx playwright test \
-        e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-technical-diagnosis.smoke.spec.ts \
-        e2e/specs/platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts
-      ;;
-    batch)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq.smoke.spec.ts
-      ;;
-    row)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-row.smoke.spec.ts
-      ;;
-    filters)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts
-      ;;
-    guided)
-      npx playwright test e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts
-      ;;
-    family)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-focus.smoke.spec.ts
-      ;;
-    family-requeue)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-requeue.smoke.spec.ts
-      ;;
-    family-batch)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-batch-requeue.smoke.spec.ts
-      ;;
-    family-recommendation)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-family-recommendation.smoke.spec.ts
-      ;;
-    tenant-focus)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts
-      ;;
-    technical)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-technical-diagnosis.smoke.spec.ts
-      ;;
-    matrix)
-      npx playwright test e2e/specs/platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts
-      ;;
-    *)
-      echo "Target no soportado: $TARGET" >&2
-      exit 1
-      ;;
-  esac
-)
+TARGET="$TARGET" FRONTEND_DIR="$FRONTEND_DIR" "$RUNNER_SCRIPT"
 
 echo "==> Smokes broker-only published de staging completados"

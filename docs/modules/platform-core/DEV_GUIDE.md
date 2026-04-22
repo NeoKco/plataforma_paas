@@ -107,6 +107,7 @@ Documentación base:
 - E2E browser: [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
 - Modelo de portabilidad tenant: [TENANT_DATA_PORTABILITY_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md)
 - Helper published broker-only staging: [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
+- Runner compartido broker-only: [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh)
 
 ## E2E vigente
 
@@ -143,6 +144,28 @@ Smokes actuales del bloque central:
 - [platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-focus.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-technical-diagnosis.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-technical-diagnosis.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-tenant-technical-matrix.smoke.spec.ts)
+
+Hardening operativo vigente del bloque broker-only:
+
+- el dispatch `target -> specs` ya vive en un único runner compartido:
+  - [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh)
+- lo consumen:
+  - [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh)
+  - [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
+  - [.github/workflows/frontend-broker-dlq-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-broker-dlq-e2e.yml)
+- targets hoy institucionalizados:
+  - `all`
+  - `batch`
+  - `row`
+  - `filters`
+  - `guided`
+  - `family`
+  - `family-requeue`
+  - `family-batch`
+  - `family-recommendation`
+  - `tenant-focus`
+  - `technical`
+  - `matrix`
 
 Baseline E2E tenant actualmente validado para continuar pruebas browser:
 
