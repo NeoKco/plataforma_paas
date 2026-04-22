@@ -7,6 +7,10 @@ import type { ApiError } from "../../../../../types";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import { BusinessCoreCatalogPage } from "../components/common/BusinessCoreCatalogPage";
 import {
+  getTenantBusinessClients,
+  type TenantBusinessClient,
+} from "../services/clientsService";
+import {
   createTenantBusinessContact,
   getTenantBusinessContacts,
   updateTenantBusinessContact,
@@ -85,6 +89,7 @@ export function BusinessCoreOrganizationsPage() {
   const { language } = useLanguage();
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
+  const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -102,6 +107,14 @@ export function BusinessCoreOrganizationsPage() {
     return grouped;
   }, [contacts]);
 
+  const clientCountByOrganizationId = useMemo(() => {
+    const grouped = new Map<number, number>();
+    clients.forEach((client) => {
+      grouped.set(client.organization_id, (grouped.get(client.organization_id) ?? 0) + 1);
+    });
+    return grouped;
+  }, [clients]);
+
   async function loadOrganizations() {
     if (!session?.accessToken) {
       return;
@@ -109,14 +122,16 @@ export function BusinessCoreOrganizationsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [organizationsResponse, contactsResponse] = await Promise.all([
+      const [organizationsResponse, contactsResponse, clientsResponse] = await Promise.all([
         getTenantBusinessOrganizations(session.accessToken, {
           excludeClientOrganizations: true,
         }),
         getTenantBusinessContacts(session.accessToken),
+        getTenantBusinessClients(session.accessToken, { includeInactive: true }),
       ]);
       setOrganizations(organizationsResponse.data);
       setContacts(contactsResponse.data);
+      setClients(clientsResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -291,6 +306,77 @@ export function BusinessCoreOrganizationsPage() {
       onCancel={startCreate}
       onReload={loadOrganizations}
       onNew={startCreate}
+      renderTableIntro={({ language: currentLanguage, rows }) => {
+        const organizationsWithAddress = rows.filter((organization) =>
+          Boolean(organization.address_line)
+        ).length;
+        const organizationsWithPrimaryContact = rows.filter((organization) => {
+          const primaryContact =
+            contactsByOrganizationId.get(organization.id)?.find((contact) => contact.is_primary) ??
+            contactsByOrganizationId.get(organization.id)?.[0] ??
+            null;
+          return Boolean(primaryContact);
+        }).length;
+        const linkedClientOrganizations = rows.filter(
+          (organization) => (clientCountByOrganizationId.get(organization.id) ?? 0) > 0
+        ).length;
+
+        return (
+          <div className="row g-3">
+            <div className="col-12 col-md-4">
+              <div className="panel-card">
+                <div className="panel-card__header">
+                  <h2 className="panel-card__title">
+                    {currentLanguage === "es"
+                      ? "Dirección operativa cargada"
+                      : "Operational address loaded"}
+                  </h2>
+                  <p className="panel-card__subtitle mb-0">
+                    {currentLanguage === "es"
+                      ? "Contrapartes con dirección propia visible para mapa y lectura diaria."
+                      : "Counterparts with their own visible address for maps and daily reading."}
+                  </p>
+                </div>
+                <div className="business-core-summary-metric">{organizationsWithAddress}</div>
+              </div>
+            </div>
+            <div className="col-12 col-md-4">
+              <div className="panel-card">
+                <div className="panel-card__header">
+                  <h2 className="panel-card__title">
+                    {currentLanguage === "es" ? "Contacto principal listo" : "Primary contact ready"}
+                  </h2>
+                  <p className="panel-card__subtitle mb-0">
+                    {currentLanguage === "es"
+                      ? "Contrapartes con lectura de contacto resoluble sin abrir otros catálogos."
+                      : "Counterparts whose contact reading is available without opening other catalogs."}
+                  </p>
+                </div>
+                <div className="business-core-summary-metric">
+                  {organizationsWithPrimaryContact}
+                </div>
+              </div>
+            </div>
+            <div className="col-12 col-md-4">
+              <div className="panel-card">
+                <div className="panel-card__header">
+                  <h2 className="panel-card__title">
+                    {currentLanguage === "es"
+                      ? "Clientes ya ligados"
+                      : "Already linked clients"}
+                  </h2>
+                  <p className="panel-card__subtitle mb-0">
+                    {currentLanguage === "es"
+                      ? "Organizaciones de esta vista que ya quedaron asociadas a uno o más clientes."
+                      : "Organizations in this view already linked to one or more clients."}
+                  </p>
+                </div>
+                <div className="business-core-summary-metric">{linkedClientOrganizations}</div>
+              </div>
+            </div>
+          </div>
+        );
+      }}
       fields={[
         { key: "name", labelEs: "Nombre", labelEn: "Name", placeholderEs: "Ej: Acme Ltda", placeholderEn: "Ex: Acme Ltd" },
         { key: "legal_name", labelEs: "Razón social", labelEn: "Legal name" },
@@ -361,6 +447,48 @@ export function BusinessCoreOrganizationsPage() {
                 <div className="business-core-cell__meta">
                   {[primaryContact?.phone, primaryContact?.email].filter(Boolean).join(" · ") ||
                     "—"}
+                </div>
+              </div>
+            );
+          },
+        },
+        {
+          key: "operationalPosture",
+          headerEs: "Lectura operativa",
+          headerEn: "Operational posture",
+          render: (organization, currentLanguage) => {
+            const linkedClients = clientCountByOrganizationId.get(organization.id) ?? 0;
+            const hasAddress = Boolean(organization.address_line);
+            const hasDifferentiatedLegalName =
+              Boolean(organization.legal_name) && organization.legal_name !== organization.name;
+            return (
+              <div>
+                <div className="business-core-cell__title">
+                  {hasAddress
+                    ? currentLanguage === "es"
+                      ? "dirección lista"
+                      : "address ready"
+                    : currentLanguage === "es"
+                      ? "sin dirección propia"
+                      : "no own address"}
+                </div>
+                <div className="business-core-cell__meta">
+                  {linkedClients
+                    ? currentLanguage === "es"
+                      ? `${linkedClients} cliente(s) ya ligados`
+                      : `${linkedClients} linked client(s)`
+                    : currentLanguage === "es"
+                      ? "sin clientes ligados en esta vista"
+                      : "no linked clients in this view"}
+                </div>
+                <div className="business-core-cell__meta">
+                  {hasDifferentiatedLegalName
+                    ? currentLanguage === "es"
+                      ? `razón social: ${organization.legal_name}`
+                      : `legal name: ${organization.legal_name}`
+                    : currentLanguage === "es"
+                      ? "sin razón social diferenciada"
+                      : "no differentiated legal name"}
                 </div>
               </div>
             );

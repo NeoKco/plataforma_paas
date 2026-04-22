@@ -2,6 +2,25 @@
 
 ## 2026-04-22
 
+- `Organizations` y `Clients` cierran la segunda ola visible de `organization addresses` y lectura operacional por organización:
+  - [BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx) ahora carga también `clients` para sintetizar señal operacional real sin endpoint nuevo
+  - `Organizations` ya muestra arriba:
+    - `Dirección operativa cargada`
+    - `Contacto principal listo`
+    - `Clientes ya ligados`
+  - la tabla suma `Lectura operativa` para distinguir rápido si la organización ya tiene dirección propia, nombre común visible y cuántos clientes siguen ligados
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ahora resume:
+    - clientes con organización común definida
+    - grupos ya visibles
+    - pendientes por homologar
+  - `Clients` agrega también la columna `Organización común`, mostrando nombre común, tamaño del grupo y referencia al nombre base cuando difiere
+  - [business-core.css](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css) suma la clase `business-core-summary-metric` para esa franja resumida
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreOrganizationsPage-VnU7qZVb.js`, `BusinessCoreClientsPage-BQOgiFnx.js` e `index-CZrao2nk.js`
+    - `production` publicado con `BusinessCoreOrganizationsPage-C7Fmz1ra.js`, `BusinessCoreClientsPage-CLjBUz_w.js` e `index-CCZS1hZ6.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - `Nombre común de organización` corrige el bloqueo por duplicados históricos del `name` interno:
   - [organization_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/services/organization_service.py) ya no rechaza una actualización cuando solo cambia `legal_name` y el `name` interno no cambió
   - esto permite homologar grupos como `Cerrillos` / `cerrillos` sin reabrir el conflicto del nombre base histórico

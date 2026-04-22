@@ -56,6 +56,15 @@ Estado de este segundo bloque:
 - adopción visible fuera de `maintenance`: la ficha del cliente ya puede cargar `assets` del tenant, agruparlos por `site_id` y dejar CTA contextual a `Activos sitio`
 - `BusinessCoreOverviewPage` ya puede cargar también `sites` y `assets` para mostrar señal rápida de inventario reusable sin abrir backend nuevo ni salir del dominio
 - `BusinessCoreClientsPage` ya puede reutilizar `assets` para mostrar señal rápida de inventario por cliente, siempre derivando el resumen desde `client -> sites -> assets`
+- `BusinessCoreOrganizationsPage` ya puede cargar también `clients` del tenant para sintetizar lectura operacional por organización sin endpoint nuevo:
+  - dirección propia lista o faltante
+  - contacto principal listo
+  - cantidad de clientes ligados a esa organización
+- `BusinessCoreClientsPage` ya puede derivar lectura operacional del grupo social común desde `organization.legal_name`:
+  - cantidad de clientes ya homologados
+  - grupos visibles de tamaño > 1
+  - pendientes por homologar
+  - columna operativa por fila con nombre común y tamaño de grupo
 - `BusinessCoreClientsPage` ya no debe asumir unificación de fichas para la homologación operativa de organizaciones:
   - la lectura principal de cartera queda limpia
   - la acción manual vive en `BusinessCoreCommonOrganizationNamePage`

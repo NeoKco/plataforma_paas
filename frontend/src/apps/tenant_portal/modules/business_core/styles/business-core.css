@@ -167,6 +167,13 @@
   margin-top: 0.85rem;
 }
 
+.business-core-summary-metric {
+  color: var(--app-text, #183153);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .business-core-search {
   min-width: min(28rem, 100%);
 }

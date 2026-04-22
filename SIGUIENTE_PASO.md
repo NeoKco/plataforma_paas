@@ -20,11 +20,29 @@
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
+- subcorte nuevo ya cerrado en runtime dentro de `business-core`:
+  - segunda ola visible de `organization addresses` y lectura operacional por organización ya publicada
+  - [BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx) ahora resume:
+    - dirección operativa cargada
+    - contacto principal listo
+    - clientes ya ligados
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ahora cuantifica:
+    - organizaciones comunes definidas
+    - grupos ya visibles
+    - pendientes por homologar
+    - y lo refleja también por fila en la columna `Organización común`
+  - publicado en:
+    - `staging` con `BusinessCoreOrganizationsPage-VnU7qZVb.js`, `BusinessCoreClientsPage-BQOgiFnx.js` e `index-CZrao2nk.js`
+    - `production` con `BusinessCoreOrganizationsPage-C7Fmz1ra.js`, `BusinessCoreClientsPage-CLjBUz_w.js` e `index-CCZS1hZ6.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - siguiente paso correcto del roadmap:
   - cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual ya corregido
   - corte recomendado:
-    - segunda ola visible de `organization addresses` y lectura operacional por organización dentro de `business-core`
-    - reforzar `Organizations` y `Clients` para que el grupo social común se vea más estable sin abrir consolidación profunda nueva
+    - profundizar una tercera ola visible de `organization addresses`, ya no solo en tabla resumida sino en lectura/edición más rica por organización
+    - reforzar `Organizations` y `Clients` con filtros o detalle por organización común para que el grupo social común se vea estable sin abrir consolidación profunda nueva
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la normalización de `Organización / Razón social`

@@ -1,5 +1,46 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - segunda ola visible de `organization addresses` y lectura operacional por organización
+
+- objetivo:
+  - cerrar el siguiente corte recomendado del roadmap en `business-core` sin volver a abrir consolidación profunda
+  - reforzar `Organizations` y `Clients` para que la organización social común se lea de forma más estable en operación diaria
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx):
+    - carga también `clients` del tenant junto a `organizations`
+    - agrega resumen superior con:
+      - `Dirección operativa cargada`
+      - `Contacto principal listo`
+      - `Clientes ya ligados`
+    - agrega la columna `Lectura operativa` por organización para distinguir dirección propia, nombre común visible y cantidad de clientes ligados
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
+    - deriva metadatos operativos desde `organization.legal_name`
+    - agrega resumen con:
+      - clientes con organización común definida
+      - grupos ya visibles
+      - pendientes por homologar
+    - agrega columna `Organización común` con nombre común, tamaño de grupo y referencia al nombre base cuando difiere
+  - [frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css):
+    - suma `business-core-summary-metric` para la franja resumida del slice
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - rebuild con `VITE_API_BASE_URL=http://192.168.7.42:8081`
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreOrganizationsPage-VnU7qZVb.js`, `BusinessCoreClientsPage-BQOgiFnx.js`, `index-CZrao2nk.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - rebuild con `VITE_API_BASE_URL=https://orkestia.ddns.net`
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreOrganizationsPage-C7Fmz1ra.js`, `BusinessCoreClientsPage-CLjBUz_w.js`, `index-CCZS1hZ6.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `Organizations` ya no queda solo como catálogo con dirección propia; ahora resume también contacto principal y relación real con la cartera cliente
+  - `Clients` ya no deja la homologación de organización común como tarea ciega; expone cobertura, grupos visibles y pendientes dentro de la misma cartera
+- siguiente paso:
+  - profundizar una tercera ola visible de `organization addresses` y detalle por organización, o abrir el siguiente frente formal del roadmap si `business-core` ya quedó suficientemente estable
+
 ## 2026-04-22 - armonización documental completa contra comportamiento vigente
 
 - objetivo:

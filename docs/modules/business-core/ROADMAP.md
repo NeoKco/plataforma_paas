@@ -123,6 +123,25 @@ Pendiente documentado:
 
 Completado recientemente:
 
+- segunda ola visible de `organization addresses` y lectura operacional por organización:
+  - `BusinessCoreOrganizationsPage` ya carga también `clients` para sintetizar señal operacional rápida sin backend nuevo
+  - la vista ya muestra:
+    - `Dirección operativa cargada`
+    - `Contacto principal listo`
+    - `Clientes ya ligados`
+  - la tabla ya agrega `Lectura operativa` por fila para distinguir:
+    - dirección propia lista o faltante
+    - presencia de nombre común visible
+    - cantidad de clientes ligados a esa organización
+- `BusinessCoreClientsPage` ya complementa la cartera con lectura operacional del grupo social común:
+  - ahora resume arriba cuántos clientes ya tienen organización común definida
+  - muestra cuántos grupos comunes ya son visibles
+  - deja cuantificados los pendientes por homologar
+  - la tabla ya agrega una columna `Organización común` con nombre común, tamaño de grupo y referencia al nombre base cuando difiere
+- validación runtime del corte:
+  - `staging` publicado con `BusinessCoreOrganizationsPage-VnU7qZVb.js`, `BusinessCoreClientsPage-BQOgiFnx.js` e `index-CZrao2nk.js`
+  - `production` publicado con `BusinessCoreOrganizationsPage-C7Fmz1ra.js`, `BusinessCoreClientsPage-CLjBUz_w.js` e `index-CCZS1hZ6.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - homologación manual de organización común por selección de clientes:
   - `BusinessCoreCommonOrganizationNamePage` ya deja marcar varios clientes candidatos y fijar un `Nombre común final`
   - la vista ya detecta grupos por similitud real de organización
@@ -160,8 +179,8 @@ Completado recientemente:
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual recién corregido
 - siguiente corte recomendado:
-  - cerrar la siguiente ola visible de `organization addresses` y lectura operacional por organización dentro de `business-core`
-  - reforzar `Organizations` y `Clients` para que el grupo social común se vea más estable sin volver a abrir consolidación profunda nueva
+  - profundizar la siguiente ola visible de `organization addresses` dentro de `business-core`, ya no solo como tabla resumida sino como lectura/edición más rica por organización
+  - reforzar `Organizations` y `Clients` con filtros o detalle por organización común para que el grupo social común se vea estable sin volver a abrir consolidación profunda nueva
   - o abrir el siguiente frente formal del roadmap maestro si `business-core` ya quedó suficientemente estable
 - `iot` no necesita abrirse todavía; solo debe seguir reutilizando `sites` y `assets` cuando se implemente
 - endurecer el importador inicial desde `ieris_app`
@@ -173,7 +192,7 @@ Completado recientemente:
 - `work_group_members`: backend/frontend base listo
 - `assets` y `asset_types`: completado
 - importadores legacy desde `ieris_app`: primer corte listo, falta aplicacion y endurecimiento
-- `organization addresses`: primera ola visible ya alineada con captura estructurada y salida operativa a mapa
+- `organization addresses`: segunda ola visible ya deja resumen operacional en `Organizations`; falta profundizar detalle/edición más rica por organización
 - auditoria operativa de duplicados: UI ya lista para `organizations`, `clients`, `contacts`, `sites` e `installations`, con sugerencia de ficha a conservar, consolidacion operativa y desactivacion segura; falta merge/asimilacion profunda guiada
 - historial visible de merges: listo para las consolidaciones operativas base del slice
 - merge profundo de `organizations` y consolidacion documental de `contacts`, `sites` e `installations`: ya resuelve asimilacion guiada de múltiples clientes en conflicto, integra campos visibles base, permite selección manual por campo, expone diff final previo y registra una auditoria persistente del merge; `installations` ya cubre también fechas técnicas y garantía, pero sigue faltando criterio documental profundo y fusión manual asistida de identidad completa para el resto de las entidades

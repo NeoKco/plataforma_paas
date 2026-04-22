@@ -33,6 +33,15 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - `Clientes` muestra la cartera cliente del tenant.
 - dentro de un cliente, `Nombre cliente` sigue leyendo el nombre individual/base (`organization.name`)
 - `Organización / Razón social` se usa como nombre común homologado (`organization.legal_name`) cuando corresponde agrupar varios clientes bajo una misma organización social
+- `Empresas` ya puede mostrar una lectura operacional rápida sin salir de la tabla:
+  - si la organización ya tiene dirección propia visible
+  - si el contacto principal ya quedó listo
+  - cuántos clientes siguen ligados a esa misma organización
+- `Clientes` ya puede mostrar una lectura operacional del grupo social común:
+  - cuántos clientes ya tienen organización común definida
+  - cuántos grupos comunes ya son visibles
+  - cuántos pendientes quedan por homologar
+  - en cada fila, la columna `Organización común` resume nombre común y tamaño del grupo
 - una misma identidad base puede existir como `organization`, pero la vista `Empresas` no debe usarse para revisar la cartera comercial completa.
 - por defecto, la pantalla `Empresas` excluye las organizaciones ya usadas como clientes para evitar mezclar ambas lecturas.
 - en `Empresas`, la tabla operativa debe mostrar tambien el `contacto principal` con telefono y mail, para permitir lectura rapida sin abrir otros catalogos.

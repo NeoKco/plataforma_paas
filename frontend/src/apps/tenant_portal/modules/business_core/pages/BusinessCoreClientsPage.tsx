@@ -103,6 +103,12 @@ type ClientAssetSummary = {
   focusAddress: TenantBusinessSite | null;
 };
 
+type CommonOrganizationSummary = {
+  totalDefinedClients: number;
+  groupedOrganizations: number;
+  pendingClients: number;
+};
+
 type DuplicateClientCandidate = {
   row: ClientRow;
   reasons: string[];
@@ -165,6 +171,16 @@ function normalizeTaxIdKey(value: string | null | undefined): string {
     .toUpperCase()
     .replace(/[^0-9A-Z]/g, "")
     .trim();
+}
+
+function getNormalizedCommonOrganizationName(
+  organization: TenantBusinessOrganization | null
+): string | null {
+  const legalName = normalizeNullable(organization?.legal_name ?? "");
+  if (!legalName) {
+    return null;
+  }
+  return normalizeHumanKey(legalName) || null;
 }
 
 function buildGoogleMapsUrl(address: TenantBusinessSite): string | null {
@@ -382,6 +398,53 @@ export function BusinessCoreClientsPage() {
     });
     return summary;
   }, [assetsBySiteId, clientRows]);
+
+  const commonOrganizationMetaByClientId = useMemo(() => {
+    const countsByCommonName = new Map<string, number>();
+    clientRows.forEach((row) => {
+      const commonNameKey = getNormalizedCommonOrganizationName(row.organization);
+      if (!commonNameKey) {
+        return;
+      }
+      countsByCommonName.set(
+        commonNameKey,
+        (countsByCommonName.get(commonNameKey) ?? 0) + 1
+      );
+    });
+
+    const summary: CommonOrganizationSummary = {
+      totalDefinedClients: 0,
+      groupedOrganizations: 0,
+      pendingClients: 0,
+    };
+    countsByCommonName.forEach((count) => {
+      summary.totalDefinedClients += count;
+      if (count >= 2) {
+        summary.groupedOrganizations += 1;
+      }
+    });
+    summary.pendingClients = clientRows.length - summary.totalDefinedClients;
+
+    const metadataByClientId = new Map<
+      number,
+      { commonName: string | null; groupSize: number; isGrouped: boolean }
+    >();
+    clientRows.forEach((row) => {
+      const commonName = normalizeNullable(row.organization?.legal_name ?? "");
+      const commonNameKey = getNormalizedCommonOrganizationName(row.organization);
+      const groupSize = commonNameKey ? countsByCommonName.get(commonNameKey) ?? 0 : 0;
+      metadataByClientId.set(row.client.id, {
+        commonName,
+        groupSize,
+        isGrouped: groupSize >= 2,
+      });
+    });
+
+    return {
+      metadataByClientId,
+      summary,
+    };
+  }, [clientRows]);
 
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -883,12 +946,54 @@ export function BusinessCoreClientsPage() {
         <LoadingBlock label={t("Cargando clientes...", "Loading clients...")} />
       ) : null}
 
+      <div className="row g-3">
+        <div className="col-12 col-md-4">
+          <PanelCard
+            title={t("Organización común definida", "Defined common organization")}
+            subtitle={t(
+              "Clientes que ya quedaron homologados bajo un nombre común.",
+              "Clients already normalized under a common name."
+            )}
+          >
+            <div className="business-core-summary-metric">
+              {commonOrganizationMetaByClientId.summary.totalDefinedClients}
+            </div>
+          </PanelCard>
+        </div>
+        <div className="col-12 col-md-4">
+          <PanelCard
+            title={t("Grupos ya visibles", "Visible groups")}
+            subtitle={t(
+              "Nombres comunes que hoy agrupan a 2 o más clientes.",
+              "Common names that currently group 2 or more clients."
+            )}
+          >
+            <div className="business-core-summary-metric">
+              {commonOrganizationMetaByClientId.summary.groupedOrganizations}
+            </div>
+          </PanelCard>
+        </div>
+        <div className="col-12 col-md-4">
+          <PanelCard
+            title={t("Pendientes por homologar", "Pending normalization")}
+            subtitle={t(
+              "Clientes que todavía no tienen organización común definida.",
+              "Clients that still do not have a common organization defined."
+            )}
+          >
+            <div className="business-core-summary-metric">
+              {commonOrganizationMetaByClientId.summary.pendingClients}
+            </div>
+          </PanelCard>
+        </div>
+      </div>
+
       <DataTableCard
         title={t("Clientes activos y cartera", "Client portfolio")}
         subtitle={
           t(
-            "Busca por nombre, RUT, contacto o dirección.",
-            "Search by name, tax ID, contact, or address."
+            "Busca por nombre, RUT, contacto, organización o dirección.",
+            "Search by name, tax ID, contact, organization, or address."
           )
         }
         rows={filteredRows}
@@ -898,8 +1003,8 @@ export function BusinessCoreClientsPage() {
             type="search"
             placeholder={
               t(
-                "Buscar por cliente, RUT, contacto o dirección",
-                "Search by client, tax ID, contact, or address"
+                "Buscar por cliente, RUT, contacto, organización o dirección",
+                "Search by client, tax ID, contact, organization, or address"
               )
             }
             value={search}
@@ -920,6 +1025,43 @@ export function BusinessCoreClientsPage() {
                 </div>
               </div>
             ),
+          },
+          {
+            key: "commonOrganization",
+            header: t("Organización común", "Common organization"),
+            render: (row) => {
+              const metadata =
+                commonOrganizationMetaByClientId.metadataByClientId.get(row.client.id) ?? null;
+              const commonName = metadata?.commonName ?? null;
+              return (
+                <div>
+                  <div className="business-core-cell__title">
+                    {commonName || t("sin definir", "not defined")}
+                  </div>
+                  <div className="business-core-cell__meta">
+                    {commonName
+                      ? metadata?.isGrouped
+                        ? t(
+                            `${metadata.groupSize} clientes bajo este nombre común`,
+                            `${metadata.groupSize} clients under this common name`
+                          )
+                        : t(
+                            "solo este cliente usa hoy este nombre común",
+                            "only this client currently uses this common name"
+                          )
+                      : t(
+                          "usa Nombre común cuando varios clientes pertenezcan a la misma organización social",
+                          "use Common name when several clients belong to the same social organization"
+                        )}
+                  </div>
+                  {commonName && row.organization?.name && commonName !== row.organization.name ? (
+                    <div className="business-core-cell__meta">
+                      {t("cliente base:", "base client:")} {row.organization.name}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            },
           },
           {
             key: "contact",
