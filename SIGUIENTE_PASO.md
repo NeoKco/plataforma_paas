@@ -73,7 +73,15 @@
     - `bash -n scripts/dev/run_broker_dlq_playwright_target.sh scripts/dev/run_local_broker_dlq_baseline.sh scripts/dev/run_staging_published_broker_dlq_smoke.sh` -> `OK`
     - `TARGET=matrix scripts/dev/run_broker_dlq_playwright_target.sh --list` -> `OK`
   - siguiente paso recomendado dentro de este frente:
-    - institucionalizar un baseline published curado de `Provisioning/DLQ` que corra siempre `dispatch-capability + surface-gating + observabilidad visible`, y sume el bloque broker-only solo cuando el entorno realmente usa `broker`
+    - ya quedó institucionalizado un baseline published curado de `Provisioning/DLQ`
+    - [run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh) corre siempre:
+      - `dispatch-capability`
+      - `surface-gating`
+      - `observability-visible`
+    - y suma broker-only solo cuando el entorno publicado realmente usa `broker`
+    - siguiente paso recomendado dentro de este frente:
+      - decidir si se endurece ahora otro hardening visible de `platform_admin`
+      - o si se promueve este baseline published como rutina operativa explícita por ambiente
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la asignación del `Grupo social común`

@@ -1028,6 +1028,18 @@ Resumen curado del bloque central.
 - `Tenants` deja visible también en copy que `Mantenciones` ya no viaja implícito dentro de `Core negocio`
 ## 2026-04-22
 
+- se institucionaliza además un baseline published curado de `Provisioning/DLQ`:
+  - [run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh)
+  - corre siempre:
+    - [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
+    - [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts)
+    - [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts)
+  - suma broker-only solo si el entorno publicado realmente usa `broker`
+  - puede detectar el backend activo desde el env file published o forzarlo con `--dispatch-backend`
+- se agrega el smoke [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts) para fijar la capa visible mínima de observabilidad sin depender de sembrar datos nuevos en un entorno publicado
+- validación:
+  - `bash -n scripts/dev/run_published_provisioning_baseline.sh` -> `OK`
+  - `npx playwright test e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts --list` -> `OK`
 - se endurece el paquete E2E broker-only de `Provisioning/DLQ` para no seguir manteniendo targets duplicados entre helper local, helper published y workflow manual
 - se agrega el runner compartido [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh)
 - [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh) ya delega el mapping `target -> specs` a ese runner y deja de quedarse solo en `all|batch|row|filters`

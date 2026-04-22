@@ -82,6 +82,7 @@ Specs actuales:
 - [platform-admin-provisioning-dlq-filters.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-filters.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-investigation.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-investigation.smoke.spec.ts)
 - [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts)
+- [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts)
 - [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts)
 - [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
 - [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts)
@@ -284,6 +285,12 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target matrix
 - para validar específicamente el bloque broker-only DLQ existe [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), que levanta un stack paralelo `broker` sobre Redis y delega el subset Playwright al runner compartido [run_broker_dlq_playwright_target.sh](../../scripts/dev/run_broker_dlq_playwright_target.sh)
 - ese helper local acepta hoy `--target all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix`, útil para revalidar un smoke o subgrupo broker-only concreto sin correr todo el bloque
 - el helper published broker-only de `staging` acepta hoy `--target all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix`
+- para una pasada published curada de `Provisioning/DLQ` existe además [run_published_provisioning_baseline.sh](../../scripts/dev/run_published_provisioning_baseline.sh)
+- ese baseline corre siempre:
+  - `platform-admin-provisioning-dispatch-capability.smoke.spec.ts`
+  - `platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts`
+  - `platform-admin-provisioning-observability-visible.smoke.spec.ts`
+- y suma broker-only solo si el entorno publicado realmente usa `broker`
 - para CI manual de esos casos broker-only existe además [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), pensado para lanzarse con `workflow_dispatch`
 - ese workflow manual ya quedó alineado al mismo runner compartido y acepta `target=all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix`
 

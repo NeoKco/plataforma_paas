@@ -1,5 +1,38 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - `platform-core` institucionaliza baseline published curado de Provisioning/DLQ
+
+- objetivo:
+  - cerrar el siguiente subcorte de `platform-core hardening + E2E` dejando una pasada published curada que siempre valide la superficie visible mínima de `Provisioning/DLQ`, y solo agregue broker-only cuando el entorno realmente lo soporte
+- cambios y acciones ejecutadas:
+  - [frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts):
+    - smoke nuevo sin seeds para validar:
+      - `Observabilidad visible`
+      - `Snapshots recientes por tenant`
+      - `Alertas activas`
+      - `Historial de alertas operativas`
+  - [scripts/dev/run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh):
+    - helper nuevo para entornos published
+    - corre siempre:
+      - `dispatch-capability`
+      - `surface-gating`
+      - `observability-visible`
+    - detecta `dispatch backend` desde env published cuando existe
+    - suma el pack broker-only solo si el entorno realmente usa `broker`
+    - permite override con `--dispatch-backend`
+  - documentación alineada en:
+    - [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md)
+    - [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
+    - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+    - [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
+    - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- validaciones:
+  - `bash -n scripts/dev/run_published_provisioning_baseline.sh` -> `OK`
+  - `cd frontend && npx playwright test e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts --list` -> `OK`
+- resultado:
+  - el baseline published de `Provisioning/DLQ` ya no depende de sembrar observabilidad nueva ni de recordar manualmente qué subset visible debe correr siempre
+  - el siguiente subcorte del frente ya puede decidir entre operación visible de `platform_admin` o adopción operativa formal de este baseline por ambiente
+
 ## 2026-04-22 - `platform-core` endurece el runner E2E broker-only de Provisioning/DLQ
 
 - objetivo:
