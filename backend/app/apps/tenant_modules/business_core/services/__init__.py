@@ -16,6 +16,9 @@ from app.apps.tenant_modules.business_core.services.asset_service import (
 from app.apps.tenant_modules.business_core.services.organization_service import (
     BusinessOrganizationService,
 )
+from app.apps.tenant_modules.business_core.services.social_community_group_service import (
+    SocialCommunityGroupService,
+)
 from app.apps.tenant_modules.business_core.services.site_service import (
     BusinessSiteService,
 )
@@ -34,6 +37,7 @@ from app.apps.tenant_modules.business_core.services.merge_audit_service import (
 
 __all__ = [
     "BusinessOrganizationService",
+    "SocialCommunityGroupService",
     "BusinessClientService",
     "BusinessContactService",
     "BusinessSiteService",

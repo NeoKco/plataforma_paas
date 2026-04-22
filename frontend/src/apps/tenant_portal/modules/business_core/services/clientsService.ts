@@ -3,6 +3,7 @@ import { apiRequest } from "../../../../../services/api";
 export type TenantBusinessClient = {
   id: number;
   organization_id: number;
+  social_community_group_id: number | null;
   client_code: string | null;
   service_status: string;
   commercial_notes: string | null;
@@ -27,6 +28,7 @@ export type TenantBusinessClientMutationResponse = {
 
 export type TenantBusinessClientWriteRequest = {
   organization_id: number;
+  social_community_group_id: number | null;
   client_code: string | null;
   service_status: string;
   commercial_notes: string | null;

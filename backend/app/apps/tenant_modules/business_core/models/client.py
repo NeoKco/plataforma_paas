@@ -17,6 +17,12 @@ class BusinessClient(TenantBase):
         nullable=False,
         index=True,
     )
+    social_community_group_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("social_community_groups.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     client_code: Mapped[str | None] = mapped_column(String(60), nullable=True, unique=True, index=True)
     service_status: Mapped[str] = mapped_column(String(40), nullable=False, default="active", index=True)
     commercial_notes: Mapped[str | None] = mapped_column(Text, nullable=True)

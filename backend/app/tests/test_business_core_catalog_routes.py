@@ -252,6 +252,7 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
         client = SimpleNamespace(
             id=11,
             organization_id=7,
+            social_community_group_id=None,
             client_code="ACME-001",
             service_status="active",
             commercial_notes="Cliente prioritario",
@@ -304,6 +305,7 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
         client = SimpleNamespace(
             id=11,
             organization_id=7,
+            social_community_group_id=None,
             client_code="ACME-001",
             service_status="active",
             commercial_notes="Cliente prioritario",
@@ -329,6 +331,7 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
         client = SimpleNamespace(
             id=11,
             organization_id=7,
+            social_community_group_id=None,
             client_code="ACME-001",
             service_status="paused",
             commercial_notes=None,
@@ -356,6 +359,7 @@ class BusinessCoreCatalogRoutesTestCase(unittest.TestCase):
         client = SimpleNamespace(
             id=11,
             organization_id=7,
+            social_community_group_id=None,
             client_code="ACME-001",
             service_status="active",
             commercial_notes=None,

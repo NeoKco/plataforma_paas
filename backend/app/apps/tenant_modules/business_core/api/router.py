@@ -12,6 +12,9 @@ from app.apps.tenant_modules.business_core.api.assets import router as assets_ro
 from app.apps.tenant_modules.business_core.api.organizations import (
     router as organizations_router,
 )
+from app.apps.tenant_modules.business_core.api.social_community_groups import (
+    router as social_community_groups_router,
+)
 from app.apps.tenant_modules.business_core.api.overview import router as overview_router
 from app.apps.tenant_modules.business_core.api.merge_audits import (
     router as merge_audits_router,
@@ -27,6 +30,7 @@ router = APIRouter()
 router.include_router(overview_router)
 router.include_router(merge_audits_router)
 router.include_router(organizations_router)
+router.include_router(social_community_groups_router)
 router.include_router(clients_router)
 router.include_router(contacts_router)
 router.include_router(sites_router)

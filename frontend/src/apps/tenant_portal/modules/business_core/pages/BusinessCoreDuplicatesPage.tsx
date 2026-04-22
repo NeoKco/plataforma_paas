@@ -598,6 +598,8 @@ function buildClientWritePayload(
 ) {
   return {
     organization_id: overrides.organization_id ?? client.organization_id,
+    social_community_group_id:
+      overrides.social_community_group_id ?? client.social_community_group_id,
     client_code: overrides.client_code ?? client.client_code,
     service_status: overrides.service_status ?? client.service_status,
     commercial_notes: overrides.commercial_notes ?? client.commercial_notes,

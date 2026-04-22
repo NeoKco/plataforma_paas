@@ -47,11 +47,18 @@ import {
   getTenantBusinessAssets,
   type TenantBusinessAsset,
 } from "../services/assetsService";
+import {
+  getTenantSocialCommunityGroups,
+  type TenantSocialCommunityGroup,
+} from "../services/socialCommunityGroupsService";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import {
   buildAddressLine,
   parseAddressLine,
 } from "../utils/addressPresentation";
+import {
+  getClientSocialCommunityName,
+} from "../utils/socialCommunityPresentation";
 
 type ClientModalState = {
   mode: "create" | "edit";
@@ -173,14 +180,18 @@ function normalizeTaxIdKey(value: string | null | undefined): string {
     .trim();
 }
 
-function getNormalizedCommonOrganizationName(
-  organization: TenantBusinessOrganization | null
+function getNormalizedSocialCommunityName(
+  client: TenantBusinessClient | null,
+  organization: TenantBusinessOrganization | null,
+  groupsById: Map<number, TenantSocialCommunityGroup>
 ): string | null {
-  const legalName = normalizeNullable(organization?.legal_name ?? "");
-  if (!legalName) {
+  const groupName = getClientSocialCommunityName(client, organization, groupsById, {
+    fallbackToLegacyLegalName: false,
+  });
+  if (!groupName) {
     return null;
   }
-  return normalizeHumanKey(legalName) || null;
+  return normalizeHumanKey(groupName) || null;
 }
 
 function buildGoogleMapsUrl(address: TenantBusinessSite): string | null {
@@ -272,6 +283,8 @@ function buildClientWritePayload(
 ): TenantBusinessClientWriteRequest {
   return {
     organization_id: overrides.organization_id ?? client.organization_id,
+    social_community_group_id:
+      overrides.social_community_group_id ?? client.social_community_group_id,
     client_code: overrides.client_code ?? client.client_code,
     service_status: overrides.service_status ?? client.service_status,
     commercial_notes: overrides.commercial_notes ?? client.commercial_notes,
@@ -303,6 +316,7 @@ export function BusinessCoreClientsPage() {
   const navigate = useNavigate();
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
+  const [socialCommunityGroups, setSocialCommunityGroups] = useState<TenantSocialCommunityGroup[]>([]);
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [addresses, setAddresses] = useState<TenantBusinessSite[]>([]);
   const [assets, setAssets] = useState<TenantBusinessAsset[]>([]);
@@ -321,6 +335,10 @@ export function BusinessCoreClientsPage() {
   const organizationById = useMemo(
     () => new Map(organizations.map((organization) => [organization.id, organization])),
     [organizations]
+  );
+  const socialCommunityGroupById = useMemo(
+    () => new Map(socialCommunityGroups.map((group) => [group.id, group])),
+    [socialCommunityGroups]
   );
 
   const contactsByOrganizationId = useMemo(() => {
@@ -402,7 +420,11 @@ export function BusinessCoreClientsPage() {
   const commonOrganizationMetaByClientId = useMemo(() => {
     const countsByCommonName = new Map<string, number>();
     clientRows.forEach((row) => {
-      const commonNameKey = getNormalizedCommonOrganizationName(row.organization);
+      const commonNameKey = getNormalizedSocialCommunityName(
+        row.client,
+        row.organization,
+        socialCommunityGroupById
+      );
       if (!commonNameKey) {
         return;
       }
@@ -430,8 +452,17 @@ export function BusinessCoreClientsPage() {
       { commonName: string | null; groupSize: number; isGrouped: boolean }
     >();
     clientRows.forEach((row) => {
-      const commonName = normalizeNullable(row.organization?.legal_name ?? "");
-      const commonNameKey = getNormalizedCommonOrganizationName(row.organization);
+      const commonName = getClientSocialCommunityName(
+        row.client,
+        row.organization,
+        socialCommunityGroupById,
+        { fallbackToLegacyLegalName: false }
+      );
+      const commonNameKey = getNormalizedSocialCommunityName(
+        row.client,
+        row.organization,
+        socialCommunityGroupById
+      );
       const groupSize = commonNameKey ? countsByCommonName.get(commonNameKey) ?? 0 : 0;
       metadataByClientId.set(row.client.id, {
         commonName,
@@ -444,7 +475,7 @@ export function BusinessCoreClientsPage() {
       metadataByClientId,
       summary,
     };
-  }, [clientRows]);
+  }, [clientRows, socialCommunityGroupById]);
 
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -454,9 +485,16 @@ export function BusinessCoreClientsPage() {
     return clientRows.filter((row) => {
       const primaryContact = row.contacts.find((contact) => contact.is_primary) ?? row.contacts[0];
       const primaryAddress = row.addresses[0];
+      const socialCommunityName = getClientSocialCommunityName(
+        row.client,
+        row.organization,
+        socialCommunityGroupById,
+        { fallbackToLegacyLegalName: false }
+      );
       const haystack = [
         row.organization?.name,
         row.organization?.legal_name,
+        socialCommunityName,
         row.organization?.tax_id,
         stripLegacyVisibleText(row.client.commercial_notes),
         primaryContact?.full_name,
@@ -473,7 +511,7 @@ export function BusinessCoreClientsPage() {
         .toLowerCase();
       return haystack.includes(term);
     });
-  }, [clientRows, search]);
+  }, [clientRows, search, socialCommunityGroupById]);
 
   async function loadData() {
     if (!session?.accessToken) {
@@ -485,6 +523,7 @@ export function BusinessCoreClientsPage() {
       const [
         clientsResponse,
         organizationsResponse,
+        socialCommunityGroupsResponse,
         contactsResponse,
         addressesResponse,
         assetsResponse,
@@ -492,12 +531,14 @@ export function BusinessCoreClientsPage() {
         await Promise.all([
           getTenantBusinessClients(session.accessToken),
           getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
+          getTenantSocialCommunityGroups(session.accessToken, { includeInactive: true }),
           getTenantBusinessContacts(session.accessToken),
           getTenantBusinessSites(session.accessToken),
           getTenantBusinessAssets(session.accessToken, { includeInactive: true }),
         ]);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
+      setSocialCommunityGroups(socialCommunityGroupsResponse.data);
       setContacts(contactsResponse.data);
       setAddresses(addressesResponse.data);
       setAssets(assetsResponse.data);
@@ -727,6 +768,10 @@ export function BusinessCoreClientsPage() {
 
       const clientPayload: TenantBusinessClientWriteRequest = {
         organization_id: organization.id,
+        social_community_group_id:
+          modalState.mode === "edit" && modalState.clientId
+            ? clientRowById.get(modalState.clientId)?.client.social_community_group_id ?? null
+            : null,
         client_code: null,
         service_status: modalForm.serviceStatus,
         commercial_notes: normalizeNullable(modalForm.commercialNotes),
@@ -949,10 +994,10 @@ export function BusinessCoreClientsPage() {
       <div className="row g-3">
         <div className="col-12 col-md-4">
           <PanelCard
-            title={t("Organización común definida", "Defined common organization")}
+            title={t("Grupo social definido", "Defined social group")}
             subtitle={t(
-              "Clientes que ya quedaron homologados bajo un nombre común.",
-              "Clients already normalized under a common name."
+              "Clientes que ya quedaron vinculados a un grupo social común.",
+              "Clients already linked to a shared social group."
             )}
           >
             <div className="business-core-summary-metric">
@@ -962,10 +1007,10 @@ export function BusinessCoreClientsPage() {
         </div>
         <div className="col-12 col-md-4">
           <PanelCard
-            title={t("Grupos ya visibles", "Visible groups")}
+            title={t("Grupos sociales visibles", "Visible social groups")}
             subtitle={t(
-              "Nombres comunes que hoy agrupan a 2 o más clientes.",
-              "Common names that currently group 2 or more clients."
+              "Grupos sociales que hoy agrupan a 2 o más clientes.",
+              "Social groups that currently group 2 or more clients."
             )}
           >
             <div className="business-core-summary-metric">
@@ -975,10 +1020,10 @@ export function BusinessCoreClientsPage() {
         </div>
         <div className="col-12 col-md-4">
           <PanelCard
-            title={t("Pendientes por homologar", "Pending normalization")}
+            title={t("Pendientes por asignar", "Pending assignment")}
             subtitle={t(
-              "Clientes que todavía no tienen organización común definida.",
-              "Clients that still do not have a common organization defined."
+              "Clientes que todavía no tienen grupo social común definido.",
+              "Clients that still do not have a shared social group defined."
             )}
           >
             <div className="business-core-summary-metric">
@@ -1028,7 +1073,7 @@ export function BusinessCoreClientsPage() {
           },
           {
             key: "commonOrganization",
-            header: t("Organización común", "Common organization"),
+            header: t("Grupo social común", "Shared social group"),
             render: (row) => {
               const metadata =
                 commonOrganizationMetaByClientId.metadataByClientId.get(row.client.id) ?? null;
@@ -1042,12 +1087,12 @@ export function BusinessCoreClientsPage() {
                     {commonName
                       ? metadata?.isGrouped
                         ? t(
-                            `${metadata.groupSize} clientes bajo este nombre común`,
-                            `${metadata.groupSize} clients under this common name`
+                            `${metadata.groupSize} clientes bajo este grupo social`,
+                            `${metadata.groupSize} clients under this social group`
                           )
                         : t(
-                            "solo este cliente usa hoy este nombre común",
-                            "only this client currently uses this common name"
+                            "solo este cliente usa hoy este grupo social",
+                            "only this client currently uses this social group"
                           )
                       : t(
                           "usa Nombre común cuando varios clientes pertenezcan a la misma organización social",

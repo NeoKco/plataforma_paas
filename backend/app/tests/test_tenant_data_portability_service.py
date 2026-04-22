@@ -128,8 +128,23 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                     """
                     CREATE TABLE business_clients (
                         id INTEGER PRIMARY KEY,
+                        social_community_group_id INTEGER,
                         legal_name TEXT,
                         tax_id TEXT
+                    )
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    CREATE TABLE social_community_groups (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        commune TEXT,
+                        sector TEXT,
+                        zone TEXT,
+                        territorial_classification TEXT
                     )
                     """
                 )
@@ -173,6 +188,21 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
             connection.execute(
                 text(
                     """
+                    INSERT INTO social_community_groups (
+                        id,
+                        name,
+                        commune,
+                        sector,
+                        zone,
+                        territorial_classification
+                    )
+                    VALUES (5, 'Los Arbolitos', 'La Florida', 'Oriente', 'Zona A', 'territorial')
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
                     INSERT INTO finance_categories (id, name, category_type)
                     VALUES (10, 'Transferencia interna', 'transfer')
                     """
@@ -209,8 +239,23 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                     """
                     CREATE TABLE business_clients (
                         id INTEGER PRIMARY KEY,
+                        social_community_group_id INTEGER,
                         legal_name TEXT,
                         tax_id TEXT
+                    )
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    CREATE TABLE social_community_groups (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        commune TEXT,
+                        sector TEXT,
+                        zone TEXT,
+                        territorial_classification TEXT
                     )
                     """
                 )
@@ -274,6 +319,7 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                 self.assertIn("manifest.json", names)
                 self.assertIn("tenant_info.csv", names)
                 self.assertIn("users.csv", names)
+                self.assertIn("social_community_groups.csv", names)
                 self.assertIn("business_clients.csv", names)
 
                 manifest = json.loads(archive.read("manifest.json").decode("utf-8"))
@@ -282,6 +328,7 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                 exported_table_names = {item["table_name"] for item in manifest["tables"]}
                 self.assertIn("tenant_info", exported_table_names)
                 self.assertIn("users", exported_table_names)
+                self.assertIn("social_community_groups", exported_table_names)
                 self.assertIn("business_clients", exported_table_names)
                 self.assertIn("roles", set(manifest["skipped_tables"]))
 
@@ -306,6 +353,7 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
             with ZipFile(artifact_path, "r") as archive:
                 names = set(archive.namelist())
                 self.assertIn("manifest.json", names)
+                self.assertIn("social_community_groups.csv", names)
                 self.assertIn("business_clients.csv", names)
                 self.assertNotIn("tenant_info.csv", names)
                 self.assertNotIn("users.csv", names)
@@ -315,7 +363,7 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                 exported_table_names = {item["table_name"] for item in manifest["tables"]}
                 self.assertEqual(
                     exported_table_names,
-                    {"business_clients", "finance_categories"},
+                    {"business_clients", "finance_categories", "social_community_groups"},
                 )
 
     def test_create_import_job_dry_run_validates_without_writing_rows(self) -> None:
@@ -381,6 +429,7 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
             }
             self.assertEqual(summary["mode"], "apply")
             self.assertEqual(table_summaries["users"]["inserted_rows"], 1)
+            self.assertEqual(table_summaries["social_community_groups"]["inserted_rows"], 1)
             self.assertEqual(table_summaries["business_clients"]["inserted_rows"], 1)
 
             target_db = self.target_session_factory()
@@ -432,6 +481,7 @@ class TenantDataPortabilityServiceTestCase(unittest.TestCase):
                 item["table_name"]: item for item in summary["tables"]
             }
             self.assertIn("business_clients", table_summaries)
+            self.assertIn("social_community_groups", table_summaries)
             self.assertNotIn("users", table_summaries)
 
             target_db = self.target_session_factory()

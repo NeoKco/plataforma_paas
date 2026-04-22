@@ -4,11 +4,13 @@ from app.apps.tenant_modules.business_core.models import (
     BusinessClient,
     BusinessOrganization,
     BusinessSite,
+    SocialCommunityGroup,
 )
 from app.apps.tenant_modules.maintenance.models import MaintenanceWorkOrder
 from app.apps.tenant_modules.business_core.repositories import (
     BusinessClientRepository,
     BusinessOrganizationRepository,
+    SocialCommunityGroupRepository,
 )
 from app.apps.tenant_modules.business_core.schemas import (
     BusinessClientCreateRequest,
@@ -25,10 +27,14 @@ class BusinessClientService:
         self,
         client_repository: BusinessClientRepository | None = None,
         organization_repository: BusinessOrganizationRepository | None = None,
+        social_community_group_repository: SocialCommunityGroupRepository | None = None,
     ) -> None:
         self.client_repository = client_repository or BusinessClientRepository()
         self.organization_repository = (
             organization_repository or BusinessOrganizationRepository()
+        )
+        self.social_community_group_repository = (
+            social_community_group_repository or SocialCommunityGroupRepository()
         )
 
     def list_clients(
@@ -137,6 +143,7 @@ class BusinessClientService:
     ) -> dict:
         return {
             "organization_id": payload.organization_id,
+            "social_community_group_id": payload.social_community_group_id,
             "service_status": payload.service_status.strip().lower(),
             "commercial_notes": (
                 strip_legacy_visible_text(payload.commercial_notes)
@@ -174,6 +181,15 @@ class BusinessClientService:
             and organization.organization_kind.strip().lower() == "internal"
         ):
             raise ValueError("La organizacion interna no puede registrarse como cliente")
+
+        social_community_group_id = payload.get("social_community_group_id")
+        if social_community_group_id is not None:
+            social_group = self.social_community_group_repository.get_by_id(
+                tenant_db,
+                social_community_group_id,
+            )
+            if social_group is None or not isinstance(social_group, SocialCommunityGroup):
+                raise ValueError("El grupo social seleccionado no existe")
 
         return organization
 

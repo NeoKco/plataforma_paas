@@ -74,6 +74,7 @@ class TenantDataPortabilityService:
         "roles",
         "users",
         "business_organizations",
+        "social_community_groups",
         "business_contacts",
         "business_clients",
         "business_sites",

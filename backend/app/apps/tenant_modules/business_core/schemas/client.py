@@ -7,6 +7,7 @@ from app.apps.tenant_modules.business_core.schemas.common import BusinessCoreRes
 
 class BusinessClientBase(BaseModel):
     organization_id: int
+    social_community_group_id: int | None = None
     client_code: str | None = None
     service_status: str = "active"
     commercial_notes: str | None = None

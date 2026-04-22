@@ -38,6 +38,7 @@ from migrations.tenant import v0034_maintenance_actual_template_trace
 from migrations.tenant import v0035_maintenance_visit_type
 from migrations.tenant import v0036_maintenance_visit_result
 from migrations.tenant import v0038_maintenance_work_order_task_type
+from migrations.tenant import v0039_social_community_groups
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -197,6 +198,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0036_maintenance_visit_result",
                 "0037_maintenance_cost_line_expense_flag",
                 "0038_maintenance_work_order_task_type",
+                "0039_social_community_groups",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -221,6 +223,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("finance_loans", tables)
         self.assertIn("finance_loan_installments", tables)
         self.assertIn("business_organizations", tables)
+        self.assertIn("social_community_groups", tables)
         self.assertIn("business_clients", tables)
         self.assertIn("business_contacts", tables)
         self.assertIn("business_sites", tables)
@@ -276,6 +279,10 @@ class MigrationFlowTestCase(unittest.TestCase):
         business_client_columns = {
             column["name"]
             for column in inspect(engine).get_columns("business_clients")
+        }
+        social_community_group_columns = {
+            column["name"]
+            for column in inspect(engine).get_columns("social_community_groups")
         }
         business_contact_columns = {
             column["name"]
@@ -358,6 +365,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("voided_by_user_id", transaction_columns)
         self.assertIn("organization_kind", business_organization_columns)
         self.assertIn("organization_id", business_client_columns)
+        self.assertIn("social_community_group_id", business_client_columns)
+        self.assertIn("name", social_community_group_columns)
+        self.assertIn("commune", social_community_group_columns)
+        self.assertIn("sector", social_community_group_columns)
+        self.assertIn("zone", social_community_group_columns)
+        self.assertIn("territorial_classification", social_community_group_columns)
         self.assertIn("full_name", business_contact_columns)
         self.assertIn("client_id", business_site_columns)
         self.assertIn("commune", business_site_columns)
@@ -487,6 +500,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0036_maintenance_visit_result",
                 "0037_maintenance_cost_line_expense_flag",
                 "0038_maintenance_work_order_task_type",
+                "0039_social_community_groups",
             ],
         )
 
@@ -755,6 +769,25 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertNotIn(("General Income", "income"), category_rows)
         self.assertNotIn(("General Expense", "expense"), category_rows)
         self.assertNotIn(("Transfer", "transfer"), category_rows)
+
+    def test_social_community_groups_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            MigrationRunner(
+                engine=engine,
+                package_name="migrations.tenant",
+                table_name="tenant_schema_migrations",
+            ).apply_pending()
+            v0039_social_community_groups.upgrade(conn)
+            v0039_social_community_groups.upgrade(conn)
+
+        inspector = inspect(engine)
+        self.assertIn("social_community_groups", set(inspector.get_table_names()))
+        business_client_columns = {
+            column["name"] for column in inspector.get_columns("business_clients")
+        }
+        self.assertIn("social_community_group_id", business_client_columns)
 
 
 if __name__ == "__main__":

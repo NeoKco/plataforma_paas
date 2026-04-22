@@ -14,7 +14,9 @@ import { BusinessCoreHelpBubble } from "../components/common/BusinessCoreHelpBub
 import { BusinessCoreModuleNav } from "../components/common/BusinessCoreModuleNav";
 import {
   getTenantBusinessClients,
+  updateTenantBusinessClient,
   type TenantBusinessClient,
+  type TenantBusinessClientWriteRequest,
 } from "../services/clientsService";
 import {
   getTenantBusinessContacts,
@@ -22,14 +24,22 @@ import {
 } from "../services/contactsService";
 import {
   getTenantBusinessOrganizations,
-  updateTenantBusinessOrganization,
   type TenantBusinessOrganization,
-  type TenantBusinessOrganizationWriteRequest,
 } from "../services/organizationsService";
+import {
+  createTenantSocialCommunityGroup,
+  getTenantSocialCommunityGroups,
+  updateTenantSocialCommunityGroup,
+  type TenantSocialCommunityGroup,
+  type TenantSocialCommunityGroupWriteRequest,
+} from "../services/socialCommunityGroupsService";
 import {
   getTenantBusinessSites,
   type TenantBusinessSite,
 } from "../services/sitesService";
+import {
+  getClientSocialCommunityName,
+} from "../utils/socialCommunityPresentation";
 
 type ClientRow = {
   client: TenantBusinessClient;
@@ -46,6 +56,14 @@ type SimilarityCandidateRow = ClientRow & {
   candidateReasonCodes: SimilarityReason[];
   groupSize: number;
   currentCommonNames: string[];
+};
+
+type SocialCommunityGroupForm = {
+  commune: string;
+  sector: string;
+  zone: string;
+  territorialClassification: string;
+  notes: string;
 };
 
 function normalizeNullable(value: string | null | undefined): string | null {
@@ -190,7 +208,10 @@ function pickSuggestedCommonName(rows: ClientRow[]): string {
   )[0];
 }
 
-function buildSimilarityCandidates(rows: ClientRow[]): SimilarityCandidateRow[] {
+function buildSimilarityCandidates(
+  rows: ClientRow[],
+  groupsById: Map<number, TenantSocialCommunityGroup>
+): SimilarityCandidateRow[] {
   const eligibleRows = rows.filter((row) => row.organization);
   const adjacency = new Map<number, Set<number>>();
   const pairReasons = new Map<string, SimilarityReason[]>();
@@ -250,15 +271,28 @@ function buildSimilarityCandidates(rows: ClientRow[]): SimilarityCandidateRow[] 
     const currentCommonNames = Array.from(
       new Set(
         componentRows
-          .map((candidateRow) => normalizeNullable(candidateRow.organization?.legal_name))
+          .map((candidateRow) =>
+            getClientSocialCommunityName(
+              candidateRow.client,
+              candidateRow.organization,
+              groupsById,
+              { fallbackToLegacyLegalName: false }
+            )
+          )
           .filter((value): value is string => Boolean(value))
       )
     );
+    const socialGroupIds = Array.from(
+      new Set(
+        componentRows
+          .map((candidateRow) => candidateRow.client.social_community_group_id)
+          .filter((value): value is number => value !== null)
+      )
+    );
     if (
-      currentCommonNames.length === 1 &&
-      componentRows.every((candidateRow) =>
-        normalizeHumanKey(candidateRow.organization?.legal_name) ===
-        normalizeHumanKey(currentCommonNames[0])
+      socialGroupIds.length === 1 &&
+      componentRows.every(
+        (candidateRow) => candidateRow.client.social_community_group_id === socialGroupIds[0]
       )
     ) {
       return;
@@ -311,25 +345,38 @@ function buildSimilarityCandidates(rows: ClientRow[]): SimilarityCandidateRow[] 
   });
 }
 
-function buildOrganizationWritePayload(
-  organization: TenantBusinessOrganization,
-  overrides: Partial<TenantBusinessOrganization> = {}
-): TenantBusinessOrganizationWriteRequest {
+function buildClientWritePayload(
+  client: TenantBusinessClient,
+  overrides: Partial<TenantBusinessClient> = {}
+): TenantBusinessClientWriteRequest {
   return {
-    name: overrides.name ?? organization.name,
-    legal_name: overrides.legal_name ?? organization.legal_name,
-    tax_id: overrides.tax_id ?? organization.tax_id,
-    organization_kind: overrides.organization_kind ?? organization.organization_kind,
-    phone: overrides.phone ?? organization.phone,
-    email: overrides.email ?? organization.email,
-    address_line: overrides.address_line ?? organization.address_line,
-    commune: overrides.commune ?? organization.commune,
-    city: overrides.city ?? organization.city,
-    region: overrides.region ?? organization.region,
-    country_code: overrides.country_code ?? organization.country_code,
-    notes: overrides.notes ?? organization.notes,
-    is_active: overrides.is_active ?? organization.is_active,
-    sort_order: overrides.sort_order ?? organization.sort_order,
+    organization_id: overrides.organization_id ?? client.organization_id,
+    social_community_group_id:
+      overrides.social_community_group_id ?? client.social_community_group_id,
+    client_code: overrides.client_code ?? client.client_code,
+    service_status: overrides.service_status ?? client.service_status,
+    commercial_notes: overrides.commercial_notes ?? client.commercial_notes,
+    is_active: overrides.is_active ?? client.is_active,
+    sort_order: overrides.sort_order ?? client.sort_order,
+  };
+}
+
+function buildSocialCommunityGroupPayload(
+  name: string,
+  form: SocialCommunityGroupForm,
+  overrides: Partial<TenantSocialCommunityGroup> = {}
+): TenantSocialCommunityGroupWriteRequest {
+  return {
+    name,
+    commune: normalizeNullable(overrides.commune ?? form.commune),
+    sector: normalizeNullable(overrides.sector ?? form.sector),
+    zone: normalizeNullable(overrides.zone ?? form.zone),
+    territorial_classification: normalizeNullable(
+      overrides.territorial_classification ?? form.territorialClassification
+    ),
+    notes: normalizeNullable(overrides.notes ?? form.notes),
+    is_active: overrides.is_active ?? true,
+    sort_order: overrides.sort_order ?? 100,
   };
 }
 
@@ -375,11 +422,19 @@ export function BusinessCoreCommonOrganizationNamePage() {
   const navigate = useNavigate();
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
+  const [socialCommunityGroups, setSocialCommunityGroups] = useState<TenantSocialCommunityGroup[]>([]);
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [addresses, setAddresses] = useState<TenantBusinessSite[]>([]);
   const [search, setSearch] = useState("");
   const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
   const [commonOrganizationName, setCommonOrganizationName] = useState("");
+  const [socialGroupForm, setSocialGroupForm] = useState<SocialCommunityGroupForm>({
+    commune: "",
+    sector: "",
+    zone: "",
+    territorialClassification: "",
+    notes: "",
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -388,6 +443,10 @@ export function BusinessCoreCommonOrganizationNamePage() {
   const organizationById = useMemo(
     () => new Map(organizations.map((organization) => [organization.id, organization])),
     [organizations]
+  );
+  const socialCommunityGroupById = useMemo(
+    () => new Map(socialCommunityGroups.map((group) => [group.id, group])),
+    [socialCommunityGroups]
   );
 
   const contactsByOrganizationId = useMemo(() => {
@@ -421,7 +480,10 @@ export function BusinessCoreCommonOrganizationNamePage() {
     [addressesByClientId, clients, contactsByOrganizationId, organizationById]
   );
 
-  const candidateRows = useMemo(() => buildSimilarityCandidates(clientRows), [clientRows]);
+  const candidateRows = useMemo(
+    () => buildSimilarityCandidates(clientRows, socialCommunityGroupById),
+    [clientRows, socialCommunityGroupById]
+  );
 
   const candidateRowByClientId = useMemo(
     () => new Map(candidateRows.map((row) => [row.client.id, row])),
@@ -477,15 +539,23 @@ export function BusinessCoreCommonOrganizationNamePage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [clientsResponse, organizationsResponse, contactsResponse, addressesResponse] =
+      const [
+        clientsResponse,
+        organizationsResponse,
+        socialGroupsResponse,
+        contactsResponse,
+        addressesResponse,
+      ] =
         await Promise.all([
           getTenantBusinessClients(session.accessToken),
           getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
+          getTenantSocialCommunityGroups(session.accessToken, { includeInactive: true }),
           getTenantBusinessContacts(session.accessToken),
           getTenantBusinessSites(session.accessToken),
         ]);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
+      setSocialCommunityGroups(socialGroupsResponse.data);
       setContacts(contactsResponse.data);
       setAddresses(addressesResponse.data);
     } catch (rawError) {
@@ -516,6 +586,13 @@ export function BusinessCoreCommonOrganizationNamePage() {
   function clearSelection() {
     setSelectedClientIds([]);
     setCommonOrganizationName("");
+    setSocialGroupForm({
+      commune: "",
+      sector: "",
+      zone: "",
+      territorialClassification: "",
+      notes: "",
+    });
   }
 
   async function handleApplyCommonOrganizationName() {
@@ -548,8 +625,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
 
     const confirmed = window.confirm(
       t(
-        `Aplicar "${finalOrganizationName}" a ${selectedRows.length} cliente(s) candidatos. Esto solo actualizará "Organización / Razón social" y los grupos homologados dejarán de aparecer en esta vista.`,
-        `Apply "${finalOrganizationName}" to ${selectedRows.length} candidate client(s). This only updates "Organization / legal name" and aligned groups will stop appearing in this view.`
+        `Asignar el grupo social "${finalOrganizationName}" a ${selectedRows.length} cliente(s) candidatos. Esto solo actualizará el vínculo con social_community_groups y los grupos ya resueltos dejarán de aparecer en esta vista.`,
+        `Assign the social group "${finalOrganizationName}" to ${selectedRows.length} candidate client(s). This only updates the social_community_groups link and resolved groups will stop appearing in this view.`
       )
     );
     if (!confirmed) {
@@ -560,24 +637,37 @@ export function BusinessCoreCommonOrganizationNamePage() {
     setError(null);
     setFeedback(null);
     try {
-      const processedOrganizationIds = new Set<number>();
+      const normalizedName = normalizeHumanKey(finalOrganizationName);
+      const existingGroup = socialCommunityGroups.find(
+        (group) => normalizeHumanKey(group.name) === normalizedName
+      );
+      const groupPayload = buildSocialCommunityGroupPayload(
+        finalOrganizationName,
+        socialGroupForm,
+        existingGroup ?? {}
+      );
+      const groupResponse = existingGroup
+        ? await updateTenantSocialCommunityGroup(
+            session.accessToken,
+            existingGroup.id,
+            groupPayload
+          )
+        : await createTenantSocialCommunityGroup(session.accessToken, groupPayload);
+      const socialGroup = groupResponse.data;
+
       for (const row of selectedRows) {
-        if (!row.organization || processedOrganizationIds.has(row.organization.id)) {
-          continue;
-        }
-        processedOrganizationIds.add(row.organization.id);
-        await updateTenantBusinessOrganization(
+        await updateTenantBusinessClient(
           session.accessToken,
-          row.organization.id,
-          buildOrganizationWritePayload(row.organization, {
-            legal_name: finalOrganizationName,
+          row.client.id,
+          buildClientWritePayload(row.client, {
+            social_community_group_id: socialGroup.id,
           })
         );
       }
       setFeedback(
         t(
-          `Nombre común aplicado en ${selectedRows.length} cliente(s). Los grupos ya homologados salen de esta vista.`,
-          `Common name applied to ${selectedRows.length} client(s). Aligned groups now leave this view.`
+          `Grupo social aplicado en ${selectedRows.length} cliente(s). Los grupos ya resueltos salen de esta vista.`,
+          `Social group applied to ${selectedRows.length} client(s). Resolved groups now leave this view.`
         )
       );
       clearSelection();
@@ -595,13 +685,13 @@ export function BusinessCoreCommonOrganizationNamePage() {
         eyebrow={t("Core de negocio", "Business core")}
         icon="business-core"
         title={t(
-          "Clientes candidatos a homologar organización",
-          "Clients that may need organization alignment"
+          "Clientes candidatos a organización social común",
+          "Clients that may need a social community group"
         )}
         description={
           t(
-            "Aquí aparecen clientes con organizaciones de nombre parecido. Tú marcas los que sí correspondan y escribes manualmente el nombre común final que quieres guardar en 'Organización / Razón social'.",
-            "This page shows clients whose organizations have similar names. You pick the ones that truly belong together and manually type the final common name to save into 'Organization / legal name'."
+            "Aquí aparecen clientes con empresas base de nombre parecido. Tú marcas los que sí correspondan y les asignas manualmente un grupo social común en social_community_groups.",
+            "This page shows clients whose base companies have similar names. You pick the ones that truly belong together and manually assign a shared social community group."
           )
         }
         actions={
@@ -610,8 +700,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
               label={t("Ayuda", "Help")}
               helpText={
                 t(
-                  "Aquí no se buscan vacíos; se muestran candidatos por similitud de nombre. 'Grupo detectado' solo sirve para agrupar candidatos. El único valor que se guardará es el que tú escribas en 'Nombre común final'.",
-                  "This page does not search for blanks; it shows candidates based on name similarity. 'Detected group' is only a grouping label. The only value that will be saved is the one you type into 'Final common name'."
+                  "Aquí no se buscan vacíos; se muestran candidatos por similitud de nombre. 'Grupo detectado' solo sirve para agrupar candidatos. El único valor que se guardará es el que tú escribas en 'Nombre social común final', junto con comuna, sector, zona y clasificación territorial/social si quieres completarlos.",
+                  "This page does not search for blanks; it shows candidates based on name similarity. 'Detected group' is only a grouping label. The only value that will be saved is the one you type into 'Final social community name', together with commune, sector, zone, and territorial/social classification if you want to complete them."
                 )
               }
             />
@@ -652,8 +742,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
       <PanelCard
         title={t("Candidatos por similitud", "Similarity candidates")}
         subtitle={t(
-          "Solo se muestran grupos de clientes con organizaciones de nombre parecido. Tú eliges a cuáles aplicarles el nombre común que escribes arriba; cuando el grupo queda homologado con un mismo valor en 'Organización / Razón social', desaparece de esta vista.",
-          "Only client groups with similar organization names are shown. You choose which ones receive the common name you type above; once the group is aligned under the same 'Organization / legal name', it disappears from this view."
+          "Solo se muestran grupos de clientes con empresas base de nombre parecido. Tú eliges a cuáles asignarles el grupo social común que escribes arriba; cuando todos los candidatos relevantes quedan apuntando al mismo social_community_group, desaparecen de esta vista.",
+          "Only client groups with similar base-company names are shown. You choose which ones receive the shared social community group you type above; once all relevant candidates point to the same social_community_group, they disappear from this view."
         )}
       >
         <div className="business-core-manual-merge">
@@ -670,7 +760,7 @@ export function BusinessCoreCommonOrganizationNamePage() {
           </div>
           <div className="business-core-manual-merge__grid">
             <label className="business-core-manual-merge__field">
-              <span>{t("Nombre común final", "Final common name")}</span>
+              <span>{t("Nombre social común final", "Final social community name")}</span>
               <input
                 className="form-control"
                 value={commonOrganizationName}
@@ -679,11 +769,74 @@ export function BusinessCoreCommonOrganizationNamePage() {
                 onChange={(event) => setCommonOrganizationName(event.target.value)}
               />
             </label>
+            <label className="business-core-manual-merge__field">
+              <span>{t("Comuna", "Commune")}</span>
+              <input
+                className="form-control"
+                value={socialGroupForm.commune}
+                disabled={isSubmitting}
+                placeholder={t("Ej.: La Florida", "Ex.: La Florida")}
+                onChange={(event) =>
+                  setSocialGroupForm((current) => ({ ...current, commune: event.target.value }))
+                }
+              />
+            </label>
+            <label className="business-core-manual-merge__field">
+              <span>{t("Sector", "Sector")}</span>
+              <input
+                className="form-control"
+                value={socialGroupForm.sector}
+                disabled={isSubmitting}
+                placeholder={t("Ej.: Oriente", "Ex.: East")}
+                onChange={(event) =>
+                  setSocialGroupForm((current) => ({ ...current, sector: event.target.value }))
+                }
+              />
+            </label>
+            <label className="business-core-manual-merge__field">
+              <span>{t("Zona", "Zone")}</span>
+              <input
+                className="form-control"
+                value={socialGroupForm.zone}
+                disabled={isSubmitting}
+                placeholder={t("Ej.: Zona A", "Ex.: Zone A")}
+                onChange={(event) =>
+                  setSocialGroupForm((current) => ({ ...current, zone: event.target.value }))
+                }
+              />
+            </label>
+            <label className="business-core-manual-merge__field">
+              <span>{t("Clasificación territorial / social", "Territorial / social classification")}</span>
+              <input
+                className="form-control"
+                value={socialGroupForm.territorialClassification}
+                disabled={isSubmitting}
+                placeholder={t("Ej.: territorial", "Ex.: territorial")}
+                onChange={(event) =>
+                  setSocialGroupForm((current) => ({
+                    ...current,
+                    territorialClassification: event.target.value,
+                  }))
+                }
+              />
+            </label>
+            <label className="business-core-manual-merge__field">
+              <span>{t("Notas", "Notes")}</span>
+              <input
+                className="form-control"
+                value={socialGroupForm.notes}
+                disabled={isSubmitting}
+                placeholder={t("Opcional", "Optional")}
+                onChange={(event) =>
+                  setSocialGroupForm((current) => ({ ...current, notes: event.target.value }))
+                }
+              />
+            </label>
           </div>
           <div className="business-core-manual-merge__note">
             {t(
-              "Se guardará exactamente el nombre que escribas arriba en 'Organización / Razón social' para los clientes seleccionados. No modifica nombre cliente, contactos, direcciones ni mantenciones.",
-              "The exact name you type above will be saved into 'Organization / legal name' for the selected clients. It does not modify client name, contacts, addresses, or maintenance records."
+              "Se creará o reutilizará un registro en social_community_groups con el nombre y los datos territoriales/sociales que escribas arriba. Luego los clientes seleccionados quedarán apuntando a ese grupo. No modifica empresa base, nombre cliente, contactos, direcciones ni mantenciones.",
+              "A record in social_community_groups will be created or reused with the name and territorial/social data you type above. Then the selected clients will point to that group. It does not modify the base company, client name, contacts, addresses, or maintenance records."
             )}
           </div>
           <div className="business-core-card__actions">
@@ -703,7 +856,7 @@ export function BusinessCoreCommonOrganizationNamePage() {
             >
               {isSubmitting
                 ? t("Aplicando...", "Applying...")
-                : t("Aplicar este nombre común", "Apply this common name")}
+                : t("Asignar este grupo social", "Assign this social group")}
             </button>
           </div>
         </div>
@@ -715,8 +868,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
           "Clients with a common organization candidate"
         )}
         subtitle={t(
-          "Busca por cliente, organización actual, contacto o dirección. 'Grupo detectado' solo agrupa candidatos; el nombre que se guardará es el que escribas arriba.",
-          "Search by client, current organization, contact, or address. 'Detected group' only groups candidates; the name that will be saved is the one you type above."
+          "Busca por cliente, empresa base, contacto o dirección. 'Grupo detectado' solo agrupa candidatos; el grupo social que se guardará es el que escribas arriba.",
+          "Search by client, base company, contact, or address. 'Detected group' only groups candidates; the social group that will be saved is the one you type above."
         )}
         rows={filteredRows}
         actions={
@@ -758,11 +911,11 @@ export function BusinessCoreCommonOrganizationNamePage() {
                 </div>
                 {row.currentCommonNames.length > 0 ? (
                   <div className="business-core-cell__meta">
-                    {t("Nombres comunes actuales:", "Current common names:")} {row.currentCommonNames.join(" · ")}
+                    {t("Grupos sociales actuales:", "Current social groups:")} {row.currentCommonNames.join(" · ")}
                   </div>
                 ) : (
                   <div className="business-core-cell__meta">
-                    {t("Sin nombre común previo", "No previous common name")}
+                    {t("Sin grupo social previo", "No previous social group")}
                   </div>
                 )}
               </div>
@@ -781,7 +934,7 @@ export function BusinessCoreCommonOrganizationNamePage() {
                 </div>
                 {row.organization?.legal_name ? (
                   <div className="business-core-cell__meta">
-                    {t("Organización / Razón social actual:", "Current organization / legal name:")} {row.organization.legal_name}
+                    {t("Empresa / Razón social actual:", "Current company / legal name:")} {row.organization.legal_name}
                   </div>
                 ) : null}
               </div>

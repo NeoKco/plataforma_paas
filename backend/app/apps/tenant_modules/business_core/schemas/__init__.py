@@ -43,6 +43,13 @@ from app.apps.tenant_modules.business_core.schemas.organization import (
     BusinessOrganizationsResponse,
     BusinessOrganizationUpdateRequest,
 )
+from app.apps.tenant_modules.business_core.schemas.social_community_group import (
+    SocialCommunityGroupCreateRequest,
+    SocialCommunityGroupItemResponse,
+    SocialCommunityGroupMutationResponse,
+    SocialCommunityGroupsResponse,
+    SocialCommunityGroupUpdateRequest,
+)
 from app.apps.tenant_modules.business_core.schemas.site import (
     BusinessSiteCreateRequest,
     BusinessSiteItemResponse,
@@ -85,6 +92,11 @@ __all__ = [
     "BusinessOrganizationItemResponse",
     "BusinessOrganizationMutationResponse",
     "BusinessOrganizationsResponse",
+    "SocialCommunityGroupCreateRequest",
+    "SocialCommunityGroupUpdateRequest",
+    "SocialCommunityGroupItemResponse",
+    "SocialCommunityGroupMutationResponse",
+    "SocialCommunityGroupsResponse",
     "BusinessClientCreateRequest",
     "BusinessClientUpdateRequest",
     "BusinessClientItemResponse",

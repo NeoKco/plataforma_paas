@@ -25,6 +25,7 @@ def _build_client_item(client) -> BusinessClientItemResponse:
     return BusinessClientItemResponse(
         id=client.id,
         organization_id=client.organization_id,
+        social_community_group_id=client.social_community_group_id,
         client_code=client.client_code,
         service_status=client.service_status,
         commercial_notes=client.commercial_notes,

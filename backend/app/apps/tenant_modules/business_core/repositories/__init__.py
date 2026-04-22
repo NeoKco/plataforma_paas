@@ -16,6 +16,9 @@ from app.apps.tenant_modules.business_core.repositories.asset_repository import 
 from app.apps.tenant_modules.business_core.repositories.organization_repository import (
     BusinessOrganizationRepository,
 )
+from app.apps.tenant_modules.business_core.repositories.social_community_group_repository import (
+    SocialCommunityGroupRepository,
+)
 from app.apps.tenant_modules.business_core.repositories.site_repository import (
     BusinessSiteRepository,
 )
@@ -34,6 +37,7 @@ from app.apps.tenant_modules.business_core.repositories.merge_audit_repository i
 
 __all__ = [
     "BusinessOrganizationRepository",
+    "SocialCommunityGroupRepository",
     "BusinessClientRepository",
     "BusinessContactRepository",
     "BusinessSiteRepository",

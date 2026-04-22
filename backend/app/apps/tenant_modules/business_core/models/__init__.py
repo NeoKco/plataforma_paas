@@ -6,6 +6,9 @@ from app.apps.tenant_modules.business_core.models.function_profile import (
 from app.apps.tenant_modules.business_core.models.asset_type import BusinessAssetType
 from app.apps.tenant_modules.business_core.models.asset import BusinessAsset
 from app.apps.tenant_modules.business_core.models.organization import BusinessOrganization
+from app.apps.tenant_modules.business_core.models.social_community_group import (
+    SocialCommunityGroup,
+)
 from app.apps.tenant_modules.business_core.models.site import BusinessSite
 from app.apps.tenant_modules.business_core.models.task_type import BusinessTaskType
 from app.apps.tenant_modules.business_core.models.task_type_function_profile import (
@@ -21,6 +24,7 @@ from app.apps.tenant_modules.business_core.models.merge_audit import (
 
 __all__ = [
     "BusinessOrganization",
+    "SocialCommunityGroup",
     "BusinessClient",
     "BusinessContact",
     "BusinessSite",

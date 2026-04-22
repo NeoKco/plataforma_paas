@@ -26,10 +26,17 @@ import {
   type TenantBusinessOrganization,
 } from "../../business_core/services/organizationsService";
 import {
+  getTenantSocialCommunityGroups,
+  type TenantSocialCommunityGroup,
+} from "../../business_core/services/socialCommunityGroupsService";
+import {
   getTenantBusinessSites,
   type TenantBusinessSite,
 } from "../../business_core/services/sitesService";
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
+import {
+  getClientSocialCommunityName,
+} from "../../business_core/utils/socialCommunityPresentation";
 import { MaintenanceModuleNav } from "../components/common/MaintenanceModuleNav";
 import {
   getTenantMaintenanceEquipmentTypes,
@@ -136,6 +143,7 @@ export function MaintenanceReportsPage() {
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
+  const [socialCommunityGroups, setSocialCommunityGroups] = useState<TenantSocialCommunityGroup[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
@@ -162,6 +170,10 @@ export function MaintenanceReportsPage() {
     () => new Map(organizations.map((item) => [item.id, item])),
     [organizations]
   );
+  const socialCommunityGroupById = useMemo(
+    () => new Map(socialCommunityGroups.map((item) => [item.id, item])),
+    [socialCommunityGroups]
+  );
   const siteById = useMemo(() => new Map(sites.map((item) => [item.id, item])), [sites]);
 
   useEffect(() => {
@@ -180,6 +192,7 @@ export function MaintenanceReportsPage() {
           clientsResponse,
           contactsResponse,
           organizationsResponse,
+          socialCommunityGroupsResponse,
           sitesResponse,
         ] = await Promise.all([
           getTenantMaintenanceWorkOrders(session.accessToken),
@@ -189,6 +202,7 @@ export function MaintenanceReportsPage() {
           getTenantBusinessClients(session.accessToken, { includeInactive: true }),
           getTenantBusinessContacts(session.accessToken, { includeInactive: true }),
           getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
+          getTenantSocialCommunityGroups(session.accessToken, { includeInactive: true }),
           getTenantBusinessSites(session.accessToken, { includeInactive: true }),
         ]);
         setWorkOrders(workOrdersResponse.data);
@@ -198,6 +212,7 @@ export function MaintenanceReportsPage() {
         setClients(clientsResponse.data);
         setContacts(contactsResponse.data);
         setOrganizations(organizationsResponse.data);
+        setSocialCommunityGroups(socialCommunityGroupsResponse.data);
         setSites(sitesResponse.data);
       } catch (rawError) {
         setError(rawError as ApiError);
@@ -225,17 +240,19 @@ export function MaintenanceReportsPage() {
   }
 
   function getOrganizationOptionLabel(organization: TenantBusinessOrganization | null | undefined) {
-    const commercialName = stripLegacyVisibleText(organization?.name);
     const legalName = stripLegacyVisibleText(organization?.legal_name);
-    return legalName || commercialName || (language === "es" ? "Organización sin nombre" : "Unnamed organization");
+    const companyName = stripLegacyVisibleText(organization?.name);
+    return legalName || companyName || (language === "es" ? "Empresa sin nombre" : "Unnamed company");
   }
 
-  function getOrganizationLegalLabel(clientId: number) {
+  function getSocialCommunityLabel(clientId: number) {
     const organization = getOrganization(clientId);
+    const client = clientById.get(clientId);
     return (
-      stripLegacyVisibleText(organization?.legal_name) ||
-      stripLegacyVisibleText(organization?.name) ||
-      (language === "es" ? "Organización sin nombre" : "Unnamed organization")
+      getClientSocialCommunityName(client, organization, socialCommunityGroupById, {
+        fallbackToLegacyLegalName: false,
+      }) ||
+      (language === "es" ? "Sin grupo social" : "No social group")
     );
   }
 
@@ -421,17 +438,30 @@ export function MaintenanceReportsPage() {
   const organizationFilterOptions = useMemo(() => {
     const seen = new Set<number>();
     return completedRows
-      .map((item) => getOrganization(item.client_id))
-      .filter((organization): organization is TenantBusinessOrganization => Boolean(organization))
+      .map((item) => {
+        const client = clientById.get(item.client_id);
+        const organization = getOrganization(item.client_id);
+        const socialGroupName = getClientSocialCommunityName(
+          client,
+          organization,
+          socialCommunityGroupById,
+          { fallbackToLegacyLegalName: false }
+        );
+        return socialGroupName ? { id: socialGroupName, label: socialGroupName } : null;
+      })
+      .filter((organization): organization is { id: string; label: string } => Boolean(organization))
       .filter((organization) => {
-        if (seen.has(organization.id)) {
+        if (seen.has(Number.NaN) && false) {
           return false;
         }
-        seen.add(organization.id);
+        if (seen.has(organization.label.length)) {
+          return false;
+        }
+        seen.add(organization.label.length);
         return true;
       })
-      .sort((left, right) => getOrganizationOptionLabel(left).localeCompare(getOrganizationOptionLabel(right), language));
-  }, [completedRows, language]);
+      .sort((left, right) => left.label.localeCompare(right.label, language));
+  }, [clientById, completedRows, language, socialCommunityGroupById]);
 
   const historicalReportRows = useMemo<HistoricalMaintenanceReportRow[]>(
     () =>
