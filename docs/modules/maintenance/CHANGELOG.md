@@ -1,5 +1,25 @@
 # Maintenance Changelog
 
+## 2026-04-22
+
+- `maintenance` ya prioriza el nombre común homologado de `business-core` por sobre variantes internas de organización:
+  - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx)
+  - [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx)
+  - [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx)
+  - [MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx)
+  - [MaintenanceInstallationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceInstallationsPage.tsx)
+  - [MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx)
+  - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx)
+- el orden visible ahora es:
+  - primero `Organización / Razón social` homologada (`legal_name`)
+  - luego el nombre interno histórico (`name`) solo como fallback
+- `Reportes` deja además de mezclar `name · legal_name` en el selector visible de organización cuando existe nombre común definido
+- validación:
+  - `cd frontend && npm run build` -> `OK`
+  - `staging` publicado con `MaintenanceCalendarPage-uCS2MuI1.js`, `MaintenanceDueItemsPage-BAa25ec_.js`, `MaintenanceHistoryPage-CNgncJeg.js`, `MaintenanceInstallationsPage-DhRfD_B9.js`, `MaintenanceOverviewPage-DH-doZLn.js`, `MaintenanceReportsPage-Co0NFb3L.js`, `MaintenanceWorkOrdersPage-DvMdqJvg.js`, `index-Dhi943-6.js`
+  - `production` publicado con `MaintenanceCalendarPage-EmhMTPhI.js`, `MaintenanceDueItemsPage-AQCVZjow.js`, `MaintenanceHistoryPage-D6erutbG.js`, `MaintenanceInstallationsPage-DYRgzs-_.js`, `MaintenanceOverviewPage-CorRkrBV.js`, `MaintenanceReportsPage-DczJ4fTD.js`, `MaintenanceWorkOrdersPage-DiAdgxWB.js`, `index-BSvc41aG.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 ## 2026-04-21
 
 - `Mantenciones` e `Historial` ahora dejan el `Contacto principal` visible sin obligar a salir del flujo operativo:

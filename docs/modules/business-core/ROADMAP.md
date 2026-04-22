@@ -154,7 +154,8 @@ Completado recientemente:
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual recién corregido
 - siguiente corte recomendado:
-  - reforzar la integración visible entre `maintenance` y `business-core` en lectura operativa de cliente/organización
+  - cerrar la siguiente ola visible de `organization addresses` y lectura operacional por organización dentro de `business-core`
+  - reforzar `Organizations` y `Clients` para que el grupo social común se vea más estable sin volver a abrir consolidación profunda nueva
   - o abrir el siguiente frente formal del roadmap maestro si `business-core` ya quedó suficientemente estable
 - `iot` no necesita abrirse todavía; solo debe seguir reutilizando `sites` y `assets` cuando se implemente
 - endurecer el importador inicial desde `ieris_app`

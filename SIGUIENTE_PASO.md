@@ -2,6 +2,22 @@
 
 ## Prioridad vigente
 
+- subcorte nuevo ya cerrado en runtime dentro de `maintenance`:
+  - `Resumen`, `Pendientes`, `Mantenciones`, `Agenda`, `Instalaciones`, `Historial` y `Reportes` ya priorizan el nombre común homologado de organización (`legal_name`) por sobre variantes internas (`name`)
+  - [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx) ya no mezcla `name · legal_name` en el selector visible cuando existe un nombre común definido
+  - publicado en:
+    - `staging` con `MaintenanceCalendarPage-uCS2MuI1.js`, `MaintenanceDueItemsPage-BAa25ec_.js`, `MaintenanceHistoryPage-CNgncJeg.js`, `MaintenanceInstallationsPage-DhRfD_B9.js`, `MaintenanceOverviewPage-DH-doZLn.js`, `MaintenanceReportsPage-Co0NFb3L.js`, `MaintenanceWorkOrdersPage-DvMdqJvg.js` e `index-Dhi943-6.js`
+    - `production` con `MaintenanceCalendarPage-EmhMTPhI.js`, `MaintenanceDueItemsPage-AQCVZjow.js`, `MaintenanceHistoryPage-D6erutbG.js`, `MaintenanceInstallationsPage-DYRgzs-_.js`, `MaintenanceOverviewPage-CorRkrBV.js`, `MaintenanceReportsPage-DczJ4fTD.js`, `MaintenanceWorkOrdersPage-DiAdgxWB.js` e `index-BSvc41aG.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+- siguiente paso correcto del roadmap:
+  - cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual ya corregido
+  - corte recomendado:
+    - segunda ola visible de `organization addresses` y lectura operacional por organización dentro de `business-core`
+    - reforzar `Organizations` y `Clients` para que el grupo social común se vea más estable sin abrir consolidación profunda nueva
+
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la normalización de `Organización / Razón social`
   - el flujo nuevo deja:
@@ -55,9 +71,9 @@
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
-- una vez corregido y estabilizado también este slice manual de nombre común, el siguiente paso correcto ya no es seguir profundizando `Duplicados` por inercia:
+- una vez corregido y estabilizado también este slice manual de nombre común, ya no corresponde seguir profundizando `Duplicados` por inercia:
   - conviene retomar el roadmap fuera de ese frente
-  - el candidato natural vuelve a ser cierre de `business-core` fuera de `Duplicados` o el siguiente bloque formal del roadmap maestro
+  - el candidato natural ahora pasa a ser `organization addresses` y lectura por organización en `business-core`
 
 - subcorte previo ya cerrado en runtime dentro de `business-core > Duplicados`:
   - `installations` ya no queda limitado solo a identidad técnica visible y notas

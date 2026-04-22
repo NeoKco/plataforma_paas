@@ -1,5 +1,41 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - `maintenance` alinea la lectura visible al nombre común homologado
+
+- objetivo:
+  - hacer que `maintenance` consuma de forma estable el nombre común homologado en `business-core`
+  - evitar que el operador siga viendo variantes internas históricas de organización después de normalizar `Organización / Razón social`
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx):
+    - prioriza `organization.legal_name` por sobre `organization.name`
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx):
+    - prioriza `organization.legal_name` por sobre `organization.name`
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx):
+    - prioriza `organization.legal_name` en la lectura visible del cliente
+    - deja de mezclar `name · legal_name` en la etiqueta visible del selector de organización
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceOverviewPage.tsx):
+    - prioriza `organization.legal_name`
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceInstallationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceInstallationsPage.tsx):
+    - prioriza `organization.legal_name`
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx):
+    - prioriza `organization.legal_name`
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx):
+    - prioriza `organization.legal_name`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - republish con `VITE_API_BASE_URL=http://192.168.7.42:8081`
+    - bundles visibles más recientes: `MaintenanceCalendarPage-uCS2MuI1.js`, `MaintenanceDueItemsPage-BAa25ec_.js`, `MaintenanceHistoryPage-CNgncJeg.js`, `MaintenanceInstallationsPage-DhRfD_B9.js`, `MaintenanceOverviewPage-DH-doZLn.js`, `MaintenanceReportsPage-Co0NFb3L.js`, `MaintenanceWorkOrdersPage-DvMdqJvg.js`, `index-Dhi943-6.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - republish con `API_BASE_URL=https://orkestia.ddns.net`
+    - bundles visibles más recientes: `MaintenanceCalendarPage-EmhMTPhI.js`, `MaintenanceDueItemsPage-AQCVZjow.js`, `MaintenanceHistoryPage-D6erutbG.js`, `MaintenanceInstallationsPage-DYRgzs-_.js`, `MaintenanceOverviewPage-CorRkrBV.js`, `MaintenanceReportsPage-DczJ4fTD.js`, `MaintenanceWorkOrdersPage-DiAdgxWB.js`, `index-BSvc41aG.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `maintenance` ya refleja el nombre común homologado en la lectura diaria del operador
+  - el valor normalizado en `business-core` ya deja de perderse al volver a `Mantenciones`
+
 ## 2026-04-22 - corrección del slice manual de organización en `Clients`
 
 - objetivo:
