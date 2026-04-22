@@ -71,11 +71,14 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - la captura de `Nuevo cliente` deberia advertir coincidencias fuertes por RUT, nombre, telefono, email o direccion y desviar al usuario hacia la ficha existente antes de duplicar la cartera.
 - cuando ya existen duplicados en la base, la pantalla `Depuración` debe agrupar `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
 - si el operador ya sabe de antemano que varios clientes pertenecen a la misma contraparte real, no hace falta esperar a que `Depuración` los detecte:
-  - `Clientes` ahora ofrece `Nombre común de organización`
+  - `Core de negocio` ahora ofrece la vista `Nombre común`
   - el flujo correcto es:
-    1. marcar varios clientes en la tabla
-    2. escribir el `Nombre común final`
-    3. confirmar la actualización
+    1. entrar a `Core de negocio -> Nombre común`
+    2. marcar varios clientes en la tabla pendiente
+    3. escribir el `Nombre común final`
+    4. confirmar la actualización
+  - esa vista solo muestra clientes sin `Organización / Razón social`
+  - cuando un cliente queda atendido, sale de la lista
   - ese flujo solo actualiza `Organización / Razón social`
   - no toca `Nombre cliente`, contactos, direcciones ni mantenciones
   - no guarda aliases visibles ni nombres anteriores como dato operativo

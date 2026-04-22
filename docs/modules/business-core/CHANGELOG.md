@@ -2,9 +2,24 @@
 
 ## 2026-04-22
 
+- `Nombre común de organización` se mueve fuera de `Clientes` y queda como página dedicada:
+  - se agrega [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx)
+  - se publica la ruta `/tenant-portal/business-core/common-organization-name`
+  - [BusinessCoreModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreModuleNav.tsx) suma la entrada `Nombre común`
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) vuelve a quedar como lectura principal de cartera, sin recuadro operativo de normalización
+  - la nueva vista deja solo backlog pendiente:
+    - muestra exclusivamente clientes sin `Organización / Razón social`
+    - al aplicar un nombre común, esas filas salen de la lista
+  - validación:
+    - `staging` publicado con `BusinessCoreClientsPage-BZ12J4Jg.js`, `BusinessCoreCommonOrganizationNamePage-xQyxCZ3I.js` e `index-CqbqzIS_.js`
+    - `production` publicado con `BusinessCoreClientsPage-Dks7G0Q5.js`, `BusinessCoreCommonOrganizationNamePage-D2e3cKPD.js` e `index-CJrHdM0M.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - `Clientes` queda más limpio y la normalización de organización pasa a una vista de trabajo separada
+
 - `Clients` corrige el slice manual de organización y lo deja en modo seguro:
   - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya no hace una unificación real
-  - el bloque visible pasa a ser `Nombre común de organización`
+  - el flujo manual ya no vive en `Clientes`; queda movido a la vista dedicada `Nombre común`
   - el flujo manual ahora solo:
     - permite marcar uno o más clientes
     - exige capturar el `Nombre común final`
@@ -22,8 +37,8 @@
     - el contacto principal sigue intacto
   - validación:
     - `npm run build` -> `OK`
-    - `staging` publicado con `BusinessCoreClientsPage-BTXVBRki.js` e `index-BMfT5NVk.js`
-    - `production` publicado con `BusinessCoreClientsPage-9k0vCFrE.js` e `index-DmBLRzp4.js`
+    - `staging` publicado inicialmente con `BusinessCoreClientsPage-BTXVBRki.js` e `index-BMfT5NVk.js`
+    - `production` publicado inicialmente con `BusinessCoreClientsPage-9k0vCFrE.js` e `index-DmBLRzp4.js`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - resultado:
     - el operador puede normalizar el nombre común de organización sin tocar nombre cliente, contactos, direcciones ni historial

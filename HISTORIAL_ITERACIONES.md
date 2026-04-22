@@ -37,6 +37,42 @@
   - el flujo manual ya no puede volver a borrar, mover o consolidar datos por error
   - la acción queda acotada exactamente a cambiar el nombre común de organización
 
+## 2026-04-22 - `Nombre común` se mueve a una vista separada y deja backlog visible
+
+- objetivo:
+  - sacar la normalización de organización fuera del listado principal de `Clientes`
+  - dejar una vista de trabajo dedicada que muestre solo clientes pendientes
+  - hacer que el backlog se reduzca automáticamente a medida que se normaliza
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx):
+    - crea la vista nueva `Nombre común de organización`
+    - muestra solo clientes sin `Organización / Razón social`
+    - permite selección múltiple y captura de `Nombre común final`
+    - al aplicar el cambio, los clientes atendidos salen de la lista
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
+    - elimina el recuadro operativo del listado principal
+    - deja un acceso liviano hacia la vista nueva
+  - [frontend/src/apps/tenant_portal/modules/business_core/routes.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/routes.tsx):
+    - agrega la ruta `/tenant-portal/business-core/common-organization-name`
+  - [frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/components/common/BusinessCoreModuleNav.tsx):
+    - agrega la entrada `Nombre común`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - build con `API_BASE_URL=http://192.168.7.42:8081`
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientsPage-BZ12J4Jg.js`, `BusinessCoreCommonOrganizationNamePage-xQyxCZ3I.js`, `index-CqbqzIS_.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - build con `API_BASE_URL=https://orkestia.ddns.net`
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientsPage-Dks7G0Q5.js`, `BusinessCoreCommonOrganizationNamePage-D2e3cKPD.js`, `index-CJrHdM0M.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `Clientes` deja de mezclar lectura comercial con trabajo de normalización
+  - la vista nueva sirve como backlog operativo que se va vaciando a medida que se normalizan organizaciones
+
 ## 2026-04-21 - `Clients` suma unificación manual de organización por selección de clientes
 
 - objetivo:

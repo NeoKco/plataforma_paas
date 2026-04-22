@@ -2,19 +2,21 @@
 
 ## Prioridad vigente
 
-- subcorte nuevo ya cerrado en runtime dentro de `business-core > Clients`:
-  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya permite `Nombre común de organización`
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
+  - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la normalización de `Organización / Razón social`
   - el flujo nuevo deja:
-    - selección múltiple de clientes en la tabla principal
+    - página separada del listado principal de `Clientes`
+    - selección múltiple de clientes pendientes
     - captura de `Nombre común final`
     - actualización exclusiva del campo `Organización / Razón social`
     - preservación completa de `Nombre cliente`, contactos, direcciones y mantenciones
+    - salida automática de la lista una vez que el cliente ya queda atendido
   - decisión operativa del corte:
     - no se agregan aliases visibles ni un catálogo extra de nombres anteriores
-    - el objetivo ya no es unificar fichas sino normalizar el nombre común sin riesgo de mover datos
+    - `Clientes` vuelve a quedar como lectura limpia y el backlog operativo se trabaja aparte
   - publicado en:
-    - `staging` con `BusinessCoreClientsPage-BTXVBRki.js` e `index-BMfT5NVk.js`
-    - `production` con `BusinessCoreClientsPage-9k0vCFrE.js` e `index-DmBLRzp4.js`
+    - `staging` con `BusinessCoreClientsPage-BZ12J4Jg.js`, `BusinessCoreCommonOrganizationNamePage-xQyxCZ3I.js` e `index-CqbqzIS_.js`
+    - `production` con `BusinessCoreClientsPage-Dks7G0Q5.js`, `BusinessCoreCommonOrganizationNamePage-D2e3cKPD.js` e `index-CJrHdM0M.js`
   - validación:
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
