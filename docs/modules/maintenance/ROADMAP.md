@@ -178,6 +178,8 @@ Avance actual:
   - trazabilidad de visitas ejecutadas
   - cobertura de flujo preventivo
   - instalaciones activas sin servicio reciente ni OT abierta
+- `Reportes` ya suma además un listado histórico de mantenciones realizadas filtrable por `Organización / razón social` con `cliente`, `contacto principal`, `dirección`, `instalación` y `fecha realizada`
+- la `Ficha de mantención`, `Mantenciones` e `Historial` ya dejan visible el `Contacto principal` del cliente sin bajar a `business-core`
 - `Checklist y evidencias` ya agrega un primer slice móvil de captura en terreno:
   - atajos rápidos para saltar entre cierre, checklist y evidencias dentro de la modal
   - resumen compacto de avance checklist y cantidad de adjuntos

@@ -38,6 +38,8 @@ type Props = {
   clientLabel: string;
   siteLabel: string;
   installationLabel: string;
+  primaryContactLabel?: string;
+  primaryContactDetail?: string | null;
   taskTypeLabel?: string;
   technicianProfileLabel?: string;
   workGroupLabel: string;
@@ -185,6 +187,8 @@ export function MaintenanceWorkOrderDetailModal({
   clientLabel,
   siteLabel,
   installationLabel,
+  primaryContactLabel,
+  primaryContactDetail,
   taskTypeLabel,
   technicianProfileLabel,
   workGroupLabel,
@@ -342,6 +346,9 @@ export function MaintenanceWorkOrderDetailModal({
               <div className="maintenance-history-entry__title">{stripLegacyVisibleText(workOrder.title) || "—"}</div>
               <div className="maintenance-history-entry__meta">{clientLabel}</div>
               <div className="maintenance-history-entry__meta">{siteLabel}</div>
+              <div className="maintenance-history-entry__meta">
+                {t("Contacto principal", "Primary contact")}: {primaryContactLabel || t("Sin contacto principal", "No primary contact")}
+              </div>
             </div>
             <AppBadge tone={getStatusTone(workOrder.maintenance_status)}>
               {getStatusLabel(workOrder.maintenance_status, language)}
@@ -375,6 +382,14 @@ export function MaintenanceWorkOrderDetailModal({
                     <div className="maintenance-history-entry__meta">
                       {t("Instalación", "Installation")}: {installationLabel}
                     </div>
+                    <div className="maintenance-history-entry__meta mt-2">
+                      {t("Contacto principal", "Primary contact")}: {primaryContactLabel || t("Sin contacto principal", "No primary contact")}
+                    </div>
+                    {primaryContactDetail ? (
+                      <div className="maintenance-history-entry__meta">
+                        {primaryContactDetail}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
                 <div className="col-12 col-lg-4">

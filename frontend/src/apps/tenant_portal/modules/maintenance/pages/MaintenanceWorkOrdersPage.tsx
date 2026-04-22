@@ -39,6 +39,10 @@ import {
   type TenantBusinessClient,
 } from "../../business_core/services/clientsService";
 import {
+  getTenantBusinessContacts,
+  type TenantBusinessContact,
+} from "../../business_core/services/contactsService";
+import {
   getTenantBusinessOrganizations,
   type TenantBusinessOrganization,
 } from "../../business_core/services/organizationsService";
@@ -239,6 +243,7 @@ export function MaintenanceWorkOrdersPage() {
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
@@ -275,6 +280,15 @@ export function MaintenanceWorkOrdersPage() {
     () => new Map(organizations.map((organization) => [organization.id, organization])),
     [organizations]
   );
+  const contactsByOrganizationId = useMemo(() => {
+    const grouped = new Map<number, TenantBusinessContact[]>();
+    contacts.forEach((contact) => {
+      const existing = grouped.get(contact.organization_id) ?? [];
+      existing.push(contact);
+      grouped.set(contact.organization_id, existing);
+    });
+    return grouped;
+  }, [contacts]);
   const clientById = useMemo(
     () => new Map(clients.map((client) => [client.id, client])),
     [clients]
@@ -497,6 +511,7 @@ export function MaintenanceWorkOrdersPage() {
       const [
         workOrdersResponse,
         clientsResponse,
+        contactsResponse,
         organizationsResponse,
         sitesResponse,
         installationsResponse,
@@ -510,6 +525,7 @@ export function MaintenanceWorkOrdersPage() {
           ...(requestedSiteId > 0 ? { siteId: requestedSiteId } : {}),
         }),
         getTenantBusinessClients(session.accessToken, { includeInactive: false }),
+        getTenantBusinessContacts(session.accessToken, { includeInactive: false }),
         getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
         getTenantBusinessSites(session.accessToken, { includeInactive: false }),
         getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
@@ -525,6 +541,7 @@ export function MaintenanceWorkOrdersPage() {
       );
       setRows(workOrdersResponse.data);
       setClients(clientsResponse.data);
+      setContacts(contactsResponse.data);
       setOrganizations(organizationsResponse.data);
       setSites(sitesResponse.data);
       setInstallations(installationsResponse.data);
@@ -638,6 +655,46 @@ export function MaintenanceWorkOrdersPage() {
       stripLegacyVisibleText(organization?.legal_name) ||
       t("Cliente sin nombre", "Unnamed client")
     );
+  }
+
+  function getPrimaryContact(clientId: number): TenantBusinessContact | null {
+    const client = clientById.get(clientId);
+    if (!client) {
+      return null;
+    }
+    const organizationContacts = contactsByOrganizationId.get(client.organization_id) ?? [];
+    return (
+      organizationContacts.find((contact) => contact.is_primary && contact.is_active) ??
+      organizationContacts.find((contact) => contact.is_active) ??
+      organizationContacts.find((contact) => contact.is_primary) ??
+      organizationContacts[0] ??
+      null
+    );
+  }
+
+  function getPrimaryContactLabel(clientId: number): string {
+    return (
+      stripLegacyVisibleText(getPrimaryContact(clientId)?.full_name) ||
+      t("Sin contacto principal", "No primary contact")
+    );
+  }
+
+  function getPrimaryContactDetail(clientId: number): string | null {
+    const contact = getPrimaryContact(clientId);
+    if (!contact) {
+      return null;
+    }
+    const parts = [
+      stripLegacyVisibleText(contact.role_title),
+      stripLegacyVisibleText(contact.phone),
+      stripLegacyVisibleText(contact.email),
+    ].filter((value): value is string => Boolean(value));
+    return parts.length ? parts.join(" · ") : null;
+  }
+
+  function getPrimaryContactSummary(clientId: number): string {
+    const detail = getPrimaryContactDetail(clientId);
+    return detail ? `${getPrimaryContactLabel(clientId)} · ${detail}` : getPrimaryContactLabel(clientId);
   }
 
   function getSiteDisplayName(siteId: number): string {
@@ -1494,6 +1551,12 @@ export function MaintenanceWorkOrdersPage() {
               ? "Instalación pendiente"
               : "Installation pending"
         }
+        primaryContactLabel={
+          detailWorkOrder ? getPrimaryContactLabel(detailWorkOrder.client_id) : undefined
+        }
+        primaryContactDetail={
+          detailWorkOrder ? getPrimaryContactDetail(detailWorkOrder.client_id) : null
+        }
         taskTypeLabel={detailWorkOrder ? getTaskTypeLabel(detailWorkOrder) : undefined}
         technicianProfileLabel={
           detailWorkOrder ? getTechnicianFunctionProfileLabel(detailWorkOrder) : undefined
@@ -1636,6 +1699,9 @@ export function MaintenanceWorkOrdersPage() {
               <div>
                 <div className="maintenance-cell__title">{getClientDisplayName(item.client_id)}</div>
                 <div className="maintenance-cell__meta">{getSiteDisplayName(item.site_id)}</div>
+                <div className="maintenance-cell__meta">
+                  {t("Contacto principal", "Primary contact")}: {getPrimaryContactSummary(item.client_id)}
+                </div>
               </div>
             ),
           },

@@ -42,6 +42,7 @@ El primer corte del modulo ya permite:
 - leer la bandeja por cliente, direccion e instalacion
 - ordenar operativamente por fecha y hora de trabajo mas reciente
 - abrir `Ver ficha` desde `Mantenciones` o `Historial` para revisar una orden completa sin salir de la lectura principal
+- ver `Contacto principal` desde la misma fila o dentro de `Ver ficha`, tanto en `Mantenciones` como en `Historial`, para no bajar a `Core de negocio` solo por datos de contacto
 - en `Historial`, filtrar por `Grupo responsable` y `Técnico responsable` para revisar cierres por equipo o persona sin perder la lectura de cliente y sitio
 - en la tabla y en la ficha histórica se ve el responsable como grupo + usuario para coordinar rápido la trazabilidad del cierre
 - en este módulo, `Grupo responsable` no es un permiso ni un rol del sistema: es el equipo técnico asignado a la OT, y `Técnico responsable` es la persona concreta que quedó dentro de ese equipo
@@ -90,6 +91,7 @@ El primer corte del modulo ya permite:
 - ver en `Resumen` las ultimas 5 mantenciones realizadas con datos de cliente, direccion y fecha
 - abrir `Expediente` desde `Instalaciones` para revisar un puente técnico liviano del activo con snapshot, próxima atención y último cierre reutilizando checklist/evidencias
 - abrir `Reportes` para revisar cierres del período, cobertura técnica, trazabilidad de visitas y activos sin servicio reciente
+- usar en `Reportes` el nuevo listado histórico por `Organización / razón social` cuando necesites revisar rápido cliente, contacto principal, dirección, instalación y fecha realizada
 
 ## Lo que no entra en el primer corte
 
@@ -141,6 +143,7 @@ Lectura funcional de cada vista:
   - también aparece un reporte de instalaciones activas sin plan preventivo para abrir `Crear plan` con el contexto ya cargado
 - `Mantenciones`: solo trabajo abierto (`scheduled` / `in_progress`)
   - cada fila ya permite abrir `Ver ficha`
+  - cada fila ya deja visible `Contacto principal` junto al cliente y la dirección
   - cada fila ya permite abrir `Visitas`
   - `Visitas` ahora muestra una lectura rápida de abiertas/en curso/completadas, alertas por visitas sin responsable y atajos para copiar la ventana/responsables de la OT o marcar salida/cierre
   - cada visita puede marcarse como `Diagnóstico`, `Ejecución`, `Seguimiento` o `Cierre`, para que el historial de terreno explique mejor qué se hizo en cada salida
@@ -161,6 +164,7 @@ Lectura funcional de cada vista:
   - ese expediente no reemplaza al futuro módulo documental; sirve como lectura técnica rápida del activo usando su historial real de mantenciones
 - `Historial`: trabajo ya realizado o anulado
   - cada tarjeta ya permite abrir `Ver ficha`, `Ver costos`, `Ver checklist` y `Editar cierre`
+  - la tabla y las tarjetas ya dejan visible `Contacto principal` sin salir del histórico
   - `Ver costos` es solo lectura; el histórico no se edita desde el flujo normal
   - `Ver checklist` también es solo lectura y deja visible la trazabilidad técnica del cierre
   - si la OT está `completed`, `admin` y `manager` también pueden corregir la `Fecha efectiva de cierre` cuando el registro se hizo después; ese ajuste deja traza explícita en `Cambios y eventos`
@@ -173,14 +177,22 @@ Lectura funcional de cada vista:
   - en esa reprogramación puedes mover también la primera visita abierta para dejar alineada la ventana principal de terreno
   - la modal ahora además muestra qué ventana se sincronizará y cuáles visitas abiertas quedarán pendientes para coordinación fina en `Visitas`
 - `Reportes`: lectura analítica operativa del módulo
-  - permite filtrar por mes y tipo de equipo
+  - permite filtrar por mes, tipo de equipo y `Organización / razón social`
   - resume cierres completados/anulados del período
   - muestra cobertura de observación útil de cierre, trazabilidad de visitas y cobertura preventiva
   - detecta instalaciones activas sin servicio reciente ni OT abierta
+  - agrega un listado histórico de mantenciones realizadas con:
+    - organización / razón social
+    - cliente
+    - contacto principal
+    - dirección
+    - instalación
+    - fecha realizada
 
 Lectura de la ficha de mantención:
 
 - resume cliente, dirección, instalación, responsables, prioridad y estado actual
+- deja visible el `Contacto principal` del cliente con su dato operativo corto si existe
 - agrega snapshots de próxima ventana en terreno, última ejecución y grupos que ya tocaron la OT
 - expone fechas clave de creación, programación, cierre y última actualización
 - carga `Cambios y eventos` y `Visitas asociadas` bajo demanda para no recargar la bandeja principal

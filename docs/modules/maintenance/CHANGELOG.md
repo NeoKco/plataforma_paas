@@ -1,5 +1,24 @@
 # Maintenance Changelog
 
+## 2026-04-21
+
+- `Mantenciones` e `Historial` ahora dejan el `Contacto principal` visible sin obligar a salir del flujo operativo:
+  - la [MaintenanceWorkOrderDetailModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceWorkOrderDetailModal.tsx) muestra nombre y detalle operativo del contacto principal
+  - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx) agrega esa lectura también en la tabla de mantenciones abiertas
+  - [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx) la deja visible en tabla, cards y ficha histórica
+- `Reportes` agrega un nuevo listado histórico de mantenciones realizadas filtrable por `Organización / razón social` en [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx)
+  - muestra:
+    - organización / razón social
+    - cliente
+    - contacto principal
+    - dirección
+    - instalación
+    - fecha realizada
+  - el corte se deja deliberadamente sobre mantenciones `completed` para no mezclar trabajo ejecutado con anulaciones
+- validación:
+  - `cd frontend && npm run build` -> `OK`
+  - frontend publicado en `staging` y `production`
+
 ## 2026-04-19
 
 - `Agenda` deja de vivir dentro del nav interno de `Mantenciones` y pasa a ser una entrada lateral propia del portal tenant

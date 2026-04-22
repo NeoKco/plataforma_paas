@@ -1,5 +1,47 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-21 - `maintenance` hace visible el contacto principal y agrega reporte histórico por organización
+
+- objetivo:
+  - dejar el dato de contacto del cliente accesible sin salir de `Mantenciones` ni `Historial`
+  - agregar en `Reportes` un listado histórico de trabajo realmente realizado, filtrable por `Organización / razón social`
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceWorkOrderDetailModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/components/common/MaintenanceWorkOrderDetailModal.tsx):
+    - agrega `Contacto principal` dentro de la ficha operativa e histórica
+    - muestra también detalle corto operativo cuando existe (`rol`, `teléfono`, `email`)
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx):
+    - carga `business-core.contacts`
+    - deja visible `Contacto principal` en la tabla de mantenciones abiertas
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx):
+    - carga `business-core.contacts`
+    - deja visible `Contacto principal` en tabla, cards y ficha histórica
+  - [frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx):
+    - agrega filtro `Organización / razón social`
+    - agrega tabla histórica de mantenciones realizadas con:
+      - organización / razón social
+      - cliente
+      - contacto principal
+      - dirección
+      - instalación
+      - fecha realizada
+    - el corte queda deliberadamente enfocado en `completed`, no en anuladas
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `MaintenanceReportsPage-P5udHQ-6.js`, `MaintenanceHistoryPage-BHhsMTMv.js`, `MaintenanceWorkOrdersPage-BJ9I92PB.js`, `MaintenanceWorkOrderDetailModal-966EIyay.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `MaintenanceReportsPage-DUrgjRFw.js`, `MaintenanceHistoryPage-NANWEw07.js`, `MaintenanceWorkOrdersPage-CrgeGFbK.js`, `MaintenanceWorkOrderDetailModal-oH4qfjke.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - el operador ya no necesita bajar a `business-core` solo para encontrar el contacto principal del cliente
+  - `Reportes` ya puede responder la consulta histórica operativa pedida sin endpoint nuevo
+- siguiente paso:
+  - si no aparece deuda nueva en `maintenance`, retomar el roadmap fuera de `Duplicados`
+
 ## 2026-04-21 - `Duplicados` amplía `installations` hacia fechas técnicas y garantía
 
 - objetivo:

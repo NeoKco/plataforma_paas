@@ -15,7 +15,7 @@ Estado actual:
 - queda redefinido como modulo dependiente de `business-core`
 - las mejoras sugeridas posteriores al cierre funcional quedaron reunidas en [improvements/README.md](/home/felipe/platform_paas/docs/modules/maintenance/improvements/README.md)
 - `Mantenciones` y `Historial` ya comparten `Ver ficha` para abrir una lectura consolidada de cada OT
-- la `Ficha de mantención` ya muestra contexto operativo, snapshots de cliente/instalación/responsables, fechas, trazabilidad, visitas, cierre técnico y accesos contextuales a `Costos`, `Checklist` o `Editar cierre`
+- la `Ficha de mantención` ya muestra contexto operativo, snapshots de cliente/instalación/responsables, `Contacto principal`, fechas, trazabilidad, visitas, cierre técnico y accesos contextuales a `Costos`, `Checklist` o `Editar cierre`
 - `Mantenciones` ya permite gestionar `Visitas` por OT para modelar ventanas programadas, ejecución real y responsables de terreno
 - `agenda técnica` ya muestra una agenda visual mensual de mantenciones abiertas
 - ya permite crear mantenciones desde la propia agenda visual
@@ -148,7 +148,7 @@ Estado del corte hoy:
 - `Business Core -> Taxonomías` ya expone una matriz visual `Tipo de tarea x Perfil funcional` para auditar compatibilidad fina sin abrir cada catálogo por separado
 - esa misma matriz ya muestra cobertura operativa real usando membresías activas/vigentes de grupos, para detectar tipos sin técnicos compatibles y perfiles funcionales huérfanos
 - `Instalaciones` ya puede abrir `Expediente` como puente liviano con expediente técnico: resume snapshot del activo, próximas/últimas mantenciones y reutiliza el checklist/evidencias del último cierre como base documental sin abrir aún un módulo separado
-- `Reportes` ya abre un primer corte de reportes técnicos operativos: cierres del período, cobertura de observación útil, trazabilidad de visitas, cobertura preventiva y activos sin servicio reciente
+- `Reportes` ya abre un primer corte de reportes técnicos operativos: cierres del período, cobertura de observación útil, trazabilidad de visitas, cobertura preventiva, activos sin servicio reciente y un listado histórico de mantenciones realizadas filtrable por `Organización / razón social` con `cliente`, `contacto principal`, `dirección`, `instalación` y `fecha realizada`
 - `Checklist` ya incorpora un primer corte móvil para terreno:
   - atajos rápidos dentro de la modal para saltar a cierre, checklist y evidencias
   - resumen visible de avance checklist y cantidad de adjuntos

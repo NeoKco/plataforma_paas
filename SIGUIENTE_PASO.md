@@ -2,7 +2,30 @@
 
 ## Prioridad vigente
 
-- subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
+- subcorte nuevo ya cerrado en runtime dentro de `maintenance`:
+  - `Mantenciones` e `Historial` ya dejan visible `Contacto principal` tanto en la lectura exterior como en `Ver ficha`
+  - `Reportes` ya agrega un listado histórico de mantenciones realizadas filtrable por `Organización / razón social`
+  - el listado nuevo muestra:
+    - cliente
+    - contacto principal
+    - dirección
+    - instalación
+    - fecha realizada
+  - decisión operativa del corte:
+    - se mantiene centrado en `completed`
+    - no mezcla anuladas con trabajo efectivamente realizado
+  - publicado en:
+    - `staging` con `MaintenanceReportsPage-P5udHQ-6.js`, `MaintenanceHistoryPage-BHhsMTMv.js`, `MaintenanceWorkOrdersPage-BJ9I92PB.js` y `MaintenanceWorkOrderDetailModal-966EIyay.js`
+    - `production` con `MaintenanceReportsPage-DUrgjRFw.js`, `MaintenanceHistoryPage-NANWEw07.js`, `MaintenanceWorkOrdersPage-CrgeGFbK.js` y `MaintenanceWorkOrderDetailModal-oH4qfjke.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+- una vez promovido este slice de `maintenance`, el siguiente paso correcto ya no es seguir profundizando `Duplicados` por inercia:
+  - conviene retomar el roadmap fuera de ese frente
+  - el candidato natural vuelve a ser cierre de `business-core` fuera de `Duplicados` o el siguiente bloque formal del roadmap maestro
+
+- subcorte previo ya cerrado en runtime dentro de `business-core > Duplicados`:
   - `installations` ya no queda limitado solo a identidad técnica visible y notas
   - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega también:
     - `Fecha instalación`

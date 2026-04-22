@@ -130,6 +130,7 @@ Fuente frontend principal:
 - `Mantenciones` e `Historial` ya comparten una `Ficha de mantención` como lectura secundaria de la OT:
   - se abre bajo demanda con `Ver ficha`
   - concentra contexto operativo, fechas, cierre técnico, `status_logs` y `visits`
+  - ya integra también `Contacto principal` resuelto desde `business-core.contacts` por `organization_id`, con fallback seguro al primer contacto activo cuando no hay principal explícito
   - desde una ficha histórica puede abrirse `Editar cierre`, pero no reprogramación ni edición completa de scheduling
 - `Agenda` debe pintar mantenciones abiertas sobre calendario visual, no visitas como lista catalogada
 - la asignacion ya se formalizo con FKs reales a `work_groups` y `tenant_users`, dejando `assigned_group_label` solo como compatibilidad temporal en datos o lecturas legacy
@@ -446,6 +447,7 @@ Limitaciones actuales:
 - usar adjuntos/evidencias del modulo, no filesystem ad hoc
 - preparar el modulo para crecer luego hacia expediente tecnico sin acoplarlo desde el inicio
 - mantener `Reportes` como lectura agregada sobre datos reales del módulo y no como exportador aislado sin contexto operativo
+- mantener el listado histórico de `Reportes` sobre joins reales de `clients`, `organizations`, `contacts`, `sites` e `installations`, sin abrir un endpoint paralelo solo para exportar historia visible
 - exponer `status_logs` y `visits` en el frontend antes de sumar agenda completa
 - agregar agenda visual con visitas más finas sin romper el slice ya operativo
 

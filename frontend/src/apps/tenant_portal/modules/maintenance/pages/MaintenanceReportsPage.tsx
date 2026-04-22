@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PanelCard } from "../../../../../components/common/PanelCard";
@@ -16,6 +17,10 @@ import {
   getTenantBusinessClients,
   type TenantBusinessClient,
 } from "../../business_core/services/clientsService";
+import {
+  getTenantBusinessContacts,
+  type TenantBusinessContact,
+} from "../../business_core/services/contactsService";
 import {
   getTenantBusinessOrganizations,
   type TenantBusinessOrganization,
@@ -107,16 +112,29 @@ function getDaysFromNow(value: string | null | undefined) {
   return Math.floor((Date.now() - timestamp) / (1000 * 60 * 60 * 24));
 }
 
+type HistoricalMaintenanceReportRow = {
+  id: number;
+  organizationLabel: string;
+  clientLabel: string;
+  primaryContactLabel: string;
+  primaryContactDetail: string | null;
+  addressLabel: string;
+  installationLabel: string;
+  completedAt: string | null;
+};
+
 export function MaintenanceReportsPage() {
   const { session, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const [periodMonth, setPeriodMonth] = useState(buildMonthValue());
   const [equipmentTypeFilter, setEquipmentTypeFilter] = useState("all");
+  const [organizationFilter, setOrganizationFilter] = useState("all");
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [historyRows, setHistoryRows] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
   const [installations, setInstallations] = useState<TenantMaintenanceInstallation[]>([]);
   const [equipmentTypes, setEquipmentTypes] = useState<TenantMaintenanceEquipmentType[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
+  const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [sites, setSites] = useState<TenantBusinessSite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,6 +149,15 @@ export function MaintenanceReportsPage() {
     [equipmentTypes]
   );
   const clientById = useMemo(() => new Map(clients.map((item) => [item.id, item])), [clients]);
+  const contactsByOrganizationId = useMemo(() => {
+    const grouped = new Map<number, TenantBusinessContact[]>();
+    contacts.forEach((contact) => {
+      const existing = grouped.get(contact.organization_id) ?? [];
+      existing.push(contact);
+      grouped.set(contact.organization_id, existing);
+    });
+    return grouped;
+  }, [contacts]);
   const organizationById = useMemo(
     () => new Map(organizations.map((item) => [item.id, item])),
     [organizations]
@@ -151,6 +178,7 @@ export function MaintenanceReportsPage() {
           installationsResponse,
           equipmentTypesResponse,
           clientsResponse,
+          contactsResponse,
           organizationsResponse,
           sitesResponse,
         ] = await Promise.all([
@@ -159,6 +187,7 @@ export function MaintenanceReportsPage() {
           getTenantMaintenanceInstallations(session.accessToken),
           getTenantMaintenanceEquipmentTypes(session.accessToken),
           getTenantBusinessClients(session.accessToken, { includeInactive: true }),
+          getTenantBusinessContacts(session.accessToken, { includeInactive: true }),
           getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
           getTenantBusinessSites(session.accessToken, { includeInactive: true }),
         ]);
@@ -167,6 +196,7 @@ export function MaintenanceReportsPage() {
         setInstallations(installationsResponse.data);
         setEquipmentTypes(equipmentTypesResponse.data);
         setClients(clientsResponse.data);
+        setContacts(contactsResponse.data);
         setOrganizations(organizationsResponse.data);
         setSites(sitesResponse.data);
       } catch (rawError) {
@@ -189,12 +219,33 @@ export function MaintenanceReportsPage() {
     return String(installationById.get(installationId)?.equipment_type_id || "") === equipmentTypeFilter;
   }
 
-  function getClientLabel(clientId: number) {
+  function getOrganization(clientId: number) {
     const client = clientById.get(clientId);
-    const organization = organizationById.get(client?.organization_id ?? -1);
+    return organizationById.get(client?.organization_id ?? -1) ?? null;
+  }
+
+  function getOrganizationOptionLabel(organization: TenantBusinessOrganization | null | undefined) {
+    const commercialName = stripLegacyVisibleText(organization?.name);
+    const legalName = stripLegacyVisibleText(organization?.legal_name);
+    if (commercialName && legalName && commercialName !== legalName) {
+      return `${commercialName} · ${legalName}`;
+    }
+    return commercialName || legalName || (language === "es" ? "Organización sin nombre" : "Unnamed organization");
+  }
+
+  function getOrganizationLegalLabel(clientId: number) {
+    const organization = getOrganization(clientId);
     return (
-      stripLegacyVisibleText(organization?.name) ||
       stripLegacyVisibleText(organization?.legal_name) ||
+      stripLegacyVisibleText(organization?.name) ||
+      (language === "es" ? "Organización sin nombre" : "Unnamed organization")
+    );
+  }
+
+  function getClientLabel(clientId: number) {
+    return (
+      stripLegacyVisibleText(getOrganization(clientId)?.name) ||
+      stripLegacyVisibleText(getOrganization(clientId)?.legal_name) ||
       (language === "es" ? "Cliente sin nombre" : "Unnamed client")
     );
   }
@@ -209,6 +260,41 @@ export function MaintenanceReportsPage() {
       stripLegacyVisibleText(site.name) ||
       (language === "es" ? "Dirección sin nombre" : "Unnamed address")
     );
+  }
+
+  function getPrimaryContact(clientId: number): TenantBusinessContact | null {
+    const client = clientById.get(clientId);
+    if (!client) {
+      return null;
+    }
+    const organizationContacts = contactsByOrganizationId.get(client.organization_id) ?? [];
+    return (
+      organizationContacts.find((contact) => contact.is_primary && contact.is_active) ??
+      organizationContacts.find((contact) => contact.is_active) ??
+      organizationContacts.find((contact) => contact.is_primary) ??
+      organizationContacts[0] ??
+      null
+    );
+  }
+
+  function getPrimaryContactLabel(clientId: number): string {
+    return (
+      stripLegacyVisibleText(getPrimaryContact(clientId)?.full_name) ||
+      (language === "es" ? "Sin contacto principal" : "No primary contact")
+    );
+  }
+
+  function getPrimaryContactDetail(clientId: number): string | null {
+    const contact = getPrimaryContact(clientId);
+    if (!contact) {
+      return null;
+    }
+    const parts = [
+      stripLegacyVisibleText(contact.role_title),
+      stripLegacyVisibleText(contact.phone),
+      stripLegacyVisibleText(contact.email),
+    ].filter((value): value is string => Boolean(value));
+    return parts.length ? parts.join(" · ") : null;
   }
 
   const filteredHistoryRows = useMemo(
@@ -335,6 +421,60 @@ export function MaintenanceReportsPage() {
     [filteredHistoryRows]
   );
 
+  const organizationFilterOptions = useMemo(() => {
+    const seen = new Set<number>();
+    return completedRows
+      .map((item) => getOrganization(item.client_id))
+      .filter((organization): organization is TenantBusinessOrganization => Boolean(organization))
+      .filter((organization) => {
+        if (seen.has(organization.id)) {
+          return false;
+        }
+        seen.add(organization.id);
+        return true;
+      })
+      .sort((left, right) => getOrganizationOptionLabel(left).localeCompare(getOrganizationOptionLabel(right), language));
+  }, [completedRows, language]);
+
+  const historicalReportRows = useMemo<HistoricalMaintenanceReportRow[]>(
+    () =>
+      completedRows
+        .filter((item) => {
+          if (organizationFilter === "all") {
+            return true;
+          }
+          const client = clientById.get(item.client_id);
+          return String(client?.organization_id ?? "") === organizationFilter;
+        })
+        .map((item) => ({
+          id: item.id,
+          organizationLabel: getOrganizationLegalLabel(item.client_id),
+          clientLabel: getClientLabel(item.client_id),
+          primaryContactLabel: getPrimaryContactLabel(item.client_id),
+          primaryContactDetail: getPrimaryContactDetail(item.client_id),
+          addressLabel: getSiteLabel(item.site_id),
+          installationLabel:
+            (item.installation_id && stripLegacyVisibleText(installationById.get(item.installation_id)?.name)) ||
+            (language === "es" ? "Instalación pendiente" : "Installation pending"),
+          completedAt: item.completed_at,
+        }))
+        .sort((left, right) => {
+          const leftTime = left.completedAt ? new Date(left.completedAt).getTime() : 0;
+          const rightTime = right.completedAt ? new Date(right.completedAt).getTime() : 0;
+          return rightTime - leftTime;
+        }),
+    [
+      clientById,
+      completedRows,
+      installationById,
+      language,
+      organizationFilter,
+      organizations,
+      contacts,
+      sites,
+    ]
+  );
+
   return (
     <div className="d-grid gap-4">
       <PageHeader
@@ -381,6 +521,23 @@ export function MaintenanceReportsPage() {
               {equipmentTypes.map((item) => (
                 <option key={item.id} value={String(item.id)}>
                   {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="form-label">
+              {language === "es" ? "Organización / razón social" : "Organization / legal name"}
+            </label>
+            <select
+              className="form-select"
+              value={organizationFilter}
+              onChange={(event) => setOrganizationFilter(event.target.value)}
+            >
+              <option value="all">{language === "es" ? "Todas" : "All"}</option>
+              {organizationFilterOptions.map((organization) => (
+                <option key={organization.id} value={String(organization.id)}>
+                  {getOrganizationOptionLabel(organization)}
                 </option>
               ))}
             </select>
@@ -467,6 +624,58 @@ export function MaintenanceReportsPage() {
           </div>
 
           <div className="row g-3">
+            <div className="col-12">
+              <DataTableCard
+                title={language === "es" ? "Histórico realizado por organización" : "Completed history by organization"}
+                subtitle={
+                  language === "es"
+                    ? "Listado operativo de mantenciones efectivamente realizadas. Se filtra por razón social y evita mezclar anuladas con trabajo ejecutado."
+                    : "Operational list of maintenance effectively completed. It filters by legal name and keeps cancelled rows out of executed work."
+                }
+                rows={historicalReportRows}
+                columns={[
+                  {
+                    key: "organization",
+                    header: language === "es" ? "Organización / razón social" : "Organization / legal name",
+                    render: (item) => <div className="maintenance-cell__title">{item.organizationLabel}</div>,
+                  },
+                  {
+                    key: "client",
+                    header: language === "es" ? "Cliente" : "Client",
+                    render: (item) => <div className="maintenance-cell__title">{item.clientLabel}</div>,
+                  },
+                  {
+                    key: "contact",
+                    header: language === "es" ? "Contacto principal" : "Primary contact",
+                    render: (item) => (
+                      <div>
+                        <div className="maintenance-cell__title">{item.primaryContactLabel}</div>
+                        {item.primaryContactDetail ? (
+                          <div className="maintenance-cell__meta">{item.primaryContactDetail}</div>
+                        ) : null}
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "address",
+                    header: language === "es" ? "Dirección" : "Address",
+                    render: (item) => <div>{item.addressLabel}</div>,
+                  },
+                  {
+                    key: "installation",
+                    header: language === "es" ? "Instalación" : "Installation",
+                    render: (item) => <div>{item.installationLabel}</div>,
+                  },
+                  {
+                    key: "completedAt",
+                    header: language === "es" ? "Fecha realizada" : "Completed date",
+                    render: (item) => (
+                      <div>{formatDateTime(item.completedAt, language, effectiveTimeZone)}</div>
+                    ),
+                  },
+                ]}
+              />
+            </div>
             <div className="col-12 col-xl-7">
               <PanelCard
                 title={language === "es" ? "Cierres recientes del período" : "Recent period closures"}
