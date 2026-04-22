@@ -120,6 +120,10 @@ Fuente frontend principal:
 - `installations` ahora también abre `Expediente` como modal de lectura secundaria del activo, siguiendo el mismo patrón de lectura primero sin abrir aún un módulo documental separado
 - cualquier nueva pantalla CRUD del modulo debe seguir el mismo patron y no volver a formularios fijos incrustados salvo que exista una razon operativa fuerte
 - en `work_orders`, cliente y direccion deben leerse con nombre humano desde `business-core`, nunca por `client_code` o marcas `legacy_*`
+- la separación correcta de campos es:
+  - `Cliente` -> `organization.name`
+  - `Organización / Razón social` -> `organization.legal_name`
+- una homologación manual de nombre común en `business-core` no debe cambiar la lectura principal de cliente dentro de `maintenance`
 - `external_reference` queda como dato interno para migracion e integraciones; no debe exponerse como campo editable en la UX normal
 - para crear o editar una orden operativa se exige `client_id`, `site_id` e `installation_id` validos
 - `Mantenciones` es una bandeja de trabajo abierto, no un mezclador de abiertas y cerradas

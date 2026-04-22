@@ -26,6 +26,10 @@ Estado actual:
   - `Historial`: `completed` y `cancelled`
 - `Resumen` ya muestra las 5 ultimas mantenciones realizadas con cliente, direccion y fecha de cierre
 - `Instalaciones` ya muestra instalacion, cliente y direccion visible
+- regla vigente de lectura:
+  - `Cliente` consume `organization.name`
+  - `Organización / Razón social` consume `organization.legal_name`
+  - la homologación manual de nombre común en `business-core` no debe cambiar la lectura principal de cliente
 - las ordenes y visitas ya soportan `grupo responsable` y `tecnico responsable` apoyados sobre `business-core`
 - ya existe el primer corte de `Pendientes` preventivos con:
   - `maintenance_schedules`

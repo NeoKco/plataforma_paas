@@ -1,5 +1,39 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - armonización documental completa contra comportamiento vigente
+
+- objetivo:
+  - revisar hacia atrás la documentación activa y corregir contradicciones entre código, runtime y memoria viva
+  - dejar guías, roadmap, changelog y handoff alineados al comportamiento real vigente
+- cambios y acciones ejecutadas:
+  - [docs/modules/business-core/README.md](/home/felipe/platform_paas/docs/modules/business-core/README.md):
+    - corrige naming vigente de `Duplicados`
+    - deja explícita la regla `organization.name` vs `organization.legal_name`
+    - describe `Nombre común` como slice complementario seguro, sin mover ni borrar datos
+  - [docs/modules/business-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/business-core/USER_GUIDE.md):
+    - reemplaza referencias viejas a `Depuración`
+    - aclara el flujo real de `Nombre común`
+    - deja explícito que `Nombre cliente` sigue en `organization.name`
+  - [docs/modules/business-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/business-core/DEV_GUIDE.md):
+    - fija la separación técnica correcta entre `name` y `legal_name`
+  - [docs/modules/business-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/business-core/CHANGELOG.md):
+    - deja explícito que el experimento de unificación real desde `Clients` quedó revertido
+    - conserva el histórico pero ya no lo deja como comportamiento vigente
+  - [docs/modules/business-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/business-core/ROADMAP.md):
+    - refuerza que `maintenance` ya consume correctamente `Cliente` vs `Organización / Razón social`
+  - [docs/modules/maintenance/README.md](/home/felipe/platform_paas/docs/modules/maintenance/README.md), [USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/maintenance/USER_GUIDE.md) y [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/maintenance/DEV_GUIDE.md):
+    - dejan explícita la regla vigente:
+      - `Cliente` -> `organization.name`
+      - `Organización / Razón social` -> `organization.legal_name`
+  - [ESTADO_ACTUAL.md](/home/felipe/platform_paas/ESTADO_ACTUAL.md), [SIGUIENTE_PASO.md](/home/felipe/platform_paas/SIGUIENTE_PASO.md) y [HANDOFF_STATE.json](/home/felipe/platform_paas/HANDOFF_STATE.json):
+    - alineados al estado documental final y al foco vigente real
+- validaciones:
+  - `bash deploy/check_release_governance.sh` -> `OK`
+  - `jq '.updated_at, .current_focus' HANDOFF_STATE.json` -> `OK`
+- resultado:
+  - la documentación activa ya refleja el estado real del sistema hoy
+  - no quedan guías principales describiendo como vigente la unificación real revertida ni el naming viejo `Depuración`
+
 ## 2026-04-22 - corrección visual de `maintenance`: cliente y organización vuelven a separarse bien
 
 - objetivo:

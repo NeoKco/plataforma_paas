@@ -93,6 +93,8 @@ Observacion:
 
 - `organization_kind` no deberia limitarse a `client` o `provider`
 - conviene permitir etiquetas como `client`, `provider`, `partner`, `contractor`
+- `name` sigue siendo el nombre individual/base que consumen lecturas operativas como `maintenance -> Cliente`
+- `legal_name` queda disponible para homologar el nombre común visible de la organización social sin pisar `name`
 - la UX de `organizations` deberia incluir lectura y edicion del `contacto principal` sin obligar al usuario a ir al catálogo global de `contacts`
 - la direccion propia de `organizations` no debe improvisarse como nota o texto libre: requiere una ola de modelo posterior para resolver bien empresa/proveedor con direccion editable y visible
 

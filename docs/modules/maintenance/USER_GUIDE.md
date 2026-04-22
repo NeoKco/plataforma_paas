@@ -39,6 +39,9 @@ El primer corte del modulo ya permite:
 - ver solo mantenciones abiertas en la bandeja `Mantenciones`
 - ver mantenciones realizadas o anuladas en `Historial`
 - `Historial` ahora separa `Mantenciones realizadas` y `Mantenciones anuladas`, para no mezclar trabajo ejecutado con trabajo cancelado.
+- regla vigente de nombres:
+  - `Cliente` muestra el nombre individual/base del cliente (`organization.name`)
+  - `Organización / razón social` muestra el nombre común homologado (`organization.legal_name`) cuando la pantalla realmente habla de organización
 - leer la bandeja por cliente, direccion e instalacion
 - ordenar operativamente por fecha y hora de trabajo mas reciente
 - abrir `Ver ficha` desde `Mantenciones` o `Historial` para revisar una orden completa sin salir de la lectura principal

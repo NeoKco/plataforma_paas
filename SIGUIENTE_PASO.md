@@ -2,6 +2,14 @@
 
 ## Prioridad vigente
 
+- memoria viva y documentación ya rearmonizadas al estado real actual:
+  - `business-core` ya documenta `Duplicados` con su naming vigente
+  - `Nombre común` ya queda descrito solo como homologación manual segura de `legal_name`
+  - `maintenance` ya deja explícita la separación correcta:
+    - `Cliente` -> `organization.name`
+    - `Organización / Razón social` -> `organization.legal_name`
+  - no queda vigente en docs el experimento revertido de unificación real desde `Clients`
+
 - subcorte nuevo ya cerrado en runtime dentro de `maintenance`:
   - corrección visual final: `Cliente` vuelve a leer el nombre individual/base y la organización común queda solo donde el campo realmente corresponde a organización
   - [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx) mantiene `Organización / Razón social` como columna propia y vuelve a dejar `Cliente` con el nombre individual/base

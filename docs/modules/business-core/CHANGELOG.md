@@ -340,7 +340,7 @@
 - La vista `Duplicados` ahora audita tambien `Contactos`: detecta equivalentes dentro de la misma organización, sugiere una ficha para conservar y permite consolidar desactivando duplicados origen.
 - La consolidación de `Clientes` ahora reaprovecha también `Contactos`: mueve los reutilizables hacia la organización destino y desactiva duplicados evidentes, dejando las organizaciones origen para revisión manual.
 - La documentación de `business-core` queda alineada con el nombre visible `Duplicados`, el acceso desde `Resumen`, el resumen previo de impacto por grupo y el alcance real de la consolidación operativa actual.
-- Se agrega la vista `Depuración` en `business-core` para auditar duplicados de `Clientes`, `Direcciones` e `Instalaciones`, cruzando dependencias visibles de `sites`, `installations` y `work_orders` antes de habilitar borrado seguro.
+- Se agrega la primera versión del slice de duplicados en `business-core` para auditar `Clientes`, `Direcciones` e `Instalaciones`, cruzando dependencias visibles de `sites`, `installations` y `work_orders` antes de habilitar borrado seguro. Ese slice luego quedó renombrado al nombre visible actual `Duplicados`.
 - La misma vista ahora sugiere qué ficha conviene conservar por grupo y agrega desactivación directa para duplicados con historial que no conviene borrar.
 - La auditoría de duplicados ahora permite consolidar referencias operativas hacia la ficha sugerida: mueve `sites`, `installations` y `work_orders` según el tipo de duplicado y luego desactiva los registros origen.
 - Se mejora la descubribilidad del slice renombrando el acceso visible a `Duplicados`, agregando un acceso directo desde `Resumen` y mostrando un resumen previo del impacto de consolidación por grupo.

@@ -31,6 +31,8 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 
 - `Empresas` muestra la empresa propia, proveedores y partners operativos.
 - `Clientes` muestra la cartera cliente del tenant.
+- dentro de un cliente, `Nombre cliente` sigue leyendo el nombre individual/base (`organization.name`)
+- `Organización / Razón social` se usa como nombre común homologado (`organization.legal_name`) cuando corresponde agrupar varios clientes bajo una misma organización social
 - una misma identidad base puede existir como `organization`, pero la vista `Empresas` no debe usarse para revisar la cartera comercial completa.
 - por defecto, la pantalla `Empresas` excluye las organizaciones ya usadas como clientes para evitar mezclar ambas lecturas.
 - en `Empresas`, la tabla operativa debe mostrar tambien el `contacto principal` con telefono y mail, para permitir lectura rapida sin abrir otros catalogos.
@@ -69,15 +71,15 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - un cliente con historial de mantenciones no deberia eliminarse; desde ese punto en adelante solo corresponde desactivarlo para no romper trazabilidad ni reportes.
 - si aparece la pareja, un familiar o un tercero ligado al mismo domicilio o contexto operativo, no deberia crearse como cliente nuevo por defecto; primero debe revisarse si corresponde agregarlo como contacto del cliente existente.
 - la captura de `Nuevo cliente` deberia advertir coincidencias fuertes por RUT, nombre, telefono, email o direccion y desviar al usuario hacia la ficha existente antes de duplicar la cartera.
-- cuando ya existen duplicados en la base, la pantalla `Depuración` debe agrupar `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
-- si el operador ya sabe de antemano que varios clientes pertenecen a la misma contraparte real, no hace falta esperar a que `Depuración` los detecte:
+- cuando ya existen duplicados en la base, la pantalla `Duplicados` debe agrupar `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
+- si el operador ya sabe de antemano que varios clientes pertenecen a la misma contraparte real, no hace falta esperar a que `Duplicados` los detecte:
   - `Core de negocio` ahora ofrece la vista `Nombre común`
   - el flujo correcto es:
     1. entrar a `Core de negocio -> Nombre común`
     2. revisar los grupos detectados por similitud de organización
     3. marcar solo los clientes que realmente deban compartir la misma organización social común
     4. escribir el `Nombre común final`
-    4. confirmar la actualización
+    5. confirmar la actualización
   - esa vista ya no muestra solo vacíos:
     - muestra grupos detectados por similitud real de organización
     - por ejemplo mismo `RUT / Tax ID`, mismo nombre visible o nombre muy parecido
@@ -86,6 +88,9 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
   - cuando un grupo queda homologado con el mismo nombre común, deja de aparecer
   - ese flujo solo actualiza `Organización / Razón social`
   - no toca `Nombre cliente`, contactos, direcciones ni mantenciones
+  - en otras palabras:
+    - `Nombre cliente` sigue en `organization.name`
+    - el nombre común queda en `organization.legal_name`
   - no guarda aliases visibles ni nombres anteriores como dato operativo
 - la vista `Activos` permite mantener el inventario instalado por sitio y `Tipos de activo` define la taxonomia reusable para ese inventario.
 - cuando entras a `Activos` desde `Maintenance -> Instalaciones`, la vista puede abrir con foco contextual del mismo sitio y una búsqueda prellenada por nombre o serie de la instalación.
@@ -112,7 +117,7 @@ Eso genera:
 - reportes cruzados pobres
 - integraciones fragiles entre modulos
 
-## Depuracion de duplicados
+## Duplicados
 
 La pantalla visible como `Duplicados` sirve para limpiar base existente cuando la prevencion de duplicados ya no alcanzo.
 

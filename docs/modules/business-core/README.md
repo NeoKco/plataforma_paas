@@ -6,6 +6,13 @@ Nombre funcional visible sugerido:
 
 - `Core de negocio`
 
+Regla vigente para identidad visible:
+
+- `organization.name` conserva el nombre individual/base que se usa en lecturas operativas de cliente
+- `organization.legal_name` se usa para homologar el nombre común de la organización social cuando hace falta
+- la vista `Nombre común` solo trabaja sobre `legal_name`
+- la homologación manual no debe pisar `name`
+
 Donde encontrar la pantalla de duplicados:
 
 - entrar a `Tenant portal -> Core de negocio -> Duplicados`
@@ -59,7 +66,8 @@ Estado actual:
 - la vista de `work_groups` ya expone conteo de miembros y acceso directo a la gestion de `Miembros`
 - `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
 - no existe un responsable por sitio/dirección en el modelo actual: la regla de negocio usa grupo + líder por mantención o instalación
-- la nueva vista `Depuración` ya detecta grupos duplicados de `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas o desactivar duplicados hacia esa ficha antes de borrar para apoyar la limpieza operativa de la BD
+- la vista `Duplicados` ya detecta grupos duplicados de `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas o desactivar duplicados hacia esa ficha antes de borrar para apoyar la limpieza operativa de la BD
+- la vista `Nombre común` ya sirve para homologar manualmente `Organización / Razón social` entre clientes candidatos por similitud real, sin mover ni borrar datos
 
 ## Slice operativo actual: Duplicados
 
@@ -85,6 +93,14 @@ Alcance real de la consolidacion actual:
 - `Contactos`: deja una sola ficha sugerida activa, integra email/teléfono/rol faltantes y desactiva duplicados equivalentes dentro de la misma organización
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Instalaciones`: mueve `OT`
+
+Slice complementario vigente:
+
+- `Nombre común` no consolida fichas ni mueve referencias
+- detecta candidatos por similitud real de organización
+- permite marcar clientes y escribir un `Nombre común final`
+- solo actualiza `organization.legal_name`
+- no toca `organization.name`, `contacts`, `sites`, `work_orders` ni elimina registros
 
 Regla de negocio vigente:
 
