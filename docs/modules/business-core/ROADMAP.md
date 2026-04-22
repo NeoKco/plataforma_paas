@@ -123,10 +123,12 @@ Pendiente documentado:
 
 Completado recientemente:
 
-- unificación manual de organización por selección de clientes:
-  - `BusinessCoreClientsPage` ya deja marcar varios clientes, elegir la ficha destino y fijar un `Nombre común final`
-  - el flujo ya mueve `direcciones`, `mantenciones` y `contactos` hacia la ficha elegida
-  - el cleanup intenta borrar clientes/organizaciones origen y, si no puede, los desactiva como fallback seguro
+- homologación manual de organización común por selección de clientes:
+  - `BusinessCoreCommonOrganizationNamePage` ya deja marcar varios clientes candidatos y fijar un `Nombre común final`
+  - la vista ya detecta grupos por similitud real de organización
+  - el flujo solo actualiza `Organización / Razón social`
+  - no mueve `direcciones`, `mantenciones` ni `contactos`
+  - no elige ficha destino ni borra/desactiva organizaciones
 - `business_asset_types`: tabla, API, vista administrativa y migracion tenant
 - `business_assets`: tabla, API, vista administrativa y migracion tenant
 - `business_organization_addresses`: primera ola de direccion propia para empresas/proveedores
@@ -150,7 +152,11 @@ Completado recientemente:
 ## Siguiente paso recomendado
 
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
-- profundizar la adopcion de `assets` por `iot`
+- cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual recién corregido
+- siguiente corte recomendado:
+  - reforzar la integración visible entre `maintenance` y `business-core` en lectura operativa de cliente/organización
+  - o abrir el siguiente frente formal del roadmap maestro si `business-core` ya quedó suficientemente estable
+- `iot` no necesita abrirse todavía; solo debe seguir reutilizando `sites` y `assets` cuando se implemente
 - endurecer el importador inicial desde `ieris_app`
 - profundizar la adopcion visible de `assets` fuera de `maintenance`, reutilizando mejor contratos con `iot` o una lectura operacional todavía más rica sobre cartera/identidad
 - profundizar la depuracion de duplicados hacia otras entidades para soportar consolidacion guiada/documental más allá del caso ya enriquecido de `organizations`, `clients`, `contacts`, `sites` e `installations`

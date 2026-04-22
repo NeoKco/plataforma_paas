@@ -74,11 +74,16 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
   - `Core de negocio` ahora ofrece la vista `Nombre común`
   - el flujo correcto es:
     1. entrar a `Core de negocio -> Nombre común`
-    2. marcar varios clientes en la tabla pendiente
-    3. escribir el `Nombre común final`
+    2. revisar los grupos detectados por similitud de organización
+    3. marcar solo los clientes que realmente deban compartir la misma organización social común
+    4. escribir el `Nombre común final`
     4. confirmar la actualización
-  - esa vista solo muestra clientes sin `Organización / Razón social`
-  - cuando un cliente queda atendido, sale de la lista
+  - esa vista ya no muestra solo vacíos:
+    - muestra grupos detectados por similitud real de organización
+    - por ejemplo mismo `RUT / Tax ID`, mismo nombre visible o nombre muy parecido
+  - `Grupo detectado` solo agrupa candidatos; no es el nombre que se guardará
+  - el único valor que se guardará es el que el operador escriba en `Nombre común final`
+  - cuando un grupo queda homologado con el mismo nombre común, deja de aparecer
   - ese flujo solo actualiza `Organización / Razón social`
   - no toca `Nombre cliente`, contactos, direcciones ni mantenciones
   - no guarda aliases visibles ni nombres anteriores como dato operativo

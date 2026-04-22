@@ -56,13 +56,16 @@ Estado de este segundo bloque:
 - adopción visible fuera de `maintenance`: la ficha del cliente ya puede cargar `assets` del tenant, agruparlos por `site_id` y dejar CTA contextual a `Activos sitio`
 - `BusinessCoreOverviewPage` ya puede cargar también `sites` y `assets` para mostrar señal rápida de inventario reusable sin abrir backend nuevo ni salir del dominio
 - `BusinessCoreClientsPage` ya puede reutilizar `assets` para mostrar señal rápida de inventario por cliente, siempre derivando el resumen desde `client -> sites -> assets`
-- `BusinessCoreClientsPage` ya ofrece un flujo manual de unificación por selección de clientes:
-  - selección múltiple directa en la tabla
-  - elección explícita de ficha destino
-  - `Nombre común final` obligatorio
-  - reasignación de `sites`, `maintenance work_orders` y `contacts` hacia la ficha destino
-  - intento de borrado de clientes/organizaciones origen una vez vaciados; fallback a desactivación si persiste alguna dependencia
+- `BusinessCoreClientsPage` ya no debe asumir unificación de fichas para la homologación operativa de organizaciones:
+  - la lectura principal de cartera queda limpia
+  - la acción manual vive en `BusinessCoreCommonOrganizationNamePage`
+  - `Nombre común final` es obligatorio
+  - el flujo solo actualiza `organization.legal_name`
+  - no reasigna `sites`, `maintenance work_orders` ni `contacts`
+  - no elige ficha destino
+  - no borra ni desactiva clientes/organizaciones
   - no se persisten aliases visibles ni nombres anteriores como dato funcional del negocio
+  - la pantalla detecta candidatos por similitud real de organización y deja la decisión final al operador
 
 ## Modelo inicial sugerido
 
