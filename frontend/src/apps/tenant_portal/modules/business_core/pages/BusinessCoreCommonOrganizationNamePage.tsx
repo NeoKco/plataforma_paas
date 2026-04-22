@@ -173,11 +173,15 @@ function matchSimilarityReasons(left: ClientRow, right: ClientRow): SimilarityRe
 }
 
 function pickSuggestedCommonName(rows: ClientRow[]): string {
-  const candidates = rows
-    .flatMap((row) =>
-      getComparableOrganizationNames(row.organization).map((value) => value.trim())
-    )
-    .filter(Boolean);
+  const currentCommonNames = rows
+    .map((row) => normalizeNullable(row.organization?.legal_name))
+    .filter((value): value is string => Boolean(value));
+  const candidates = (currentCommonNames.length > 0
+    ? currentCommonNames
+    : rows.flatMap((row) =>
+        getComparableOrganizationNames(row.organization).map((value) => value.trim())
+      )
+  ).filter(Boolean);
   if (candidates.length === 0) {
     return "—";
   }
@@ -591,13 +595,13 @@ export function BusinessCoreCommonOrganizationNamePage() {
         eyebrow={t("Core de negocio", "Business core")}
         icon="business-core"
         title={t(
-          "Clientes candidatos a organización común",
-          "Clients with a common organization candidate"
+          "Clientes candidatos a homologar organización",
+          "Clients that may need organization alignment"
         )}
         description={
           t(
-            "Aquí aparecen clientes con organizaciones de nombre parecido. Seleccionas los que realmente correspondan y defines un nombre común en 'Organización / Razón social'.",
-            "This page shows clients whose organizations have similar names. Select the ones that truly belong together and define a common name in 'Organization / legal name'."
+            "Aquí aparecen clientes con organizaciones de nombre parecido. Tú marcas los que sí correspondan y escribes manualmente el nombre común final que quieres guardar en 'Organización / Razón social'.",
+            "This page shows clients whose organizations have similar names. You pick the ones that truly belong together and manually type the final common name to save into 'Organization / legal name'."
           )
         }
         actions={
@@ -606,8 +610,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
               label={t("Ayuda", "Help")}
               helpText={
                 t(
-                  "Aquí no se buscan vacíos; se muestran candidatos por similitud de nombre. Cuando todos los clientes del grupo comparten el mismo valor en 'Organización / Razón social', dejan de aparecer aquí.",
-                  "This page does not search for blanks; it shows candidates based on name similarity. Once every client in the group shares the same 'Organization / legal name', they stop appearing here."
+                  "Aquí no se buscan vacíos; se muestran candidatos por similitud de nombre. 'Grupo detectado' solo sirve para agrupar candidatos. El único valor que se guardará es el que tú escribas en 'Nombre común final'.",
+                  "This page does not search for blanks; it shows candidates based on name similarity. 'Detected group' is only a grouping label. The only value that will be saved is the one you type into 'Final common name'."
                 )
               }
             />
@@ -648,8 +652,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
       <PanelCard
         title={t("Candidatos por similitud", "Similarity candidates")}
         subtitle={t(
-          "Solo se muestran grupos de clientes con organizaciones de nombre parecido. Cuando el grupo queda homologado con un mismo valor en 'Organización / Razón social', desaparece de esta vista.",
-          "Only client groups with similar organization names are shown. Once a whole group is aligned under the same 'Organization / legal name', it disappears from this view."
+          "Solo se muestran grupos de clientes con organizaciones de nombre parecido. Tú eliges a cuáles aplicarles el nombre común que escribes arriba; cuando el grupo queda homologado con un mismo valor en 'Organización / Razón social', desaparece de esta vista.",
+          "Only client groups with similar organization names are shown. You choose which ones receive the common name you type above; once the group is aligned under the same 'Organization / legal name', it disappears from this view."
         )}
       >
         <div className="business-core-manual-merge">
@@ -678,8 +682,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
           </div>
           <div className="business-core-manual-merge__note">
             {t(
-              "Este flujo solo completa 'Organización / Razón social'. No modifica nombre cliente, contactos, direcciones ni mantenciones.",
-              "This flow only fills 'Organization / legal name'. It does not modify client name, contacts, addresses, or maintenance records."
+              "Se guardará exactamente el nombre que escribas arriba en 'Organización / Razón social' para los clientes seleccionados. No modifica nombre cliente, contactos, direcciones ni mantenciones.",
+              "The exact name you type above will be saved into 'Organization / legal name' for the selected clients. It does not modify client name, contacts, addresses, or maintenance records."
             )}
           </div>
           <div className="business-core-card__actions">
@@ -699,7 +703,7 @@ export function BusinessCoreCommonOrganizationNamePage() {
             >
               {isSubmitting
                 ? t("Aplicando...", "Applying...")
-                : t("Aplicar nombre común", "Apply common name")}
+                : t("Aplicar este nombre común", "Apply this common name")}
             </button>
           </div>
         </div>
@@ -711,8 +715,8 @@ export function BusinessCoreCommonOrganizationNamePage() {
           "Clients with a common organization candidate"
         )}
         subtitle={t(
-          "Busca por cliente, organización actual, contacto o dirección. Aquí solo se ven grupos con nombres parecidos que todavía no quedaron homologados.",
-          "Search by client, current organization, contact, or address. Only groups with similar names that are not yet aligned are shown here."
+          "Busca por cliente, organización actual, contacto o dirección. 'Grupo detectado' solo agrupa candidatos; el nombre que se guardará es el que escribas arriba.",
+          "Search by client, current organization, contact, or address. 'Detected group' only groups candidates; the name that will be saved is the one you type above."
         )}
         rows={filteredRows}
         actions={
@@ -745,7 +749,7 @@ export function BusinessCoreCommonOrganizationNamePage() {
           },
           {
             key: "candidate",
-            header: t("Grupo sugerido", "Suggested group"),
+            header: t("Grupo detectado", "Detected group"),
             render: (row) => (
               <div>
                 <div className="business-core-cell__title">{row.candidateGroupName}</div>
@@ -754,11 +758,11 @@ export function BusinessCoreCommonOrganizationNamePage() {
                 </div>
                 {row.currentCommonNames.length > 0 ? (
                   <div className="business-core-cell__meta">
-                    {t("Homologado actual:", "Current aligned name:")} {row.currentCommonNames.join(" · ")}
+                    {t("Nombres comunes actuales:", "Current common names:")} {row.currentCommonNames.join(" · ")}
                   </div>
                 ) : (
                   <div className="business-core-cell__meta">
-                    {t("Sin homologación previa", "No previous aligned name")}
+                    {t("Sin nombre común previo", "No previous common name")}
                   </div>
                 )}
               </div>
@@ -777,7 +781,7 @@ export function BusinessCoreCommonOrganizationNamePage() {
                 </div>
                 {row.organization?.legal_name ? (
                   <div className="business-core-cell__meta">
-                    {t("Organización actual:", "Current legal name:")} {row.organization.legal_name}
+                    {t("Organización / Razón social actual:", "Current organization / legal name:")} {row.organization.legal_name}
                   </div>
                 ) : null}
               </div>
