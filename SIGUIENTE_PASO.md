@@ -2,6 +2,20 @@
 
 ## Prioridad vigente
 
+- subcorte nuevo ya cerrado en runtime dentro de `business-core > Duplicados`:
+  - `installations` ya no queda limitado solo a identidad técnica visible y notas
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora agrega también:
+    - `Fecha instalación`
+    - `Último servicio`
+    - `Garantía hasta`
+  - el ajuste guiado mantiene override manual por instalación y deja esos campos en `Diff final por campo`
+  - publicado en:
+    - `staging` con `BusinessCoreDuplicatesPage-C5Ob1XmO.js` e `index-DVGOgRf2.js`
+    - `production` con `BusinessCoreDuplicatesPage-WvKM64GZ.js` e `index-UdC1dxbi.js`
+  - validación:
+    - `npm run build` -> `OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Clients`:
   - la tabla principal de cartera ya no deja `assets` solo para la ficha o el overview
   - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ahora:
@@ -267,6 +281,7 @@
 - si seguimos en `business-core`, el siguiente corte con mejor retorno ya no es repetir el mismo patrón en la misma ficha:
   - o profundizamos merge/asimilación guiada más rica
   - o empujamos adopción visible de `assets` fuera de `maintenance`, ficha, overview y cartera, por ejemplo en contratos con `iot` o en otra lectura de identidad operativa
+  - el siguiente salto natural dentro de `Duplicados`, si seguimos por esa rama, ya no es `installations`; sería `contacts` con identidad/manual más profunda o criterio documental más rico para otra entidad
 - gobernanza transversal ya institucionalizada:
   - usar [data-ownership-matrix.md](/home/felipe/platform_paas/docs/architecture/data-ownership-matrix.md) para cualquier cambio que toque datos, ownership o integraciones entre módulos
   - usar [slice-spec-template.md](/home/felipe/platform_paas/docs/architecture/slice-spec-template.md) para cualquier slice relevante, transversal o de riesgo operativo real

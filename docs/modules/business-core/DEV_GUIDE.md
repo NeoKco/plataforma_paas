@@ -225,14 +225,14 @@ Resumen previo por grupo:
   - el merge guiado puede ajustar `address_line`, `commune`, `city`, `region`, `country_code` y `reference_notes`
   - el audit persistente de `sites` ya puede guardar `selections` y `diff_rows`
 - `installations` ya suma también una primera capa documental propia sin backend nuevo:
-  - el merge guiado puede ajustar `name`, `serial_number`, `manufacturer`, `model`, `location_note` y `technical_notes`
+  - el merge guiado puede ajustar `name`, `serial_number`, `manufacturer`, `model`, `installed_at`, `last_service_at`, `warranty_until`, `location_note` y `technical_notes`
   - el audit persistente de `installations` ya puede guardar `selections` y `diff_rows`
 - `organizations` ya alinea además la primera ola visible de dirección con el patrón de `sites`:
   - la captura usa `street` + `streetNumber` y deriva `address_line` al enviar
   - la tabla expone salida operativa a `Google Maps` cuando existe dirección cargada
 - restricción vigente:
   - `organizations`, `clients`, `contacts`, `sites` y ahora también `installations` ya pueden dejar evidencia documental por campo
-  - `installations` sigue limitado a identidad técnica visible y notas; aún no entra en merge profundo de fechas técnicas, garantía o relaciones externas
+  - `installations` ya cubre también fechas técnicas y garantía, pero aún no entra en merge profundo de relaciones externas, estados derivados o contratos posteriores
 
 ### 5. Contact-Site Links
 

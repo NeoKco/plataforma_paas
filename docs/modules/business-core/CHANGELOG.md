@@ -2,6 +2,25 @@
 
 ## 2026-04-21
 
+- `Duplicados` profundiza otra vez `installations`, ahora incorporando fechas técnicas y garantía:
+  - [BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx) ahora deja ajustar y auditar también:
+    - `Fecha instalación`
+    - `Último servicio`
+    - `Garantía hasta`
+  - la sugerencia automática queda deliberadamente simple:
+    - `installed_at` prioriza la fecha más antigua disponible
+    - `last_service_at` prioriza la fecha más reciente disponible
+    - `warranty_until` prioriza la fecha más reciente disponible
+  - el operador puede sobreescribir esa sugerencia por instalación antes de consolidar
+  - la vista previa y el `Diff final por campo` ya exponen esos tres datos junto con identidad técnica y notas visibles
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreDuplicatesPage-C5Ob1XmO.js` e `index-DVGOgRf2.js`
+    - `production` publicado con `BusinessCoreDuplicatesPage-WvKM64GZ.js` e `index-UdC1dxbi.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - `installations` deja de estar limitado solo a identidad visible/notas y gana una capa guiada útil también para fechas clave y garantía
+
 - la cartera cliente ahora muestra señal rápida de inventario reutilizable:
   - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ahora carga también `assets` del tenant
   - la tabla suma una columna `Activos` con:

@@ -145,6 +145,7 @@ Como decidir rapido:
 - en `Clientes`, ahora también puedes revisar y ajustar antes del merge el `estado servicio` y las `notas comerciales` de la ficha final
 - en `Direcciones`, ahora también puedes revisar y ajustar antes del merge los datos visibles de ubicación y las `notas de referencia`
 - en `Instalaciones`, ahora también puedes revisar y ajustar antes del merge la identidad técnica visible: `nombre`, `serie`, `fabricante`, `modelo`, `ubicación visible` y `notas técnicas`
+- en `Instalaciones`, ahora también puedes revisar y ajustar antes del merge `Fecha instalación`, `Último servicio` y `Garantía hasta`
 - después del merge, revisa `Historial reciente de consolidaciones` si necesitas recordar rápido qué campos quedaron distintos y desde qué ficha se tomó el valor final
 
 Que consolida hoy:
@@ -158,7 +159,7 @@ Que consolida hoy:
 - `Direcciones`: mueve `Instalaciones` y `OT`
 - `Direcciones`: además ya permite ajustar antes del merge qué ficha aporta dirección, comuna, ciudad, región, país y notas de referencia, dejando ese diff en la auditoría persistente
 - `Instalaciones`: mueve `OT`
-- `Instalaciones`: además ya permite ajustar antes del merge qué ficha aporta nombre visible, serie, fabricante, modelo, ubicación visible y notas técnicas, dejando ese diff en la auditoría persistente
+- `Instalaciones`: además ya permite ajustar antes del merge qué ficha aporta nombre visible, serie, fabricante, modelo, fecha instalación, último servicio, garantía, ubicación visible y notas técnicas, dejando ese diff en la auditoría persistente
 - cada una de esas consolidaciones ya puede dejar rastro visible en `Historial reciente de consolidaciones`
 
 Que no consolida todavia:
@@ -168,7 +169,7 @@ Que no consolida todavia:
 - el ajuste manual actual permite elegir por campo visible qué organización aporta cada dato, pero no versiona decisiones ni agrega una justificación formal por campo
 - el diff actual muestra cambio actual vs final por campo, y además cada merge de `organizations` deja un registro persistente de auditoría con ids origen, resumen y procedencia final de los campos visibles
 - `contacts` ya suma un diff visible/manual por campo, pero todavía no fusiona identidad completa, notas libres ni relaciones externas más allá del corte actual
-- `installations` ya suma un diff visible/manual por campo, pero todavía no fusiona fechas técnicas, garantía ni relaciones externas más allá del corte actual
+- `installations` ya suma un diff visible/manual por campo también para fechas técnicas y garantía, pero todavía no fusiona relaciones externas profundas más allá del corte actual
 - merge profundo de `contacts` mas alla de esa capa visible/documental asistida
 - notas historicas libres
 - fusion documental profunda entre fichas

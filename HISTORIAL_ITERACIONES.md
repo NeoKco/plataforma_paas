@@ -1,5 +1,39 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-21 - `Duplicados` amplía `installations` hacia fechas técnicas y garantía
+
+- objetivo:
+  - profundizar la capa guiada/documental de `installations` sin abrir backend nuevo
+  - sacar a `installations` del límite que todavía dejaba fuera fechas técnicas y garantía
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreDuplicatesPage.tsx):
+    - agrega `installed_at`, `last_service_at` y `warranty_until` al ajuste manual previo
+    - amplía el `Diff final por campo` de `installations`
+    - amplía la vista previa de consolidación con fechas clave y garantía
+    - mantiene sugerencia automática simple:
+      - fecha instalación más antigua
+      - último servicio más reciente
+      - garantía más reciente
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-C5Ob1XmO.js`, `index-DVGOgRf2.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreDuplicatesPage-WvKM64GZ.js`, `index-UdC1dxbi.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - `installations` deja de estar restringido a identidad visible/notas
+  - el merge guiado ahora también sirve para fechas técnicas y garantía
+- siguiente paso:
+  - decidir si el siguiente salto útil sigue en merge/asimilación guiada más rica o vuelve a otra rama del roadmap
+
 ## 2026-04-21 - `Clients` muestra señal rápida de inventario por cliente
 
 - objetivo:

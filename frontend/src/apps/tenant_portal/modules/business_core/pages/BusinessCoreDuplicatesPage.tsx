@@ -202,6 +202,9 @@ type InstallationMergeFieldKey =
   | "serial_number"
   | "manufacturer"
   | "model"
+  | "installed_at"
+  | "last_service_at"
+  | "warranty_until"
   | "location_note"
   | "technical_notes";
 
@@ -268,6 +271,9 @@ const INSTALLATION_MERGE_FIELDS: InstallationMergeFieldKey[] = [
   "serial_number",
   "manufacturer",
   "model",
+  "installed_at",
+  "last_service_at",
+  "warranty_until",
   "location_note",
   "technical_notes",
 ];
@@ -345,6 +351,30 @@ function mergeDistinctTextBlock(values: Array<string | null | undefined>): strin
     return null;
   }
   return deduped.join("\n\n---\n\n");
+}
+
+function normalizeDateCandidate(value: string | null | undefined): string | null {
+  const normalized = getMeaningfulText(value);
+  if (!normalized) {
+    return null;
+  }
+  return normalized.includes("T") ? normalized.slice(0, 10) : normalized;
+}
+
+function pickEarliestDate(values: Array<string | null | undefined>): string | null {
+  const candidates = values
+    .map(normalizeDateCandidate)
+    .filter((value): value is string => Boolean(value))
+    .sort(compareIsoDateAsc);
+  return candidates[0] ?? null;
+}
+
+function pickLatestDate(values: Array<string | null | undefined>): string | null {
+  const candidates = values
+    .map(normalizeDateCandidate)
+    .filter((value): value is string => Boolean(value))
+    .sort(compareIsoDateAsc);
+  return candidates.length > 0 ? candidates[candidates.length - 1] : null;
 }
 
 function buildContactIdentityKey(contact: TenantBusinessContact): string {
@@ -1718,6 +1748,12 @@ function getInstallationFieldValue(
       return installation.manufacturer;
     case "model":
       return installation.model;
+    case "installed_at":
+      return installation.installed_at;
+    case "last_service_at":
+      return installation.last_service_at;
+    case "warranty_until":
+      return installation.warranty_until;
     case "location_note":
       return installation.location_note;
     case "technical_notes":
@@ -1729,8 +1765,15 @@ function getInstallationFieldValue(
 
 function getInstallationFieldDisplayValue(
   value: string | null | undefined,
-  _field: InstallationMergeFieldKey
+  field: InstallationMergeFieldKey
 ) {
+  if (
+    field === "installed_at" ||
+    field === "last_service_at" ||
+    field === "warranty_until"
+  ) {
+    return normalizeDateCandidate(value);
+  }
   return getMeaningfulText(value) ?? null;
 }
 
@@ -1748,6 +1791,12 @@ function getInstallationMergeFieldLabel(
         return "Fabricante";
       case "model":
         return "Modelo";
+      case "installed_at":
+        return "Fecha instalación";
+      case "last_service_at":
+        return "Último servicio";
+      case "warranty_until":
+        return "Garantía hasta";
       case "location_note":
         return "Ubicación visible";
       case "technical_notes":
@@ -1765,6 +1814,12 @@ function getInstallationMergeFieldLabel(
       return "Manufacturer";
     case "model":
       return "Model";
+    case "installed_at":
+      return "Installed at";
+    case "last_service_at":
+      return "Last service";
+    case "warranty_until":
+      return "Warranty until";
     case "location_note":
       return "Visible location";
     case "technical_notes":
@@ -1789,6 +1844,18 @@ function buildMergedInstallationDocumentPayload(
       ...sources.map((source) => source.manufacturer),
     ]),
     model: pickPreferredText([target.model, ...sources.map((source) => source.model)]),
+    installed_at: pickEarliestDate([
+      target.installed_at,
+      ...sources.map((source) => source.installed_at),
+    ]),
+    last_service_at: pickLatestDate([
+      target.last_service_at,
+      ...sources.map((source) => source.last_service_at),
+    ]),
+    warranty_until: pickLatestDate([
+      target.warranty_until,
+      ...sources.map((source) => source.warranty_until),
+    ]),
     location_note: pickPreferredText([
       target.location_note,
       ...sources.map((source) => source.location_note),
@@ -1823,7 +1890,10 @@ function resolveInstallationMergePayload(
     if (!selectedInstallation) {
       return;
     }
-    const selectedValue = getMeaningfulText(getInstallationFieldValue(selectedInstallation, field));
+    const selectedValue = getInstallationFieldDisplayValue(
+      getInstallationFieldValue(selectedInstallation, field),
+      field
+    );
     switch (field) {
       case "name":
         resolved.name = selectedValue ?? autoPayload.name;
@@ -1836,6 +1906,15 @@ function resolveInstallationMergePayload(
         break;
       case "model":
         resolved.model = selectedValue;
+        break;
+      case "installed_at":
+        resolved.installed_at = selectedValue;
+        break;
+      case "last_service_at":
+        resolved.last_service_at = selectedValue;
+        break;
+      case "warranty_until":
+        resolved.warranty_until = selectedValue;
         break;
       case "location_note":
         resolved.location_note = selectedValue;
@@ -4169,8 +4248,8 @@ export function BusinessCoreDuplicatesPage() {
           <strong>{language === "es" ? "Ajuste manual previo" : "Manual pre-merge adjustment"}</strong>
           <span>
             {language === "es"
-              ? "Si hace falta, elige qué instalación aporta la identidad técnica visible antes de consolidar."
-              : "If needed, choose which installation provides the visible technical identity before consolidating."}
+              ? "Si hace falta, elige qué instalación aporta identidad técnica, fechas clave y garantía antes de consolidar."
+              : "If needed, choose which installation provides technical identity, key dates, and warranty before consolidating."}
           </span>
         </div>
         <div className="business-core-duplicates-merge-assistant__grid">
@@ -4216,6 +4295,27 @@ export function BusinessCoreDuplicatesPage() {
             {preview.serial_number ? <span>{preview.serial_number}</span> : null}
             {preview.manufacturer ? <span>{preview.manufacturer}</span> : null}
             {preview.model ? <span>{preview.model}</span> : null}
+            {preview.installed_at ? (
+              <span>
+                {language === "es"
+                  ? `instalada ${normalizeDateCandidate(preview.installed_at)}`
+                  : `installed ${normalizeDateCandidate(preview.installed_at)}`}
+              </span>
+            ) : null}
+            {preview.last_service_at ? (
+              <span>
+                {language === "es"
+                  ? `último servicio ${normalizeDateCandidate(preview.last_service_at)}`
+                  : `last service ${normalizeDateCandidate(preview.last_service_at)}`}
+              </span>
+            ) : null}
+            {preview.warranty_until ? (
+              <span>
+                {language === "es"
+                  ? `garantía ${normalizeDateCandidate(preview.warranty_until)}`
+                  : `warranty ${normalizeDateCandidate(preview.warranty_until)}`}
+              </span>
+            ) : null}
             {preview.location_note ? (
               <span>{language === "es" ? "ubicación integrada" : "merged location"}</span>
             ) : null}
