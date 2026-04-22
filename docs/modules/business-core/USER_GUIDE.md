@@ -71,13 +71,13 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - la captura de `Nuevo cliente` deberia advertir coincidencias fuertes por RUT, nombre, telefono, email o direccion y desviar al usuario hacia la ficha existente antes de duplicar la cartera.
 - cuando ya existen duplicados en la base, la pantalla `Depuración` debe agrupar `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones` por coincidencias exactas normalizadas, sugerir qué ficha conservar y mostrar dependencias visibles para ayudar a decidir qué ficha borrar, desactivar o consolidar sin romper historial.
 - si el operador ya sabe de antemano que varios clientes pertenecen a la misma contraparte real, no hace falta esperar a que `Depuración` los detecte:
-  - `Clientes` ahora ofrece una `Unificación manual de organización`
+  - `Clientes` ahora ofrece `Nombre común de organización`
   - el flujo correcto es:
     1. marcar varios clientes en la tabla
-    2. elegir qué ficha cliente queda viva
-    3. escribir el `Nombre común final`
-    4. confirmar la unificación
-  - ese flujo reasigna direcciones, mantenciones y contactos a la ficha destino
+    2. escribir el `Nombre común final`
+    3. confirmar la actualización
+  - ese flujo solo actualiza `Organización / Razón social`
+  - no toca `Nombre cliente`, contactos, direcciones ni mantenciones
   - no guarda aliases visibles ni nombres anteriores como dato operativo
 - la vista `Activos` permite mantener el inventario instalado por sitio y `Tipos de activo` define la taxonomia reusable para ese inventario.
 - cuando entras a `Activos` desde `Maintenance -> Instalaciones`, la vista puede abrir con foco contextual del mismo sitio y una búsqueda prellenada por nombre o serie de la instalación.

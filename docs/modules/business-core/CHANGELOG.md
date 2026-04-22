@@ -1,5 +1,33 @@
 # Business Core Changelog
 
+## 2026-04-22
+
+- `Clients` corrige el slice manual de organización y lo deja en modo seguro:
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya no hace una unificación real
+  - el bloque visible pasa a ser `Nombre común de organización`
+  - el flujo manual ahora solo:
+    - permite marcar uno o más clientes
+    - exige capturar el `Nombre común final`
+    - actualiza únicamente el campo `Organización / Razón social`
+  - ya no:
+    - elige ficha destino
+    - mueve `Direcciones`
+    - mueve `Mantenciones`
+    - mueve o consolida `Contactos`
+    - elimina o desactiva clientes / organizaciones origen
+  - corrección de datos runtime asociada:
+    - en `production` se restauró la ficha `client_id=192 / organization_id=216`
+    - el nombre visible vuelve a `Cecilia Tabales`
+    - `legal_name` queda en `Los Arbolitos`
+    - el contacto principal sigue intacto
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreClientsPage-BTXVBRki.js` e `index-BMfT5NVk.js`
+    - `production` publicado con `BusinessCoreClientsPage-9k0vCFrE.js` e `index-DmBLRzp4.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - el operador puede normalizar el nombre común de organización sin tocar nombre cliente, contactos, direcciones ni historial
+
 ## 2026-04-21
 
 - `Clients` ahora suma una `Unificación manual de organización` sin depender de detección automática de nombres parecidos:

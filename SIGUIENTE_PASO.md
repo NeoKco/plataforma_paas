@@ -3,22 +3,25 @@
 ## Prioridad vigente
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Clients`:
-  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya permite `Unificación manual de organización`
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya permite `Nombre común de organización`
   - el flujo nuevo deja:
     - selección múltiple de clientes en la tabla principal
-    - elección explícita de la ficha cliente que se conserva
     - captura de `Nombre común final`
-    - reasignación de direcciones, mantenciones y contactos hacia la ficha destino
-    - intento de borrado de clientes/organizaciones origen; fallback a desactivación si no quedan completamente libres
+    - actualización exclusiva del campo `Organización / Razón social`
+    - preservación completa de `Nombre cliente`, contactos, direcciones y mantenciones
   - decisión operativa del corte:
     - no se agregan aliases visibles ni un catálogo extra de nombres anteriores
-    - el objetivo es resolver la unificación real desde la cartera, no seguir profundizando `Duplicados`
+    - el objetivo ya no es unificar fichas sino normalizar el nombre común sin riesgo de mover datos
   - publicado en:
-    - `staging` con `BusinessCoreClientsPage-D968XWa4.js` e `index-BzS8fn17.js`
-    - `production` con `BusinessCoreClientsPage-BowQNUbR.js` e `index-DDP514Rq.js`
+    - `staging` con `BusinessCoreClientsPage-BTXVBRki.js` e `index-BMfT5NVk.js`
+    - `production` con `BusinessCoreClientsPage-9k0vCFrE.js` e `index-DmBLRzp4.js`
   - validación:
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - corrección de datos asociada:
+    - `production` restauró `client_id=192 / organization_id=216` a `name=Cecilia Tabales`
+    - `legal_name` queda en `Los Arbolitos`
+    - el contacto principal sigue intacto
 
 - subcorte nuevo ya cerrado en runtime dentro de `maintenance`:
   - `Mantenciones` e `Historial` ya dejan visible `Contacto principal` tanto en la lectura exterior como en `Ver ficha`
@@ -39,7 +42,7 @@
     - `npm run build` -> `OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
-- una vez cerrado también este slice manual de unificación, el siguiente paso correcto ya no es seguir profundizando `Duplicados` por inercia:
+- una vez corregido y estabilizado también este slice manual de nombre común, el siguiente paso correcto ya no es seguir profundizando `Duplicados` por inercia:
   - conviene retomar el roadmap fuera de ese frente
   - el candidato natural vuelve a ser cierre de `business-core` fuera de `Duplicados` o el siguiente bloque formal del roadmap maestro
 

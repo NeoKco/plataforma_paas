@@ -24,19 +24,15 @@ import {
 } from "../services/clientsService";
 import {
   createTenantBusinessContact,
-  deleteTenantBusinessContact,
   getTenantBusinessContacts,
   updateTenantBusinessContact,
-  updateTenantBusinessContactStatus,
   type TenantBusinessContact,
   type TenantBusinessContactWriteRequest,
 } from "../services/contactsService";
 import {
   createTenantBusinessOrganization,
-  deleteTenantBusinessOrganization,
   getTenantBusinessOrganizations,
   updateTenantBusinessOrganization,
-  updateTenantBusinessOrganizationStatus,
   type TenantBusinessOrganization,
   type TenantBusinessOrganizationWriteRequest,
 } from "../services/organizationsService";
@@ -51,12 +47,6 @@ import {
   getTenantBusinessAssets,
   type TenantBusinessAsset,
 } from "../services/assetsService";
-import { createTenantBusinessCoreMergeAudit } from "../services/mergeAuditsService";
-import {
-  getTenantMaintenanceWorkOrders,
-  updateTenantMaintenanceWorkOrder,
-  type TenantMaintenanceWorkOrder,
-} from "../../maintenance/services/workOrdersService";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import {
   buildAddressLine,
@@ -116,14 +106,6 @@ type ClientAssetSummary = {
 type DuplicateClientCandidate = {
   row: ClientRow;
   reasons: string[];
-};
-
-type ManualOrganizationMergeSummary = {
-  selectedClients: number;
-  sourceClients: number;
-  contactsToReview: number;
-  addressesToMove: number;
-  workOrdersToMove: number;
 };
 
 function buildDefaultModalForm(): ClientModalForm {
@@ -298,22 +280,6 @@ function buildContactWritePayload(
   };
 }
 
-function buildMergedContactWritePayload(
-  target: TenantBusinessContact,
-  sources: TenantBusinessContact[]
-): TenantBusinessContactWriteRequest {
-  return buildContactWritePayload(target, {
-    full_name:
-      pickPreferredText([target.full_name, ...sources.map((source) => source.full_name)]) ??
-      target.full_name,
-    email: pickPreferredText([target.email, ...sources.map((source) => source.email)]),
-    phone: pickPreferredText([target.phone, ...sources.map((source) => source.phone)]),
-    role_title: pickPreferredText([target.role_title, ...sources.map((source) => source.role_title)]),
-    is_primary: target.is_primary || sources.some((source) => source.is_primary),
-    is_active: true,
-  });
-}
-
 export function BusinessCoreClientsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
@@ -324,7 +290,6 @@ export function BusinessCoreClientsPage() {
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [addresses, setAddresses] = useState<TenantBusinessSite[]>([]);
   const [assets, setAssets] = useState<TenantBusinessAsset[]>([]);
-  const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -338,7 +303,6 @@ export function BusinessCoreClientsPage() {
     null
   );
   const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
-  const [mergeTargetClientId, setMergeTargetClientId] = useState<number | null>(null);
   const [commonOrganizationName, setCommonOrganizationName] = useState("");
 
   const organizationById = useMemo(
@@ -375,16 +339,6 @@ export function BusinessCoreClientsPage() {
     });
     return grouped;
   }, [assets]);
-
-  const workOrdersByClientId = useMemo(() => {
-    const grouped = new Map<number, TenantMaintenanceWorkOrder[]>();
-    workOrders.forEach((workOrder) => {
-      const current = grouped.get(workOrder.client_id) ?? [];
-      current.push(workOrder);
-      grouped.set(workOrder.client_id, current);
-    });
-    return grouped;
-  }, [workOrders]);
 
   const clientRows = useMemo<ClientRow[]>(
     () =>
@@ -474,7 +428,6 @@ export function BusinessCoreClientsPage() {
         contactsResponse,
         addressesResponse,
         assetsResponse,
-        workOrdersResponse,
       ] =
         await Promise.all([
           getTenantBusinessClients(session.accessToken),
@@ -482,14 +435,12 @@ export function BusinessCoreClientsPage() {
           getTenantBusinessContacts(session.accessToken),
           getTenantBusinessSites(session.accessToken),
           getTenantBusinessAssets(session.accessToken, { includeInactive: true }),
-          getTenantMaintenanceWorkOrders(session.accessToken),
         ]);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setContacts(contactsResponse.data);
       setAddresses(addressesResponse.data);
       setAssets(assetsResponse.data);
-      setWorkOrders(workOrdersResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -509,51 +460,6 @@ export function BusinessCoreClientsPage() {
     [clientRowById, selectedClientIds]
   );
 
-  const manualMergeSummary = useMemo<ManualOrganizationMergeSummary>(() => {
-    const targetRow =
-      (mergeTargetClientId !== null ? clientRowById.get(mergeTargetClientId) : null) ??
-      selectedRows[0] ??
-      null;
-    const sourceRows = targetRow
-      ? selectedRows.filter((row) => row.client.id !== targetRow.client.id)
-      : selectedRows;
-    const targetOrganizationId = targetRow?.organization?.id ?? null;
-    return {
-      selectedClients: selectedRows.length,
-      sourceClients: sourceRows.length,
-      contactsToReview: sourceRows.reduce((total, row) => {
-        if (!row.organization || row.organization.id === targetOrganizationId) {
-          return total;
-        }
-        return total + row.contacts.length;
-      }, 0),
-      addressesToMove: sourceRows.reduce((total, row) => total + row.addresses.length, 0),
-      workOrdersToMove: sourceRows.reduce(
-        (total, row) => total + (workOrdersByClientId.get(row.client.id)?.length ?? 0),
-        0
-      ),
-    };
-  }, [clientRowById, mergeTargetClientId, selectedRows, workOrdersByClientId]);
-
-  useEffect(() => {
-    if (selectedRows.length === 0) {
-      if (mergeTargetClientId !== null) {
-        setMergeTargetClientId(null);
-      }
-      return;
-    }
-    if (
-      mergeTargetClientId === null ||
-      !selectedRows.some((row) => row.client.id === mergeTargetClientId)
-    ) {
-      const nextTarget = selectedRows[0];
-      setMergeTargetClientId(nextTarget.client.id);
-      if (!commonOrganizationName.trim()) {
-        setCommonOrganizationName(nextTarget.organization?.name ?? "");
-      }
-    }
-  }, [commonOrganizationName, mergeTargetClientId, selectedRows]);
-
   function toggleClientSelection(clientId: number) {
     setSelectedClientIds((current) =>
       current.includes(clientId)
@@ -564,7 +470,6 @@ export function BusinessCoreClientsPage() {
 
   function clearManualMergeSelection() {
     setSelectedClientIds([]);
-    setMergeTargetClientId(null);
     setCommonOrganizationName("");
   }
 
@@ -935,33 +840,18 @@ export function BusinessCoreClientsPage() {
     if (!session?.accessToken) {
       return;
     }
-    if (selectedRows.length < 2) {
+    if (selectedRows.length === 0) {
       setError(
         new Error(
           t(
-            "Selecciona al menos dos clientes para unificar la organización.",
-            "Select at least two clients to unify the organization."
+            "Selecciona al menos un cliente para normalizar la organización común.",
+            "Select at least one client to normalize the common organization."
           )
         ) as ApiError
       );
       return;
     }
-    const targetRow =
-      (mergeTargetClientId !== null ? clientRowById.get(mergeTargetClientId) : null) ??
-      selectedRows[0] ??
-      null;
     const finalOrganizationName = commonOrganizationName.trim();
-    if (!targetRow?.organization) {
-      setError(
-        new Error(
-          t(
-            "No se encontró la ficha destino de organización.",
-            "The destination organization record was not found."
-          )
-        ) as ApiError
-      );
-      return;
-    }
     if (!finalOrganizationName) {
       setError(
         new Error(
@@ -973,15 +863,11 @@ export function BusinessCoreClientsPage() {
       );
       return;
     }
-    const sourceRows = selectedRows.filter((row) => row.client.id !== targetRow.client.id);
-    if (sourceRows.length === 0) {
-      return;
-    }
 
     const confirmed = window.confirm(
       t(
-        `Unificar ${sourceRows.length} cliente(s) en "${finalOrganizationName}". Se moverán ${manualMergeSummary.addressesToMove} direcciones, ${manualMergeSummary.workOrdersToMove} mantenciones y ${manualMergeSummary.contactsToReview} contacto(s) hacia la ficha elegida. Los orígenes se eliminarán cuando sea posible y, si no, quedarán desactivados.`,
-        `Unify ${sourceRows.length} client(s) into "${finalOrganizationName}". ${manualMergeSummary.addressesToMove} addresses, ${manualMergeSummary.workOrdersToMove} maintenance records, and ${manualMergeSummary.contactsToReview} contact(s) will move into the chosen record. Source records will be deleted when possible and otherwise deactivated.`
+        `Actualizar la organización común de ${selectedRows.length} cliente(s) a "${finalOrganizationName}". Esto solo cambiará el campo "Organización / Razón social"; no moverá contactos, direcciones ni mantenciones.`,
+        `Update the common organization for ${selectedRows.length} client(s) to "${finalOrganizationName}". This only changes the "Organization / legal name" field; it will not move contacts, addresses, or maintenance records.`
       )
     );
     if (!confirmed) {
@@ -992,179 +878,24 @@ export function BusinessCoreClientsPage() {
     setError(null);
     setFeedback(null);
     try {
-      await updateTenantBusinessOrganization(
-        session.accessToken,
-        targetRow.organization.id,
-        buildOrganizationWritePayload(targetRow.organization, {
-          name: finalOrganizationName,
-          is_active: true,
-        })
-      );
-
-      if (!targetRow.client.is_active) {
-        await updateTenantBusinessClient(
-          session.accessToken,
-          targetRow.client.id,
-          buildClientWritePayload(targetRow.client, { is_active: true })
-        );
-      }
-
-      const targetContactByIdentity = new Map(
-        targetRow.contacts.map((contact) => [buildContactIdentityKey(contact), contact])
-      );
-
-      for (const sourceRow of sourceRows) {
-        const sourceOrganization = sourceRow.organization;
-        if (!sourceOrganization) {
+      for (const row of selectedRows) {
+        if (!row.organization) {
           continue;
         }
-
-        if (sourceOrganization.id !== targetRow.organization.id) {
-          for (const contact of sourceRow.contacts) {
-            const identityKey = buildContactIdentityKey(contact);
-            const existingTargetContact = targetContactByIdentity.get(identityKey) ?? null;
-            if (existingTargetContact) {
-              const mergedContactPayload = buildMergedContactWritePayload(existingTargetContact, [
-                contact,
-              ]);
-              await updateTenantBusinessContact(
-                session.accessToken,
-                existingTargetContact.id,
-                mergedContactPayload
-              );
-              targetContactByIdentity.set(identityKey, {
-                ...existingTargetContact,
-                ...mergedContactPayload,
-              });
-              try {
-                await deleteTenantBusinessContact(session.accessToken, contact.id);
-              } catch {
-                if (contact.is_active) {
-                  await updateTenantBusinessContactStatus(
-                    session.accessToken,
-                    contact.id,
-                    false
-                  );
-                }
-              }
-              continue;
-            }
-
-            const movedContactPayload = buildContactWritePayload(contact, {
-              organization_id: targetRow.organization.id,
-              is_active: true,
-            });
-            await updateTenantBusinessContact(
-              session.accessToken,
-              contact.id,
-              movedContactPayload
-            );
-            targetContactByIdentity.set(identityKey, {
-              ...contact,
-              ...movedContactPayload,
-            });
-          }
-        }
-
-        for (const address of sourceRow.addresses) {
-          await updateTenantBusinessSite(session.accessToken, address.id, {
-            client_id: targetRow.client.id,
-            name: address.name,
-            site_code: address.site_code,
-            address_line: address.address_line,
-            commune: address.commune,
-            city: address.city,
-            region: address.region,
-            country_code: address.country_code,
-            reference_notes: address.reference_notes,
-            is_active: address.is_active,
-            sort_order: address.sort_order,
-          });
-        }
-
-        const sourceWorkOrders = workOrdersByClientId.get(sourceRow.client.id) ?? [];
-        for (const workOrder of sourceWorkOrders) {
-          await updateTenantMaintenanceWorkOrder(session.accessToken, workOrder.id, {
-            client_id: targetRow.client.id,
-            site_id: workOrder.site_id,
-            installation_id: workOrder.installation_id,
-            task_type_id: workOrder.task_type_id,
-            assigned_work_group_id: workOrder.assigned_work_group_id,
-            external_reference: workOrder.external_reference,
-            title: workOrder.title,
-            description: workOrder.description,
-            priority: workOrder.priority,
-            scheduled_for: workOrder.scheduled_for,
-            cancellation_reason: workOrder.cancellation_reason,
-            closure_notes: workOrder.closure_notes,
-            assigned_tenant_user_id: workOrder.assigned_tenant_user_id,
-            maintenance_status: workOrder.maintenance_status,
-          });
-        }
-
-        try {
-          await deleteTenantBusinessClient(session.accessToken, sourceRow.client.id);
-        } catch {
-          if (sourceRow.client.is_active) {
-            await updateTenantBusinessClientStatus(
-              session.accessToken,
-              sourceRow.client.id,
-              false
-            );
-          }
-        }
-
-        const organizationStillUsedByAnotherClient = clients.some(
-          (client) =>
-            client.id !== sourceRow.client.id &&
-            client.organization_id === sourceOrganization.id &&
-            !selectedClientIds.includes(client.id)
+        await updateTenantBusinessOrganization(
+          session.accessToken,
+          row.organization.id,
+          buildOrganizationWritePayload(row.organization, {
+            legal_name: finalOrganizationName,
+            is_active: row.organization.is_active,
+          })
         );
-
-        if (!organizationStillUsedByAnotherClient && sourceOrganization.id !== targetRow.organization.id) {
-          try {
-            await deleteTenantBusinessOrganization(session.accessToken, sourceOrganization.id);
-          } catch {
-            if (sourceOrganization.is_active) {
-              await updateTenantBusinessOrganizationStatus(
-                session.accessToken,
-                sourceOrganization.id,
-                false
-              );
-            }
-          }
-        }
-      }
-
-      try {
-        await createTenantBusinessCoreMergeAudit(session.accessToken, {
-          entity_kind: "organization",
-          entity_id: targetRow.organization.id,
-          summary: `organization:${targetRow.organization.id} unified manually from ${sourceRows.length} selected client(s)`,
-          payload: {
-            flow: "manual_client_selection_unification",
-            target: {
-              client_id: targetRow.client.id,
-              organization_id: targetRow.organization.id,
-              final_name: finalOrganizationName,
-            },
-            selected_client_ids: selectedRows.map((row) => row.client.id),
-            source_client_ids: sourceRows.map((row) => row.client.id),
-            summary: {
-              addresses_moved: manualMergeSummary.addressesToMove,
-              work_orders_moved: manualMergeSummary.workOrdersToMove,
-              contacts_reviewed: manualMergeSummary.contactsToReview,
-            },
-          },
-        });
-      } catch (auditError) {
-        console.warn("Unable to persist manual organization merge audit", auditError);
       }
 
       setFeedback(
         t(
-          `Organización unificada en "${finalOrganizationName}". La ficha destino quedó activa y los clientes origen se limpiaron o desactivaron según correspondía.`,
-          `Organization unified into "${finalOrganizationName}". The destination record remains active and the source clients were cleaned up or deactivated when needed.`
+          `Organización común actualizada a "${finalOrganizationName}" en ${selectedRows.length} cliente(s). No se tocaron nombres de cliente, contactos ni mantenciones.`,
+          `Common organization updated to "${finalOrganizationName}" for ${selectedRows.length} client(s). Client names, contacts, and maintenance records were not touched.`
         )
       );
       clearManualMergeSelection();
@@ -1241,55 +972,22 @@ export function BusinessCoreClientsPage() {
       ) : null}
 
       <PanelCard
-        title={t("Unificación manual de organización", "Manual organization unification")}
+        title={t("Nombre común de organización", "Common organization name")}
         subtitle={
           t(
-            "Marca varios clientes que sabes que pertenecen a la misma contraparte real, elige cuál ficha queda viva y define el nombre común final.",
-            "Mark several clients that you know belong to the same real counterpart, choose which record stays alive, and define the final common name."
+            "Marca uno o más clientes y aplica el mismo nombre común en \"Organización / Razón social\" sin tocar la ficha base.",
+            "Select one or more clients and apply the same common name into \"Organization / legal name\" without touching the base record."
           )
         }
       >
         <div className="business-core-manual-merge">
           <div className="business-core-manual-merge__summary">
             <span>
-              {manualMergeSummary.selectedClients}{" "}
+              {selectedRows.length}{" "}
               {t("clientes seleccionados", "selected clients")}
-            </span>
-            <span>
-              {manualMergeSummary.addressesToMove}{" "}
-              {t("direcciones a mover", "addresses to move")}
-            </span>
-            <span>
-              {manualMergeSummary.workOrdersToMove}{" "}
-              {t("mantenciones a mover", "maintenance records to move")}
-            </span>
-            <span>
-              {manualMergeSummary.contactsToReview}{" "}
-              {t("contactos a revisar", "contacts to review")}
             </span>
           </div>
           <div className="business-core-manual-merge__grid">
-            <label className="business-core-manual-merge__field">
-              <span>{t("Ficha cliente que se conserva", "Client record to keep")}</span>
-              <select
-                className="form-select"
-                value={mergeTargetClientId ?? ""}
-                disabled={selectedRows.length === 0 || isMergingOrganizations}
-                onChange={(event) => {
-                  const nextClientId = Number(event.target.value);
-                  setMergeTargetClientId(Number.isFinite(nextClientId) ? nextClientId : null);
-                }}
-              >
-                <option value="">
-                  {t("Selecciona una ficha destino", "Select a destination record")}
-                </option>
-                {selectedRows.map((row) => (
-                  <option key={row.client.id} value={row.client.id}>
-                    {`${row.organization?.name ?? t("Sin nombre", "No name")} · #${row.client.id}`}
-                  </option>
-                ))}
-              </select>
-            </label>
             <label className="business-core-manual-merge__field">
               <span>{t("Nombre común final", "Final common name")}</span>
               <input
@@ -1306,8 +1004,8 @@ export function BusinessCoreClientsPage() {
           </div>
           <div className="business-core-manual-merge__note">
             {t(
-              "Este flujo no guarda aliases visibles. Reasigna direcciones, mantenciones y contactos a la ficha destino; luego elimina o desactiva los orígenes si todavía queda alguna dependencia.",
-              "This flow does not keep visible aliases. It reassigns addresses, maintenance records, and contacts into the destination record; afterwards it deletes or deactivates the sources if any dependency is still left."
+              "Este flujo solo actualiza el campo \"Organización / Razón social\" de los clientes marcados. No modifica \"Nombre cliente\", contactos, direcciones ni historial.",
+              "This flow only updates the \"Organization / legal name\" field for the selected clients. It does not modify \"Client name\", contacts, addresses, or history."
             )}
           </div>
           <div className="business-core-card__actions">
@@ -1324,15 +1022,14 @@ export function BusinessCoreClientsPage() {
               type="button"
               disabled={
                 isMergingOrganizations ||
-                selectedRows.length < 2 ||
-                !mergeTargetClientId ||
+                selectedRows.length === 0 ||
                 !commonOrganizationName.trim()
               }
               onClick={() => void handleMergeSelectedClients()}
             >
               {isMergingOrganizations
-                ? t("Unificando...", "Unifying...")
-                : t("Unificar organización", "Unify organization")}
+                ? t("Actualizando...", "Updating...")
+                : t("Aplicar organización común", "Apply common organization")}
             </button>
           </div>
         </div>

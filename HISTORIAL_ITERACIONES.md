@@ -1,5 +1,42 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - corrección del slice manual de organización en `Clients`
+
+- objetivo:
+  - revertir el comportamiento incorrecto del slice manual de `Clients`
+  - evitar cualquier movimiento o borrado de datos al normalizar el nombre común de organización
+  - restaurar la ficha productiva claramente afectada
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
+    - elimina la lógica de unificación real
+    - elimina elección de ficha destino
+    - elimina reasignación de `direcciones`, `mantenciones` y `contactos`
+    - elimina borrado / desactivación de clientes y organizaciones origen
+    - deja el bloque como `Nombre común de organización`
+    - actualiza solo `legal_name` para los clientes marcados
+  - runtime `production`:
+    - se inspeccionó el grupo `Los Arbolitos`
+    - se detectó una sola ficha claramente dañada con `name = legal_name`
+    - se restauró `organization_id=216` a `name=Cecilia Tabales`
+    - se revalidó contacto principal y dirección principal intactos
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - build con `API_BASE_URL=http://192.168.7.42:8081`
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientsPage-BTXVBRki.js`, `index-BMfT5NVk.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - build con `API_BASE_URL=https://orkestia.ddns.net`
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientsPage-9k0vCFrE.js`, `index-DmBLRzp4.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+    - `tenant_ieris_ltda`: `client_id=192 / organization_id=216` queda como `Cecilia Tabales / Los Arbolitos`
+- resultado:
+  - el flujo manual ya no puede volver a borrar, mover o consolidar datos por error
+  - la acción queda acotada exactamente a cambiar el nombre común de organización
+
 ## 2026-04-21 - `Clients` suma unificación manual de organización por selección de clientes
 
 - objetivo:
