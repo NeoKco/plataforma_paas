@@ -55,6 +55,7 @@ Estado de este segundo bloque:
 - adopción visible por `maintenance`: ya existe foco contextual por `siteId` + `source=maintenance` + búsqueda `q` en la vista tenant de `assets`
 - adopción visible fuera de `maintenance`: la ficha del cliente ya puede cargar `assets` del tenant, agruparlos por `site_id` y dejar CTA contextual a `Activos sitio`
 - `BusinessCoreOverviewPage` ya puede cargar también `sites` y `assets` para mostrar señal rápida de inventario reusable sin abrir backend nuevo ni salir del dominio
+- `BusinessCoreClientsPage` ya puede reutilizar `assets` para mostrar señal rápida de inventario por cliente, siempre derivando el resumen desde `client -> sites -> assets`
 
 ## Modelo inicial sugerido
 
@@ -168,6 +169,7 @@ Observacion:
 - ese mismo overview ya puede extenderse con `sites` + `assets` cuando el objetivo sea mostrar señal rápida de inventario reusable y no un catálogo completo
 - en esa portada, la lectura debe ser acotada y util: 2 `organizations` visibles y 5 `clients`, usando la `organization` asociada para exponer nombre, `tax_id`, contacto base y estado de servicio del cliente.
 - `BusinessCoreClientDetailPage` ya puede reutilizar `getTenantBusinessAssets(...)` para enriquecer la ficha del cliente con lectura por dirección/sitio, siempre que siga agrupando por `site_id` y no abra todavía una relación dura `installation.asset_id`
+- `BusinessCoreClientsPage` puede apoyarse en la misma idea para resumir inventario por cliente, pero sin perder la regla de derivarlo desde `sites` y no desde una FK nueva de cliente a activo
 - `sort_order` puede seguir existiendo en el modelo para ordenamiento tecnico, pero la UI normal del tenant no deberia exponerlo mientras no haya una necesidad operativa concreta.
 - `code` en `business_function_profiles`, `business_work_groups` y `business_task_types` debe tratarse como identificador tecnico interno. La UI normal no debe mostrarlo ni permitir editarlo; el backend puede autogenerarlo desde `name`.
 - cualquier marcador `legacy_*` proveniente de importacion debe limpiarse antes de guardar o mostrarse. La descripcion funcional solo debe contener texto humano escrito por el equipo.

@@ -1,5 +1,36 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-21 - `Clients` muestra señal rápida de inventario por cliente
+
+- objetivo:
+  - llevar la adopción visible de `assets` a la lectura principal de cartera
+  - dejar que la tabla de clientes muestre inventario reusable sin obligar a abrir siempre la ficha
+- cambios y acciones ejecutadas:
+  - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
+    - carga `assets` del tenant
+    - deriva resumen por cliente desde `client -> addresses -> assets`
+    - agrega columna `Activos`
+    - deja CTA contextual `Activos sitio`
+  - se reconstruye y publica frontend por ambiente:
+    - `staging` con `API_BASE_URL=http://192.168.7.42:8081`
+    - `production` con `API_BASE_URL=https://orkestia.ddns.net`
+- validaciones:
+  - repo:
+    - `npm run build` -> `OK`
+  - `staging`:
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientsPage-Bt_QxnJo.js`, `index-JiB7nzBJ.js`
+    - `cd /opt/platform_paas_staging && EXPECTED_API_BASE_URL=http://192.168.7.42:8081 bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - publish en `/opt/platform_paas/frontend/dist`
+    - bundles visibles más recientes: `BusinessCoreClientsPage-FFJAEdXw.js`, `index-DY5M49gZ.js`
+    - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - la lectura principal de cartera ya muestra también inventario reusable del cliente
+  - `assets` queda más integrado al flujo comercial y operativo del dominio
+- siguiente paso:
+  - decidir si el siguiente salto útil cae en merge/asimilación más rica o en otra ola visible de adopción de `assets`
+
 ## 2026-04-21 - `Resumen` ya muestra señal rápida de inventario reusable
 
 - objetivo:

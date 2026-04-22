@@ -42,6 +42,10 @@ import {
   type TenantBusinessSite,
   type TenantBusinessSiteWriteRequest,
 } from "../services/sitesService";
+import {
+  getTenantBusinessAssets,
+  type TenantBusinessAsset,
+} from "../services/assetsService";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import {
   buildAddressLine,
@@ -88,6 +92,14 @@ type ClientRow = {
   organization: TenantBusinessOrganization | null;
   contacts: TenantBusinessContact[];
   addresses: TenantBusinessSite[];
+};
+
+type ClientAssetSummary = {
+  totalAssets: number;
+  activeAssets: number;
+  inactiveAssets: number;
+  sitesWithAssets: number;
+  focusAddress: TenantBusinessSite | null;
 };
 
 type DuplicateClientCandidate = {
@@ -180,6 +192,7 @@ export function BusinessCoreClientsPage() {
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
   const [contacts, setContacts] = useState<TenantBusinessContact[]>([]);
   const [addresses, setAddresses] = useState<TenantBusinessSite[]>([]);
+  const [assets, setAssets] = useState<TenantBusinessAsset[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -217,6 +230,16 @@ export function BusinessCoreClientsPage() {
     return grouped;
   }, [addresses]);
 
+  const assetsBySiteId = useMemo(() => {
+    const grouped = new Map<number, TenantBusinessAsset[]>();
+    assets.forEach((asset) => {
+      const current = grouped.get(asset.site_id) ?? [];
+      current.push(asset);
+      grouped.set(asset.site_id, current);
+    });
+    return grouped;
+  }, [assets]);
+
   const clientRows = useMemo<ClientRow[]>(
     () =>
       clients.map((client) => ({
@@ -227,6 +250,36 @@ export function BusinessCoreClientsPage() {
       })),
     [addressesByClientId, clients, contactsByOrganizationId, organizationById]
   );
+
+  const assetSummaryByClientId = useMemo(() => {
+    const summary = new Map<number, ClientAssetSummary>();
+    clientRows.forEach((row) => {
+      const addressRows = row.addresses;
+      const siteEntries = addressRows.map((address) => ({
+        address,
+        assets: assetsBySiteId.get(address.id) ?? [],
+      }));
+      const sitesWithAssets = siteEntries.filter((entry) => entry.assets.length > 0);
+      const totalAssets = siteEntries.reduce(
+        (accumulator, entry) => accumulator + entry.assets.length,
+        0
+      );
+      const activeAssets = siteEntries.reduce(
+        (accumulator, entry) =>
+          accumulator + entry.assets.filter((asset) => asset.is_active).length,
+        0
+      );
+
+      summary.set(row.client.id, {
+        totalAssets,
+        activeAssets,
+        inactiveAssets: totalAssets - activeAssets,
+        sitesWithAssets: sitesWithAssets.length,
+        focusAddress: sitesWithAssets[0]?.address ?? addressRows[0] ?? null,
+      });
+    });
+    return summary;
+  }, [assetsBySiteId, clientRows]);
 
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -264,17 +317,25 @@ export function BusinessCoreClientsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [clientsResponse, organizationsResponse, contactsResponse, addressesResponse] =
+      const [
+        clientsResponse,
+        organizationsResponse,
+        contactsResponse,
+        addressesResponse,
+        assetsResponse,
+      ] =
         await Promise.all([
           getTenantBusinessClients(session.accessToken),
           getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
           getTenantBusinessContacts(session.accessToken),
           getTenantBusinessSites(session.accessToken),
+          getTenantBusinessAssets(session.accessToken, { includeInactive: true }),
         ]);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
       setContacts(contactsResponse.data);
       setAddresses(addressesResponse.data);
+      setAssets(assetsResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -649,6 +710,20 @@ export function BusinessCoreClientsPage() {
     }
   }
 
+  function buildAssetsHref(address: TenantBusinessSite | null): string | null {
+    if (!address) {
+      return null;
+    }
+    const params = new URLSearchParams({
+      siteId: String(address.id),
+      source: "business-core",
+    });
+    if (address.address_line) {
+      params.set("q", address.address_line);
+    }
+    return `/tenant-portal/business-core/assets?${params.toString()}`;
+  }
+
   return (
     <div className="d-grid gap-4">
       <PageHeader
@@ -804,6 +879,48 @@ export function BusinessCoreClientsPage() {
                 {row.client.is_active ? t("activo", "active") : t("inactivo", "inactive")}
               </AppBadge>
             ),
+          },
+          {
+            key: "assets",
+            header: t("Activos", "Assets"),
+            render: (row) => {
+              const assetSummary = assetSummaryByClientId.get(row.client.id);
+              const assetsHref = buildAssetsHref(assetSummary?.focusAddress ?? null);
+              return (
+                <div>
+                  <div className="business-core-cell__title">
+                    {assetSummary?.totalAssets
+                      ? t(
+                          `${assetSummary.totalAssets} visibles`,
+                          `${assetSummary.totalAssets} visible`
+                        )
+                      : t("sin activos", "no assets")}
+                  </div>
+                  <div className="business-core-cell__meta">
+                    {assetSummary?.totalAssets
+                      ? t(
+                          `activos ${assetSummary.activeAssets} · inactivos ${assetSummary.inactiveAssets}`,
+                          `active ${assetSummary.activeAssets} · inactive ${assetSummary.inactiveAssets}`
+                        )
+                      : t(
+                          "este cliente todavía no concentra inventario visible",
+                          "this client does not have visible inventory yet"
+                        )}
+                  </div>
+                  <div className="business-core-cell__meta">
+                    {t(
+                      `${assetSummary?.sitesWithAssets ?? 0} sitios con activos`,
+                      `${assetSummary?.sitesWithAssets ?? 0} sites with assets`
+                    )}
+                  </div>
+                  {assetsHref && assetSummary?.totalAssets ? (
+                    <div className="business-core-cell__meta">
+                      <a href={assetsHref}>{t("Activos sitio", "Site assets")}</a>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            },
           },
           {
             key: "actions",

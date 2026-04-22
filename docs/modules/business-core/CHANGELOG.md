@@ -2,6 +2,21 @@
 
 ## 2026-04-21
 
+- la cartera cliente ahora muestra señal rápida de inventario reutilizable:
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ahora carga también `assets` del tenant
+  - la tabla suma una columna `Activos` con:
+    - conteo visible por cliente
+    - activos/inactivos
+    - sitios con activos
+    - CTA contextual `Activos sitio`
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BusinessCoreClientsPage-Bt_QxnJo.js` e `index-JiB7nzBJ.js`
+    - `production` publicado con `BusinessCoreClientsPage-FFJAEdXw.js` e `index-DY5M49gZ.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - resultado:
+    - la adopción visible de `assets` ya no vive solo en `maintenance`, `Client detail` y `Resumen`; también entra en la lectura principal de cartera
+
 - `Resumen` ya muestra una señal operativa real de `assets` dentro de `business-core`:
   - [BusinessCoreOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOverviewPage.tsx) ahora carga también `sites` y `assets`
   - las métricas visibles dejan de usar placeholders y ahora muestran `Activos visibles` y `Sitios con activos`

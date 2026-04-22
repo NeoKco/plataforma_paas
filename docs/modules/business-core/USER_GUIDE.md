@@ -41,6 +41,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 - la tabla de `Clientes` tambien debe permitir busqueda por nombre, RUT, contacto o direccion, para no obligar al usuario a cambiar de pantalla solo para ubicar una ficha.
 - la ficha del cliente ya no deberia dejar `Activos` como un catálogo separado sin contexto: cada direccion puede resumir cuántos activos visibles tiene el sitio y dejar un CTA `Activos sitio`.
 - cuando una ficha ya tiene direcciones y mantenimiento asociado, la lectura correcta deberia permitir revisar activos del mismo sitio sin perder el contexto del cliente.
+- la tabla principal de `Clientes` tambien puede mostrar una señal rápida de inventario del cliente: cuántos activos visibles tiene y si existe al menos un sitio con inventario reusable.
 - en la tabla de `Clientes`, la columna de contacto deberia avisar de forma breve cuando existe uno o mas contactos de respaldo, sin obligar a abrir de inmediato la ficha.
 - el `codigo de direccion` no forma parte de la captura normal del usuario: es un identificador tecnico interno y no deberia editarse desde pantallas operativas.
 - en la captura normal de direcciones no deberia pedirse `Nombre dirección` separado de `Dirección`; la UX correcta es pedir `Calle` y `Número`, y construir internamente el identificador tecnico si hace falta.

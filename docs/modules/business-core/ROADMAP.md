@@ -134,6 +134,7 @@ Completado recientemente:
   - cada dirección ya expone conteo visible de activos, activos/inactivos y cantidad de tipos presentes
   - la ficha ya deja CTA `Activos sitio` hacia inventario filtrado del mismo sitio
   - `BusinessCoreOverviewPage` ya expone una señal rápida de inventario reusable en `Resumen`, con métricas vivas y top de sitios con activos visibles
+  - `BusinessCoreClientsPage` ya muestra señal rápida de inventario por cliente, con conteo visible y CTA contextual al sitio con activos
 
 ## Riesgos a evitar
 
@@ -146,7 +147,7 @@ Completado recientemente:
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
 - profundizar la adopcion de `assets` por `iot`
 - endurecer el importador inicial desde `ieris_app`
-- profundizar la adopcion visible de `assets` fuera de `maintenance`, reutilizando mejor `Organizations`, contratos con `iot` o una lectura operacional todavía más rica en `Resumen`
+- profundizar la adopcion visible de `assets` fuera de `maintenance`, reutilizando mejor contratos con `iot` o una lectura operacional todavía más rica sobre cartera/identidad
 - profundizar la depuracion de duplicados hacia otras entidades para soportar consolidacion guiada/documental más allá del caso ya enriquecido de `organizations`, `clients`, `contacts`, `sites` e `installations`
 
 ## Backlog pendiente visible
