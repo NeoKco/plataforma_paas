@@ -21,6 +21,10 @@ export function BusinessCoreModuleNav() {
       label: pickLocalizedText(language, { es: "Clientes", en: "Clients" }),
     },
     {
+      to: "/tenant-portal/business-core/common-organization-name",
+      label: pickLocalizedText(language, { es: "Nombre común", en: "Common name" }),
+    },
+    {
       to: "/tenant-portal/business-core/duplicates",
       label: pickLocalizedText(language, { es: "Duplicados", en: "Duplicates" }),
     },

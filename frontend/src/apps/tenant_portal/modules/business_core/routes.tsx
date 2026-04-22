@@ -24,6 +24,13 @@ export const businessCoreTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "common-organization-name",
+    lazy: async () => {
+      const module = await import("./pages/BusinessCoreCommonOrganizationNamePage");
+      return { Component: module.BusinessCoreCommonOrganizationNamePage };
+    },
+  },
+  {
     path: "clients/:clientId",
     lazy: async () => {
       const module = await import("./pages/BusinessCoreClientDetailPage");

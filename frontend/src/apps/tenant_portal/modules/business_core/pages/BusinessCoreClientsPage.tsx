@@ -293,7 +293,6 @@ export function BusinessCoreClientsPage() {
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isMergingOrganizations, setIsMergingOrganizations] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
@@ -302,8 +301,6 @@ export function BusinessCoreClientsPage() {
   const [duplicateCandidate, setDuplicateCandidate] = useState<DuplicateClientCandidate | null>(
     null
   );
-  const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
-  const [commonOrganizationName, setCommonOrganizationName] = useState("");
 
   const organizationById = useMemo(
     () => new Map(organizations.map((organization) => [organization.id, organization])),
@@ -451,27 +448,6 @@ export function BusinessCoreClientsPage() {
   useEffect(() => {
     void loadData();
   }, [session?.accessToken]);
-
-  const selectedRows = useMemo(
-    () =>
-      selectedClientIds
-        .map((clientId) => clientRowById.get(clientId) ?? null)
-        .filter((row): row is ClientRow => Boolean(row)),
-    [clientRowById, selectedClientIds]
-  );
-
-  function toggleClientSelection(clientId: number) {
-    setSelectedClientIds((current) =>
-      current.includes(clientId)
-        ? current.filter((id) => id !== clientId)
-        : [...current, clientId]
-    );
-  }
-
-  function clearManualMergeSelection() {
-    setSelectedClientIds([]);
-    setCommonOrganizationName("");
-  }
 
   function openCreateModal() {
     setModalError(null);
@@ -836,77 +812,6 @@ export function BusinessCoreClientsPage() {
     }
   }
 
-  async function handleMergeSelectedClients() {
-    if (!session?.accessToken) {
-      return;
-    }
-    if (selectedRows.length === 0) {
-      setError(
-        new Error(
-          t(
-            "Selecciona al menos un cliente para normalizar la organización común.",
-            "Select at least one client to normalize the common organization."
-          )
-        ) as ApiError
-      );
-      return;
-    }
-    const finalOrganizationName = commonOrganizationName.trim();
-    if (!finalOrganizationName) {
-      setError(
-        new Error(
-          t(
-            "Indica el nombre común final de la organización.",
-            "Provide the final common organization name."
-          )
-        ) as ApiError
-      );
-      return;
-    }
-
-    const confirmed = window.confirm(
-      t(
-        `Actualizar la organización común de ${selectedRows.length} cliente(s) a "${finalOrganizationName}". Esto solo cambiará el campo "Organización / Razón social"; no moverá contactos, direcciones ni mantenciones.`,
-        `Update the common organization for ${selectedRows.length} client(s) to "${finalOrganizationName}". This only changes the "Organization / legal name" field; it will not move contacts, addresses, or maintenance records.`
-      )
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    setIsMergingOrganizations(true);
-    setError(null);
-    setFeedback(null);
-    try {
-      for (const row of selectedRows) {
-        if (!row.organization) {
-          continue;
-        }
-        await updateTenantBusinessOrganization(
-          session.accessToken,
-          row.organization.id,
-          buildOrganizationWritePayload(row.organization, {
-            legal_name: finalOrganizationName,
-            is_active: row.organization.is_active,
-          })
-        );
-      }
-
-      setFeedback(
-        t(
-          `Organización común actualizada a "${finalOrganizationName}" en ${selectedRows.length} cliente(s). No se tocaron nombres de cliente, contactos ni mantenciones.`,
-          `Common organization updated to "${finalOrganizationName}" for ${selectedRows.length} client(s). Client names, contacts, and maintenance records were not touched.`
-        )
-      );
-      clearManualMergeSelection();
-      await loadData();
-    } catch (rawError) {
-      setError(rawError as ApiError);
-    } finally {
-      setIsMergingOrganizations(false);
-    }
-  }
-
   function buildAssetsHref(address: TenantBusinessSite | null): string | null {
     if (!address) {
       return null;
@@ -951,6 +856,13 @@ export function BusinessCoreClientsPage() {
             >
               {t("Recargar", "Reload")}
             </button>
+            <button
+              className="btn btn-outline-primary"
+              type="button"
+              onClick={() => navigate("/tenant-portal/business-core/common-organization-name")}
+            >
+              {t("Nombre común", "Common name")}
+            </button>
             <button className="btn btn-primary" type="button" onClick={openCreateModal}>
               {t("Nuevo cliente", "New client")}
             </button>
@@ -970,70 +882,6 @@ export function BusinessCoreClientsPage() {
       {isLoading ? (
         <LoadingBlock label={t("Cargando clientes...", "Loading clients...")} />
       ) : null}
-
-      <PanelCard
-        title={t("Nombre común de organización", "Common organization name")}
-        subtitle={
-          t(
-            "Marca uno o más clientes y aplica el mismo nombre común en \"Organización / Razón social\" sin tocar la ficha base.",
-            "Select one or more clients and apply the same common name into \"Organization / legal name\" without touching the base record."
-          )
-        }
-      >
-        <div className="business-core-manual-merge">
-          <div className="business-core-manual-merge__summary">
-            <span>
-              {selectedRows.length}{" "}
-              {t("clientes seleccionados", "selected clients")}
-            </span>
-          </div>
-          <div className="business-core-manual-merge__grid">
-            <label className="business-core-manual-merge__field">
-              <span>{t("Nombre común final", "Final common name")}</span>
-              <input
-                className="form-control"
-                value={commonOrganizationName}
-                disabled={isMergingOrganizations}
-                placeholder={t(
-                  "Ej.: Los Arbolitos",
-                  "Ex.: Los Arbolitos"
-                )}
-                onChange={(event) => setCommonOrganizationName(event.target.value)}
-              />
-            </label>
-          </div>
-          <div className="business-core-manual-merge__note">
-            {t(
-              "Este flujo solo actualiza el campo \"Organización / Razón social\" de los clientes marcados. No modifica \"Nombre cliente\", contactos, direcciones ni historial.",
-              "This flow only updates the \"Organization / legal name\" field for the selected clients. It does not modify \"Client name\", contacts, addresses, or history."
-            )}
-          </div>
-          <div className="business-core-card__actions">
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
-              disabled={selectedRows.length === 0 || isMergingOrganizations}
-              onClick={clearManualMergeSelection}
-            >
-              {t("Limpiar selección", "Clear selection")}
-            </button>
-            <button
-              className="btn btn-primary"
-              type="button"
-              disabled={
-                isMergingOrganizations ||
-                selectedRows.length === 0 ||
-                !commonOrganizationName.trim()
-              }
-              onClick={() => void handleMergeSelectedClients()}
-            >
-              {isMergingOrganizations
-                ? t("Actualizando...", "Updating...")
-                : t("Aplicar organización común", "Apply common organization")}
-            </button>
-          </div>
-        </div>
-      </PanelCard>
 
       <DataTableCard
         title={t("Clientes activos y cartera", "Client portfolio")}
@@ -1059,21 +907,6 @@ export function BusinessCoreClientsPage() {
           />
         }
         columns={[
-          {
-            key: "select",
-            header: t("Unif.", "Merge"),
-            render: (row) => (
-              <label className="business-core-selection-toggle">
-                <input
-                  type="checkbox"
-                  checked={selectedClientIds.includes(row.client.id)}
-                  disabled={isMergingOrganizations}
-                  onChange={() => toggleClientSelection(row.client.id)}
-                />
-                <span>{t("marcar", "pick")}</span>
-              </label>
-            ),
-          },
           {
             key: "client",
             header: t("Cliente", "Client"),
