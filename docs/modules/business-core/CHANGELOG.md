@@ -2,6 +2,24 @@
 
 ## 2026-04-22
 
+- corrección estructural del modelo para separar contraparte base vs organización social común:
+  - se agrega [social_community_group.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/models/social_community_group.py) con la tabla `social_community_groups`
+  - `business_clients` ya suma `social_community_group_id`
+  - la migración [v0039_social_community_groups.py](/home/felipe/platform_paas/backend/migrations/tenant/v0039_social_community_groups.py) ya:
+    - crea la nueva tabla
+    - agrega `business_clients.social_community_group_id`
+    - backfillea grupos desde homologaciones legacy guardadas en `organization.legal_name`
+  - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya no actualiza `organization.legal_name`; ahora crea o reutiliza `social_community_groups` y asigna clientes a ese grupo
+  - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya mide y muestra el grupo social común desde `social_community_group_id`
+  - [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx) ya filtra y reporta por `Grupo social común` en vez de usar `legal_name` como parche semántico
+  - impacto semántico final:
+    - `organization.name` = empresa / compañía / contraparte base
+    - `organization.legal_name` = razón social / nombre legal de esa contraparte
+    - `social_community_groups.name` = nombre social común compartido por varios clientes
+  - validación:
+    - `backend.app.tests.test_migration_flow` + `test_tenant_data_portability_service` + `test_business_core_catalog_routes` -> `61 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - `Organizations` y `Clients` cierran la segunda ola visible de `organization addresses` y lectura operacional por organización:
   - [BusinessCoreOrganizationsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreOrganizationsPage.tsx) ahora carga también `clients` para sintetizar señal operacional real sin endpoint nuevo
   - `Organizations` ya muestra arriba:

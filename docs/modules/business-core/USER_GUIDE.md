@@ -31,8 +31,9 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
 
 - `Empresas` muestra la empresa propia, proveedores y partners operativos.
 - `Clientes` muestra la cartera cliente del tenant.
-- dentro de un cliente, `Nombre cliente` sigue leyendo el nombre individual/base (`organization.name`)
-- `Organización / Razón social` se usa como nombre común homologado (`organization.legal_name`) cuando corresponde agrupar varios clientes bajo una misma organización social
+- dentro de un cliente, `Nombre cliente` sigue leyendo la empresa / contraparte base (`organization.name`)
+- `Organización / Razón social` vuelve a significar razón social o nombre legal de esa contraparte base (`organization.legal_name`)
+- el agrupador social común ahora vive en `social_community_groups`, no en `organization.legal_name`
 - `Empresas` ya puede mostrar una lectura operacional rápida sin salir de la tabla:
   - si la organización ya tiene dirección propia visible
   - si el contacto principal ya quedó listo
@@ -41,7 +42,7 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
   - cuántos clientes ya tienen organización común definida
   - cuántos grupos comunes ya son visibles
   - cuántos pendientes quedan por homologar
-  - en cada fila, la columna `Organización común` resume nombre común y tamaño del grupo
+  - en cada fila, la columna `Grupo social común` resume nombre común y tamaño del grupo
 - una misma identidad base puede existir como `organization`, pero la vista `Empresas` no debe usarse para revisar la cartera comercial completa.
 - por defecto, la pantalla `Empresas` excluye las organizaciones ya usadas como clientes para evitar mezclar ambas lecturas.
 - en `Empresas`, la tabla operativa debe mostrar tambien el `contacto principal` con telefono y mail, para permitir lectura rapida sin abrir otros catalogos.
@@ -87,19 +88,20 @@ Sin este dominio base, cada modulo termina creando sus propias versiones de:
     1. entrar a `Core de negocio -> Nombre común`
     2. revisar los grupos detectados por similitud de organización
     3. marcar solo los clientes que realmente deban compartir la misma organización social común
-    4. escribir el `Nombre común final`
+    4. escribir el `Nombre social común final`
     5. confirmar la actualización
   - esa vista ya no muestra solo vacíos:
     - muestra grupos detectados por similitud real de organización
     - por ejemplo mismo `RUT / Tax ID`, mismo nombre visible o nombre muy parecido
   - `Grupo detectado` solo agrupa candidatos; no es el nombre que se guardará
-  - el único valor que se guardará es el que el operador escriba en `Nombre común final`
+  - el único valor que se guardará es el que el operador escriba en `Nombre social común final`
   - cuando un grupo queda homologado con el mismo nombre común, deja de aparecer
-  - ese flujo solo actualiza `Organización / Razón social`
-  - no toca `Nombre cliente`, contactos, direcciones ni mantenciones
+  - ese flujo crea o reutiliza un `social_community_group` y asigna los clientes seleccionados a ese grupo
+  - no toca `Nombre cliente`, empresa base, razón social legal, contactos, direcciones ni mantenciones
   - en otras palabras:
     - `Nombre cliente` sigue en `organization.name`
-    - el nombre común queda en `organization.legal_name`
+    - la razón social sigue en `organization.legal_name`
+    - el nombre social común queda en `social_community_groups.name`
   - no guarda aliases visibles ni nombres anteriores como dato operativo
 - la vista `Activos` permite mantener el inventario instalado por sitio y `Tipos de activo` define la taxonomia reusable para ese inventario.
 - cuando entras a `Activos` desde `Maintenance -> Instalaciones`, la vista puede abrir con foco contextual del mismo sitio y una búsqueda prellenada por nombre o serie de la instalación.

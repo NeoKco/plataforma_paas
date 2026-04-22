@@ -5,6 +5,7 @@ Estado actual:
 - backend activo para:
   - `organizations`
   - `clients`
+  - `social_community_groups`
   - `contacts`
   - `sites`
   - `function_profiles`
@@ -21,6 +22,12 @@ Estado actual:
 - `PUT /tenant/business-core/clients/{client_id}`
 - `PATCH /tenant/business-core/clients/{client_id}/status`
 - `DELETE /tenant/business-core/clients/{client_id}`
+- `GET /tenant/business-core/social-community-groups`
+- `POST /tenant/business-core/social-community-groups`
+- `GET /tenant/business-core/social-community-groups/{group_id}`
+- `PUT /tenant/business-core/social-community-groups/{group_id}`
+- `PATCH /tenant/business-core/social-community-groups/{group_id}/status`
+- `DELETE /tenant/business-core/social-community-groups/{group_id}`
 - `GET /tenant/business-core/organizations`
 - `POST /tenant/business-core/organizations`
 - `GET /tenant/business-core/organizations/{organization_id}`
@@ -72,6 +79,7 @@ Estado actual:
 
 Sin abrir endpoints nuevos, la UI tenant ya soporta estos flujos sobre contratos existentes:
 
+- asignacion manual de `Grupo social común` usando `social_community_groups`
 - auditoria de duplicados de `organizations`, `clients`, `contacts`, `sites` e `installations`
 - sugerencia de ficha a conservar por grupo duplicado
 - borrado seguro cuando la ficha no tiene dependencias visibles
@@ -87,6 +95,13 @@ Ruta frontend tenant visible:
 - acceso rapido adicional: `Tenant portal -> Core de negocio -> Resumen -> Abrir duplicados`
 - la pantalla muestra ademas un resumen previo de consolidacion por grupo usando datos ya cargados de `clients`, `contacts`, `sites`, `installations` y `work_orders`
 - el merge de `organizations` escribe ademas un ledger persistente en `/tenant/business-core/merge-audits`
+
+Ruta frontend tenant adicional:
+
+- `/tenant-portal/business-core/common-organization-name`
+- acceso UI: `Tenant portal -> Core de negocio -> Nombre común`
+- la pantalla detecta candidatos por similitud entre empresas base y asigna manualmente `social_community_group_id`
+- no modifica `organization.name`, `organization.legal_name`, contactos, sitios ni mantenciones
 
 Ledger de merges disponible:
 
@@ -137,6 +152,7 @@ Campos minimos de lectura:
 
 - `id`
 - `organization_id`
+- `social_community_group_id`
 - `organization_name`
 - `client_code`
 - `service_status`
@@ -183,6 +199,20 @@ Campos minimos de lectura:
 - `region`
 - `country_code`
 - `is_active`
+
+### Social community group summary
+
+Campos minimos de lectura:
+
+- `id`
+- `name`
+- `commune`
+- `sector`
+- `zone`
+- `territorial_classification`
+- `notes`
+- `is_active`
+- `sort_order`
 
 ### Asset type summary
 

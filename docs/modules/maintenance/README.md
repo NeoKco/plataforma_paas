@@ -29,6 +29,7 @@ Estado actual:
 - regla vigente de lectura:
   - `Cliente` consume `organization.name`
   - `Organización / Razón social` consume `organization.legal_name`
+  - `Grupo social común` consume `social_community_groups.name` cuando la pantalla realmente habla de la agrupación social compartida
   - la homologación manual de nombre común en `business-core` no debe cambiar la lectura principal de cliente
 - las ordenes y visitas ya soportan `grupo responsable` y `tecnico responsable` apoyados sobre `business-core`
 - ya existe el primer corte de `Pendientes` preventivos con:

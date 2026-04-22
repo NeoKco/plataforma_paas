@@ -39,6 +39,7 @@ Segundo bloque recomendado:
 
 - `business_assets`
 - `business_asset_types`
+- `social_community_groups`
 
 Direccion propia de organizaciones:
 
@@ -60,7 +61,7 @@ Estado de este segundo bloque:
   - dirección propia lista o faltante
   - contacto principal listo
   - cantidad de clientes ligados a esa organización
-- `BusinessCoreClientsPage` ya puede derivar lectura operacional del grupo social común desde `organization.legal_name`:
+- `BusinessCoreClientsPage` ya puede derivar lectura operacional del grupo social común desde `business_clients.social_community_group_id`:
   - cantidad de clientes ya homologados
   - grupos visibles de tamaño > 1
   - pendientes por homologar
@@ -68,8 +69,9 @@ Estado de este segundo bloque:
 - `BusinessCoreClientsPage` ya no debe asumir unificación de fichas para la homologación operativa de organizaciones:
   - la lectura principal de cartera queda limpia
   - la acción manual vive en `BusinessCoreCommonOrganizationNamePage`
-  - `Nombre común final` es obligatorio
-  - el flujo solo actualiza `organization.legal_name`
+  - `Nombre social común final` es obligatorio
+  - el flujo crea o reutiliza `social_community_groups`
+  - el flujo solo actualiza `business_clients.social_community_group_id`
   - no reasigna `sites`, `maintenance work_orders` ni `contacts`
   - no elige ficha destino
   - no borra ni desactiva clientes/organizaciones
@@ -102,8 +104,8 @@ Observacion:
 
 - `organization_kind` no deberia limitarse a `client` o `provider`
 - conviene permitir etiquetas como `client`, `provider`, `partner`, `contractor`
-- `name` sigue siendo el nombre individual/base que consumen lecturas operativas como `maintenance -> Cliente`
-- `legal_name` queda disponible para homologar el nombre común visible de la organización social sin pisar `name`
+- `name` sigue siendo el nombre visible de la empresa / contraparte base
+- `legal_name` queda como razón social o nombre legal de esa contraparte base
 - la UX de `organizations` deberia incluir lectura y edicion del `contacto principal` sin obligar al usuario a ir al catálogo global de `contacts`
 - la direccion propia de `organizations` no debe improvisarse como nota o texto libre: requiere una ola de modelo posterior para resolver bien empresa/proveedor con direccion editable y visible
 
@@ -117,6 +119,7 @@ Campos base:
 
 - `id`
 - `organization_id`
+- `social_community_group_id`
 - `client_code`
 - `service_status`
 - `commercial_notes`
@@ -127,8 +130,34 @@ Campos base:
 Observacion:
 
 - esto permite que una `organization` exista primero y solo algunas de ellas se activen como cliente
+- también permite que varios `clients` distintos compartan un mismo `social_community_group` sin mezclar empresa base con organización social común
 - `client_code` puede seguir existiendo en el modelo y en integraciones, pero no debe formar parte de la captura normal del usuario
 - la capa de servicio debe preservarlo o generarlo internamente; no debe aceptar mutaciones manuales desde la operacion diaria
+
+### 2.5. Social Community Groups
+
+Tabla sugerida:
+
+- `social_community_groups`
+
+Campos base:
+
+- `id`
+- `name`
+- `commune`
+- `sector`
+- `zone`
+- `territorial_classification`
+- `notes`
+- `is_active`
+- `created_at`
+- `updated_at`
+
+Observacion:
+
+- esta tabla resuelve el concepto de organización social común que no corresponde mezclar con `business_organizations`
+- su consumo visible principal hoy vive en `BusinessCoreCommonOrganizationNamePage` y en lecturas operativas de `Clients` / `MaintenanceReports`
+- la migración tenant `v0039_social_community_groups` ya crea la tabla, agrega `business_clients.social_community_group_id` y backfillea grupos desde `organization.legal_name` cuando existían homologaciones legacy
 
 ### 3. Contacts
 

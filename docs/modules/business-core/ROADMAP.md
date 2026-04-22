@@ -142,10 +142,12 @@ Completado recientemente:
   - `staging` publicado con `BusinessCoreOrganizationsPage-VnU7qZVb.js`, `BusinessCoreClientsPage-BQOgiFnx.js` e `index-CZrao2nk.js`
   - `production` publicado con `BusinessCoreOrganizationsPage-C7Fmz1ra.js`, `BusinessCoreClientsPage-CLjBUz_w.js` e `index-CCZS1hZ6.js`
   - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
-- homologación manual de organización común por selección de clientes:
-  - `BusinessCoreCommonOrganizationNamePage` ya deja marcar varios clientes candidatos y fijar un `Nombre común final`
+- corrección estructural del dominio social común:
+  - `social_community_groups` ya existe como tabla propia
+  - `business_clients` ya suma `social_community_group_id`
+  - `BusinessCoreCommonOrganizationNamePage` ya deja marcar varios clientes candidatos y fijar un `Nombre social común final`
   - la vista ya detecta grupos por similitud real de organización
-  - el flujo solo actualiza `Organización / Razón social`
+  - el flujo crea o reutiliza `social_community_groups`
   - no mueve `direcciones`, `mantenciones` ni `contactos`
   - no elige ficha destino ni borra/desactiva organizaciones
 - ajuste de integración consumidora ya cerrado:
@@ -153,7 +155,8 @@ Completado recientemente:
   - la regla vigente es:
     - `Cliente` -> `organization.name`
     - `Organización / Razón social` -> `organization.legal_name`
-  - esto evita que la homologación del nombre común pise visualmente el nombre individual/base en operación diaria
+    - `Grupo social común` -> `social_community_groups.name`
+  - esto evita mezclar empresa base, razón social legal y organización social común en operación diaria
 - `business_asset_types`: tabla, API, vista administrativa y migracion tenant
 - `business_assets`: tabla, API, vista administrativa y migracion tenant
 - `business_organization_addresses`: primera ola de direccion propia para empresas/proveedores
@@ -180,7 +183,7 @@ Completado recientemente:
 - cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual recién corregido
 - siguiente corte recomendado:
   - profundizar la siguiente ola visible de `organization addresses` dentro de `business-core`, ya no solo como tabla resumida sino como lectura/edición más rica por organización
-  - reforzar `Organizations` y `Clients` con filtros o detalle por organización común para que el grupo social común se vea estable sin volver a abrir consolidación profunda nueva
+  - reforzar `Organizations` y `Clients` con filtros o detalle por grupo social común para que la nueva entidad quede operativamente estable sin volver a abrir consolidación profunda nueva
   - o abrir el siguiente frente formal del roadmap maestro si `business-core` ya quedó suficientemente estable
 - `iot` no necesita abrirse todavía; solo debe seguir reutilizando `sites` y `assets` cuando se implemente
 - endurecer el importador inicial desde `ieris_app`

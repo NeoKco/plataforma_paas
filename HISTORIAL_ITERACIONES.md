@@ -1,5 +1,29 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - separación estructural entre contraparte base y grupo social común
+
+- objetivo:
+  - corregir la raíz del modelo para no seguir parchando `organization.legal_name` como si fuera organización social común
+- cambios y acciones ejecutadas:
+  - backend:
+    - se agrega [backend/app/apps/tenant_modules/business_core/models/social_community_group.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/business_core/models/social_community_group.py)
+    - `business_clients` suma `social_community_group_id`
+    - la migración [backend/migrations/tenant/v0039_social_community_groups.py](/home/felipe/platform_paas/backend/migrations/tenant/v0039_social_community_groups.py) crea `social_community_groups`, agrega `commune`, `sector`, `zone`, `territorial_classification` y backfillea grupos desde homologaciones legacy
+    - el scope de portabilidad tenant ya incluye `social_community_groups`
+  - frontend:
+    - `BusinessCoreCommonOrganizationNamePage` ya crea o reutiliza `social_community_groups` y asigna clientes al grupo
+    - `BusinessCoreClientsPage` ya lee el grupo social común desde `social_community_group_id`
+    - `MaintenanceReportsPage` ya filtra y reporta por `Grupo social común`
+  - documentación:
+    - `organization.name` queda documentado como empresa / contraparte base
+    - `organization.legal_name` queda documentado como razón social / nombre legal
+    - `social_community_groups.name` queda documentado como organización social común compartida
+- validaciones:
+  - `backend.app.tests.test_migration_flow` + `test_tenant_data_portability_service` + `test_business_core_catalog_routes` -> `61 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- resultado:
+  - el proyecto deja de depender de `legal_name` como parche semántico para organización social común
+
 ## 2026-04-22 - segunda ola visible de `organization addresses` y lectura operacional por organización
 
 - objetivo:
@@ -14,12 +38,12 @@
       - `Clientes ya ligados`
     - agrega la columna `Lectura operativa` por organización para distinguir dirección propia, nombre común visible y cantidad de clientes ligados
   - [frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx):
-    - deriva metadatos operativos desde `organization.legal_name`
+    - deriva metadatos operativos del grupo social común enlazado por `social_community_group_id`
     - agrega resumen con:
-      - clientes con organización común definida
+      - clientes con grupo social definido
       - grupos ya visibles
-      - pendientes por homologar
-    - agrega columna `Organización común` con nombre común, tamaño de grupo y referencia al nombre base cuando difiere
+      - pendientes por asignar
+    - agrega columna `Grupo social común` con nombre común, tamaño de grupo y referencia a la empresa base cuando difiere
   - [frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/styles/business-core.css):
     - suma `business-core-summary-metric` para la franja resumida del slice
 - validaciones:
@@ -37,7 +61,7 @@
     - `cd /opt/platform_paas && EXPECTED_API_BASE_URL=https://orkestia.ddns.net bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
 - resultado:
   - `Organizations` ya no queda solo como catálogo con dirección propia; ahora resume también contacto principal y relación real con la cartera cliente
-  - `Clients` ya no deja la homologación de organización común como tarea ciega; expone cobertura, grupos visibles y pendientes dentro de la misma cartera
+  - `Clients` ya no deja la asignación de grupo social común como tarea ciega; expone cobertura, grupos visibles y pendientes dentro de la misma cartera
 - siguiente paso:
   - profundizar una tercera ola visible de `organization addresses` y detalle por organización, o abrir el siguiente frente formal del roadmap si `business-core` ya quedó suficientemente estable
 
@@ -72,8 +96,33 @@
   - `bash deploy/check_release_governance.sh` -> `OK`
   - `jq '.updated_at, .current_focus' HANDOFF_STATE.json` -> `OK`
 - resultado:
-  - la documentación activa ya refleja el estado real del sistema hoy
+  - la documentación activa principal ya refleja el estado real del sistema hoy
   - no quedan guías principales describiendo como vigente la unificación real revertida ni el naming viejo `Depuración`
+
+## 2026-04-22 - promoción runtime del nuevo modelo `social_community_groups`
+
+- objetivo:
+  - publicar la corrección estructural del dominio para separar empresa base y grupo social común
+  - dejar staging y production alineados con la nueva tabla, la nueva FK en clientes y la UI ajustada
+- cambios y acciones ejecutadas:
+  - backend:
+    - se promueve la migración tenant [v0039_social_community_groups.py](/home/felipe/platform_paas/backend/migrations/tenant/v0039_social_community_groups.py)
+    - staging y production ya crean `social_community_groups`, agregan `business_clients.social_community_group_id` y backfillean grupos legacy desde homologaciones previas
+  - frontend:
+    - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya administra `social_community_groups`
+    - [BusinessCoreClientsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreClientsPage.tsx) ya resume `Grupo social común`
+    - [MaintenanceReportsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceReportsPage.tsx) ya filtra/reporta por `Grupo social común`
+- validaciones:
+  - repo:
+    - `backend.app.tests.test_migration_flow` + `test_tenant_data_portability_service` + `test_business_core_catalog_routes` -> `61 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - runtime:
+    - `staging`: deploy backend `528 tests OK`
+    - `production`: deploy backend `528 tests OK`
+    - `staging` y `production`: publish frontend + `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - la separación semántica entre contraparte base y grupo social común ya queda activa en runtime
+  - `organization.legal_name` deja de cargarse como parche operativo para agrupación social común
 
 ## 2026-04-22 - corrección visual de `maintenance`: cliente y organización vuelven a separarse bien
 

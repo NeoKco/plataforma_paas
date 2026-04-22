@@ -4,11 +4,13 @@
 
 - memoria viva y documentación ya rearmonizadas al estado real actual:
   - `business-core` ya documenta `Duplicados` con su naming vigente
-  - `Nombre común` ya queda descrito solo como homologación manual segura de `legal_name`
+  - `Nombre común` ya queda descrito como asignación manual segura de `social_community_groups`
   - `maintenance` ya deja explícita la separación correcta:
     - `Cliente` -> `organization.name`
     - `Organización / Razón social` -> `organization.legal_name`
+    - `Grupo social común` -> `social_community_groups.name`
   - no queda vigente en docs el experimento revertido de unificación real desde `Clients`
+  - el nuevo modelo `social_community_groups` ya quedó promovido a runtime y no sigue solo en repo
 
 - subcorte nuevo ya cerrado en runtime dentro de `maintenance`:
   - corrección visual final: `Cliente` vuelve a leer el nombre individual/base y la organización común queda solo donde el campo realmente corresponde a organización
@@ -42,7 +44,8 @@
   - cerrar `business-core` fuera de `Duplicados` y fuera del slice de homologación manual ya corregido
   - corte recomendado:
     - profundizar una tercera ola visible de `organization addresses`, ya no solo en tabla resumida sino en lectura/edición más rica por organización
-    - reforzar `Organizations` y `Clients` con filtros o detalle por organización común para que el grupo social común se vea estable sin abrir consolidación profunda nueva
+    - reforzar `Organizations` y `Clients` con filtros o detalle por grupo social común para que la nueva entidad quede operativamente estable sin abrir consolidación profunda nueva
+    - cerrar el uso residual de `legal_name` como simple razón social/empresa legal en los puntos de lectura que todavía necesiten copy o layout más claro
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la normalización de `Organización / Razón social`

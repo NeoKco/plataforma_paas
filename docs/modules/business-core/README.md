@@ -8,10 +8,10 @@ Nombre funcional visible sugerido:
 
 Regla vigente para identidad visible:
 
-- `organization.name` conserva el nombre individual/base que se usa en lecturas operativas de cliente
-- `organization.legal_name` se usa para homologar el nombre común de la organización social cuando hace falta
-- la vista `Nombre común` solo trabaja sobre `legal_name`
-- la homologación manual no debe pisar `name`
+- `organization.name` representa la empresa / compañía / contraparte base
+- `organization.legal_name` representa la razón social o nombre legal de esa contraparte base
+- `social_community_groups.name` representa el nombre social común compartido por varios clientes
+- la vista `Nombre común` crea o reutiliza `social_community_groups` y no debe pisar `organization.name` ni `organization.legal_name`
 
 Donde encontrar la pantalla de duplicados:
 
@@ -67,7 +67,7 @@ Estado actual:
 - `maintenance` ya consume `work_groups` reales para asignar grupo responsable en ordenes y visitas, en vez de depender solo de etiquetas legacy o texto libre
 - no existe un responsable por sitio/dirección en el modelo actual: la regla de negocio usa grupo + líder por mantención o instalación
 - la vista `Duplicados` ya detecta grupos duplicados de `Organizaciones`, `Clientes`, `Contactos`, `Direcciones` e `Instalaciones`, sugiere qué ficha conviene conservar y permite consolidar referencias operativas o desactivar duplicados hacia esa ficha antes de borrar para apoyar la limpieza operativa de la BD
-- la vista `Nombre común` ya sirve para homologar manualmente `Organización / Razón social` entre clientes candidatos por similitud real, sin mover ni borrar datos
+- la vista `Nombre común` ya sirve para asignar manualmente un grupo social común entre clientes candidatos por similitud real, sin mover ni borrar datos
 
 ## Slice operativo actual: Duplicados
 
@@ -98,9 +98,10 @@ Slice complementario vigente:
 
 - `Nombre común` no consolida fichas ni mueve referencias
 - detecta candidatos por similitud real de organización
-- permite marcar clientes y escribir un `Nombre común final`
-- solo actualiza `organization.legal_name`
-- no toca `organization.name`, `contacts`, `sites`, `work_orders` ni elimina registros
+- permite marcar clientes y escribir un `Nombre social común final`
+- crea o reutiliza `social_community_groups`
+- solo actualiza `business_clients.social_community_group_id`
+- no toca `organization.name`, `organization.legal_name`, `contacts`, `sites`, `work_orders` ni elimina registros
 
 Regla de negocio vigente:
 
@@ -187,7 +188,9 @@ Pendiente posterior importante:
 Lectura base recomendada:
 
 - una `organization` representa una empresa o contraparte
+- un `social_community_group` representa la organización social común compartida por varios clientes
 - un `client` representa el rol de cliente dentro del tenant
+- un `client` puede apuntar tanto a su `organization` base como a un `social_community_group`
 - un `contact` pertenece a una `organization` y puede quedar asociado a uno o mas `sites`
 - un `site` cuelga de un `client`
 - un `asset` cuelga de un `site` y de un `asset_type`

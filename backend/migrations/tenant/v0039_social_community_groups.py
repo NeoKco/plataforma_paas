@@ -9,7 +9,6 @@ from sqlalchemy import (
     Text,
     func,
     inspect,
-    select,
     text,
 )
 
@@ -39,7 +38,67 @@ def upgrade(connection) -> None:
     inspector = inspect(connection)
     existing_tables = set(inspector.get_table_names())
     if "social_community_groups" not in existing_tables:
-        metadata.create_all(connection, tables=[social_community_groups], checkfirst=True)
+        is_postgres = connection.dialect.name == "postgresql"
+        create_table_sql = (
+            """
+            CREATE TABLE IF NOT EXISTS social_community_groups (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(150) NOT NULL UNIQUE,
+                commune VARCHAR(120),
+                sector VARCHAR(120),
+                zone VARCHAR(120),
+                territorial_classification VARCHAR(120),
+                notes TEXT,
+                is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                sort_order INTEGER NOT NULL DEFAULT 100,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+                updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+            )
+            """
+            if is_postgres
+            else """
+            CREATE TABLE IF NOT EXISTS social_community_groups (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name VARCHAR(150) NOT NULL UNIQUE,
+                commune VARCHAR(120),
+                sector VARCHAR(120),
+                zone VARCHAR(120),
+                territorial_classification VARCHAR(120),
+                notes TEXT,
+                is_active BOOLEAN NOT NULL DEFAULT 1,
+                sort_order INTEGER NOT NULL DEFAULT 100,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        connection.execute(
+            text(create_table_sql)
+        )
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_social_community_groups_name "
+                "ON social_community_groups (name)"
+            )
+        )
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_social_community_groups_is_active "
+                "ON social_community_groups (is_active)"
+            )
+        )
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_social_community_groups_sort_order "
+                "ON social_community_groups (sort_order)"
+            )
+        )
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_social_community_groups_created_at "
+                "ON social_community_groups (created_at)"
+            )
+        )
 
     existing_columns = {column["name"] for column in inspector.get_columns("business_clients")}
     if "social_community_group_id" not in existing_columns:

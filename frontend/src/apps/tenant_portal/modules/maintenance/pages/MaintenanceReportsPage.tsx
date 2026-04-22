@@ -239,12 +239,6 @@ export function MaintenanceReportsPage() {
     return organizationById.get(client?.organization_id ?? -1) ?? null;
   }
 
-  function getOrganizationOptionLabel(organization: TenantBusinessOrganization | null | undefined) {
-    const legalName = stripLegacyVisibleText(organization?.legal_name);
-    const companyName = stripLegacyVisibleText(organization?.name);
-    return legalName || companyName || (language === "es" ? "Empresa sin nombre" : "Unnamed company");
-  }
-
   function getSocialCommunityLabel(clientId: number) {
     const organization = getOrganization(clientId);
     const client = clientById.get(clientId);
@@ -436,7 +430,7 @@ export function MaintenanceReportsPage() {
   );
 
   const organizationFilterOptions = useMemo(() => {
-    const seen = new Set<number>();
+    const seen = new Set<string>();
     return completedRows
       .map((item) => {
         const client = clientById.get(item.client_id);
@@ -449,15 +443,14 @@ export function MaintenanceReportsPage() {
         );
         return socialGroupName ? { id: socialGroupName, label: socialGroupName } : null;
       })
-      .filter((organization): organization is { id: string; label: string } => Boolean(organization))
+      .filter(
+        (organization): organization is { id: string; label: string } => Boolean(organization)
+      )
       .filter((organization) => {
-        if (seen.has(Number.NaN) && false) {
+        if (seen.has(organization.id)) {
           return false;
         }
-        if (seen.has(organization.label.length)) {
-          return false;
-        }
-        seen.add(organization.label.length);
+        seen.add(organization.id);
         return true;
       })
       .sort((left, right) => left.label.localeCompare(right.label, language));
@@ -470,12 +463,11 @@ export function MaintenanceReportsPage() {
           if (organizationFilter === "all") {
             return true;
           }
-          const client = clientById.get(item.client_id);
-          return String(client?.organization_id ?? "") === organizationFilter;
+          return getSocialCommunityLabel(item.client_id) === organizationFilter;
         })
         .map((item) => ({
           id: item.id,
-          organizationLabel: getOrganizationLegalLabel(item.client_id),
+          organizationLabel: getSocialCommunityLabel(item.client_id),
           clientLabel: getClientLabel(item.client_id),
           primaryContactLabel: getPrimaryContactLabel(item.client_id),
           primaryContactDetail: getPrimaryContactDetail(item.client_id),
@@ -496,9 +488,10 @@ export function MaintenanceReportsPage() {
       installationById,
       language,
       organizationFilter,
-      organizations,
-      contacts,
-      sites,
+      organizationById,
+      socialCommunityGroupById,
+      siteById,
+      contactsByOrganizationId,
     ]
   );
 
@@ -554,7 +547,7 @@ export function MaintenanceReportsPage() {
           </div>
           <div>
             <label className="form-label">
-              {language === "es" ? "Organización / razón social" : "Organization / legal name"}
+              {language === "es" ? "Grupo social común" : "Shared social group"}
             </label>
             <select
               className="form-select"
@@ -564,7 +557,7 @@ export function MaintenanceReportsPage() {
               <option value="all">{language === "es" ? "Todas" : "All"}</option>
               {organizationFilterOptions.map((organization) => (
                 <option key={organization.id} value={String(organization.id)}>
-                  {getOrganizationOptionLabel(organization)}
+                  {organization.label}
                 </option>
               ))}
             </select>
@@ -653,17 +646,17 @@ export function MaintenanceReportsPage() {
           <div className="row g-3">
             <div className="col-12">
               <DataTableCard
-                title={language === "es" ? "Histórico realizado por organización" : "Completed history by organization"}
+                title={language === "es" ? "Histórico realizado por grupo social" : "Completed history by social group"}
                 subtitle={
                   language === "es"
-                    ? "Listado operativo de mantenciones efectivamente realizadas. Se filtra por razón social y evita mezclar anuladas con trabajo ejecutado."
-                    : "Operational list of maintenance effectively completed. It filters by legal name and keeps cancelled rows out of executed work."
+                    ? "Listado operativo de mantenciones efectivamente realizadas. Se filtra por grupo social común y evita mezclar anuladas con trabajo ejecutado."
+                    : "Operational list of maintenance effectively completed. It filters by shared social group and keeps cancelled rows out of executed work."
                 }
                 rows={historicalReportRows}
                 columns={[
                   {
                     key: "organization",
-                    header: language === "es" ? "Organización / razón social" : "Organization / legal name",
+                    header: language === "es" ? "Grupo social común" : "Shared social group",
                     render: (item) => <div className="maintenance-cell__title">{item.organizationLabel}</div>,
                   },
                   {

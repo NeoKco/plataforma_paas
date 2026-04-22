@@ -123,6 +123,7 @@ Fuente frontend principal:
 - la separación correcta de campos es:
   - `Cliente` -> `organization.name`
   - `Organización / Razón social` -> `organization.legal_name`
+  - `Grupo social común` -> `social_community_groups.name`
 - una homologación manual de nombre común en `business-core` no debe cambiar la lectura principal de cliente dentro de `maintenance`
 - `external_reference` queda como dato interno para migracion e integraciones; no debe exponerse como campo editable en la UX normal
 - para crear o editar una orden operativa se exige `client_id`, `site_id` e `installation_id` validos

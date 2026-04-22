@@ -41,7 +41,8 @@ El primer corte del modulo ya permite:
 - `Historial` ahora separa `Mantenciones realizadas` y `Mantenciones anuladas`, para no mezclar trabajo ejecutado con trabajo cancelado.
 - regla vigente de nombres:
   - `Cliente` muestra el nombre individual/base del cliente (`organization.name`)
-  - `Organización / razón social` muestra el nombre común homologado (`organization.legal_name`) cuando la pantalla realmente habla de organización
+  - `Organización / razón social` muestra la razón social o nombre legal de la contraparte base (`organization.legal_name`)
+  - `Grupo social común` muestra la organización social compartida (`social_community_groups.name`) cuando la pantalla realmente habla del agrupador social
 - leer la bandeja por cliente, direccion e instalacion
 - ordenar operativamente por fecha y hora de trabajo mas reciente
 - abrir `Ver ficha` desde `Mantenciones` o `Historial` para revisar una orden completa sin salir de la lectura principal

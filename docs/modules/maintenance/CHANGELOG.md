@@ -11,8 +11,9 @@
   - [MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx)
   - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx)
 - criterio correcto final:
-  - `Cliente` usa `organization.name`
-  - `Organización / Razón social` usa `organization.legal_name`
+- `Cliente` usa `organization.name`
+- `Organización / Razón social` usa `organization.legal_name`
+- `Grupo social común` pasa a usar `social_community_groups.name` cuando la pantalla realmente habla de la agrupación social compartida
   - solo si falta uno, se cae al otro como fallback
 - `Reportes` mantiene la columna de organización común y vuelve a dejar la columna `Cliente` con el nombre individual/base
 - `Pendientes` vuelve a separar correctamente:
