@@ -5,8 +5,9 @@ Definición formal del modelo comercial y técnico para la `Etapa 15. Registro y
 Estado actual:
 
 - decisión de producto: `Aprobada`
-- implementación runtime: `Pendiente`
-- política vigente mientras no se implemente: `plan-driven`
+- implementación repo/control model: `Primer corte técnico completado`
+- implementación runtime: `Pendiente de promoción por ambiente`
+- política vigente de activación efectiva mientras no se resuelva la suscripción tenant: `plan-driven`
 
 ## Objetivo
 
@@ -206,12 +207,25 @@ Donde:
 
 ## Regla de transición
 
-Mientras este modelo no se implemente, la operación visible sigue siendo:
+Mientras la activación efectiva no se resuelva todavía desde suscripciones, la operación visible sigue siendo:
 
 - catálogo backend-driven por `plan`
 - activación tenant-side `plan-driven`
 
-Pero la siguiente implementación de la `Etapa 15` ya no debe diseñarse como:
+El primer corte técnico ya existe en `platform_control` y deja modelado:
+
+- `tenant_base_plan_catalog`
+- `tenant_module_catalog`
+- `tenant_module_price_catalog`
+- `tenant_subscriptions`
+- `tenant_subscription_items`
+- expansión de `GET /platform/capabilities` con:
+  - `subscription_activation_model`
+  - `subscription_billing_cycles`
+  - `base_plan_catalog`
+  - `module_subscription_catalog`
+
+Pero el siguiente corte de la `Etapa 15` ya no debe diseñarse como:
 
 - excepciones libres por tenant
 
@@ -222,14 +236,10 @@ Sino como:
 
 ## Siguiente corte técnico recomendado
 
-1. modelar catálogo comercial:
-   - base plan
-   - módulos arrendables
-   - ciclos
-   - descuentos por compromiso
-2. modelar suscripción tenant:
-   - tenant subscription
-   - subscription items
+1. promover el modelo nuevo a `staging` y `production`
+2. resolver lectura y gestión tenant-side desde:
+   - `tenant_subscriptions`
+   - `tenant_subscription_items`
 3. separar habilitación técnica efectiva de contrato comercial
-4. adaptar `Configuración` y `Tenants > Plan y módulos` a ese modelo
+4. adaptar `Configuración` y `Tenants > Plan y módulos` al nuevo catálogo base + add-ons
 5. recién después conectar billing, grace y suspensión sobre esa misma base

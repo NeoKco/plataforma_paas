@@ -3,6 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-22
+- foco operativo nuevo ya cerrado en repo dentro de la `Etapa 15`: `platform_control` ya tiene el primer corte técnico persistente del modelo `Plan Base + módulos arrendables por suscripción`
 - foco de iteración: el roadmap ya dejó suficientemente institucionalizado `platform-core hardening + E2E sobre Provisioning y DLQ` y ya abrió formalmente la `Etapa 15. Registro y Activación de Módulos`. El frente anterior queda cerrado en repo y runtime: el bloque broker-only de `Provisioning/DLQ` ya no mantiene el mapping `target -> specs` duplicado entre helper local, helper published y workflow manual; ahora existe un runner compartido [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh), consumido por [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh), [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) y [.github/workflows/frontend-broker-dlq-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-broker-dlq-e2e.yml). Después, ya quedó institucionalizado un baseline published curado de `Provisioning/DLQ` mediante [run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh): siempre corre `dispatch-capability + surface-gating + observability-visible`, y suma broker-only solo cuando el entorno realmente usa `broker`. Para sostener esa pasada published sin depender de seeds en producción, se agrega además el smoke [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts). Y ese baseline ya quedó convertido en rutina operativa explícita por ambiente con:
   - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
   - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
@@ -66,6 +67,23 @@
     - co-terminación y prorrateo como política recomendada
   - definición formal ya asentada en:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
+  Y ese modelo ya deja además su primer corte técnico persistente en repo:
+  - [tenant_module_subscription_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_module_subscription_policy_service.py) formaliza `base_plan_plus_module_subscriptions`
+  - nuevas tablas de control:
+    - `tenant_base_plan_catalog`
+    - `tenant_module_catalog`
+    - `tenant_module_price_catalog`
+    - `tenant_subscriptions`
+    - `tenant_subscription_items`
+  - nueva migración:
+    - [v0027_tenant_module_subscription_model.py](/home/felipe/platform_paas/backend/migrations/control/v0027_tenant_module_subscription_model.py)
+  - `GET /platform/capabilities` ya expone:
+    - `subscription_activation_model`
+    - `subscription_billing_cycles`
+    - `base_plan_catalog`
+    - `module_subscription_catalog`
+  - validación repo del corte:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `202 tests OK`
   Subcorte nuevo ya cerrado en repo dentro de ese frente:
   - [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh) centraliza el dispatch broker-only `target -> specs`
   - [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh) ya deja de quedarse solo en `all|batch|row|filters`

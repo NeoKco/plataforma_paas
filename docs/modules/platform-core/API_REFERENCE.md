@@ -70,6 +70,10 @@ Payload operativo actual de `GET /platform/capabilities`:
 - `plan_catalog`
 - `plan_modules`
 - `module_dependency_catalog`
+- `subscription_activation_model`
+- `subscription_billing_cycles`
+- `base_plan_catalog`
+- `module_subscription_catalog`
 - `current_provisioning_dispatch_backend`
 
 ## Notas
@@ -79,6 +83,20 @@ Payload operativo actual de `GET /platform/capabilities`:
   - `module_key`
   - `requires_modules`
   - `reason`
+- `base_plan_catalog` hoy expone filas tipo:
+  - `plan_code`
+  - `display_name`
+  - `included_modules`
+  - `default_billing_cycle`
+  - `allowed_billing_cycles`
+  - `is_default`
+- `module_subscription_catalog` hoy expone filas tipo:
+  - `module_key`
+  - `display_name`
+  - `activation_kind`
+  - `available_billing_cycles`
+- `subscription_activation_model` hoy queda en:
+  - `base_plan_plus_module_subscriptions`
 - el payload `export_scope` hoy soporta:
   - `portable_full`
   - `functional_data_only`

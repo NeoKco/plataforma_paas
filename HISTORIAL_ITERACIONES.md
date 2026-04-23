@@ -1,5 +1,35 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - la `Etapa 15` deja su primer corte técnico persistente en `platform_control`
+
+- objetivo:
+  - convertir la decisión comercial `Plan Base + módulos arrendables` en estructuras reales de control antes de tocar la resolución efectiva tenant-side
+- cambios y acciones ejecutadas:
+  - [tenant_module_subscription_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_module_subscription_policy_service.py):
+    - formaliza `base_plan_plus_module_subscriptions`
+    - define ciclos `monthly|quarterly|semiannual|annual`
+    - siembra el catálogo inicial `base_finance`
+    - expone catálogo inicial de módulos/subscriptions
+  - nuevas tablas de control:
+    - [tenant_base_plan_catalog.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_base_plan_catalog.py)
+    - [tenant_module_catalog.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_module_catalog.py)
+    - [tenant_module_price_catalog.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_module_price_catalog.py)
+    - [tenant_subscription.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_subscription.py)
+    - [tenant_subscription_item.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_subscription_item.py)
+  - migración:
+    - [v0027_tenant_module_subscription_model.py](/home/felipe/platform_paas/backend/migrations/control/v0027_tenant_module_subscription_model.py)
+    - crea catálogo base, catálogo de módulos, catálogo de precios y backfill inicial de suscripción base por tenant
+  - [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) y [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py):
+    - exponen `subscription_activation_model`
+    - exponen `subscription_billing_cycles`
+    - exponen `base_plan_catalog`
+    - exponen `module_subscription_catalog`
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `202 tests OK`
+- resultado:
+  - la Etapa 15 deja de estar solo aprobada en docs y ya tiene base persistente real en repo
+  - el siguiente paso ya no es modelar estas tablas, sino promoverlas a runtime y adaptar la gestión tenant-side
+
 ## 2026-04-22 - la `Etapa 15` fija su modelo comercial final como `Plan Base + módulos arrendables`
 
 - objetivo:

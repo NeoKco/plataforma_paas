@@ -80,6 +80,12 @@ Regla operativa:
 - el catálogo de módulos hoy sale de backend
 - las dependencias explícitas entre módulos también salen de backend mediante `module_dependency_catalog`
 - la activación tenant-side visible hoy sigue siendo plan-driven, pero ya no es el modelo comercial final aprobado
+- backend ya expone además el catálogo del modelo nuevo:
+  - `subscription_activation_model`
+  - `subscription_billing_cycles`
+  - `base_plan_catalog`
+  - `module_subscription_catalog`
+- ese catálogo nuevo ya existe en repo como base persistente de `platform_control`, aunque la resolución efectiva del tenant todavía no sale solo desde suscripciones
 - los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
 - la dirección aprobada del producto pasa a ser:
   - `Plan Base` obligatorio por tenant

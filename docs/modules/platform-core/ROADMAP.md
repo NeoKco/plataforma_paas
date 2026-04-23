@@ -107,10 +107,25 @@ Estado práctico de cierre:
   - `Configuración` ya expone `Catálogo de planes y módulos`
   - `Configuración` ya expone `Dependencias entre módulos`
   - `Tenants > Plan y módulos` ya deja explícita la activación tenant-side, los límites por módulo del plan seleccionado y si esas dependencias ya quedan cubiertas o no
+  - `platform_control` ya deja además el primer corte técnico persistente:
+    - `tenant_base_plan_catalog`
+    - `tenant_module_catalog`
+    - `tenant_module_price_catalog`
+    - `tenant_subscriptions`
+    - `tenant_subscription_items`
+  - `GET /platform/capabilities` ya expone:
+    - `subscription_activation_model`
+    - `subscription_billing_cycles`
+    - `base_plan_catalog`
+    - `module_subscription_catalog`
   - la decisión de producto ya queda cerrada para el siguiente corte:
     - no seguir con `plan-driven puro` como modelo final
     - no abrir `overrides` manuales libres por tenant
     - avanzar a `Plan Base + módulos arrendables por suscripción`
+  - el siguiente corte ya no es modelar estas tablas, sino:
+    - promoverlas a runtime
+    - adaptar `Configuración` y `Tenants > Plan y módulos` a `Plan Base + add-ons`
+    - luego resolver habilitación técnica efectiva desde suscripciones
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`

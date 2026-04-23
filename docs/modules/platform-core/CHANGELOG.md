@@ -2,6 +2,28 @@
 
 ## 2026-04-22
 
+- la `Etapa 15` ya deja también su primer corte técnico persistente en `platform_control`:
+  - [tenant_module_subscription_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_module_subscription_policy_service.py) formaliza:
+    - `subscription_activation_model=base_plan_plus_module_subscriptions`
+    - ciclos `monthly|quarterly|semiannual|annual`
+    - catálogo inicial `base_finance`
+    - catálogo inicial de módulos/subscriptions
+  - nuevas tablas de control:
+    - [tenant_base_plan_catalog.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_base_plan_catalog.py)
+    - [tenant_module_catalog.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_module_catalog.py)
+    - [tenant_module_price_catalog.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_module_price_catalog.py)
+    - [tenant_subscription.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_subscription.py)
+    - [tenant_subscription_item.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_subscription_item.py)
+  - migración nueva:
+    - [v0027_tenant_module_subscription_model.py](/home/felipe/platform_paas/backend/migrations/control/v0027_tenant_module_subscription_model.py)
+  - `GET /platform/capabilities` ya expone:
+    - `subscription_activation_model`
+    - `subscription_billing_cycles`
+    - `base_plan_catalog`
+    - `module_subscription_catalog`
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `202 tests OK`
+
 - se cierra la definición formal del modelo comercial de la `Etapa 15`:
   - el producto ya no seguirá con `plan-driven puro` como modelo final
   - tampoco se abrirán `overrides` libres por tenant como solución principal

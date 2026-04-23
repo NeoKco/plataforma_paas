@@ -55,11 +55,22 @@ Documentación base:
   - `Configuración` ya expone tanto el catálogo de planes/módulos como el catálogo de dependencias
   - no reintroducir toggles de módulos sueltos
   - la dirección aprobada ya no es `plan-driven puro` ni `overrides libres por tenant`
-  - el siguiente diseño debe implementar `Plan Base + módulos arrendables por suscripción`
-  - la separación futura obligatoria es:
+  - el primer corte técnico ya modela `Plan Base + módulos arrendables por suscripción` en `platform_control`
+  - la separación obligatoria del diseño queda así:
     - catálogo comercial
     - suscripción tenant
     - habilitación técnica efectiva
+  - tablas nuevas ya presentes en repo:
+    - `tenant_base_plan_catalog`
+    - `tenant_module_catalog`
+    - `tenant_module_price_catalog`
+    - `tenant_subscriptions`
+    - `tenant_subscription_items`
+  - `GET /platform/capabilities` ya expone:
+    - `subscription_activation_model`
+    - `subscription_billing_cycles`
+    - `base_plan_catalog`
+    - `module_subscription_catalog`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal

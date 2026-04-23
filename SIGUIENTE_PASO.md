@@ -97,15 +97,11 @@
         - `Tenants > Plan y módulos` deja explícita la ruta formal de activación tenant-side
         - el mismo bloque ya muestra límites por módulo del plan seleccionado
       - siguiente paso correcto dentro de la Etapa 15:
-        - implementar el modelo comercial ya aprobado:
-          - `Plan Base` obligatorio por tenant
-          - `finance` siempre incluido
-          - módulos adicionales arrendables por suscripción
-        - separar explícitamente:
-          - catálogo comercial
-          - suscripción tenant
-          - habilitación técnica efectiva
-        - después adaptar `Configuración` y `Tenants > Plan y módulos` a ese modelo
+        - promover a runtime el primer corte técnico ya implementado en `platform_control`
+        - adaptar `Configuración` y `Tenants > Plan y módulos` a `Plan Base + add-ons`
+        - empezar a resolver la activación técnica efectiva desde:
+          - `tenant_subscriptions`
+          - `tenant_subscription_items`
         - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
