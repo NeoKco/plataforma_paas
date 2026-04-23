@@ -1,20 +1,20 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-23T18:05:00-04:00",
+  "updated_at": "2026-04-23T19:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya deja cerrado el roadmap base para el alcance actual. `platform-core` ya queda cubierto no solo en lifecycle, contratos, secretos, auditoría, observabilidad y labels backend-driven, sino también en infraestructura/operación real y en hardening final: deploy reproducible por ambiente, rollback por ref git del repo fuente, backups y restore drills, evidencia operativa estructurada, worker con perfiles/cuotas/backpressure, DLQ broker, alertas persistidas y rate limiting tenant. `business-core`, `maintenance` y `finance` siguen estables y staging/production continúan 4/4 en verde.",
-  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El cierre del roadmap base ya no depende de nuevas etapas estructurales; lo siguiente es elegir expansión de producto o hardening adicional externo.",
+  "current_focus": "La PaaS ya deja cerrado el roadmap base para el alcance actual y ya abrió el primer frente real de expansión: `crm`. `platform-core`, `finance`, `business-core` y `maintenance` siguen estables; el slice nuevo de `crm` ya cubre productos, oportunidades, cotizaciones y overview comercial sobre la base de clientes de `business-core`, con backend, frontend, migración y documentación propios.",
+  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada, empezando por profundizar `crm` antes de abrir otro módulo grande.",
   "active_modules": [
     "platform-core",
     "finance",
     "business-core",
-    "maintenance"
+    "maintenance",
+    "crm"
   ],
   "module_in_focus": [
-    "platform-core",
-    "finance",
-    "maintenance",
-    "business-core"
+    "crm",
+    "business-core",
+    "platform-core"
   ],
   "decisions_closed": [
     "editar el repo no equivale a tener el cambio activo en /opt/platform_paas_staging ni en /opt/platform_paas; siempre requiere deploy o sincronizacion runtime",
@@ -76,9 +76,12 @@
     "si se ejecutan scripts del repo usando .env runtime, siempre se debe usar set -a antes de source; si TENANT_SECRETS_FILE no queda exportado, la auditoria tenant puede dar falsos negativos",
     "los slices transversales o de riesgo ya no deben cerrarse solo con criterio documental; deben pasar ADR/spec cuando corresponda, check de memoria viva y gate de release",
     "si un problema reaparece sobre un slice ya cerrado, primero se trata como revalidacion de runtime y no como reapertura automatica del trabajo",
-    "maintenance debe separar cliente individual, razón social legal y grupo social común: el nombre base sigue en organization.name, la razón social legal queda en organization.legal_name y la agrupación social compartida vive en social_community_groups.name donde el campo realmente corresponde"
+    "maintenance debe separar cliente individual, razón social legal y grupo social común: el nombre base sigue en organization.name, la razón social legal queda en organization.legal_name y la agrupación social compartida vive en social_community_groups.name donde el campo realmente corresponde",
+    "la expansión post-cierre del roadmap base se abre primero con CRM comercial; no conviene abrir otro módulo grande antes de profundizar este primer bloque"
   ],
   "completed_recently": [
+    "CRM ya queda abierto como primer frente de expansión post-cierre: backend tenant nuevo, migración 0040_crm_base, frontend tenant nuevo y catálogo contractual del módulo crm",
+    "validación repo del primer slice CRM: py_compile OK, unittest backend.app.tests.test_crm_services + test_migration_flow -> 20 tests OK, npm run build OK",
     "Etapa 13 cerrada para el alcance actual: GET /platform/capabilities y GET /tenant/info ya exponen ui_label_catalog backend-driven",
     "Tenants, Actividad y TenantOverview ya consumen labels backend-driven para tenant/module/policy/auth codes y claves de límites",
     "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles SettingsPage-B_NcgVNr.js TenantsPage-CYx6YTpC.js PlatformActivityPage-DQEkqpWI.js TenantOverviewPage-BMDYYqbK.js index-BVBey7cQ.js y static readiness OK",
@@ -421,7 +424,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "elegir el siguiente frente fuera del roadmap base cerrado: abrir un módulo nuevo (`iot`, `condos`, `projects`), profundizar billing/comercial, o llevar observabilidad/infraestructura a una stack externa más rica; no reabrir Etapas 9 a 17 salvo evidencia nueva",
+  "next_decision_required": "profundizar el bloque comercial ya abierto en crm antes de abrir otro módulo grande; el siguiente corte recomendado es notas/actividades CRM, adjuntos comerciales o plantillas/render de cotización",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

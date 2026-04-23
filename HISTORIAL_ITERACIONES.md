@@ -1,5 +1,29 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - Se abre `crm` como primer frente de expansión post-cierre
+
+Contexto:
+
+- el roadmap base ya quedó cerrado para el alcance actual
+- faltaba abrir el primer módulo nuevo real que absorbiera el bloque faltante de `ieris_app`
+- el bloque con mejor retorno para empezar era `CRM + Cotizaciones + Productos`
+
+Cambios:
+
+- backend nuevo en [backend/app/apps/tenant_modules/crm](/home/felipe/platform_paas/backend/app/apps/tenant_modules/crm)
+- migración tenant nueva en [v0040_crm_base.py](/home/felipe/platform_paas/backend/migrations/tenant/v0040_crm_base.py)
+- frontend nuevo en [frontend/src/apps/tenant_portal/modules/crm](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm)
+- documentación canónica del módulo en [docs/modules/crm/README.md](/home/felipe/platform_paas/docs/modules/crm/README.md)
+- regresión mínima agregada en:
+  - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
+  - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
+
+Resultado:
+
+- `crm` ya no queda como backlog abstracto
+- el primer slice comercial ya existe y respeta el patrón modular tenant del PaaS
+- el siguiente paso ya es profundizar ese bloque, no volver a discutir si conviene abrirlo
+
 ## 2026-04-23 - `Etapa 14` ya queda cerrada para módulos de negocio reales
 
 Contexto:

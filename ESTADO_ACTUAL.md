@@ -3,6 +3,19 @@
 ## Última actualización
 
 - fecha: 2026-04-23
+- foco operativo nuevo ya cerrado en repo fuera del roadmap base:
+  - `crm` ya queda abierto como primer módulo nuevo de expansión
+  - primer slice ya cubre:
+    - `Productos`
+    - `Oportunidades`
+    - `Cotizaciones`
+    - `Resumen`
+  - backend tenant nuevo ya expone `/tenant/crm/*`
+  - frontend tenant nuevo ya publica `/tenant-portal/crm`
+  - el módulo ya reutiliza clientes de `business-core` y entra al catálogo contractual como add-on `crm`
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_crm_services backend.app.tests.test_migration_flow -v` -> `20 tests OK`
+    - `cd frontend && npm run build` -> `OK`
 - foco operativo nuevo ya cerrado en repo y handoff dentro de las `Etapas 16` y `17`:
   - el roadmap base ya queda formalmente cerrado para el alcance actual
   - `Etapa 16. Infraestructura y Operación Real` ya queda cerrada con:

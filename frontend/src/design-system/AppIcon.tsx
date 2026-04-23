@@ -6,6 +6,10 @@ export type AppIconName =
   | "business-core"
   | "finance"
   | "maintenance"
+  | "crm"
+  | "pipeline"
+  | "quotes"
+  | "products"
   | "dashboard"
   | "tenants"
   | "tenant-history"
@@ -126,6 +130,39 @@ function renderIconPath(name: AppIconName) {
           <path d="m14.5 5.5 4 4" />
           <path d="M12 8 6 14l-1.5 4.5L9 17l6-6" />
           <path d="m13 7 4-4 2 2-4 4" />
+        </>
+      );
+    case "crm":
+      return (
+        <>
+          <path d="M5 18V8l7-4 7 4v10" />
+          <path d="M9 13h6" />
+          <path d="M9 17h4" />
+        </>
+      );
+    case "pipeline":
+      return (
+        <>
+          <path d="M4 7h6v4H4z" />
+          <path d="M10 9h4v6h-4z" />
+          <path d="M14 11h6v8h-6z" />
+        </>
+      );
+    case "quotes":
+      return (
+        <>
+          <path d="M7 4h8l4 4v12H7z" />
+          <path d="M15 4v4h4" />
+          <path d="M10 12h6" />
+          <path d="M10 16h6" />
+        </>
+      );
+    case "products":
+      return (
+        <>
+          <path d="M4 8 12 4l8 4-8 4-8-4Z" />
+          <path d="M4 8v8l8 4 8-4V8" />
+          <path d="M12 12v8" />
         </>
       );
     case "tenants":

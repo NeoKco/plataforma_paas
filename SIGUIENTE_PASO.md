@@ -2,6 +2,14 @@
 
 ## Prioridad vigente
 
+- primer frente de expansión ya abierto:
+  - `crm` ya existe como módulo tenant real nuevo
+  - no conviene abrir otro módulo grande antes de profundizar este bloque comercial
+  - el siguiente paso correcto ahora es una segunda ola de `crm`, por ejemplo:
+    - notas y actividades por oportunidad
+    - adjuntos comerciales
+    - estados comerciales más ricos
+    - plantillas/render de cotización
 - el roadmap base actual ya queda formalmente cerrado:
   - las `Etapas 9`, `10`, `11`, `12`, `13`, `14`, `15`, `16` y `17` ya quedaron cerradas para el alcance actual
   - la base PaaS ya no necesita más cierres estructurales para operar
@@ -25,8 +33,9 @@
   - deploy reproducible, rollback, backups, restore drills y evidencia operativa ya están institucionalizados
   - worker, cuotas, alertas, DLQ, rate limiting y billing operativo ya dejan el hardening suficientemente cerrado para esta base
 - siguiente frente recomendado del proyecto:
-  - elegir una expansión nueva o un endurecimiento adicional opcional, por ejemplo:
-    - nuevo módulo real (`iot`, `condos`, `projects`)
+  - profundizar primero la expansión ya abierta en `crm`
+  - después recién decidir si conviene abrir otro módulo real (`iot`, `condos`, `projects`)
+  - endurecimiento adicional opcional, por ejemplo:
     - stack externa de observabilidad/alerting
     - infraestructura más distribuida o automatización/CD más agresiva
   - no corresponde seguir limando etapas del roadmap base por inercia si no aparece evidencia nueva

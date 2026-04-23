@@ -33,6 +33,12 @@ export function TenantSidebarNav() {
       visible: isTenantPortalSectionVisible(tenantInfo, "finance"),
     },
     {
+      to: "/tenant-portal/crm",
+      label: language === "es" ? "CRM" : "CRM",
+      icon: "crm" as AppIconName,
+      visible: isTenantPortalSectionVisible(tenantInfo, "crm"),
+    },
+    {
       to: "/tenant-portal/agenda",
       label: language === "es" ? "Agenda" : "Agenda",
       icon: "planning" as AppIconName,

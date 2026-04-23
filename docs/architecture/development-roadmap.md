@@ -618,8 +618,9 @@ Objetivo:
 Orden sugerido:
 
 1. tomar `finance` como modulo base ya cerrado y referencia para los siguientes slices
-2. luego `condos`
-3. despues `iot`
+2. abrir `crm` comercial como primer bloque de expansión post-cierre
+3. luego `condos`
+4. despues `iot`
 
 La razon de este orden es simple:
 
@@ -644,6 +645,11 @@ Resultado actual:
   - reportes
   - instalaciones
   - costos, visitas y sincronización con finanzas
+- la expansión posterior ya quedó iniciada con `crm`:
+  - productos
+  - oportunidades
+  - cotizaciones
+  - resumen comercial base
 
 Resultado de cierre:
 
@@ -965,10 +971,11 @@ Documento de referencia para esta decision:
 Si el equipo quiere avanzar con buen retorno tecnico, el orden recomendado es:
 
 1. considerar cerrado el roadmap base actual
-2. elegir el siguiente frente de expansion o endurecimiento extra
-3. abrir ese frente nuevo con spec, ownership y evidencia desde el inicio
-4. ajustar backend/frontend solo cuando ese frente nuevo descubra un hueco real de contrato o uso
-5. no reabrir etapas base ya cerradas salvo evidencia nueva
+2. profundizar primero la expansión ya abierta en `crm`
+3. después elegir el siguiente frente de expansion o endurecimiento extra
+4. abrir ese frente nuevo con spec, ownership y evidencia desde el inicio
+5. ajustar backend/frontend solo cuando ese frente nuevo descubra un hueco real de contrato o uso
+6. no reabrir etapas base ya cerradas salvo evidencia nueva
 
 ## Regla para developers
 

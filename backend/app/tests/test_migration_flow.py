@@ -39,6 +39,7 @@ from migrations.tenant import v0035_maintenance_visit_type
 from migrations.tenant import v0036_maintenance_visit_result
 from migrations.tenant import v0038_maintenance_work_order_task_type
 from migrations.tenant import v0039_social_community_groups
+from migrations.tenant import v0040_crm_base
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -215,6 +216,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0037_maintenance_cost_line_expense_flag",
                 "0038_maintenance_work_order_task_type",
                 "0039_social_community_groups",
+                "0040_crm_base",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -255,6 +257,10 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_cost_estimates", tables)
         self.assertIn("maintenance_cost_actuals", tables)
         self.assertIn("maintenance_cost_lines", tables)
+        self.assertIn("crm_products", tables)
+        self.assertIn("crm_opportunities", tables)
+        self.assertIn("crm_quotes", tables)
+        self.assertIn("crm_quote_lines", tables)
         maintenance_cost_line_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_cost_lines")
         }
@@ -367,6 +373,18 @@ class MigrationFlowTestCase(unittest.TestCase):
         maintenance_cost_actual_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_cost_actuals")
         }
+        crm_product_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_products")
+        }
+        crm_opportunity_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_opportunities")
+        }
+        crm_quote_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_quotes")
+        }
+        crm_quote_line_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_quote_lines")
+        }
         maintenance_status_log_columns = {
             column["name"]
             for column in inspect(engine).get_columns("maintenance_status_logs")
@@ -394,6 +412,14 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_finance_sync_mode", tenant_info_columns)
         self.assertIn("maintenance_finance_income_account_id", tenant_info_columns)
         self.assertIn("maintenance_finance_currency_id", tenant_info_columns)
+        self.assertIn("sku", crm_product_columns)
+        self.assertIn("unit_price", crm_product_columns)
+        self.assertIn("client_id", crm_opportunity_columns)
+        self.assertIn("stage", crm_opportunity_columns)
+        self.assertIn("opportunity_id", crm_quote_columns)
+        self.assertIn("total_amount", crm_quote_columns)
+        self.assertIn("quote_id", crm_quote_line_columns)
+        self.assertIn("product_id", crm_quote_line_columns)
         self.assertIn("timezone", tenant_user_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
@@ -517,6 +543,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0037_maintenance_cost_line_expense_flag",
                 "0038_maintenance_work_order_task_type",
                 "0039_social_community_groups",
+                "0040_crm_base",
             ],
         )
 
@@ -804,6 +831,25 @@ class MigrationFlowTestCase(unittest.TestCase):
             column["name"] for column in inspector.get_columns("business_clients")
         }
         self.assertIn("social_community_group_id", business_client_columns)
+
+    def test_crm_base_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            MigrationRunner(
+                engine=engine,
+                package_name="migrations.tenant",
+                table_name="tenant_schema_migrations",
+            ).apply_pending()
+            v0040_crm_base.upgrade(conn)
+            v0040_crm_base.upgrade(conn)
+
+        inspector = inspect(engine)
+        tables = set(inspector.get_table_names())
+        self.assertIn("crm_products", tables)
+        self.assertIn("crm_opportunities", tables)
+        self.assertIn("crm_quotes", tables)
+        self.assertIn("crm_quote_lines", tables)
 
 
 if __name__ == "__main__":

@@ -1731,6 +1731,7 @@ function getPlanModuleLabel(
     users: language === "es" ? "Usuarios" : "Users",
     finance: language === "es" ? "Finanzas" : "Finance",
     maintenance: language === "es" ? "Mantenciones" : "Maintenance",
+    crm: language === "es" ? "CRM comercial" : "Commercial CRM",
   };
   return labels[moduleKey] || moduleKey;
 }

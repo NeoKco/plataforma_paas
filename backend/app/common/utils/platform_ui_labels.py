@@ -11,6 +11,7 @@ MODULE_LABELS: dict[str, dict[str, str]] = {
     "users": _entry("Usuarios", "Users"),
     "finance": _entry("Finanzas", "Finance"),
     "maintenance": _entry("Mantenciones", "Maintenance"),
+    "crm": _entry("CRM comercial", "Commercial CRM"),
 }
 
 TENANT_TYPE_LABELS: dict[str, dict[str, str]] = {

@@ -1,0 +1,1 @@
+export { crmTenantPortalRoutes } from "./routes";

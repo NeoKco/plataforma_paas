@@ -4,6 +4,7 @@ import { RequireInstalled } from "./RequireInstalled";
 import { RequireNotInstalled } from "./RequireNotInstalled";
 import { RequirePlatformRoles } from "./RequirePlatformRoles";
 import { businessCoreTenantPortalRoutes } from "../../tenant_portal/modules/business_core";
+import { crmTenantPortalRoutes } from "../../tenant_portal/modules/crm";
 import { financeTenantPortalRoutes } from "../../tenant_portal/modules/finance";
 import { maintenanceTenantPortalRoutes } from "../../tenant_portal/modules/maintenance";
 import { RequireTenantAuth } from "../../tenant_portal/routes/RequireTenantAuth";
@@ -179,6 +180,10 @@ const router = createBrowserRouter([
       {
         path: "finance",
         children: financeTenantPortalRoutes,
+      },
+      {
+        path: "crm",
+        children: crmTenantPortalRoutes,
       },
       {
         path: "agenda",

@@ -12,7 +12,7 @@ class ModuleLimitCapability:
     description: str | None = None
 
 
-VALID_PLAN_MODULES = frozenset({"all", "core", "users", "finance", "maintenance"})
+VALID_PLAN_MODULES = frozenset({"all", "core", "users", "finance", "maintenance", "crm"})
 
 CORE_USERS_LIMIT_KEY = "core.users"
 CORE_USERS_ACTIVE_LIMIT_KEY = "core.users.active"

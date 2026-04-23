@@ -21,9 +21,11 @@ class TenantPlanPolicyService:
     VALID_MODULE_LIMIT_KEYS = SUPPORTED_MODULE_LIMIT_KEYS
     MODULE_DEPENDENCIES = {
         "maintenance": ("core",),
+        "crm": ("core",),
     }
     MODULE_DEPENDENCY_REASONS = {
         "maintenance": "Maintenance depende de business-core y no debe duplicarlo.",
+        "crm": "CRM depende de business-core para reutilizar clientes y base compartida.",
     }
 
     def __init__(
