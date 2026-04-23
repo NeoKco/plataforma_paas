@@ -238,6 +238,15 @@ class TenantResponse(BaseModel):
     billing_provider_customer_id: str | None = None
     billing_provider_subscription_id: str | None = None
     plan_enabled_modules: list[str] | None = None
+    subscription_base_plan_code: str | None = None
+    subscription_status: str | None = None
+    subscription_billing_cycle: str | None = None
+    subscription_included_modules: list[str] | None = None
+    subscription_addon_modules: list[str] | None = None
+    subscription_technical_modules: list[str] | None = None
+    subscription_legacy_fallback_modules: list[str] | None = None
+    effective_enabled_modules: list[str] | None = None
+    effective_activation_source: str | None = None
     plan_module_limits: dict[str, int] | None = None
     module_limits: dict[str, int] | None = None
     billing_status: str | None = None
@@ -449,6 +458,9 @@ class TenantPlanResponse(BaseModel):
     tenant_status: str
     tenant_plan_code: str | None = None
     tenant_plan_enabled_modules: list[str] | None = None
+    subscription_base_plan_code: str | None = None
+    subscription_effective_enabled_modules: list[str] | None = None
+    effective_activation_source: str | None = None
     tenant_plan_module_limits: dict[str, int] | None = None
 
 

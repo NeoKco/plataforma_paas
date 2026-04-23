@@ -2,6 +2,27 @@
 
 ## 2026-04-22
 
+- la `Etapa 15` ya consume activación efectiva desde suscripciones tenant con compatibilidad legacy:
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ahora devuelve en `TenantResponse` y `TenantPlanResponse`:
+    - `subscription_base_plan_code`
+    - `subscription_status`
+    - `subscription_billing_cycle`
+    - módulos incluidos / add-ons / técnicos / fallback legacy
+    - `effective_enabled_modules`
+    - `effective_activation_source`
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py) ya refleja el mismo breakdown tenant-side en `/tenant/info`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ya deja visible:
+    - fuente efectiva
+    - incluido por suscripción
+    - add-ons arrendados
+    - módulos técnicos
+    - fallback legacy
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) deja de describir esto como un paso futuro
+  - validación repo:
+    - `backend.app.tests.test_tenant_flow` -> `94 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `202 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - la `Etapa 15` ya deja también su tercer slice visible publicado en runtime:
   - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ahora adapta `Configuración` al modelo aprobado `Plan Base + add-ons`
   - la consola ya muestra:
@@ -17,7 +38,7 @@
     - add-ons visibles
     - ciclos comerciales visibles
     - dependencias explícitas ya cubiertas o no
-    - aclaración visible de que la activación efectiva todavía se resuelve por `plan_code` mientras no se consuman `tenant_subscriptions` y `tenant_subscription_items`
+    - aclaración visible de que la activación efectiva hoy ya consume suscripciones tenant con fallback legacy por `plan_code`
   - [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) agrega:
     - `PlatformBasePlanCatalogEntry`
     - `PlatformModuleSubscriptionCatalogEntry`

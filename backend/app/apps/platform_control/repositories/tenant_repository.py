@@ -1,14 +1,20 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.apps.platform_control.models.tenant import Tenant
+from app.apps.platform_control.models.tenant_subscription import TenantSubscription
 
 
 class TenantRepository:
+    def _base_query(self, db: Session):
+        return db.query(Tenant).options(
+            selectinload(Tenant.subscription).selectinload(TenantSubscription.items)
+        )
+
     def list_all(self, db: Session) -> list[Tenant]:
-        return db.query(Tenant).order_by(Tenant.id.asc()).all()
+        return self._base_query(db).order_by(Tenant.id.asc()).all()
 
     def get_by_slug(self, db: Session, slug: str) -> Tenant | None:
-        return db.query(Tenant).filter(Tenant.slug == slug).first()
+        return self._base_query(db).filter(Tenant.slug == slug).first()
 
     def get_by_billing_provider_subscription_id(
         self,
@@ -18,7 +24,7 @@ class TenantRepository:
         provider_subscription_id: str,
     ) -> Tenant | None:
         return (
-            db.query(Tenant)
+            self._base_query(db)
             .filter(Tenant.billing_provider == provider)
             .filter(Tenant.billing_provider_subscription_id == provider_subscription_id)
             .first()
@@ -32,14 +38,14 @@ class TenantRepository:
         provider_customer_id: str,
     ) -> Tenant | None:
         return (
-            db.query(Tenant)
+            self._base_query(db)
             .filter(Tenant.billing_provider == provider)
             .filter(Tenant.billing_provider_customer_id == provider_customer_id)
             .first()
         )
 
     def get_by_id(self, db: Session, tenant_id: int) -> Tenant | None:
-        return db.query(Tenant).filter(Tenant.id == tenant_id).first()
+        return self._base_query(db).filter(Tenant.id == tenant_id).first()
 
     def save(self, db: Session, tenant: Tenant) -> Tenant:
         db.add(tenant)
@@ -54,7 +60,7 @@ class TenantRepository:
         status: str,
     ) -> Tenant | None:
         return (
-            db.query(Tenant)
+            self._base_query(db)
             .filter(Tenant.slug == slug)
             .filter(Tenant.status == status)
             .first()

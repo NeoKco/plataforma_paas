@@ -253,6 +253,30 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         request.state.tenant_plan_module_limits = (
             None if plan_policy is None else plan_policy.module_limits
         )
+        activation_state = self.tenant_service.get_tenant_module_activation_state(tenant)
+        request.state.tenant_subscription_base_plan_code = (
+            activation_state.subscription_base_plan_code
+        )
+        request.state.tenant_subscription_status = activation_state.subscription_status
+        request.state.tenant_subscription_billing_cycle = (
+            activation_state.subscription_billing_cycle
+        )
+        request.state.tenant_subscription_included_modules = (
+            activation_state.subscription_included_modules
+        )
+        request.state.tenant_subscription_addon_modules = (
+            activation_state.subscription_addon_modules
+        )
+        request.state.tenant_subscription_technical_modules = (
+            activation_state.subscription_technical_modules
+        )
+        request.state.tenant_subscription_legacy_fallback_modules = (
+            activation_state.subscription_legacy_fallback_modules
+        )
+        request.state.tenant_subscription_effective_enabled_modules = (
+            activation_state.subscription_effective_enabled_modules
+        )
+        request.state.tenant_effective_activation_source = activation_state.activation_source
         access_policy = self.tenant_service.get_tenant_access_policy(tenant)
         request.state.tenant_access_allowed = access_policy.allowed
         request.state.tenant_access_status_code = access_policy.status_code
@@ -276,8 +300,11 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         request.state.tenant_billing_grace_module_limits = (
             None if grace_policy is None else grace_policy.module_limits
         )
-        request.state.tenant_effective_enabled_modules = self._resolve_effective_enabled_modules(
-            request
+        request.state.tenant_effective_enabled_modules = (
+            self.tenant_service.get_effective_enabled_modules(
+                tenant,
+                now=datetime.now(timezone.utc),
+            )
         )
         effective_module_limits_resolver = getattr(
             self.tenant_service,
@@ -339,7 +366,13 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         )
 
     def _resolve_effective_enabled_modules(self, request: Request):
-        plan_enabled_modules = getattr(request.state, "tenant_plan_enabled_modules", None)
+        plan_enabled_modules = getattr(
+            request.state,
+            "tenant_subscription_effective_enabled_modules",
+            None,
+        )
+        if plan_enabled_modules is None:
+            plan_enabled_modules = getattr(request.state, "tenant_plan_enabled_modules", None)
         grace_enabled_modules = getattr(
             request.state,
             "tenant_billing_grace_enabled_modules",

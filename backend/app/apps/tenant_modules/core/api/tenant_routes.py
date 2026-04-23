@@ -226,6 +226,60 @@ def tenant_info(
                 is not None
                 else None
             ),
+            subscription_base_plan_code=getattr(
+                request.state,
+                "tenant_subscription_base_plan_code",
+                None,
+            ),
+            subscription_status=getattr(
+                request.state,
+                "tenant_subscription_status",
+                None,
+            ),
+            subscription_billing_cycle=getattr(
+                request.state,
+                "tenant_subscription_billing_cycle",
+                None,
+            ),
+            subscription_included_modules=(
+                list(getattr(request.state, "tenant_subscription_included_modules", ()))
+                if getattr(request.state, "tenant_subscription_included_modules", None)
+                is not None
+                else None
+            ),
+            subscription_addon_modules=(
+                list(getattr(request.state, "tenant_subscription_addon_modules", ()))
+                if getattr(request.state, "tenant_subscription_addon_modules", None)
+                is not None
+                else None
+            ),
+            subscription_technical_modules=(
+                list(getattr(request.state, "tenant_subscription_technical_modules", ()))
+                if getattr(request.state, "tenant_subscription_technical_modules", None)
+                is not None
+                else None
+            ),
+            subscription_legacy_fallback_modules=(
+                list(
+                    getattr(
+                        request.state,
+                        "tenant_subscription_legacy_fallback_modules",
+                        (),
+                    )
+                )
+                if getattr(
+                    request.state,
+                    "tenant_subscription_legacy_fallback_modules",
+                    None,
+                )
+                is not None
+                else None
+            ),
+            effective_activation_source=getattr(
+                request.state,
+                "tenant_effective_activation_source",
+                None,
+            ),
             billing_status=getattr(request.state, "tenant_billing_status", None),
             billing_status_reason=getattr(
                 request.state,

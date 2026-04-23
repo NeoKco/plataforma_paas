@@ -61,6 +61,14 @@ class TenantInfoData(BaseModel):
     effective_timezone: str | None = None
     plan_code: str | None = None
     plan_enabled_modules: list[str] | None = None
+    subscription_base_plan_code: str | None = None
+    subscription_status: str | None = None
+    subscription_billing_cycle: str | None = None
+    subscription_included_modules: list[str] | None = None
+    subscription_addon_modules: list[str] | None = None
+    subscription_technical_modules: list[str] | None = None
+    subscription_legacy_fallback_modules: list[str] | None = None
+    effective_activation_source: str | None = None
     billing_status: str | None = None
     billing_status_reason: str | None = None
     billing_current_period_ends_at: datetime | None = None

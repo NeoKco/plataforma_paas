@@ -612,7 +612,7 @@ Resultado actual:
     - add-ons visibles
     - ciclos comerciales visibles
     - dependencias ya cubiertas o no
-    - aclaración explícita de que la activación efectiva todavía sale de `plan_code`
+    - lectura explícita de activación efectiva desde suscripciones tenant con fallback legacy por `plan_code`
 
 Falta para cerrarlo:
 
@@ -628,11 +628,14 @@ Falta para cerrarlo:
   - habilitación técnica efectiva
 - separar mejor catálogo de módulos, límites por módulo y degradación por billing grace dentro de la UI operativa
 - el primer corte técnico del modelo nuevo ya quedó promovido a `staging` y `production`
-- resolver la activación técnica efectiva desde suscripciones y no solo desde plan legacy
+- el cálculo de activación técnica efectiva desde suscripciones tenant ya quedó implementado con fallback legacy por `plan_code`
 - separar el estado visible entre:
   - incluido por `Plan Base`
   - arrendado por suscripción
   - efectivamente habilitado
+- siguiente corte pendiente:
+  - contratación formal de add-ons desde consola
+  - retiro gradual del fallback legacy por `plan_code`
 
 Decisión formal cerrada:
 

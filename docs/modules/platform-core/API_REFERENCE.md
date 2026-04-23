@@ -108,8 +108,14 @@ Payload operativo actual de `GET /platform/capabilities`:
     - `Plan operativo actual`
     - add-ons visibles
     - dependencias visibles
+    - activación efectiva visible:
+      - incluido por suscripción
+      - add-ons arrendados
+      - módulos técnicos
+      - fallback legacy
+      - fuente efectiva
   - nota:
-    - la activación efectiva del tenant todavía no se resuelve desde `tenant_subscriptions`; por ahora la consola sigue mostrando esa compatibilidad como política legacy por `plan_code`
+    - la activación efectiva del tenant ya se resuelve desde `tenant_subscriptions` con fallback legacy por `plan_code`
 - el payload `export_scope` hoy soporta:
   - `portable_full`
   - `functional_data_only`

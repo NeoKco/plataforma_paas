@@ -1,5 +1,40 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - la `Etapa 15` ya resuelve activación efectiva desde suscripciones tenant con fallback legacy
+
+- objetivo:
+  - cerrar el slice funcional que consume `tenant_subscriptions` y `tenant_subscription_items` en la activación técnica efectiva y volverlo visible en consola
+- cambios y acciones ejecutadas:
+  - [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+    - resuelve:
+      - módulos incluidos por `Plan Base`
+      - add-ons activos por suscripción
+      - módulos técnicos por baseline/dependencias
+      - fallback legacy por `plan_code`
+      - `effective_enabled_modules`
+      - `effective_activation_source`
+  - [backend/app/common/middleware/tenant_context_middleware.py](/home/felipe/platform_paas/backend/app/common/middleware/tenant_context_middleware.py):
+    - expone ese breakdown tenant-side y deja que el enforcement consuma la activación efectiva ya resuelta
+  - [backend/app/apps/platform_control/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) y [backend/app/apps/tenant_modules/core/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py):
+    - devuelven el breakdown visible en `TenantResponse`, `TenantPlanResponse` y `/tenant/info`
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - deja visible:
+      - fuente efectiva
+      - incluido por suscripción
+      - add-ons arrendados
+      - módulos técnicos
+      - fallback legacy
+    - deja de describir esto como un paso futuro
+  - [frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+    - actualiza el lenguaje para reflejar que la activación efectiva ya consume suscripciones tenant con compatibilidad legacy
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_flow -v` -> `94 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `202 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- resultado:
+  - la Etapa 15 deja de estar solo “catalogada” y pasa a quedar efectivamente consumida en backend, middleware y consola
+  - el siguiente paso ya no es consumir suscripciones en la activación, sino contratar add-ons desde consola y retirar gradualmente el fallback legacy
+
 ## 2026-04-22 - la `Etapa 15` adapta `Configuración` y `Tenants > Plan y módulos` al modelo `Plan Base + add-ons`
 
 - objetivo:

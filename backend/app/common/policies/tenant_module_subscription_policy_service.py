@@ -27,6 +27,7 @@ class TenantModuleSubscriptionPolicyService:
     VALID_BILLING_CYCLES = ("monthly", "quarterly", "semiannual", "annual")
     DEFAULT_BASE_PLAN_CODE = "base_finance"
     FINANCE_MODULE_KEY = "finance"
+    TECHNICAL_BASELINE_MODULES = ("core", "users")
 
     BASE_PLAN_CATALOG = (
         BasePlanCatalogEntry(
@@ -106,6 +107,35 @@ class TenantModuleSubscriptionPolicyService:
     def list_subscription_billing_cycles(self) -> list[str]:
         return list(self.VALID_BILLING_CYCLES)
 
+    def list_technical_baseline_modules(self) -> list[str]:
+        return list(self.TECHNICAL_BASELINE_MODULES)
+
+    def get_base_plan_catalog_entry(
+        self,
+        plan_code: str | None,
+    ) -> BasePlanCatalogEntry | None:
+        if not plan_code:
+            return None
+
+        normalized_plan_code = plan_code.strip().lower()
+        for entry in self.BASE_PLAN_CATALOG:
+            if entry.plan_code == normalized_plan_code:
+                return entry
+        return None
+
+    def get_module_subscription_catalog_entry(
+        self,
+        module_key: str | None,
+    ) -> ModuleSubscriptionCatalogEntry | None:
+        if not module_key:
+            return None
+
+        normalized_module_key = module_key.strip().lower()
+        for entry in self.MODULE_SUBSCRIPTION_CATALOG:
+            if entry.module_key == normalized_module_key:
+                return entry
+        return None
+
     def infer_billing_cycle_from_legacy_plan_code(
         self,
         plan_code: str | None,
@@ -114,4 +144,3 @@ class TenantModuleSubscriptionPolicyService:
             return "monthly"
         normalized = plan_code.strip().lower()
         return self.LEGACY_PLAN_CODE_TO_BILLING_CYCLE.get(normalized, "monthly")
-

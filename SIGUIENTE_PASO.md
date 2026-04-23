@@ -109,13 +109,13 @@
       - siguiente paso correcto dentro de la Etapa 15:
         - el primer corte técnico ya quedó promovido a runtime en `staging` y `production`
         - la adaptación visible de `Configuración` y `Tenants > Plan y módulos` al modelo `Plan Base + add-ons` ya quedó publicada en `staging` y `production`
-        - empezar a resolver la activación técnica efectiva desde:
+        - la activación técnica efectiva ya consume:
           - `tenant_subscriptions`
           - `tenant_subscription_items`
-        - separar en consola:
-          - incluido por `Plan Base`
-          - arrendado por suscripción
-          - efectivamente habilitado
+          - con fallback legacy por `plan_code`
+        - siguiente slice:
+          - contratación formal de add-ons desde consola
+          - retiro gradual del fallback legacy
         - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:

@@ -141,6 +141,7 @@ def build_tenant_record_stub(
     maintenance_finance_income_category_id: int | None = None,
     maintenance_finance_expense_category_id: int | None = None,
     maintenance_finance_currency_id: int | None = None,
+    subscription=None,
 ):
     return SimpleNamespace(
         name=tenant_name,
@@ -179,6 +180,7 @@ def build_tenant_record_stub(
         maintenance_finance_income_category_id=maintenance_finance_income_category_id,
         maintenance_finance_expense_category_id=maintenance_finance_expense_category_id,
         maintenance_finance_currency_id=maintenance_finance_currency_id,
+        subscription=subscription,
     )
 
 

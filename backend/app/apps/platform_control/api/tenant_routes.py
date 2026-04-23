@@ -189,6 +189,8 @@ def _raise_tenant_db_credentials_rotation_http_error(exc: ValueError) -> None:
 
 
 def _build_tenant_response(tenant) -> TenantResponse:
+    activation_state = tenant_service.get_tenant_module_activation_state(tenant)
+    effective_enabled_modules = tenant_service.get_effective_enabled_modules(tenant)
     return TenantResponse(
         id=tenant.id,
         name=tenant.name,
@@ -212,6 +214,35 @@ def _build_tenant_response(tenant) -> TenantResponse:
         plan_enabled_modules=tenant_service.tenant_plan_policy_service.get_enabled_modules(
             tenant.plan_code
         ),
+        subscription_base_plan_code=activation_state.subscription_base_plan_code,
+        subscription_status=activation_state.subscription_status,
+        subscription_billing_cycle=activation_state.subscription_billing_cycle,
+        subscription_included_modules=(
+            list(activation_state.subscription_included_modules)
+            if activation_state.subscription_included_modules is not None
+            else None
+        ),
+        subscription_addon_modules=(
+            list(activation_state.subscription_addon_modules)
+            if activation_state.subscription_addon_modules is not None
+            else None
+        ),
+        subscription_technical_modules=(
+            list(activation_state.subscription_technical_modules)
+            if activation_state.subscription_technical_modules is not None
+            else None
+        ),
+        subscription_legacy_fallback_modules=(
+            list(activation_state.subscription_legacy_fallback_modules)
+            if activation_state.subscription_legacy_fallback_modules is not None
+            else None
+        ),
+        effective_enabled_modules=(
+            list(effective_enabled_modules)
+            if effective_enabled_modules is not None
+            else None
+        ),
+        effective_activation_source=activation_state.activation_source,
         plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
             tenant.plan_code
         ),
@@ -1437,6 +1468,7 @@ def update_tenant_plan(
         previous_state=previous_state,
         actor_context=_token,
     )
+    activation_state = tenant_service.get_tenant_module_activation_state(tenant)
 
     return TenantPlanResponse(
         success=True,
@@ -1448,6 +1480,13 @@ def update_tenant_plan(
         tenant_plan_enabled_modules=tenant_service.tenant_plan_policy_service.get_enabled_modules(
             tenant.plan_code
         ),
+        subscription_base_plan_code=activation_state.subscription_base_plan_code,
+        subscription_effective_enabled_modules=(
+            list(activation_state.subscription_effective_enabled_modules)
+            if activation_state.subscription_effective_enabled_modules is not None
+            else None
+        ),
+        effective_activation_source=activation_state.activation_source,
         tenant_plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
             tenant.plan_code
         ),

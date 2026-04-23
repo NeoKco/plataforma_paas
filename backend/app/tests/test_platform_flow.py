@@ -4784,6 +4784,38 @@ class PlatformRoutesTestCase(unittest.TestCase):
             side_effect=module_limits,
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_tenant_module_activation_state",
+            side_effect=[
+                SimpleNamespace(
+                    subscription_base_plan_code="base_finance",
+                    subscription_status="active",
+                    subscription_billing_cycle="monthly",
+                    subscription_included_modules=("finance",),
+                    subscription_addon_modules=("maintenance",),
+                    subscription_technical_modules=("core", "users"),
+                    subscription_legacy_fallback_modules=None,
+                    activation_source="subscriptions",
+                ),
+                SimpleNamespace(
+                    subscription_base_plan_code=None,
+                    subscription_status=None,
+                    subscription_billing_cycle=None,
+                    subscription_included_modules=None,
+                    subscription_addon_modules=None,
+                    subscription_technical_modules=None,
+                    subscription_legacy_fallback_modules=("core", "users"),
+                    activation_source="legacy_plan_only",
+                ),
+            ],
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_effective_enabled_modules",
+            side_effect=[
+                ("core", "finance", "maintenance", "users"),
+                ("core", "users"),
+            ],
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
             "tenant_service.get_tenant_module_limits",
             return_value=None,
         ):
@@ -4795,7 +4827,13 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.total_tenants, 2)
         self.assertEqual(response.data[0].slug, "condominio-demo")
+        self.assertEqual(response.data[0].subscription_base_plan_code, "base_finance")
+        self.assertEqual(
+            response.data[0].effective_enabled_modules,
+            ["core", "finance", "maintenance", "users"],
+        )
         self.assertEqual(response.data[1].billing_status, "past_due")
+        self.assertEqual(response.data[1].effective_activation_source, "legacy_plan_only")
 
     def test_get_tenant_returns_detail(self) -> None:
         tenant = build_tenant_record_stub(
@@ -4823,6 +4861,23 @@ class PlatformRoutesTestCase(unittest.TestCase):
             return_value={"finance.entries": 250},
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_tenant_module_activation_state",
+            return_value=SimpleNamespace(
+                subscription_base_plan_code="base_finance",
+                subscription_status="active",
+                subscription_billing_cycle="monthly",
+                subscription_included_modules=("finance",),
+                subscription_addon_modules=("maintenance",),
+                subscription_technical_modules=("core", "users"),
+                subscription_legacy_fallback_modules=None,
+                activation_source="subscriptions",
+            ),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_effective_enabled_modules",
+            return_value=("core", "finance", "maintenance", "users"),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
             "tenant_service.get_tenant_module_limits",
             return_value={"finance.entries": 40},
         ):
@@ -4833,7 +4888,13 @@ class PlatformRoutesTestCase(unittest.TestCase):
             )
 
         self.assertEqual(response.slug, "condominio-demo")
+        self.assertEqual(response.subscription_base_plan_code, "base_finance")
         self.assertEqual(response.plan_enabled_modules, ["core", "users", "finance"])
+        self.assertEqual(
+            response.effective_enabled_modules,
+            ["core", "finance", "maintenance", "users"],
+        )
+        self.assertEqual(response.effective_activation_source, "subscriptions")
         self.assertEqual(response.module_limits, {"finance.entries": 40})
 
     def test_sync_tenant_schema_returns_schema(self) -> None:
@@ -5097,6 +5158,14 @@ class PlatformRoutesTestCase(unittest.TestCase):
             return_value=["core", "users", "finance"],
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_tenant_module_activation_state",
+            return_value=SimpleNamespace(
+                subscription_base_plan_code="base_finance",
+                subscription_effective_enabled_modules=("core", "finance", "users"),
+                activation_source="subscriptions",
+            ),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
             "tenant_policy_event_service.record_change",
         ):
             response = update_tenant_plan(
@@ -5108,10 +5177,16 @@ class PlatformRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_plan_code, "pro")
+        self.assertEqual(response.subscription_base_plan_code, "base_finance")
         self.assertEqual(
             response.tenant_plan_enabled_modules,
             ["core", "users", "finance"],
         )
+        self.assertEqual(
+            response.subscription_effective_enabled_modules,
+            ["core", "finance", "users"],
+        )
+        self.assertEqual(response.effective_activation_source, "subscriptions")
 
     def test_get_tenant_finance_usage_returns_operational_view(self) -> None:
         tenant = build_tenant_record_stub(

@@ -320,6 +320,15 @@ export type PlatformTenant = {
   billing_provider_customer_id: string | null;
   billing_provider_subscription_id: string | null;
   plan_enabled_modules: string[] | null;
+  subscription_base_plan_code: string | null;
+  subscription_status: string | null;
+  subscription_billing_cycle: string | null;
+  subscription_included_modules: string[] | null;
+  subscription_addon_modules: string[] | null;
+  subscription_technical_modules: string[] | null;
+  subscription_legacy_fallback_modules: string[] | null;
+  effective_enabled_modules: string[] | null;
+  effective_activation_source: string | null;
   plan_module_limits: Record<string, number> | null;
   module_limits: Record<string, number> | null;
   billing_status: string | null;
@@ -558,6 +567,9 @@ export type PlatformTenantPlanResponse = {
   tenant_status: string;
   tenant_plan_code: string | null;
   tenant_plan_enabled_modules: string[] | null;
+  subscription_base_plan_code: string | null;
+  subscription_effective_enabled_modules: string[] | null;
+  effective_activation_source: string | null;
   tenant_plan_module_limits: Record<string, number> | null;
 };
 
@@ -1033,6 +1045,14 @@ export type TenantInfoData = {
   effective_timezone: string | null;
   plan_code: string | null;
   plan_enabled_modules: string[] | null;
+  subscription_base_plan_code: string | null;
+  subscription_status: string | null;
+  subscription_billing_cycle: string | null;
+  subscription_included_modules: string[] | null;
+  subscription_addon_modules: string[] | null;
+  subscription_technical_modules: string[] | null;
+  subscription_legacy_fallback_modules: string[] | null;
+  effective_activation_source: string | null;
   billing_status: string | null;
   billing_status_reason: string | null;
   billing_current_period_ends_at: string | null;

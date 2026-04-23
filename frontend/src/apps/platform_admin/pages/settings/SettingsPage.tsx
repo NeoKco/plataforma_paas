@@ -906,8 +906,8 @@ export function SettingsPage() {
                 </div>
                 <div>
                   {language === "es"
-                    ? "La activación tenant-side visible todavía se resuelve por `plan_code`; el siguiente slice debe mover esa resolución a suscripciones tenant."
-                    : "Visible tenant-side activation is still resolved through `plan_code`; the next slice must move that resolution to tenant subscriptions."}
+                    ? "La activación tenant-side visible ya consume `tenant_subscriptions` con fallback legacy por `plan_code` cuando todavía hace falta compatibilidad."
+                    : "Visible tenant-side activation already consumes `tenant_subscriptions` with legacy `plan_code` fallback when compatibility is still needed."}
                 </div>
                 <div>
                   {language === "es"
@@ -921,8 +921,8 @@ export function SettingsPage() {
                 </div>
                 <div>
                   {language === "es"
-                    ? "El siguiente paso formal ya no es inventar módulos nuevos en la UI, sino consumir `tenant_subscriptions` y `tenant_subscription_items` en la activación efectiva."
-                    : "The next formal step is no longer inventing new modules in the UI, but consuming `tenant_subscriptions` and `tenant_subscription_items` in effective activation."}
+                    ? "El siguiente paso formal ya no es consumir suscripciones en la activación efectiva, sino contratar add-ons desde consola y retirar gradualmente el fallback legacy por `plan_code`."
+                    : "The next formal step is no longer consuming subscriptions in effective activation, but contracting add-ons from the console and gradually retiring the legacy `plan_code` fallback."}
                 </div>
               </div>
               <div className="settings-token-chips mt-3">

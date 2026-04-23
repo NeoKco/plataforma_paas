@@ -7,7 +7,7 @@ Estado actual:
 - decisión de producto: `Aprobada`
 - implementación repo/control model: `Primer corte técnico completado`
 - implementación runtime: `Primer corte técnico promovido en staging y production`
-- política vigente de activación efectiva mientras no se resuelva la suscripción tenant: `plan-driven`
+- política vigente de activación efectiva: `tenant_subscriptions + fallback legacy por plan_code`
 
 ## Objetivo
 
@@ -207,10 +207,13 @@ Donde:
 
 ## Regla de transición
 
-Mientras la activación efectiva no se resuelva todavía desde suscripciones, la operación visible sigue siendo:
+La transición vigente ya no es `plan-driven puro`.
+
+Hoy la operación visible queda así:
 
 - catálogo backend-driven por `plan`
-- activación tenant-side `plan-driven`
+- activación tenant-side efectiva desde `tenant_subscriptions`
+- fallback legacy por `plan_code` solo cuando todavía hace falta compatibilidad
 
 El primer corte técnico ya existe en `platform_control` y deja modelado:
 
@@ -266,16 +269,18 @@ Además del primer corte técnico ya promovido, la consola visible ya quedó ada
    - add-ons visibles
    - ciclos visibles
    - dependencias cubiertas o no
-3. la consola ya aclara explícitamente que la activación efectiva todavía se resuelve por `plan_code` mientras no se consuman `tenant_subscriptions` y `tenant_subscription_items`
+3. la consola ya deja visible:
+   - base plan de suscripción
+   - add-ons arrendados
+   - módulos técnicos
+   - fallback legacy cuando aplica
+   - fuente efectiva de activación
 
 ## Siguiente corte técnico recomendado
 
-1. resolver lectura y gestión tenant-side desde:
+1. contratar add-ons desde consola sobre:
    - `tenant_subscriptions`
    - `tenant_subscription_items`
-2. separar habilitación técnica efectiva de contrato comercial
-3. distinguir en consola:
-   - incluido por `Plan Base`
-   - arrendado por suscripción
-   - efectivamente habilitado
+2. mantener separada la habilitación técnica efectiva del contrato comercial
+3. retirar gradualmente el fallback legacy por `plan_code`
 4. recién después conectar billing, grace y suspensión sobre esa misma base

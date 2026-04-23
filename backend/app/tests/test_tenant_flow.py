@@ -277,6 +277,7 @@ class TenantSessionManagerTestCase(unittest.TestCase):
 class TenantMiddlewareMaintenanceTestCase(unittest.TestCase):
     def _middleware(self) -> AuthContextMiddleware:
         middleware = object.__new__(AuthContextMiddleware)
+        tenant_service = TenantService()
         middleware.tenant_repository = SimpleNamespace()
         middleware.tenant_plan_policy_service = SimpleNamespace(
             get_policy=lambda plan_code: None
@@ -293,27 +294,15 @@ class TenantMiddlewareMaintenanceTestCase(unittest.TestCase):
             )
         )
         middleware.tenant_service = SimpleNamespace(
-            get_tenant_status_error=lambda tenant: None,
-            get_tenant_access_policy=lambda tenant: SimpleNamespace(
-                allowed=True,
-                status_code=None,
-                detail=None,
-                blocking_source=None,
-                billing_in_grace=False,
+            get_tenant_status_error=tenant_service.get_tenant_status_error,
+            get_tenant_access_policy=lambda tenant: tenant_service.get_tenant_access_policy(
+                tenant
             ),
-            is_tenant_under_maintenance=lambda tenant, now=None: bool(
-                getattr(tenant, "maintenance_mode", False)
-            )
-            or (
-                getattr(tenant, "maintenance_starts_at", None) is not None
-                and getattr(tenant, "maintenance_ends_at", None) is not None
-            ),
-            get_tenant_maintenance_scopes=lambda tenant: (
-                [scope for scope in tenant.maintenance_scopes.split(",")]
-                if getattr(tenant, "maintenance_scopes", None)
-                else ["all"]
-            ),
-            get_tenant_module_limits=lambda tenant: TenantService().get_tenant_module_limits(tenant),
+            is_tenant_under_maintenance=tenant_service.is_tenant_under_maintenance,
+            get_tenant_maintenance_scopes=tenant_service.get_tenant_maintenance_scopes,
+            get_tenant_module_activation_state=tenant_service.get_tenant_module_activation_state,
+            get_effective_enabled_modules=tenant_service.get_effective_enabled_modules,
+            get_tenant_module_limits=tenant_service.get_tenant_module_limits,
             get_effective_module_limits=None,
             get_effective_module_limit_sources=None,
         )
@@ -590,6 +579,7 @@ class TenantMiddlewareMaintenanceTestCase(unittest.TestCase):
 class TenantRateLimitServiceTestCase(unittest.TestCase):
     def _middleware(self) -> AuthContextMiddleware:
         middleware = object.__new__(AuthContextMiddleware)
+        tenant_service = TenantService()
         middleware.tenant_repository = SimpleNamespace()
         middleware.tenant_plan_policy_service = SimpleNamespace(
             get_policy=lambda plan_code: None
@@ -606,27 +596,15 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
             )
         )
         middleware.tenant_service = SimpleNamespace(
-            get_tenant_status_error=lambda tenant: None,
-            get_tenant_access_policy=lambda tenant: SimpleNamespace(
-                allowed=True,
-                status_code=None,
-                detail=None,
-                blocking_source=None,
-                billing_in_grace=False,
+            get_tenant_status_error=tenant_service.get_tenant_status_error,
+            get_tenant_access_policy=lambda tenant: tenant_service.get_tenant_access_policy(
+                tenant
             ),
-            is_tenant_under_maintenance=lambda tenant, now=None: bool(
-                getattr(tenant, "maintenance_mode", False)
-            )
-            or (
-                getattr(tenant, "maintenance_starts_at", None) is not None
-                and getattr(tenant, "maintenance_ends_at", None) is not None
-            ),
-            get_tenant_maintenance_scopes=lambda tenant: (
-                [scope for scope in tenant.maintenance_scopes.split(",")]
-                if getattr(tenant, "maintenance_scopes", None)
-                else ["all"]
-            ),
-            get_tenant_module_limits=lambda tenant: TenantService().get_tenant_module_limits(tenant),
+            is_tenant_under_maintenance=tenant_service.is_tenant_under_maintenance,
+            get_tenant_maintenance_scopes=tenant_service.get_tenant_maintenance_scopes,
+            get_tenant_module_activation_state=tenant_service.get_tenant_module_activation_state,
+            get_effective_enabled_modules=tenant_service.get_effective_enabled_modules,
+            get_tenant_module_limits=tenant_service.get_tenant_module_limits,
             get_effective_module_limits=None,
             get_effective_module_limit_sources=None,
         )
@@ -833,6 +811,114 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
         self.assertEqual(
             request.state.tenant_plan_enabled_modules,
             ("core", "finance", "maintenance", "users"),
+        )
+
+    def test_apply_tenant_runtime_state_exposes_subscription_activation_breakdown(self) -> None:
+        request = SimpleNamespace(
+            method="GET",
+            url=SimpleNamespace(path="/tenant/info"),
+            state=SimpleNamespace(tenant_slug="empresa-bootstrap"),
+        )
+        middleware = self._middleware()
+        middleware._load_tenant = lambda tenant_slug: build_tenant_record_stub(  # type: ignore[attr-defined]
+            plan_code=None,
+            subscription=SimpleNamespace(
+                base_plan_code="base_finance",
+                status="active",
+                billing_cycle="monthly",
+                items=[
+                    SimpleNamespace(
+                        module_key="maintenance",
+                        status="active",
+                    )
+                ],
+            ),
+        )
+
+        middleware._apply_tenant_runtime_state(request)  # type: ignore[arg-type]
+
+        self.assertEqual(request.state.tenant_subscription_base_plan_code, "base_finance")
+        self.assertEqual(request.state.tenant_subscription_status, "active")
+        self.assertEqual(request.state.tenant_subscription_billing_cycle, "monthly")
+        self.assertEqual(
+            request.state.tenant_subscription_included_modules,
+            ("finance",),
+        )
+        self.assertEqual(
+            request.state.tenant_subscription_addon_modules,
+            ("maintenance",),
+        )
+        self.assertEqual(
+            request.state.tenant_subscription_technical_modules,
+            ("core", "users"),
+        )
+        self.assertIsNone(request.state.tenant_subscription_legacy_fallback_modules)
+        self.assertEqual(
+            request.state.tenant_effective_enabled_modules,
+            ("core", "finance", "maintenance", "users"),
+        )
+        self.assertEqual(
+            request.state.tenant_effective_activation_source,
+            "subscriptions",
+        )
+
+    def test_apply_tenant_runtime_state_exposes_subscription_legacy_fallback_modules(self) -> None:
+        tenant_service = TenantService(
+            tenant_plan_policy_service=TenantPlanPolicyService(
+                plan_enabled_modules="pro=core,users,finance,maintenance"
+            )
+        )
+        request = SimpleNamespace(
+            method="GET",
+            url=SimpleNamespace(path="/tenant/info"),
+            state=SimpleNamespace(tenant_slug="empresa-bootstrap"),
+        )
+        middleware = self._middleware()
+        middleware.tenant_service = SimpleNamespace(
+            get_tenant_status_error=tenant_service.get_tenant_status_error,
+            get_tenant_access_policy=lambda tenant: tenant_service.get_tenant_access_policy(
+                tenant
+            ),
+            is_tenant_under_maintenance=tenant_service.is_tenant_under_maintenance,
+            get_tenant_maintenance_scopes=tenant_service.get_tenant_maintenance_scopes,
+            get_tenant_module_activation_state=tenant_service.get_tenant_module_activation_state,
+            get_effective_enabled_modules=tenant_service.get_effective_enabled_modules,
+            get_tenant_module_limits=tenant_service.get_tenant_module_limits,
+            get_effective_module_limits=None,
+            get_effective_module_limit_sources=None,
+        )
+        middleware._load_tenant = lambda tenant_slug: build_tenant_record_stub(  # type: ignore[attr-defined]
+            plan_code="pro",
+            subscription=SimpleNamespace(
+                base_plan_code="base_finance",
+                status="active",
+                billing_cycle="monthly",
+                items=[],
+            ),
+        )
+
+        middleware._apply_tenant_runtime_state(request)  # type: ignore[arg-type]
+
+        self.assertEqual(
+            request.state.tenant_subscription_included_modules,
+            ("finance",),
+        )
+        self.assertIsNone(request.state.tenant_subscription_addon_modules)
+        self.assertEqual(
+            request.state.tenant_subscription_technical_modules,
+            ("core", "users"),
+        )
+        self.assertEqual(
+            request.state.tenant_subscription_legacy_fallback_modules,
+            ("maintenance",),
+        )
+        self.assertEqual(
+            request.state.tenant_effective_enabled_modules,
+            ("core", "finance", "maintenance", "users"),
+        )
+        self.assertEqual(
+            request.state.tenant_effective_activation_source,
+            "subscriptions_with_legacy_fallback",
         )
 
     def test_apply_tenant_runtime_state_exposes_plan_module_limits(self) -> None:
@@ -1057,6 +1143,7 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
 
     def test_apply_tenant_runtime_state_blocks_write_for_active_window(self) -> None:
         now = datetime.now(timezone.utc)
+        tenant_service = TenantService()
         request = SimpleNamespace(
             method="PATCH",
             url=SimpleNamespace(path="/tenant/users/2/status"),
@@ -1064,17 +1151,15 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
         )
         middleware = self._middleware()
         middleware.tenant_service = SimpleNamespace(
-            get_tenant_status_error=lambda tenant: None,
-            get_tenant_access_policy=lambda tenant: SimpleNamespace(
-                allowed=True,
-                status_code=None,
-                detail=None,
-                blocking_source=None,
-                billing_in_grace=False,
+            get_tenant_status_error=tenant_service.get_tenant_status_error,
+            get_tenant_access_policy=lambda tenant: tenant_service.get_tenant_access_policy(
+                tenant
             ),
             is_tenant_under_maintenance=lambda tenant, now=None: True,
-            get_tenant_maintenance_scopes=lambda tenant: ["all"],
-            get_tenant_module_limits=lambda tenant: TenantService().get_tenant_module_limits(tenant),
+            get_tenant_maintenance_scopes=tenant_service.get_tenant_maintenance_scopes,
+            get_tenant_module_activation_state=tenant_service.get_tenant_module_activation_state,
+            get_effective_enabled_modules=tenant_service.get_effective_enabled_modules,
+            get_tenant_module_limits=tenant_service.get_tenant_module_limits,
             get_effective_module_limits=None,
             get_effective_module_limit_sources=None,
         )
@@ -1583,6 +1668,14 @@ class TenantRoutesTestCase(unittest.TestCase):
         request = self._request()
         request.state.tenant_plan_code = "pro"
         request.state.tenant_plan_enabled_modules = ("core", "finance", "users")
+        request.state.tenant_subscription_base_plan_code = "base_finance"
+        request.state.tenant_subscription_status = "active"
+        request.state.tenant_subscription_billing_cycle = "monthly"
+        request.state.tenant_subscription_included_modules = ("finance",)
+        request.state.tenant_subscription_addon_modules = ("maintenance",)
+        request.state.tenant_subscription_technical_modules = ("core", "users")
+        request.state.tenant_subscription_legacy_fallback_modules = None
+        request.state.tenant_effective_activation_source = "subscriptions"
         request.state.tenant_plan_module_limits = {"finance.entries": 250}
         request.state.tenant_billing_status = "past_due"
         request.state.tenant_billing_status_reason = "invoice overdue"
@@ -1647,6 +1740,14 @@ class TenantRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.tenant.maintenance_finance_auto_sync_expense)
         self.assertEqual(response.tenant.plan_code, "pro")
         self.assertEqual(response.tenant.plan_enabled_modules, ["core", "finance", "users"])
+        self.assertEqual(response.tenant.subscription_base_plan_code, "base_finance")
+        self.assertEqual(response.tenant.subscription_status, "active")
+        self.assertEqual(response.tenant.subscription_billing_cycle, "monthly")
+        self.assertEqual(response.tenant.subscription_included_modules, ["finance"])
+        self.assertEqual(response.tenant.subscription_addon_modules, ["maintenance"])
+        self.assertEqual(response.tenant.subscription_technical_modules, ["core", "users"])
+        self.assertIsNone(response.tenant.subscription_legacy_fallback_modules)
+        self.assertEqual(response.tenant.effective_activation_source, "subscriptions")
         self.assertEqual(response.tenant.plan_module_limits, {"finance.entries": 250})
         self.assertEqual(response.tenant.billing_status, "past_due")
         self.assertEqual(response.tenant.billing_status_reason, "invoice overdue")

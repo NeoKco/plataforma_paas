@@ -46,6 +46,9 @@ from app.apps.platform_control.services.provisioning_job_service import (
 from app.common.policies.tenant_billing_grace_policy_service import (
     TenantBillingGracePolicyService,
 )
+from app.common.policies.tenant_module_subscription_policy_service import (
+    TenantModuleSubscriptionPolicyService,
+)
 from app.common.policies.tenant_plan_policy_service import TenantPlanPolicyService
 from app.common.config.settings import settings
 from app.common.db.tenant_database import get_tenant_session_factory
@@ -62,6 +65,19 @@ class TenantAccessPolicy:
     detail: str | None = None
     blocking_source: str | None = None
     billing_in_grace: bool = False
+
+
+@dataclass(frozen=True)
+class TenantModuleActivationState:
+    subscription_base_plan_code: str | None = None
+    subscription_status: str | None = None
+    subscription_billing_cycle: str | None = None
+    subscription_included_modules: tuple[str, ...] | None = None
+    subscription_addon_modules: tuple[str, ...] | None = None
+    subscription_technical_modules: tuple[str, ...] | None = None
+    subscription_legacy_fallback_modules: tuple[str, ...] | None = None
+    subscription_effective_enabled_modules: tuple[str, ...] | None = None
+    activation_source: str | None = None
 
 
 class TenantService:
@@ -86,6 +102,8 @@ class TenantService:
         tenant_database_bootstrap_service: TenantDatabaseBootstrapService | None = None,
         tenant_plan_policy_service: TenantPlanPolicyService | None = None,
         tenant_billing_grace_policy_service: TenantBillingGracePolicyService | None = None,
+        tenant_module_subscription_policy_service: TenantModuleSubscriptionPolicyService
+        | None = None,
         tenant_secret_service: TenantSecretService | None = None,
         tenant_data_transfer_job_repository: TenantDataTransferJobRepository | None = None,
     ):
@@ -111,6 +129,10 @@ class TenantService:
         )
         self.tenant_billing_grace_policy_service = (
             tenant_billing_grace_policy_service or TenantBillingGracePolicyService()
+        )
+        self.tenant_module_subscription_policy_service = (
+            tenant_module_subscription_policy_service
+            or TenantModuleSubscriptionPolicyService()
         )
         self.tenant_secret_service = tenant_secret_service or TenantSecretService()
         self.tenant_data_transfer_job_repository = (
@@ -1126,6 +1148,141 @@ class TenantService:
         normalized = self._normalize_module_limits_override(parsed)
         return normalized
 
+    def get_tenant_module_activation_state(
+        self,
+        tenant: Tenant,
+    ) -> TenantModuleActivationState:
+        legacy_plan_modules = tuple(
+            sorted(self.tenant_plan_policy_service.get_enabled_modules(tenant.plan_code) or ())
+        )
+        subscription = getattr(tenant, "subscription", None)
+        subscription_status = (
+            getattr(subscription, "status", None).strip().lower()
+            if getattr(subscription, "status", None)
+            else None
+        )
+        subscription_billing_cycle = getattr(subscription, "billing_cycle", None)
+        subscription_base_plan_code = getattr(subscription, "base_plan_code", None)
+
+        included_modules: tuple[str, ...] = ()
+        addon_modules: tuple[str, ...] = ()
+        technical_modules: tuple[str, ...] = ()
+
+        if subscription is not None and subscription_status in {
+            "active",
+            "grace_period",
+            "pending_activation",
+        }:
+            base_plan_entry = (
+                self.tenant_module_subscription_policy_service.get_base_plan_catalog_entry(
+                    subscription_base_plan_code
+                )
+            )
+            if base_plan_entry is not None:
+                included_modules = tuple(sorted(set(base_plan_entry.included_modules)))
+
+            addon_module_keys: set[str] = set()
+            for item in getattr(subscription, "items", []) or []:
+                item_status = (
+                    getattr(item, "status", None).strip().lower()
+                    if getattr(item, "status", None)
+                    else None
+                )
+                if item_status not in {
+                    "active",
+                    "scheduled_cancel",
+                    "grace_period",
+                    "pending_activation",
+                }:
+                    continue
+
+                catalog_entry = (
+                    self.tenant_module_subscription_policy_service.get_module_subscription_catalog_entry(
+                        getattr(item, "module_key", None)
+                    )
+                )
+                if catalog_entry is None or catalog_entry.activation_kind != "addon":
+                    continue
+
+                addon_module_keys.add(catalog_entry.module_key)
+
+            addon_modules = tuple(sorted(addon_module_keys))
+            technical_modules = self._resolve_subscription_technical_modules(
+                included_modules=included_modules,
+                addon_modules=addon_modules,
+            )
+
+        legacy_fallback_modules = tuple(
+            sorted(
+                set(legacy_plan_modules)
+                - set(included_modules)
+                - set(addon_modules)
+                - set(technical_modules)
+            )
+        )
+        effective_modules = tuple(
+            sorted(
+                set(included_modules)
+                | set(addon_modules)
+                | set(technical_modules)
+                | set(legacy_fallback_modules)
+            )
+        )
+
+        activation_source: str | None = None
+        if effective_modules:
+            if legacy_fallback_modules and (included_modules or addon_modules or technical_modules):
+                activation_source = "subscriptions_with_legacy_fallback"
+            elif included_modules or addon_modules or technical_modules:
+                activation_source = "subscriptions"
+            else:
+                activation_source = "legacy_plan_only"
+
+        return TenantModuleActivationState(
+            subscription_base_plan_code=subscription_base_plan_code,
+            subscription_status=subscription_status,
+            subscription_billing_cycle=subscription_billing_cycle,
+            subscription_included_modules=included_modules or None,
+            subscription_addon_modules=addon_modules or None,
+            subscription_technical_modules=technical_modules or None,
+            subscription_legacy_fallback_modules=legacy_fallback_modules or None,
+            subscription_effective_enabled_modules=effective_modules or None,
+            activation_source=activation_source,
+        )
+
+    def get_effective_enabled_modules(
+        self,
+        tenant: Tenant,
+        *,
+        now: datetime | None = None,
+    ) -> tuple[str, ...] | None:
+        activation_state = self.get_tenant_module_activation_state(tenant)
+        base_enabled_modules = activation_state.subscription_effective_enabled_modules
+        access_policy = self.get_tenant_access_policy(tenant, now=now)
+        grace_policy = (
+            self.tenant_billing_grace_policy_service.get_policy()
+            if access_policy.billing_in_grace
+            else None
+        )
+        grace_enabled_modules = (
+            None if grace_policy is None else grace_policy.enabled_modules
+        )
+
+        if grace_enabled_modules is None:
+            return base_enabled_modules
+        if base_enabled_modules is None:
+            return grace_enabled_modules
+
+        base_modules = set(base_enabled_modules)
+        grace_modules = set(grace_enabled_modules)
+
+        if "all" in grace_modules:
+            return tuple(sorted(base_modules))
+        if "all" in base_modules:
+            return tuple(sorted(grace_modules))
+
+        return tuple(sorted(base_modules & grace_modules))
+
     def get_effective_module_limits(
         self,
         tenant: Tenant,
@@ -1636,6 +1793,29 @@ class TenantService:
                     resolved_sources[key] = source
 
         return resolved_limits or None, resolved_sources or None
+
+    def _resolve_subscription_technical_modules(
+        self,
+        *,
+        included_modules: tuple[str, ...],
+        addon_modules: tuple[str, ...],
+    ) -> tuple[str, ...]:
+        dependency_map = self.tenant_plan_policy_service.get_module_dependencies()
+        technical_modules = set(
+            self.tenant_module_subscription_policy_service.list_technical_baseline_modules()
+        )
+        pending_modules = list(set(included_modules) | set(addon_modules))
+
+        while pending_modules:
+            module_key = pending_modules.pop()
+            for required_module in dependency_map.get(module_key, ()):
+                if required_module not in technical_modules:
+                    technical_modules.add(required_module)
+                    pending_modules.append(required_module)
+
+        technical_modules -= set(included_modules)
+        technical_modules -= set(addon_modules)
+        return tuple(sorted(technical_modules))
 
     def _resolve_effective_limit_with_source(
         self,

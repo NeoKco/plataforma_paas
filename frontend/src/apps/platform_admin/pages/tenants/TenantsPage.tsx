@@ -390,6 +390,14 @@ export function TenantsPage() {
     selectedTenantSummary?.plan_code
       ? planCatalogByCode.get(selectedTenantSummary.plan_code) || null
       : null;
+  const selectedTenantEffectiveModules =
+    selectedTenantSummary?.effective_enabled_modules ||
+    selectedTenantSummary?.plan_enabled_modules ||
+    null;
+  const selectedTenantActivationSourceLabel = getTenantActivationSourceLabel(
+    selectedTenantSummary?.effective_activation_source || null,
+    language
+  );
 
   const defaultBasePlanCatalog = useMemo(
     () =>
@@ -2575,13 +2583,19 @@ export function TenantsPage() {
                     ? "Activación efectiva actual"
                     : "Current effective activation"}
                   :{" "}
-                  {selectedTenantPlanCatalog?.enabled_modules?.length
-                    ? selectedTenantPlanCatalog.enabled_modules
+                  {selectedTenantEffectiveModules?.length
+                    ? selectedTenantEffectiveModules
                         .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
                         .join(", ")
                     : language === "es"
-                      ? "sin plan activo o sin módulos declarados"
-                      : "no active plan or declared modules"}
+                      ? "sin módulos efectivos visibles"
+                      : "no visible effective modules"}
+                </div>
+                <div className="tenant-inline-note">
+                  {language === "es"
+                    ? "Fuente efectiva"
+                    : "Effective source"}
+                  : {selectedTenantActivationSourceLabel}
                 </div>
                 <div className="tenant-inline-note">
                   {language === "es"
@@ -2602,12 +2616,52 @@ export function TenantsPage() {
                 </div>
                 <div className="tenant-inline-note">
                   {language === "es"
+                    ? "Incluido por suscripción"
+                    : "Included by subscription"}
+                  :{" "}
+                  {formatTenantModuleList(
+                    selectedTenantSummary?.subscription_included_modules,
+                    language
+                  )}
+                </div>
+                <div className="tenant-inline-note">
+                  {language === "es"
+                    ? "Add-ons arrendados"
+                    : "Rented add-ons"}
+                  :{" "}
+                  {formatTenantModuleList(
+                    selectedTenantSummary?.subscription_addon_modules,
+                    language
+                  )}
+                </div>
+                <div className="tenant-inline-note">
+                  {language === "es"
+                    ? "Módulos técnicos"
+                    : "Technical modules"}
+                  :{" "}
+                  {formatTenantModuleList(
+                    selectedTenantSummary?.subscription_technical_modules,
+                    language
+                  )}
+                </div>
+                <div className="tenant-inline-note">
+                  {language === "es"
+                    ? "Fallback legacy"
+                    : "Legacy fallback"}
+                  :{" "}
+                  {formatTenantModuleList(
+                    selectedTenantSummary?.subscription_legacy_fallback_modules,
+                    language
+                  )}
+                </div>
+                <div className="tenant-inline-note">
+                  {language === "es"
                     ? "Ruta formal de activación"
                     : "Formal activation route"}
                   :{" "}
                   {language === "es"
-                    ? "el catálogo vive en Configuración, el modelo final es Plan Base + add-ons y esta ficha todavía aplica `plan_code` mientras se consume la suscripción tenant."
-                    : "the catalog lives in Settings, the final model is Base plan + add-ons, and this form still applies `plan_code` until tenant subscriptions are consumed."}
+                    ? "el catálogo vive en Configuración, la activación efectiva ya consume `tenant_subscriptions` cuando existen, y esta ficha todavía escribe `plan_code` como baseline/fallback legacy hasta que llegue la contratación formal de add-ons."
+                    : "the catalog lives in Settings, effective activation already consumes `tenant_subscriptions` when present, and this form still writes `plan_code` as the legacy baseline/fallback until formal add-on contracting arrives."}
                 </div>
                 {selectedTenantSummary.maintenance_reason ? (
                   <div className="tenant-inline-note">
@@ -4059,8 +4113,8 @@ export function TenantsPage() {
                         }
                         help={
                           language === "es"
-                            ? "Este campo sigue aplicando el baseline efectivo vía `plan_code`. La activación final por suscripciones tenant se implementa en el siguiente slice."
-                            : "This field still applies the effective baseline through `plan_code`. Final activation through tenant subscriptions is implemented in the next slice."
+                            ? "Este campo sigue escribiendo `plan_code` como baseline/fallback legacy. La activación efectiva visible ya se calcula con `tenant_subscriptions` cuando existen."
+                            : "This field still writes `plan_code` as the legacy baseline/fallback. Visible effective activation is already computed from `tenant_subscriptions` when present."
                         }
                         placement="left"
                       />
@@ -4081,8 +4135,8 @@ export function TenantsPage() {
                       <div className="tenant-help-box">
                         <p className="tenant-help-text mb-0">
                           {language === "es"
-                            ? "Etapa 15 ya no se explica como `plan-driven puro`: el modelo aprobado es `Plan Base + add-ons`, pero la activación efectiva visible sigue bajando desde `plan_code` hasta que la consola consuma suscripciones tenant."
-                            : "Stage 15 is no longer explained as pure `plan-driven`: the approved model is `Base plan + add-ons`, but visible effective activation still comes from `plan_code` until the console consumes tenant subscriptions."}
+                            ? "Etapa 15 ya no se explica como `plan-driven puro`: el modelo aprobado es `Plan Base + add-ons`, y la activación efectiva visible ya combina suscripciones tenant, dependencias técnicas y fallback legacy cuando aplica."
+                            : "Stage 15 is no longer explained as pure `plan-driven`: the approved model is `Base plan + add-ons`, and visible effective activation already combines tenant subscriptions, technical dependencies and legacy fallback when applicable."}
                         </p>
                         <div className="tenant-scope-list">
                           <div className="tenant-scope-list__item">
@@ -4191,8 +4245,8 @@ export function TenantsPage() {
                       ) : null}
                       <p className="tenant-help-text mt-2 mb-0">
                         {language === "es"
-                          ? "Aquí todavía solo puedes aplicar planes definidos en backend. Los add-ons arrendables ya son visibles, pero su contratación formal llegará cuando la consola escriba `tenant_subscriptions` y `tenant_subscription_items`."
-                          : "You can still only apply backend-defined plans here. Rentable add-ons are already visible, but their formal contracting will arrive once the console writes `tenant_subscriptions` and `tenant_subscription_items`."}
+                          ? "Aquí todavía solo puedes aplicar planes backend como baseline/fallback legacy. Los add-ons arrendables ya son visibles y la activación efectiva ya lee suscripciones tenant; lo que falta es la contratación formal de esos add-ons desde consola."
+                          : "You can still only apply backend-defined plans here as the legacy baseline/fallback. Rentable add-ons are already visible and effective activation already reads tenant subscriptions; what is still missing is formal add-on contracting from the console."}
                       </p>
                     </div>
                     <AppFormActions>
@@ -5542,6 +5596,37 @@ function getTenantBillingCycleLabel(billingCycle: string): string {
   };
 
   return labels[billingCycle] || billingCycle;
+}
+
+function getTenantActivationSourceLabel(
+  activationSource: string | null,
+  language: "es" | "en"
+): string {
+  if (!activationSource) {
+    return language === "es" ? "sin fuente visible" : "no visible source";
+  }
+
+  const labels: Record<string, string> = {
+    subscriptions:
+      language === "es" ? "suscripción tenant" : "tenant subscription",
+    subscriptions_with_legacy_fallback:
+      language === "es"
+        ? "suscripción tenant + fallback legacy"
+        : "tenant subscription + legacy fallback",
+    legacy_plan_only: language === "es" ? "plan legacy" : "legacy plan",
+  };
+
+  return labels[activationSource] || activationSource;
+}
+
+function formatTenantModuleList(
+  modules: string[] | null | undefined,
+  language: "es" | "en"
+): string {
+  if (!modules?.length) {
+    return language === "es" ? "sin módulos visibles" : "no visible modules";
+  }
+  return modules.map((moduleKey) => getTenantPlanModuleLabel(moduleKey)).join(", ");
 }
 
 function buildTenantPlanDependencyStatus(

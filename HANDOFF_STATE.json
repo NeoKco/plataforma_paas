@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-22T22:26:23-04:00",
+  "updated_at": "2026-04-22T23:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ: runner broker-only compartido, baseline published curado, wrappers por ambiente, equivalente repo/CI y guías visibles en platform_admin para Provisioning y Billing ya están cerrados en repo y runtime. business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. La Etapa 15 ya deja además su adaptación visible publicada en runtime: `Configuración` y `Tenants > Plan y módulos` ya reflejan el modelo `Plan Base + add-ons`, mientras `platform_control` ya modela catálogo base, módulos arrendables, precios/ciclos y suscripción tenant mediante tablas nuevas y expansión de `/platform/capabilities`.",
+  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ: runner broker-only compartido, baseline published curado, wrappers por ambiente, equivalente repo/CI y guías visibles en platform_admin para Provisioning y Billing ya están cerrados en repo y runtime. business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. La Etapa 15 ya no solo está visible en runtime: `Configuración` y `Tenants > Plan y módulos` ya reflejan el modelo `Plan Base + add-ons`, y la activación efectiva ya consume `tenant_subscriptions` con fallback legacy por `plan_code` en backend, middleware y consola.",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime, rollback alineado al repo fuente y smoke base embebido por defecto como evidencia repetible",
   "active_modules": [
     "platform-core",
@@ -37,7 +37,7 @@
     "el staging ya puede alternar entre espejo instalado y bootstrap reset sin tocar production",
     "el sidebar principal de tenant_portal debe consumir effective_enabled_modules desde /tenant/info y no volver a hardcodearse por modulo",
     "todo tenant nuevo debe capturar admin inicial explicito al momento del alta",
-    "los modulos tenant-side siguen siendo plan-driven y deben hacerse visibles en la UI por preview de plan, no por toggles manuales ad hoc",
+    "los modulos tenant-side ya no deben tratarse como plan-driven puro: la fuente efectiva pasa a ser tenant_subscriptions con fallback legacy por plan_code mientras siga existiendo compatibilidad",
     "backup PostgreSQL por tenant sigue siendo el respaldo tecnico canonico; CSV tenant-side es portabilidad y migracion, no sustituto del backup real",
     "la portabilidad tenant ya cubre export/import portable base y ahora soporta dos scopes visibles: portable_full y functional_data_only",
     "tenant_portal admin tambien debe poder operar la misma portabilidad tenant, sin duplicar logica backend",
@@ -403,7 +403,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "resolver el siguiente slice funcional de la Etapa 15: consumir tenant_subscriptions y tenant_subscription_items para calcular la activación técnica efectiva y separar en consola lo incluido por Plan Base, lo arrendado por suscripción y lo efectivamente habilitado",
+  "next_decision_required": "resolver el siguiente slice funcional de la Etapa 15: contratar add-ons desde consola sobre tenant_subscriptions y tenant_subscription_items, y definir el retiro gradual del fallback legacy por plan_code",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

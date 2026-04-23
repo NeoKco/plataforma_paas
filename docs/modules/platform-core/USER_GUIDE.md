@@ -76,7 +76,7 @@ La base visible actual de la Etapa 15 ya queda así:
    - `Política efectiva actual por plan`
 3. confirmar qué declara backend hoy para:
    - catálogo comercial aprobado
-   - compatibilidad efectiva legacy
+   - activación efectiva actual
    - dependencias entre módulos
 4. abrir `Tenants`
 5. usar `Plan y módulos` para revisar:
@@ -84,27 +84,29 @@ La base visible actual de la Etapa 15 ya queda así:
    - `Plan operativo actual`
    - add-ons visibles
    - ciclos comerciales visibles
-6. leer ahí mismo si el plan legacy cubre o no las dependencias requeridas antes de aplicar cambios
+6. leer ahí mismo:
+   - si la activación efectiva viene de suscripción tenant o de fallback legacy
+   - qué módulos quedan incluidos, arrendados, técnicos y en fallback
+   - si el baseline legacy cubre o no las dependencias requeridas antes de aplicar cambios
 
 Regla operativa:
 
 - el catálogo de módulos hoy sale de backend
 - las dependencias explícitas entre módulos también salen de backend mediante `module_dependency_catalog`
-- la consola ya muestra el modelo aprobado `Plan Base + add-ons`, pero la activación tenant-side efectiva todavía se resuelve por `plan_code`
+- la consola ya muestra el modelo aprobado `Plan Base + add-ons`
+- la activación tenant-side efectiva ya se resuelve desde `tenant_subscriptions` con fallback legacy por `plan_code` cuando todavía hace falta compatibilidad
 - backend ya expone además el catálogo del modelo nuevo:
   - `subscription_activation_model`
   - `subscription_billing_cycles`
   - `base_plan_catalog`
   - `module_subscription_catalog`
-- ese catálogo nuevo ya existe y ya fue promovido a runtime como base persistente de `platform_control`, aunque la resolución efectiva del tenant todavía no sale solo desde suscripciones
+- ese catálogo nuevo ya existe y ya fue promovido a runtime como base persistente de `platform_control`
 - los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
 - la dirección aprobada del producto pasa a ser:
   - `Plan Base` obligatorio por tenant
   - `finance` siempre incluido
   - módulos adicionales arrendables por suscripción
-- el siguiente corte ya no es seguir ajustando copy/catalogos, sino consumir:
-  - `tenant_subscriptions`
-  - `tenant_subscription_items`
+- el siguiente corte ya no es consumir suscripciones en la activación efectiva, sino contratar add-ons desde consola y retirar gradualmente el fallback legacy
 - referencia formal:
   - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 

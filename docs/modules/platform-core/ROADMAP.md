@@ -133,11 +133,12 @@ Estado práctico de cierre:
       - `Plan operativo actual`
       - add-ons visibles
       - ciclos comerciales visibles
-      - compatibilidad efectiva actual del plan legacy
-      - ruta formal hacia `tenant_subscriptions` y `tenant_subscription_items`
+      - activación efectiva actual desde suscripciones tenant
+      - fallback legacy visible cuando aplica
+      - ruta formal hacia contratación tenant de add-ons
   - el siguiente corte ya no es modelar ni visibilizar el catálogo, sino:
-    - consumir `tenant_subscriptions` y `tenant_subscription_items`
-    - resolver habilitación técnica efectiva desde suscripciones y no solo desde `plan_code`
+    - contratar add-ons desde consola sobre `tenant_subscriptions` y `tenant_subscription_items`
+    - retirar gradualmente el fallback legacy por `plan_code`
     - separar en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
