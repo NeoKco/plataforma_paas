@@ -1990,6 +1990,53 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("plan_code", calls[0]["changed_fields_json"])
         self.assertIn("billing_status", calls[0]["changed_fields_json"])
 
+    def test_tenant_policy_event_service_hides_plan_code_for_contract_managed_tenants(self) -> None:
+        managed_subscription = SimpleNamespace(
+            base_plan_code="base_finance",
+            status="active",
+            current_period_starts_at=datetime.now(timezone.utc) - timedelta(days=5),
+            current_period_ends_at=datetime.now(timezone.utc) + timedelta(days=25),
+        )
+        before_tenant = build_tenant_record_stub(
+            plan_code="basic",
+            billing_status="active",
+            subscription=managed_subscription,
+        )
+        before_tenant.id = 1
+        after_tenant = build_tenant_record_stub(
+            plan_code="pro",
+            billing_status="past_due",
+            subscription=managed_subscription,
+        )
+        after_tenant.id = 1
+        calls = []
+
+        class FakeEventRepository:
+            def save(self, db, *, row):
+                calls.append(row)
+                return SimpleNamespace(id=10, **row, recorded_at=datetime.now(timezone.utc))
+
+        service = TenantPolicyEventService(
+            tenant_policy_change_event_repository=FakeEventRepository()
+        )
+        before_snapshot = service.build_snapshot(before_tenant)
+        after_snapshot = service.build_snapshot(after_tenant)
+
+        self.assertIsNone(before_snapshot["plan_code"])
+        self.assertIsNone(after_snapshot["plan_code"])
+
+        service.record_change(
+            object(),
+            tenant=after_tenant,
+            event_type="billing",
+            previous_state=before_snapshot,
+            new_state=after_snapshot,
+            actor_context={"sub": "1", "email": "admin@platform.local", "role": "superadmin"},
+        )
+
+        self.assertNotIn("plan_code", calls[0]["changed_fields_json"])
+        self.assertIn("billing_status", calls[0]["changed_fields_json"])
+
     def test_tenant_billing_sync_service_applies_event_idempotently(self) -> None:
         tenant = build_tenant_record_stub(
             billing_status="active",
@@ -5205,6 +5252,9 @@ class PlatformRoutesTestCase(unittest.TestCase):
                 plan_enabled_modules="pro=core,users,finance,maintenance"
             ),
         )
+        service.tenant_plan_policy_service.get_enabled_modules = MagicMock(
+            side_effect=AssertionError("legacy plan lookup should not run for contract-managed tenants")
+        )
         tenant = build_tenant_record_stub(
             plan_code="pro",
             subscription=SimpleNamespace(
@@ -5225,6 +5275,38 @@ class PlatformRoutesTestCase(unittest.TestCase):
             ("core", "finance", "users"),
         )
         self.assertEqual(activation_state.activation_source, "subscriptions")
+
+    def test_tenant_service_baseline_policy_state_does_not_fallback_to_plan_code_for_managed_subscription_without_base_plan(
+        self,
+    ) -> None:
+        service = TenantService(
+            tenant_repository=SimpleNamespace(),
+            tenant_plan_policy_service=TenantPlanPolicyService(
+                plan_enabled_modules="pro=core,users,finance,maintenance"
+            ),
+        )
+        service.tenant_plan_policy_service.get_policy = MagicMock(
+            side_effect=AssertionError("legacy baseline policy lookup should not run for contract-managed tenants")
+        )
+        tenant = build_tenant_record_stub(
+            plan_code="pro",
+            subscription=SimpleNamespace(
+                base_plan_code=None,
+                status="active",
+                billing_cycle="monthly",
+                current_period_starts_at=datetime.now(timezone.utc) - timedelta(days=10),
+                current_period_ends_at=datetime.now(timezone.utc) + timedelta(days=20),
+                items=[],
+            ),
+        )
+
+        baseline_state = service.get_tenant_baseline_policy_state(tenant)
+
+        self.assertTrue(baseline_state.subscription_contract_managed)
+        self.assertEqual(baseline_state.source, "subscription_contract")
+        self.assertFalse(baseline_state.legacy_plan_fallback_active)
+        self.assertIsNone(baseline_state.compatibility_policy_code)
+        self.assertEqual(baseline_state.enabled_modules, ("core", "users"))
 
     def test_tenant_service_effective_module_limits_use_subscription_base_plan_for_managed_subscription(
         self,

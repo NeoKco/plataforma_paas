@@ -48,7 +48,12 @@ class TenantPolicyEventService:
             "tenant_slug": tenant.slug,
         }
         for field in self.SNAPSHOT_FIELDS:
-            snapshot[field] = self._normalize_value(getattr(tenant, field, None))
+            value = getattr(tenant, field, None)
+            if field == "plan_code" and self._is_subscription_contract_managed(
+                getattr(tenant, "subscription", None)
+            ):
+                value = None
+            snapshot[field] = self._normalize_value(value)
         return snapshot
 
     def record_change(
@@ -157,3 +162,8 @@ class TenantPolicyEventService:
             return int(value)
         except (TypeError, ValueError):
             return None
+
+    def _is_subscription_contract_managed(self, subscription) -> bool:
+        if subscription is None:
+            return False
+        return getattr(subscription, "current_period_starts_at", None) is not None

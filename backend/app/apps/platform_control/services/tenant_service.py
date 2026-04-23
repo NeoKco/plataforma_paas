@@ -1420,13 +1420,15 @@ class TenantService:
         subscription = getattr(tenant, "subscription", None)
         subscription_is_managed = self._is_subscription_contract_managed(subscription)
 
-        if subscription_is_managed and activation_state.subscription_base_plan_code:
-            base_plan_entry = (
-                self.tenant_module_subscription_policy_service.resolve_base_plan_catalog_entry(
-                    activation_state.subscription_base_plan_code,
-                    tenant_plan_policy_service=self.tenant_plan_policy_service,
+        if subscription_is_managed:
+            base_plan_entry = None
+            if activation_state.subscription_base_plan_code:
+                base_plan_entry = (
+                    self.tenant_module_subscription_policy_service.resolve_base_plan_catalog_entry(
+                        activation_state.subscription_base_plan_code,
+                        tenant_plan_policy_service=self.tenant_plan_policy_service,
+                    )
                 )
-            )
             enabled_modules = tuple(
                 sorted(
                     set(activation_state.subscription_included_modules or ())
@@ -1434,7 +1436,11 @@ class TenantService:
                 )
             ) or None
             return TenantBaselinePolicyState(
-                source="subscription_base_plan",
+                source=(
+                    "subscription_base_plan"
+                    if activation_state.subscription_base_plan_code
+                    else "subscription_contract"
+                ),
                 subscription_contract_managed=True,
                 legacy_plan_fallback_active=bool(
                     activation_state.subscription_legacy_fallback_modules
@@ -1462,7 +1468,9 @@ class TenantService:
                 ),
             )
 
-        legacy_policy = self.tenant_plan_policy_service.get_policy(tenant.plan_code)
+        legacy_policy = None
+        if tenant.plan_code:
+            legacy_policy = self.tenant_plan_policy_service.get_policy(tenant.plan_code)
         return TenantBaselinePolicyState(
             source="legacy_plan_code" if tenant.plan_code else None,
             subscription_contract_managed=False,
@@ -1490,9 +1498,6 @@ class TenantService:
         self,
         tenant: Tenant,
     ) -> TenantModuleActivationState:
-        legacy_plan_modules = tuple(
-            sorted(self.tenant_plan_policy_service.get_enabled_modules(tenant.plan_code) or ())
-        )
         subscription = getattr(tenant, "subscription", None)
         subscription_status = (
             getattr(subscription, "status", None).strip().lower()
@@ -1502,6 +1507,11 @@ class TenantService:
         subscription_billing_cycle = getattr(subscription, "billing_cycle", None)
         subscription_base_plan_code = getattr(subscription, "base_plan_code", None)
         subscription_is_managed = self._is_subscription_contract_managed(subscription)
+        legacy_plan_modules: tuple[str, ...] = ()
+        if not subscription_is_managed and tenant.plan_code:
+            legacy_plan_modules = tuple(
+                sorted(self.tenant_plan_policy_service.get_enabled_modules(tenant.plan_code) or ())
+            )
 
         included_modules: tuple[str, ...] = ()
         addon_modules: tuple[str, ...] = ()
