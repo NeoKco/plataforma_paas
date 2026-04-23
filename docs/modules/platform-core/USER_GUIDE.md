@@ -97,7 +97,7 @@ La base visible actual de la Etapa 15 ya queda así:
    - `Migrar baseline legacy al contrato`
 8. confirmar después que:
    - desaparece el fallback operativo por `plan_code`
-   - `Plan / Base` ya queda leído desde la suscripción contractual
+   - `Plan base` ya queda leído desde la suscripción contractual
 
 Regla operativa:
 
@@ -117,6 +117,9 @@ Regla operativa:
   - deja `plan_code` solo como compatibilidad heredada
 - el bloque `Baseline legacy por plan_code` ya no es camino normal:
   - solo debe aparecer cuando el tenant realmente sigue legacy
+- para tenants contract-managed, la lectura visible normal ya no debe mostrar `plan_code` como baseline:
+  - `Plan base` sale de `subscription_base_plan_code`
+  - `plan_code` solo reaparece si el tenant vuelve a estar realmente legacy
 - `base_plan_catalog` ya expone además la resolución visible de:
   - `compatibility_policy_code`
   - `read_requests_per_minute`

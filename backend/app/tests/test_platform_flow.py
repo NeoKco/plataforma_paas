@@ -5542,6 +5542,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_plan_module_limits, {"finance.entries": 250})
         self.assertTrue(response.subscription_contract_managed)
+        self.assertIsNone(response.tenant_plan_code)
         self.assertEqual(response.module_limits, {"finance.entries": 40})
 
     def test_update_tenant_plan_returns_schema(self) -> None:

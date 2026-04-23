@@ -158,8 +158,12 @@ Estado práctico de cierre:
     - `Tenants > Nuevo tenant` ya usa `Plan Base inicial`
     - `Tenants > Plan y módulos` ya solo muestra baseline legacy cuando el tenant realmente sigue legacy
     - `Provisioning` ya bootstrappea desde `effective_enabled_modules`, no desde `tenant.plan_code`
-  - el siguiente corte ya no es migrar tenants activos ni adaptar el alta, sino:
-    - retirar superficies residuales de compatibilidad `plan_code` del código y de la consola
+  - subcorte nuevo ya cerrado en repo y runtime:
+    - `plan_code` ya sale de la lectura visible normal para tenants contract-managed
+    - `GET /platform/tenants`, `TenantPlanResponse`, respuestas de límites/uso y `tenant_context_middleware` ya lo dejan en `null` salvo que `legacy_plan_fallback_active=true`
+    - `Tenants > Plan y módulos` y `tenant_portal > Resumen` ya muestran `Plan base` como baseline normal y reservan `plan_code` para compatibilidad legacy real
+  - el siguiente corte ya no es migrar tenants activos ni limpiar la lectura visible, sino:
+    - retirar compatibilidad residual `plan_code` más profunda donde ya no aporte
     - dejar explícito si en el futuro reaparece algún tenant realmente legacy fuera del set activo actual
     - seguir separando en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:

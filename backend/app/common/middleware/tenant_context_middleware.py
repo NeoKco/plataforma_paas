@@ -206,7 +206,6 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
 
         request.state.tenant_status = tenant.status
         request.state.tenant_status_reason = tenant.status_reason
-        request.state.tenant_plan_code = tenant.plan_code
         request.state.tenant_billing_status = tenant.billing_status
         request.state.tenant_billing_status_reason = tenant.billing_status_reason
         request.state.tenant_billing_current_period_ends_at = (
@@ -281,6 +280,11 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         )
         request.state.tenant_baseline_compatibility_policy_code = (
             None if baseline_policy is None else baseline_policy.compatibility_policy_code
+        )
+        request.state.tenant_plan_code = (
+            tenant.plan_code
+            if baseline_policy is not None and baseline_policy.legacy_plan_fallback_active
+            else None
         )
         activation_state = self.tenant_service.get_tenant_module_activation_state(tenant)
         request.state.tenant_subscription_base_plan_code = (

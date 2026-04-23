@@ -85,6 +85,7 @@ Documentación base:
     - contratación formal de add-ons desde consola sobre `tenant_subscriptions`
     - `billing`, `grace` y `suspensión` ya se evalúan primero desde la suscripción cuando existe
     - migración de tenants legacy ya disponible por API y script batch
+    - `tenant_plan_code` en middleware y respuestas API ya debe quedar `null` para tenants contract-managed
     - siguiente corte: retiro posterior de superficies residuales de compatibilidad `plan_code`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)

@@ -367,8 +367,12 @@ export function TenantOverviewPage() {
                 value={<StatusBadge value={tenant.billing_status || "unknown"} />}
               />
               <DetailField
-                label={language === "es" ? "Plan" : "Plan"}
-                value={tenant.plan_code || (language === "es" ? "sin plan" : "no plan")}
+                label={language === "es" ? "Plan base" : "Base plan"}
+                value={
+                  tenant.subscription_base_plan_code ||
+                  (tenant.legacy_plan_fallback_active ? tenant.plan_code : null) ||
+                  (language === "es" ? "sin plan base" : "no base plan")
+                }
               />
               <DetailField
                 label={language === "es" ? "Acceso" : "Access"}

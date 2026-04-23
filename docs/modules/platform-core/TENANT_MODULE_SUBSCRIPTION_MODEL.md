@@ -275,6 +275,8 @@ Resultado operativo actual:
 
 - los tenants activos de `staging` y `production` no necesitan fallback legacy para operar
 - el fallback `plan_code` queda acotado a compatibilidad histórica y a un eventual tenant legacy futuro
+  - la lectura visible normal ya no debe exponer `plan_code` para tenants contract-managed
+  - API, middleware, consola y portal tenant solo deben mostrarlo si `legacy_plan_fallback_active=true`
   - `production`: `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
 - expansión de `GET /platform/capabilities` con:
   - `subscription_activation_model`
@@ -334,7 +336,7 @@ Además del corte técnico ya promovido, la consola visible ya quedó adaptada a
 
 ## Siguiente corte técnico recomendado
 
-1. migrar los tenants legacy restantes al modelo contractual nuevo
-2. retirar luego el fallback legacy total por `plan_code`
-3. seguir manteniendo separada la habilitación técnica efectiva del contrato comercial
-4. recién después cerrar la limpieza final del baseline legacy en consola y API
+1. retirar luego la compatibilidad `plan_code` más profunda que todavía sobreviva en código
+2. seguir manteniendo separada la habilitación técnica efectiva del contrato comercial
+3. mantener la visibilidad legacy solo para tenants realmente heredados si reaparecen
+4. recién después cerrar la limpieza final del baseline legacy profundo en consola y API

@@ -196,6 +196,9 @@ def _build_tenant_response(tenant) -> TenantResponse:
     baseline_policy = tenant_service.get_tenant_baseline_policy_state(tenant)
     effective_enabled_modules = tenant_service.get_effective_enabled_modules(tenant)
     subscription = getattr(tenant, "subscription", None)
+    visible_legacy_plan_code = (
+        tenant.plan_code if baseline_policy.legacy_plan_fallback_active else None
+    )
     return TenantResponse(
         id=tenant.id,
         name=tenant.name,
@@ -212,7 +215,7 @@ def _build_tenant_response(tenant) -> TenantResponse:
         tenant_db_credentials_rotated_at=getattr(
             tenant, "tenant_db_credentials_rotated_at", None
         ),
-        plan_code=tenant.plan_code,
+        plan_code=visible_legacy_plan_code,
         subscription_contract_managed=baseline_policy.subscription_contract_managed,
         legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
         baseline_policy_source=baseline_policy.source,
@@ -1061,7 +1064,9 @@ def get_tenant_finance_usage(
         tenant_id=tenant.id,
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
-        tenant_plan_code=tenant.plan_code,
+        tenant_plan_code=(
+            tenant.plan_code if baseline_policy.legacy_plan_fallback_active else None
+        ),
         subscription_contract_managed=baseline_policy.subscription_contract_managed,
         legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
         baseline_policy_source=baseline_policy.source,
@@ -1125,7 +1130,9 @@ def get_tenant_module_usage(
         tenant_id=tenant.id,
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
-        tenant_plan_code=tenant.plan_code,
+        tenant_plan_code=(
+            tenant.plan_code if baseline_policy.legacy_plan_fallback_active else None
+        ),
         subscription_contract_managed=baseline_policy.subscription_contract_managed,
         legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
         baseline_policy_source=baseline_policy.source,
@@ -1458,7 +1465,9 @@ def update_tenant_rate_limits(
         tenant_id=tenant.id,
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
-        tenant_plan_code=tenant.plan_code,
+        tenant_plan_code=(
+            tenant.plan_code if baseline_policy.legacy_plan_fallback_active else None
+        ),
         subscription_contract_managed=baseline_policy.subscription_contract_managed,
         legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
         baseline_policy_source=baseline_policy.source,
@@ -1503,7 +1512,9 @@ def update_tenant_module_limits(
         tenant_id=tenant.id,
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
-        tenant_plan_code=tenant.plan_code,
+        tenant_plan_code=(
+            tenant.plan_code if baseline_policy.legacy_plan_fallback_active else None
+        ),
         subscription_contract_managed=baseline_policy.subscription_contract_managed,
         legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
         baseline_policy_source=baseline_policy.source,
@@ -1553,7 +1564,9 @@ def update_tenant_plan(
         tenant_id=tenant.id,
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
-        tenant_plan_code=tenant.plan_code,
+        tenant_plan_code=(
+            tenant.plan_code if baseline_policy.legacy_plan_fallback_active else None
+        ),
         subscription_contract_managed=baseline_policy.subscription_contract_managed,
         legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
         baseline_policy_source=baseline_policy.source,

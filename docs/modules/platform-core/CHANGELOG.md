@@ -2,6 +2,23 @@
 
 ## 2026-04-23
 
+- la `Etapa 15` ya retira `plan_code` de la lectura visible normal para tenants contract-managed:
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ya expone `plan_code` / `tenant_plan_code` solo cuando `legacy_plan_fallback_active=true`
+  - [tenant_context_middleware.py](/home/felipe/platform_paas/backend/app/common/middleware/tenant_context_middleware.py) ya deja `request.state.tenant_plan_code=null` para tenants contract-managed
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) normaliza `Plan base` como baseline visible y deja el bloque/chip legacy solo para tenants realmente heredados
+  - [TenantOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/overview/TenantOverviewPage.tsx) ya muestra `Plan base` y usa `plan_code` solo como fallback legacy real
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `216 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend deploy -> `549 tests OK`, auditoría `processed=4, warnings=0, failed=0`
+    - `production` backend deploy -> `549 tests OK`, auditoría `processed=4, warnings=0, failed=0`
+    - frontend publicado:
+      - `staging`: `SettingsPage-CFyqMqrB.js`, `TenantsPage-CwTtK5zZ.js`, `TenantOverviewPage-BMVmgh3I.js`, `ProvisioningPage-Ct6n6eMs.js`, `BillingPage-DlvNI2Dt.js`, `DashboardPage-AlaUALix.js`, `index-B4n_FFVI.js`
+      - `production`: `SettingsPage-Dzi2iSbq.js`, `TenantsPage-Ds-ykjHt.js`, `TenantOverviewPage-Bo1IwQVl.js`, `ProvisioningPage-DXZMhjAQ.js`, `BillingPage-CCSha2G2.js`, `DashboardPage-CCeF97gI.js`, `index-CRtxaUD4.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - la `Etapa 15` ya saca `plan_code` del carril normal de alta y bootstrap:
   - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) agrega `base_plan_code` en `TenantCreateRequest` y deja `plan_code` solo como compatibilidad
   - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ya crea tenants nuevos pasando `base_plan_code`

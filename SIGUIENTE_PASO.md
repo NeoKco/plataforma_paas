@@ -45,12 +45,13 @@
 - siguiente paso correcto del roadmap:
   - `business-core` y el hardening inmediato de `Provisioning/DLQ` ya quedan suficientemente institucionalizados; no corresponde seguir limándolos por inercia
   - la prioridad vigente dentro de la `Etapa 15` pasa a ser:
-    - retirar superficies residuales de compatibilidad `plan_code` donde ya no aportan
+    - retirar el fallback residual de `plan_code` en superficies de código donde todavía sobreviva como compatibilidad profunda
     - dejar visibilidad explícita de legacy solo si reaparece un tenant realmente heredado
   - lo ya cerrado y que no debe reabrirse:
     - tenants nuevos ya nacen contract-managed desde `base_plan_code`
     - `Provisioning` ya bootstrappea por `effective_enabled_modules`
     - los 4 tenants activos de `staging` y `production` ya están gestionados por contrato y sin `plan_code` activo
+    - la consola y el portal tenant ya no muestran `plan_code` como baseline normal para tenants contract-managed
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual

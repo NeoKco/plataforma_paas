@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - la `Etapa 15` ya retira `plan_code` de la lectura visible normal para tenants contract-managed
+
+- objetivo:
+  - limpiar las superficies residuales donde `plan_code` seguía apareciendo como baseline normal aunque el tenant ya estuviera gestionado por contrato
+  - dejar la visibilidad legacy solo para tenants con `legacy_plan_fallback_active`
+- cambios y acciones ejecutadas:
+  - [backend/app/apps/platform_control/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py):
+    - `TenantResponse`, `TenantPlanResponse` y respuestas de uso/límites ya devuelven `plan_code`/`tenant_plan_code` solo cuando el tenant sigue legacy
+  - [backend/app/common/middleware/tenant_context_middleware.py](/home/felipe/platform_paas/backend/app/common/middleware/tenant_context_middleware.py):
+    - `request.state.tenant_plan_code` ya queda en `null` para tenants contract-managed
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - normaliza `Plan base` como baseline visible
+    - deja el chip `legacy: <plan_code>` y el bloque legacy solo cuando el tenant realmente sigue heredado
+  - [frontend/src/apps/tenant_portal/pages/overview/TenantOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/overview/TenantOverviewPage.tsx):
+    - cambia la lectura visible a `Plan base`
+    - usa `plan_code` solo como fallback legacy real
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_flow -v` -> `96 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `216 tests OK`
+  - `staging` backend deploy -> `549 tests OK`
+  - `production` backend deploy -> `549 tests OK`
+  - `staging` publicado con `SettingsPage-CFyqMqrB.js`, `TenantsPage-CwTtK5zZ.js`, `TenantOverviewPage-BMVmgh3I.js`, `ProvisioningPage-Ct6n6eMs.js`, `BillingPage-DlvNI2Dt.js`, `DashboardPage-AlaUALix.js`, `index-B4n_FFVI.js`
+  - `production` publicado con `SettingsPage-Dzi2iSbq.js`, `TenantsPage-Ds-ykjHt.js`, `TenantOverviewPage-Bo1IwQVl.js`, `ProvisioningPage-DXZMhjAQ.js`, `BillingPage-CCSha2G2.js`, `DashboardPage-CCeF97gI.js`, `index-CRtxaUD4.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- resultado:
+  - `plan_code` deja de ser lectura normal para tenants contract-managed
+  - la compatibilidad legacy queda visible solo si reaparece un tenant realmente heredado
+  - el siguiente paso pasa a ser retirar compatibilidad `plan_code` más profunda donde ya no aporte
+
 ## 2026-04-23 - la `Etapa 15` ya saca `plan_code` del camino normal de alta y bootstrap
 
 - objetivo:

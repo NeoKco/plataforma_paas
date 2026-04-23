@@ -302,6 +302,11 @@ export function TenantsPage() {
 
   const selectedTenantSummary =
     tenants.find((tenant) => tenant.id === selectedTenantId) || selectedTenant;
+  const selectedTenantVisibleBaseCode =
+    selectedTenantSummary?.subscription_base_plan_code ||
+    (selectedTenantSummary?.legacy_plan_fallback_active
+      ? selectedTenantSummary?.plan_code
+      : null);
 
   const createTenantPasswordsMatch =
     createTenantAdminPassword.length > 0 &&
@@ -393,7 +398,7 @@ export function TenantsPage() {
   );
 
   const selectedTenantPlanCatalog =
-    selectedTenantSummary?.plan_code
+    selectedTenantSummary?.legacy_plan_fallback_active && selectedTenantSummary?.plan_code
       ? planCatalogByCode.get(selectedTenantSummary.plan_code) || null
       : null;
   const selectedTenantEffectiveModules =
@@ -968,7 +973,11 @@ export function TenantsPage() {
     setMaintenanceReason(selectedTenantSummary.maintenance_reason || "");
     setMaintenanceScopes(selectedTenantSummary.maintenance_scopes || ["all"]);
     setMaintenanceAccessMode(selectedTenantSummary.maintenance_access_mode);
-    setPlanCode(selectedTenantSummary.plan_code || "");
+    setPlanCode(
+      selectedTenantSummary.legacy_plan_fallback_active
+        ? selectedTenantSummary.plan_code || ""
+        : ""
+    );
     setSubscriptionBasePlanCode(
       selectedTenantSummary.subscription_base_plan_code ||
         defaultBasePlanCatalog?.plan_code ||
@@ -1354,7 +1363,11 @@ export function TenantsPage() {
       details: [
         `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
         `${language === "es" ? "Plan actual" : "Current plan"}: ${
-          selectedTenantSummary?.plan_code || (language === "es" ? "sin plan" : "no plan")
+          selectedTenantSummary?.legacy_plan_fallback_active
+            ? selectedTenantSummary?.plan_code || (language === "es" ? "sin plan" : "no plan")
+            : language === "es"
+              ? "sin baseline legacy"
+              : "no legacy baseline"
         }`,
         `${language === "es" ? "Nuevo plan" : "New plan"}: ${
           normalizeNullableString(planCode) || (language === "es" ? "sin plan" : "no plan")
@@ -1434,7 +1447,8 @@ export function TenantsPage() {
       details: [
         `Tenant: ${selectedTenantSummary.name || "n/a"}`,
         `${language === "es" ? "Plan legacy actual" : "Current legacy plan"}: ${
-          selectedTenantSummary.plan_code || (language === "es" ? "sin plan" : "no plan")
+          selectedTenantSummary.plan_code ||
+            (language === "es" ? "sin baseline legacy" : "no legacy baseline")
         }`,
         `${language === "es" ? "Plan Base resultante" : "Resulting base plan"}: ${
           selectedTenantSummary.subscription_base_plan_code ||
@@ -2592,10 +2606,15 @@ export function TenantsPage() {
                                   tenant.subscription_base_plan_code ||
                                   (language === "es" ? "ninguno" : "none")
                                 }`
-                              : `plan: ${
+                              : `${language === "es" ? "base" : "base"}: ${
                                   tenant.plan_code || (language === "es" ? "ninguno" : "none")
                                 }`}
                           </span>
+                          {tenant.legacy_plan_fallback_active && tenant.plan_code ? (
+                            <span className="tenant-chip tenant-chip--warning">
+                              legacy: {tenant.plan_code}
+                            </span>
+                          ) : null}
                           <span className="tenant-chip">
                             {language === "es" ? "modelo" : "model"}:{" "}
                             {getTenantContractManagementLabel(
@@ -2740,13 +2759,10 @@ export function TenantsPage() {
                     }
                   />
                   <DetailField
-                    label={language === "es" ? "Plan / Base" : "Plan / Base"}
+                    label={language === "es" ? "Plan base" : "Base plan"}
                     value={
-                      selectedTenantSummary.subscription_contract_managed
-                        ? selectedTenantSummary.subscription_base_plan_code ||
-                          (language === "es" ? "Sin plan base" : "No base plan")
-                        : selectedTenantSummary.plan_code ||
-                          (language === "es" ? "Sin plan" : "No plan")
+                      selectedTenantVisibleBaseCode ||
+                      (language === "es" ? "Sin plan base" : "No base plan")
                     }
                   />
                   <DetailField
@@ -2887,8 +2903,8 @@ export function TenantsPage() {
                   :{" "}
                   {selectedTenantSummary.subscription_contract_managed
                     ? language === "es"
-                      ? "este tenant ya calcula activación y baseline técnico desde `tenant_subscriptions`; `plan_code` queda solo como compatibilidad visible si aún existe."
-                      : "this tenant already computes activation and technical baseline from `tenant_subscriptions`; `plan_code` remains only as visible compatibility when still present."
+                      ? "este tenant ya calcula activación y baseline técnico desde `tenant_subscriptions`; la compatibilidad legacy ya no forma parte de la lectura normal."
+                      : "this tenant already computes activation and technical baseline from `tenant_subscriptions`; legacy compatibility is no longer part of the normal reading."
                     : language === "es"
                       ? "este tenant todavía mantiene baseline/fallback legacy por `plan_code`; el siguiente paso es recontratarlo al modelo `Plan Base + add-ons`."
                       : "this tenant still keeps the legacy `plan_code` baseline/fallback; the next step is to recontract it into the `Base plan + add-ons` model."}
@@ -4371,8 +4387,8 @@ export function TenantsPage() {
                         label={language === "es" ? "Plan Base" : "Base plan"}
                         help={
                           language === "es"
-                            ? "El tenant siempre debe mantener un Plan Base activo. Aquí ya no se usa `plan_code`, sino la suscripción formal."
-                            : "The tenant must always keep an active Base plan. This writes the formal subscription instead of `plan_code`."
+                          ? "El tenant siempre debe mantener un Plan Base activo. Aquí escribes la suscripción formal."
+                          : "The tenant must always keep an active Base plan. This writes the formal subscription."
                         }
                         placement="left"
                       />

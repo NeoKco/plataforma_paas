@@ -825,6 +825,7 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
         self.assertEqual(request.state.tenant_plan_api_read_requests_per_minute, 120)
         self.assertEqual(request.state.tenant_plan_api_write_requests_per_minute, 40)
         self.assertEqual(request.state.tenant_plan_module_limits, {"finance.entries": 250})
+        self.assertIsNone(request.state.tenant_plan_code)
         self.assertEqual(
             request.state.tenant_plan_enabled_modules,
             ("core", "finance", "users"),
@@ -1754,7 +1755,7 @@ class TenantRoutesTestCase(unittest.TestCase):
     def test_tenant_info_reads_tenant_info_from_service(self) -> None:
         tenant_record = build_tenant_record_stub()
         request = self._request()
-        request.state.tenant_plan_code = "pro"
+        request.state.tenant_plan_code = None
         request.state.tenant_plan_enabled_modules = ("core", "finance", "users")
         request.state.tenant_subscription_base_plan_code = "base_finance"
         request.state.tenant_subscription_status = "active"
@@ -1826,7 +1827,7 @@ class TenantRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.tenant.maintenance_finance_sync_mode, "auto_on_close")
         self.assertTrue(response.tenant.maintenance_finance_auto_sync_income)
         self.assertTrue(response.tenant.maintenance_finance_auto_sync_expense)
-        self.assertEqual(response.tenant.plan_code, "pro")
+        self.assertIsNone(response.tenant.plan_code)
         self.assertEqual(response.tenant.plan_enabled_modules, ["core", "finance", "users"])
         self.assertEqual(response.tenant.subscription_base_plan_code, "base_finance")
         self.assertEqual(response.tenant.subscription_status, "active")
