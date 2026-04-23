@@ -65,9 +65,20 @@ Capabilities:
 
 - `GET /platform/capabilities`
 
+Payload operativo actual de `GET /platform/capabilities`:
+
+- `plan_catalog`
+- `plan_modules`
+- `module_dependency_catalog`
+- `current_provisioning_dispatch_backend`
+
 ## Notas
 
 - la referencia detallada de contratos sigue viviendo en la documentación API general
+- `module_dependency_catalog` hoy expone filas tipo:
+  - `module_key`
+  - `requires_modules`
+  - `reason`
 - el payload `export_scope` hoy soporta:
   - `portable_full`
   - `functional_data_only`

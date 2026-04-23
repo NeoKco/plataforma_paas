@@ -2,6 +2,20 @@
 
 ## 2026-04-22
 
+- `Etapa 15. Registro y Activación de Módulos` ya cierra también su segundo slice visible backend-driven:
+  - [tenant_plan_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_plan_policy_service.py) agrega el catálogo formal `module_dependency_catalog`
+  - [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) lo expone en `GET /platform/capabilities`
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) agrega `Dependencias entre módulos`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ya muestra si el plan seleccionado cubre o no las dependencias requeridas
+  - validación:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `201 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+    - `staging` backend redeployado con `530 tests OK`
+    - `production` backend redeployado con `530 tests OK`
+    - `staging` publicado con `SettingsPage-CjfCgUmL.js`, `TenantsPage-B58mHQaa.js`, `DashboardPage-B8q3Ct16.js`, `ProvisioningPage-Bjc1b95N.js`, `BillingPage-DyyqyV3V.js`, `index-DF1mJwiA.js`
+    - `production` publicado con `SettingsPage-5tn2P9AX.js`, `TenantsPage-C4oOzxQR.js`, `DashboardPage-DjW0RbOv.js`, `ProvisioningPage-7YYCSQZ5.js`, `BillingPage-Ca-L2Ndq.js`, `index-CMImtbe0.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - `Etapa 15. Registro y Activación de Módulos` ya abre su primer slice visible backend-driven:
   - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) agrega `Catálogo de planes y módulos` y una lectura corta de `Registro y activación de módulos`
   - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ya deja explícita la `Ruta formal de activación` y muestra módulos declarados por backend y límites por módulo del plan seleccionado antes de aplicar cambios

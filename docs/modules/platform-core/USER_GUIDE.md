@@ -69,15 +69,19 @@ La primera base operativa de la Etapa 15 ya queda visible así:
 
 1. abrir `Configuración`
 2. revisar `Catálogo de planes y módulos`
-3. confirmar qué módulos y límites por módulo declara backend para cada plan
+3. revisar `Dependencias entre módulos`
+4. confirmar qué módulos, límites por módulo y dependencias declara backend para cada plan
 4. abrir `Tenants`
 5. usar `Plan y módulos` para activar la combinación correcta en un tenant específico
+6. leer ahí mismo si el plan cubre o no las dependencias requeridas antes de aplicar cambios
 
 Regla operativa:
 
 - el catálogo de módulos hoy sale de backend
+- las dependencias explícitas entre módulos también salen de backend mediante `module_dependency_catalog`
 - la activación tenant-side sigue siendo plan-driven
 - los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
+- la decisión aún pendiente ya no es si existen dependencias, sino si la activación seguirá siendo solo por plan o si se abrirán excepciones formales por tenant
 
 ### Operar provisioning
 

@@ -39,14 +39,21 @@
     - `production`: `BusinessCoreOrganizationsPage-CLlis1R1.js`, `BusinessCoreClientsPage-CGOF_S12.js`, `BusinessCoreSocialCommunityGroupsPage-D6XFyHWl.js`, `BusinessCoreCommonOrganizationNamePage-BKYh6HeR.js`, `index-BfxowxkW.js`
     - este corte deja cerrada la tercera ola visible de dirección propia y filtros/detalle por grupo social común
   El resto del frente transversal sigue igual de alineado: snapshots JSON de convergencia, `secret_posture`, deploy backend repo -> runtime, rollback desde `SOURCE_REPO_ROOT`, smoke base institucionalizado y ambos ambientes críticos 4/4 en verde. Con este corte adicional, `Provisioning/DLQ` y el hardening visible inmediato de `platform_admin` ya quedan suficientemente institucionalizados para salir del foco activo.
-  Primer slice visible ya cerrado en runtime dentro de la `Etapa 15. Registro y Activación de Módulos`:
+  La `Etapa 15. Registro y Activación de Módulos` ya deja dos slices visibles cerrados en runtime:
   - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya expone `Catálogo de planes y módulos` y una lectura corta de `Registro y activación de módulos`
   - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ya deja explícita la `Ruta formal de activación` y muestra módulos y límites por módulo del plan seleccionado antes de aplicar
-  - el slice se apoya en `plan_catalog` y `plan_modules` de `GET /platform/capabilities` como fuente de verdad backend-driven
+  - el mismo frente ya expone además dependencias explícitas backend-driven:
+    - `GET /platform/capabilities` ya incluye `module_dependency_catalog`
+    - `Configuración` ya muestra `Dependencias entre módulos`
+    - `Tenants > Plan y módulos` ya indica si el plan cubre o no las dependencias requeridas antes de aplicar
+  - el slice se apoya en `plan_catalog`, `plan_modules` y `module_dependency_catalog` como fuentes de verdad backend-driven
   - validación:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `201 tests OK`
     - `cd frontend && npm run build` -> `OK`
-    - `staging` publicado con `SettingsPage-Bq7Xiyko.js`, `TenantsPage-wL8Ai7PO.js`, `DashboardPage-CSX9vNvH.js`, `ProvisioningPage-BQ4phs-J.js`, `BillingPage-CnLhJhaf.js`, `index-CM3Bv8ns.js`
-    - `production` publicado con `SettingsPage-Cpl5FIIa.js`, `TenantsPage-kN_U9TbX.js`, `DashboardPage-DJiASzzX.js`, `ProvisioningPage-DVRj0jqk.js`, `BillingPage-CmmsK6ct.js`, `index-ntzjsIr4.js`
+    - `staging` backend redeployado con `530 tests OK`
+    - `production` backend redeployado con `530 tests OK`
+    - `staging` publicado con `SettingsPage-CjfCgUmL.js`, `TenantsPage-B58mHQaa.js`, `DashboardPage-B8q3Ct16.js`, `ProvisioningPage-Bjc1b95N.js`, `BillingPage-DyyqyV3V.js`, `index-DF1mJwiA.js`
+    - `production` publicado con `SettingsPage-5tn2P9AX.js`, `TenantsPage-C4oOzxQR.js`, `DashboardPage-DjW0RbOv.js`, `ProvisioningPage-7YYCSQZ5.js`, `BillingPage-Ca-L2Ndq.js`, `index-CMImtbe0.js`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   Subcorte nuevo ya cerrado en repo dentro de ese frente:
   - [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh) centraliza el dispatch broker-only `target -> specs`

@@ -1,5 +1,41 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - `Etapa 15` cierra también dependencias explícitas backend-driven en `Configuración` y `Tenants`
+
+- objetivo:
+  - cerrar el siguiente subcorte formal de la `Etapa 15. Registro y Activación de Módulos` dejando dependencias explícitas entre módulos visibles en consola y gobernadas desde backend
+- cambios y acciones ejecutadas:
+  - [tenant_plan_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_plan_policy_service.py):
+    - agrega catálogo formal `module_dependency_catalog`
+    - define dependencias iniciales y razones operativas por módulo
+  - [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py):
+    - incorpora `module_dependency_catalog` a `GET /platform/capabilities`
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py):
+    - agrega el contrato serializado del catálogo de dependencias
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+    - agrega `Dependencias entre módulos`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - muestra si el plan seleccionado cubre o no las dependencias requeridas
+  - documentación alineada en:
+    - [docs/architecture/development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)
+    - [docs/modules/platform-core/API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/platform-core/API_REFERENCE.md)
+    - [docs/modules/platform-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
+    - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+    - [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
+    - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `201 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+  - `staging` backend redeployado con `530 tests OK`
+  - `production` backend redeployado con `530 tests OK`
+  - `staging` publicado con `SettingsPage-CjfCgUmL.js`, `TenantsPage-B58mHQaa.js`, `DashboardPage-B8q3Ct16.js`, `ProvisioningPage-Bjc1b95N.js`, `BillingPage-DyyqyV3V.js`, `index-DF1mJwiA.js`
+  - `production` publicado con `SettingsPage-5tn2P9AX.js`, `TenantsPage-C4oOzxQR.js`, `DashboardPage-DjW0RbOv.js`, `ProvisioningPage-7YYCSQZ5.js`, `BillingPage-Ca-L2Ndq.js`, `index-CMImtbe0.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - `bash deploy/check_release_governance.sh` -> `OK`
+- resultado:
+  - la Etapa 15 ya no solo muestra catálogo de planes y módulos; ahora también expone dependencias explícitas entre módulos desde backend
+  - la siguiente decisión formal ya no es modelar dependencias, sino decidir si la activación seguirá siendo solo plan-driven o abrirá excepciones formales por tenant
+
 ## 2026-04-22 - `Etapa 15` abre su primer slice visible en `Configuración` y `Tenants`
 
 - objetivo:

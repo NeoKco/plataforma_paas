@@ -50,7 +50,9 @@ Documentación base:
 - si `Provisioning` muestra o condiciona recorridos broker-only, la fuente de verdad visible del entorno debe salir del catálogo de capacidades y no de inferencias locales; hoy eso se expone como `current_provisioning_dispatch_backend`
 - la apertura formal de `Etapa 15` también queda backend-driven:
   - `plan_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo de módulos y planes
+  - `module_dependency_catalog` de ese mismo endpoint es la fuente de verdad de las dependencias explícitas entre módulos
   - `Tenants > Plan y módulos` sigue siendo la superficie de activación tenant-side
+  - `Configuración` ya expone tanto el catálogo de planes/módulos como el catálogo de dependencias
   - no reintroducir toggles de módulos sueltos mientras la política activa siga siendo plan-driven
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal
 - en `tenant_portal`, `Usuarios` debe seguir el mismo patrón: catálogo visible primero y alta solo bajo demanda desde botón
@@ -211,6 +213,7 @@ Regla vigente para `Nuevo tenant` en `platform_admin`:
 - los módulos no se habilitan manualmente uno a uno en el alta: se habilitan por `plan`
 - el modal de `Nuevo tenant` ya debe mostrar claramente qué módulos habilita el plan seleccionado
 - el bloque operativo para cambiar módulos en un tenant existente es `Plan y módulos` dentro de `Tenants`
+- ese mismo bloque ya debe dejar visible si el plan cubre o no las dependencias requeridas
 
 Cobertura actual:
 

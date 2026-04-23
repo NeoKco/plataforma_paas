@@ -97,9 +97,9 @@
         - `Tenants > Plan y módulos` deja explícita la ruta formal de activación tenant-side
         - el mismo bloque ya muestra límites por módulo del plan seleccionado
       - siguiente paso correcto dentro de la Etapa 15:
-        - modelar dependencias explícitas entre módulos y volverlas visibles en consola
-        - después decidir si la activación/desactivación tenant seguirá siendo solo plan-driven o abrirá excepciones formales por tenant
-        - por último separar mejor catálogo de módulos, límites por módulo y degradación por billing grace en la UI operativa
+        - decidir si la activación/desactivación tenant seguirá siendo solo plan-driven o abrirá excepciones formales por tenant
+        - después separar mejor catálogo de módulos, límites por módulo y degradación por billing grace en la UI operativa
+        - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la asignación del `Grupo social común`
