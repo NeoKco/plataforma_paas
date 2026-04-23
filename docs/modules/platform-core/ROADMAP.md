@@ -169,8 +169,12 @@ Estado práctico de cierre:
   - subcorte nuevo ya cerrado en repo y runtime:
     - `seed_frontend_demo_baseline.py` y `seed_demo_data.py` ya generan tenants demo contract-managed desde `base_plan_code`
     - `audit_active_tenant_convergence.py` ya lee módulos efectivos desde `effective_enabled_modules`
+  - subcorte nuevo ya cerrado en repo y runtime:
+    - `tenant_service` ya no consulta módulos ni baseline legacy para tenants contract-managed solo por arrastre histórico de `plan_code`
+    - `tenant_policy_event_service` ya deja `plan_code=null` en snapshots y `changed_fields` para tenants contract-managed
+    - el baseline contractual sin `base_plan_code` ya no recae en `legacy_plan_code`; se informa como `subscription_contract`
   - el siguiente corte ya no es migrar tenants activos ni limpiar la lectura visible, sino:
-    - retirar compatibilidad residual `plan_code` más profunda donde ya no aporte
+    - revisar si todavía queda algún consumidor real de `plan_code` en `platform_capability_service`, reportes o capas históricas
     - dejar explícito si en el futuro reaparece algún tenant realmente legacy fuera del set activo actual
     - seguir separando en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:

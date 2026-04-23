@@ -3918,6 +3918,35 @@
   - este corte quedó supersedido el mismo `2026-04-22` por la introducción de `social_community_groups`
   - la detección por similitud se mantiene, pero ya no escribe `legal_name`; ahora crea o reutiliza un grupo social común y asigna `business_clients.social_community_group_id`
 
+# 2026-04-23 - Recorte residual de `plan_code` en policy/runtime contractual
+
+- objetivo:
+  - seguir retirando el fallback profundo de `plan_code` donde todavía podía contaminar tenants ya contract-managed
+- diagnóstico:
+  - `tenant_service.get_tenant_module_activation_state(...)` todavía resolvía módulos legacy antes de comprobar si el tenant seguía legacy
+  - `tenant_service.get_tenant_baseline_policy_state(...)` todavía podía caer a `legacy_plan_code` si un tenant contract-managed venía con `base_plan_code` nulo
+  - `tenant_policy_event_service` seguía serializando `plan_code` en snapshots aun cuando el tenant ya no operaba por ese carril
+- cambios principales:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+    - el lookup `tenant_plan_policy_service.get_enabled_modules(...)` ya no corre para tenants contract-managed
+    - el baseline resuelto para tenants contract-managed ya no vuelve al carril legacy; si falta `base_plan_code`, queda como `source=subscription_contract`
+    - el lookup `tenant_plan_policy_service.get_policy(...)` ya no corre si no existe `plan_code`
+  - [tenant_policy_event_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_policy_event_service.py):
+    - snapshots y `changed_fields` ya fuerzan `plan_code=null` para tenants contract-managed
+  - [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py):
+    - cobertura nueva para asegurar que el path contractual no consulta legacy modules
+    - cobertura nueva para asegurar que el baseline contractual sin `base_plan_code` no cae a `plan_code`
+    - cobertura nueva para asegurar que los snapshots de policy no marcan cambios falsos de `plan_code`
+- validaciones:
+  - `backend.app.tests.test_platform_flow` -> `220 tests OK`
+  - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+  - `python3 -m py_compile backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/services/tenant_policy_event_service.py` -> `OK`
+  - `staging` backend deploy -> `553 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `production` backend deploy -> `553 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+- resultado:
+  - el fallback legacy ya no se ejecuta accidentalmente para tenants contract-managed por arrastre histórico de `plan_code`
+  - `plan_code` queda más acotado a compatibilidad real y deja de ensuciar snapshots/policy history del carril contractual
+
 # 2026-04-15 - Default task_type en OT abiertas
 
 - objetivo:

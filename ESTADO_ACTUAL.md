@@ -39,6 +39,25 @@
   - esto deja fuera del carril normal los seeds/auditorías que todavía fabricaban o leían baseline legacy como si fuera la fuente principal
   - `staging` backend redeployado con `551 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
   - `production` backend redeployado con `551 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+- subcorte adicional ya cerrado en repo y runtime dentro de la misma `Etapa 15`:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya no consulta módulos ni baseline legacy por `plan_code` cuando el tenant ya es `contract-managed`, aunque todavía exista un `plan_code` histórico cargado
+  - el baseline resuelto para tenants contract-managed ya no puede volver a caer al carril legacy por ausencia puntual de `base_plan_code`; ahora queda como `source=subscription_contract` y sin fallback legacy activo
+  - [tenant_policy_event_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_policy_event_service.py) ya fuerza `plan_code=null` dentro de snapshots y `changed_fields` para tenants contract-managed, dejando el rastro legacy solo para tenants realmente heredados
+  - cobertura nueva en [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py):
+    - un tenant contractual ya no dispara `tenant_plan_policy_service.get_enabled_modules(...)`
+    - un tenant contractual sin `base_plan_code` ya no reusa `plan_code` como baseline oculto
+    - los snapshots de policy ya no marcan cambios falsos de `plan_code` en tenants contract-managed
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `220 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/services/tenant_policy_event_service.py` -> `OK`
+  - validación runtime:
+    - `staging` backend redeployado con `553 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend redeployado con `553 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - snapshot `staging`: `/opt/platform_paas_staging/operational_evidence/active_tenant_convergence_20260423_121019.json`
+    - snapshot `production`: `/opt/platform_paas/operational_evidence/active_tenant_convergence_20260423_121019.json`
+    - evidencia `staging`: `/opt/platform_paas_staging/operational_evidence/backend_operational_evidence_20260423_121020.log`
+    - evidencia `production`: `/opt/platform_paas/operational_evidence/backend_operational_evidence_20260423_121020.log`
 - foco de iteración: el roadmap ya dejó suficientemente institucionalizado `platform-core hardening + E2E sobre Provisioning y DLQ` y ya abrió formalmente la `Etapa 15. Registro y Activación de Módulos`. El frente anterior queda cerrado en repo y runtime: el bloque broker-only de `Provisioning/DLQ` ya no mantiene el mapping `target -> specs` duplicado entre helper local, helper published y workflow manual; ahora existe un runner compartido [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh), consumido por [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh), [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) y [.github/workflows/frontend-broker-dlq-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-broker-dlq-e2e.yml). Después, ya quedó institucionalizado un baseline published curado de `Provisioning/DLQ` mediante [run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh): siempre corre `dispatch-capability + surface-gating + observability-visible`, y suma broker-only solo cuando el entorno realmente usa `broker`. Para sostener esa pasada published sin depender de seeds en producción, se agrega además el smoke [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts). Y ese baseline ya quedó convertido en rutina operativa explícita por ambiente con:
   - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
   - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)

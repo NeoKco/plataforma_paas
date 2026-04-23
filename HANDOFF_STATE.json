@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-23T18:02:00-04:00",
+  "updated_at": "2026-04-23T12:15:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ, business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. Dentro de la Etapa 15, `Configuración` y `Tenants > Plan y módulos` ya reflejan `Plan Base + add-ons`, la activación efectiva ya consume `tenant_subscriptions`, la contratación formal de add-ons ya se opera desde consola, billing/grace/suspensión y el baseline técnico de cuotas/límites ya salen del contrato cuando existe, los 4 tenants activos de `staging` y `production` ya quedaron migrados al contrato nuevo sin `plan_code` activo, el alta nueva ya nace contractual solo desde `base_plan_code`, `PATCH /platform/tenants/{tenant_id}/plan` ya no aplica a tenants contract-managed, y los scripts operativos internos de demo/auditoría ya dejaron de reforzar `plan_code` como baseline normal.",
+  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ, business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. Dentro de la Etapa 15, `Configuración` y `Tenants > Plan y módulos` ya reflejan `Plan Base + add-ons`, la activación efectiva ya consume `tenant_subscriptions`, la contratación formal de add-ons ya se opera desde consola, billing/grace/suspensión y el baseline técnico de cuotas/límites ya salen del contrato cuando existe, los 4 tenants activos de `staging` y `production` ya quedaron migrados al contrato nuevo sin `plan_code` activo, el alta nueva ya nace contractual solo desde `base_plan_code`, `PATCH /platform/tenants/{tenant_id}/plan` ya no aplica a tenants contract-managed, los scripts operativos internos de demo/auditoría ya dejaron de reforzar `plan_code` como baseline normal y el fallback profundo de `plan_code` ya no se consulta accidentalmente dentro de `tenant_service` ni ensucia snapshots de policy para tenants contract-managed.",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime, rollback alineado al repo fuente y smoke base embebido por defecto como evidencia repetible",
   "active_modules": [
     "platform-core",
@@ -78,6 +78,11 @@
     "maintenance debe separar cliente individual, razón social legal y grupo social común: el nombre base sigue en organization.name, la razón social legal queda en organization.legal_name y la agrupación social compartida vive en social_community_groups.name donde el campo realmente corresponde"
   ],
   "completed_recently": [
+    "tenant_service ya no consulta modulos legacy por plan_code cuando el tenant ya es contract-managed, aunque todavia arrastre un plan_code historico",
+    "tenant_service ya no vuelve al baseline legacy por plan_code cuando un tenant contract-managed llega sin base_plan_code; ahora queda source=subscription_contract",
+    "tenant_policy_event_service ya serializa plan_code=null en snapshots y changed_fields para tenants contract-managed",
+    "staging backend redeployado con este recorte residual de plan_code y 553 tests OK; auditoria activa 4/4 en verde con accepted_tenants_with_notes=1",
+    "production backend redeployado con este recorte residual de plan_code y 553 tests OK; auditoria activa 4/4 en verde con accepted_tenants_with_notes=1",
     "BusinessCoreOrganizationsPage ya carga también clients del tenant y resume dirección propia, contacto principal y clientes ligados sin backend nuevo",
     "BusinessCoreOrganizationsPage agrega la columna Lectura operativa para distinguir dirección propia, nombre común visible y clientes ligados por organización",
     "BusinessCoreClientsPage ahora cuantifica grupos sociales definidos, grupos visibles y pendientes por asignar dentro de la misma cartera",
@@ -403,7 +408,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "resolver el siguiente slice funcional de la Etapa 15: retirar compatibilidad plan_code más profunda donde todavía sobreviva en policy/repository, y mantener visibilidad legacy solo si en el futuro reaparece algún tenant realmente heredado",
+  "next_decision_required": "resolver si todavía queda algún consumidor real de plan_code en capability/policy/reportes o si el fallback legacy ya puede declararse suficientemente acotado y salir del foco activo",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

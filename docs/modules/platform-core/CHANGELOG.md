@@ -2,6 +2,22 @@
 
 ## 2026-04-23
 
+- la `Etapa 15` ya recorta otro remanente profundo de `plan_code` en policy/runtime contractual:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya no consulta `tenant_plan_policy_service.get_enabled_modules(...)` ni `get_policy(...)` para tenants contract-managed solo porque todavía arrastren un `plan_code` histórico
+  - el baseline contractual ya no vuelve a `legacy_plan_code` cuando un tenant contract-managed queda sin `base_plan_code`; ahora se informa como `source=subscription_contract`
+  - [tenant_policy_event_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_policy_event_service.py) ya serializa `plan_code=null` en snapshots y `changed_fields` para tenants contract-managed
+  - cobertura nueva en [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py) para:
+    - evitar lookup legacy de módulos en tenants contract-managed
+    - evitar fallback legacy del baseline contractual
+    - evitar cambios falsos de `plan_code` en snapshots de policy
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `220 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/services/tenant_policy_event_service.py` -> `OK`
+  - validación runtime:
+    - `staging` backend deploy -> `553 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend deploy -> `553 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+
 - la `Etapa 15` ya alinea seeds demo y auditoría multi-tenant al modelo contractual nuevo:
   - [seed_frontend_demo_baseline.py](/home/felipe/platform_paas/backend/app/scripts/seed_frontend_demo_baseline.py) ya crea suscripción contractual para tenants demo y limpia `plan_code`
   - [seed_demo_data.py](/home/felipe/platform_paas/backend/app/scripts/seed_demo_data.py) y [demo_catalog.py](/home/felipe/platform_paas/backend/app/seeds/control/demo_catalog.py) ya levantan tenants demo desde `base_plan_code`

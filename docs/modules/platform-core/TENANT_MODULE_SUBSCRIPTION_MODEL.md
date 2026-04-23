@@ -9,6 +9,7 @@ Estado actual:
 - implementación runtime: `Contratación formal promovida en staging y production`
 - política vigente de activación efectiva: `tenant_subscriptions` como fuente principal, con fallback legacy por `plan_code` solo como compatibilidad residual cuando todavía aparezca un tenant legacy fuera del set activo ya migrado
 - alta nueva de tenant: `Contract-managed desde creación`
+- remanente profundo ya recortado: `tenant_service` y `tenant_policy_event_service` ya no deben consultar ni exponer `plan_code` para tenants contract-managed salvo compatibilidad legacy real
 
 ## Objetivo
 
@@ -344,6 +345,18 @@ Además del corte técnico ya promovido, la consola visible ya quedó adaptada a
      - `Modelo contractual`
      - `Fuente baseline`
      - si el tenant sigue en legacy o ya está gestionado por contrato
+
+## Estado actual del fallback legacy
+
+- `plan_code` ya no es camino contractual normal
+- para tenants `contract-managed`:
+  - `tenant_service.get_tenant_module_activation_state(...)` ya no consulta módulos legacy por `plan_code`
+  - `tenant_service.get_tenant_baseline_policy_state(...)` ya no vuelve a `legacy_plan_code` aunque el tenant todavía arrastre un `plan_code` histórico
+  - si un tenant contractual llega sin `base_plan_code`, el baseline queda como `source=subscription_contract`, no como fallback legacy
+  - `tenant_policy_event_service` ya serializa `plan_code=null` en snapshots y `changed_fields`
+- para tenants realmente legacy:
+  - `plan_code` sigue existiendo como compatibilidad
+  - `legacy_plan_fallback_active=true` sigue siendo la señal visible permitida para exponerlo en consola/API
 
 ## Siguiente corte técnico recomendado
 

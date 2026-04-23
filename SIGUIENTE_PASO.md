@@ -55,6 +55,12 @@
     - el alta nueva ya no acepta `plan_code` como campo contractual normal
     - `PATCH /platform/tenants/{tenant_id}/plan` ya no debe usarse sobre tenants contract-managed
     - los seeds demo y la auditoría multi-tenant ya no deben tratar `plan_code` como baseline normal
+    - `tenant_service` ya no debe consultar módulos ni baseline legacy para tenants contract-managed solo porque el registro aún arrastre un `plan_code` histórico
+    - los snapshots de `tenant_policy_event_service` ya no deben exponer ni marcar cambios de `plan_code` para tenants contract-managed
+  - remanente real después de este corte:
+    - revisar si todavía conviene conservar `plan_catalog` / `available_plan_codes` como compatibilidad operativa en `platform_capability_service`
+    - revisar si algún script o reporte histórico todavía usa `plan_code` como etiqueta contractual normal en vez de solo `compatibility_policy_code`
+    - si no aparece otro consumidor real, el siguiente paso correcto ya pasa a ser declarar el fallback legacy suficientemente acotado y salir de este frente
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual
