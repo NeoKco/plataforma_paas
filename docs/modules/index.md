@@ -41,7 +41,7 @@ La idea no es duplicar toda la documentación técnica existente, sino:
 - [community-core](/home/felipe/platform_paas/docs/modules/community-core/README.md)
   Dominio vertical para condominios, residentes, unidades, visitas y operacion residencial.
 - [crm](/home/felipe/platform_paas/docs/modules/crm/README.md)
-  Módulo comercial para productos, oportunidades y cotizaciones apoyado sobre `business-core`.
+  Módulo comercial para productos, oportunidades, histórico, plantillas y cotizaciones estructuradas apoyado sobre `business-core`.
 - [finance](/home/felipe/platform_paas/docs/modules/finance/README.md)
   Primer módulo tenant funcional y módulo piloto del SaaS.
 - [maintenance](/home/felipe/platform_paas/docs/modules/maintenance/README.md)

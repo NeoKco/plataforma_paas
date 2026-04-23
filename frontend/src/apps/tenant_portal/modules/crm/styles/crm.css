@@ -62,36 +62,115 @@
 }
 
 .crm-lines-header,
-.crm-line-card__footer {
+.crm-line-card__footer,
+.crm-detail-card__header {
   align-items: center;
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.crm-lines-list {
+.crm-lines-list,
+.crm-detail-list,
+.crm-chip-list {
   display: grid;
   gap: 0.9rem;
   margin-top: 0.75rem;
 }
 
 .crm-line-card,
-.crm-quote-preview {
+.crm-quote-preview,
+.crm-detail-card,
+.crm-kanban-card {
   border: 1px solid var(--panel-border, #c8d6e5);
   border-radius: 0.85rem;
   padding: 0.9rem;
+  background: var(--panel-bg, #fff);
 }
 
-.crm-line-grid {
+.crm-line-grid,
+.crm-detail-grid {
   display: grid;
   gap: 0.9rem;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.crm-detail-card--full {
+  grid-column: 1 / -1;
+}
+
+.crm-detail-list {
+  margin: 0;
+}
+
+.crm-detail-list__item {
+  align-items: flex-start;
+  border: 1px solid var(--panel-border, #c8d6e5);
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem;
+}
+
+.crm-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 0;
+}
+
+.crm-chip {
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 999px;
+  color: var(--brand-700, #1d4ed8);
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+}
+
+.crm-kanban-board {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.crm-kanban-column {
+  background: rgba(15, 23, 42, 0.02);
+  border: 1px solid var(--panel-border, #c8d6e5);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.95rem;
+}
+
+.crm-kanban-column__header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.crm-kanban-column__items {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.crm-kanban-card {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.crm-kanban-empty {
+  border: 1px dashed var(--panel-border, #c8d6e5);
+  border-radius: 0.85rem;
+  color: var(--text-muted, #64748b);
+  padding: 0.9rem;
+}
+
 @media (max-width: 768px) {
   .crm-form-actions,
   .crm-lines-header,
-  .crm-line-card__footer {
+  .crm-line-card__footer,
+  .crm-detail-card__header {
     align-items: stretch;
     flex-direction: column;
   }

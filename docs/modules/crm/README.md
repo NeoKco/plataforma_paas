@@ -8,45 +8,72 @@ Nombre funcional visible:
 
 Estado actual:
 
-- primer slice ya operativo dentro del PaaS
-- backend tenant ya expone catálogo de productos, oportunidades y cotizaciones
+- módulo tenant ya operativo dentro del PaaS
+- backend tenant ya expone:
+  - productos con características
+  - oportunidades activas e históricas
+  - detalle comercial con contactos, notas, actividades y adjuntos
+  - plantillas comerciales reutilizables
+  - cotizaciones estructuradas con líneas libres y secciones
 - frontend tenant ya entrega lectura y captura para:
   - `Resumen`
   - `Oportunidades`
+  - `Histórico`
   - `Cotizaciones`
+  - `Plantillas`
   - `Productos`
-- el módulo ya reutiliza `business-core` como base de clientes
+- el módulo reutiliza `business-core` como base de clientes
 - el módulo ya entra al catálogo contractual como add-on tenant (`crm`)
 
 Objetivo del módulo:
 
 - cubrir el frente comercial faltante respecto de `ieris_app`
-- unificar pipeline comercial, propuestas y catálogo reusable dentro del tenant
-- preparar la base para siguientes slices:
-  - notas y actividades CRM
-  - archivos comerciales
+- unificar pipeline comercial, catálogo reusable, plantillas y propuestas dentro del tenant
+- dejar preparada una base seria para futuras extensiones comerciales sin mezclar conceptos con `business-core`
+
+## Alcance actual
+
+El módulo hoy incluye:
+
+- productos y servicios con:
+  - `sku`
+  - tipo `product/service`
+  - precio unitario
+  - características técnicas/comerciales
+- oportunidades comerciales con:
+  - etapas abiertas y cerradas
+  - kanban
+  - cierre formal `won/lost`
+  - contactos
+  - notas
+  - actividades
+  - adjuntos
+  - historial de cambios de etapa
+- histórico de oportunidades cerradas
+- plantillas comerciales con:
+  - secciones
+  - ítems base
+  - productos del catálogo o ítems libres
+- cotizaciones con:
+  - cliente
+  - oportunidad opcional
+  - plantilla opcional
+  - líneas libres
+  - secciones estructuradas
+  - totales recalculados
+- resumen comercial con métricas de:
+  - productos
+  - pipeline
+  - históricas
+  - cotizaciones
   - plantillas
-  - render/PDF
-  - productos más ricos
-
-## Alcance del primer corte
-
-Este primer slice ya incluye:
-
-- productos y servicios simples
-- pipeline base de oportunidades
-- cotizaciones con líneas simples
-- relación con clientes de `business-core`
-- métricas visibles de pipeline y cotizaciones
 
 Queda fuera por ahora:
 
-- notas y actividades CRM
-- adjuntos comerciales
-- plantillas de cotización
-- render/PDF
-- catálogo técnico avanzado
+- render visual avanzado de cotización
+- PDF formal/export comercial
 - scraping de productos
+- IA comercial local
 
 ## Mapa de documentos
 
@@ -55,9 +82,9 @@ Queda fuera por ahora:
 - [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/crm/DEV_GUIDE.md)
   Estructura, contratos y criterios de extensión del módulo.
 - [API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/crm/API_REFERENCE.md)
-  Referencia resumida de endpoints del primer corte.
+  Referencia resumida de endpoints del módulo.
 - [ROADMAP.md](/home/felipe/platform_paas/docs/modules/crm/ROADMAP.md)
-  Estado del módulo y siguientes slices recomendados.
+  Estado del módulo y backlog posterior al cierre del alcance actual.
 - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/crm/CHANGELOG.md)
   Hitos funcionales y técnicos del módulo.
 - [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
@@ -78,6 +105,6 @@ Si necesitas modificar o extender el módulo:
 
 - parte por [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/crm/DEV_GUIDE.md)
 
-Si necesitas revisar estado y siguientes slices:
+Si necesitas revisar estado y backlog posterior:
 
 - parte por [ROADMAP.md](/home/felipe/platform_paas/docs/modules/crm/ROADMAP.md)

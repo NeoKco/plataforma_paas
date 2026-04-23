@@ -17,8 +17,18 @@ import {
   updateCRMProduct,
   updateCRMProductStatus,
   type CRMProduct,
+  type CRMProductCharacteristic,
   type CRMProductWriteRequest,
 } from "../services/crmService";
+
+function buildDefaultCharacteristic(index: number): CRMProductCharacteristic {
+  return {
+    id: null,
+    label: "",
+    value: "",
+    sort_order: (index + 1) * 10,
+  };
+}
 
 function buildDefaultForm(): CRMProductWriteRequest {
   return {
@@ -30,6 +40,7 @@ function buildDefaultForm(): CRMProductWriteRequest {
     description: null,
     is_active: true,
     sort_order: 100,
+    characteristics: [buildDefaultCharacteristic(0)],
   };
 }
 
@@ -79,8 +90,43 @@ export function CRMProductsPage() {
       description: item.description,
       is_active: item.is_active,
       sort_order: item.sort_order,
+      characteristics:
+        item.characteristics.length > 0
+          ? item.characteristics.map((characteristic) => ({
+              id: characteristic.id,
+              label: characteristic.label,
+              value: characteristic.value,
+              sort_order: characteristic.sort_order,
+            }))
+          : [buildDefaultCharacteristic(0)],
     });
     setFeedback(null);
+  }
+
+  function updateCharacteristic(index: number, next: Partial<CRMProductCharacteristic>) {
+    setForm((current) => ({
+      ...current,
+      characteristics: current.characteristics.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...next } : item
+      ),
+    }));
+  }
+
+  function addCharacteristic() {
+    setForm((current) => ({
+      ...current,
+      characteristics: [...current.characteristics, buildDefaultCharacteristic(current.characteristics.length)],
+    }));
+  }
+
+  function removeCharacteristic(index: number) {
+    setForm((current) => ({
+      ...current,
+      characteristics:
+        current.characteristics.length === 1
+          ? [buildDefaultCharacteristic(0)]
+          : current.characteristics.filter((_, itemIndex) => itemIndex !== index),
+    }));
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -90,9 +136,15 @@ export function CRMProductsPage() {
     setError(null);
     setFeedback(null);
     try {
+      const payload = {
+        ...form,
+        characteristics: form.characteristics.filter(
+          (item) => item.label.trim() && item.value.trim()
+        ),
+      };
       const response = editingId
-        ? await updateCRMProduct(session.accessToken, editingId, form)
-        : await createCRMProduct(session.accessToken, form);
+        ? await updateCRMProduct(session.accessToken, editingId, payload)
+        : await createCRMProduct(session.accessToken, payload);
       setFeedback(response.message);
       startNew();
       await loadRows();
@@ -137,8 +189,8 @@ export function CRMProductsPage() {
         title={language === "es" ? "Productos y servicios" : "Products and services"}
         description={
           language === "es"
-            ? "Catálogo comercial reutilizable por oportunidades y cotizaciones."
-            : "Reusable commercial catalog for opportunities and quotes."
+            ? "Catálogo comercial reutilizable con características para cotizaciones y pipeline."
+            : "Reusable commercial catalog with characteristics for quotes and pipeline."
         }
         actions={
           <AppToolbar compact>
@@ -166,8 +218,8 @@ export function CRMProductsPage() {
         title={editingId ? (language === "es" ? "Editar producto" : "Edit product") : (language === "es" ? "Nuevo producto" : "New product")}
         subtitle={
           language === "es"
-            ? "Este catálogo alimenta cotizaciones y evita reescribir precios base."
-            : "This catalog feeds quotes and avoids rewriting base prices."
+            ? "Puedes dejar características técnicas/comerciales que después se reutilizan al cotizar."
+            : "You can keep technical/commercial characteristics to reuse later in quotes."
         }
       >
         <form className="crm-form-grid" onSubmit={(event) => void handleSubmit(event)}>
@@ -202,6 +254,53 @@ export function CRMProductsPage() {
             <span>{language === "es" ? "Descripción" : "Description"}</span>
             <textarea value={form.description || ""} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value || null }))} rows={3} />
           </label>
+
+          <div className="crm-form-grid__full">
+            <div className="crm-lines-header">
+              <div>
+                <strong>{language === "es" ? "Características" : "Characteristics"}</strong>
+                <div className="text-muted small">
+                  {language === "es"
+                    ? "Especificaciones breves para diferenciar el producto o servicio."
+                    : "Short specs to differentiate the product or service."}
+                </div>
+              </div>
+              <button className="btn btn-outline-secondary btn-sm" type="button" onClick={addCharacteristic}>
+                {language === "es" ? "Agregar característica" : "Add characteristic"}
+              </button>
+            </div>
+            <div className="crm-lines-list">
+              {form.characteristics.map((characteristic, index) => (
+                <div key={`${editingId || "new"}-characteristic-${index}`} className="crm-line-card">
+                  <div className="crm-line-grid">
+                    <label>
+                      <span>{language === "es" ? "Etiqueta" : "Label"}</span>
+                      <input value={characteristic.label} onChange={(event) => updateCharacteristic(index, { label: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>{language === "es" ? "Valor" : "Value"}</span>
+                      <input value={characteristic.value} onChange={(event) => updateCharacteristic(index, { value: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>{language === "es" ? "Orden" : "Order"}</span>
+                      <input type="number" min="0" value={characteristic.sort_order} onChange={(event) => updateCharacteristic(index, { sort_order: Number(event.target.value) || 0 })} />
+                    </label>
+                  </div>
+                  <div className="crm-line-card__footer">
+                    <span className="text-muted small">
+                      {language === "es"
+                        ? "Se muestra en catálogo y puede reaprovecharse en propuestas."
+                        : "Shown in catalog and reusable in proposals."}
+                    </span>
+                    <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => removeCharacteristic(index)}>
+                      {language === "es" ? "Quitar" : "Remove"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <label className="crm-inline-check">
             <input type="checkbox" checked={form.is_active} onChange={(event) => setForm((current) => ({ ...current, is_active: event.target.checked }))} />
             <span>{language === "es" ? "Activo" : "Active"}</span>
@@ -230,10 +329,42 @@ export function CRMProductsPage() {
         subtitle={language === "es" ? "Productos y servicios listos para ventas." : "Products and services ready for sales."}
         rows={rows}
         columns={[
-          { key: "name", header: language === "es" ? "Nombre" : "Name", render: (row) => <div><strong>{row.name}</strong><div className="text-muted small">{row.sku || "—"}</div></div> },
+          {
+            key: "name",
+            header: language === "es" ? "Nombre" : "Name",
+            render: (row) => (
+              <div>
+                <strong>{row.name}</strong>
+                <div className="text-muted small">{row.sku || "—"}</div>
+              </div>
+            ),
+          },
           { key: "type", header: language === "es" ? "Tipo" : "Type", render: (row) => row.product_type },
           { key: "price", header: language === "es" ? "Precio" : "Price", render: (row) => row.unit_price.toLocaleString() },
-          { key: "status", header: language === "es" ? "Estado" : "Status", render: (row) => (row.is_active ? (language === "es" ? "activo" : "active") : (language === "es" ? "inactivo" : "inactive")) },
+          {
+            key: "characteristics",
+            header: language === "es" ? "Características" : "Characteristics",
+            render: (row) =>
+              row.characteristics.length > 0 ? (
+                <div className="crm-chip-list">
+                  {row.characteristics.slice(0, 3).map((item) => (
+                    <span key={item.id || item.label} className="crm-chip">
+                      {item.label}: {item.value}
+                    </span>
+                  ))}
+                  {row.characteristics.length > 3 ? (
+                    <span className="crm-chip">+{row.characteristics.length - 3}</span>
+                  ) : null}
+                </div>
+              ) : (
+                "—"
+              ),
+          },
+          {
+            key: "status",
+            header: language === "es" ? "Estado" : "Status",
+            render: (row) => (row.is_active ? (language === "es" ? "activo" : "active") : (language === "es" ? "inactivo" : "inactive")),
+          },
           {
             key: "actions",
             header: language === "es" ? "Acciones" : "Actions",

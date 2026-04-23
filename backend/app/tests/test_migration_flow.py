@@ -40,6 +40,7 @@ from migrations.tenant import v0036_maintenance_visit_result
 from migrations.tenant import v0038_maintenance_work_order_task_type
 from migrations.tenant import v0039_social_community_groups
 from migrations.tenant import v0040_crm_base
+from migrations.tenant import v0041_crm_expansion
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -217,6 +218,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0038_maintenance_work_order_task_type",
                 "0039_social_community_groups",
                 "0040_crm_base",
+                "0041_crm_expansion",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -258,9 +260,19 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_cost_actuals", tables)
         self.assertIn("maintenance_cost_lines", tables)
         self.assertIn("crm_products", tables)
+        self.assertIn("crm_product_characteristics", tables)
         self.assertIn("crm_opportunities", tables)
+        self.assertIn("crm_opportunity_contacts", tables)
+        self.assertIn("crm_opportunity_notes", tables)
+        self.assertIn("crm_opportunity_activities", tables)
+        self.assertIn("crm_opportunity_attachments", tables)
+        self.assertIn("crm_opportunity_stage_events", tables)
         self.assertIn("crm_quotes", tables)
+        self.assertIn("crm_quote_sections", tables)
         self.assertIn("crm_quote_lines", tables)
+        self.assertIn("crm_quote_templates", tables)
+        self.assertIn("crm_quote_template_sections", tables)
+        self.assertIn("crm_quote_template_items", tables)
         maintenance_cost_line_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_cost_lines")
         }
@@ -376,14 +388,44 @@ class MigrationFlowTestCase(unittest.TestCase):
         crm_product_columns = {
             column["name"] for column in inspect(engine).get_columns("crm_products")
         }
+        crm_product_characteristic_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_product_characteristics")
+        }
         crm_opportunity_columns = {
             column["name"] for column in inspect(engine).get_columns("crm_opportunities")
+        }
+        crm_opportunity_contact_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_opportunity_contacts")
+        }
+        crm_opportunity_note_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_opportunity_notes")
+        }
+        crm_opportunity_activity_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_opportunity_activities")
+        }
+        crm_opportunity_attachment_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_opportunity_attachments")
+        }
+        crm_opportunity_stage_event_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_opportunity_stage_events")
         }
         crm_quote_columns = {
             column["name"] for column in inspect(engine).get_columns("crm_quotes")
         }
+        crm_quote_section_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_quote_sections")
+        }
         crm_quote_line_columns = {
             column["name"] for column in inspect(engine).get_columns("crm_quote_lines")
+        }
+        crm_quote_template_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_quote_templates")
+        }
+        crm_quote_template_section_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_quote_template_sections")
+        }
+        crm_quote_template_item_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_quote_template_items")
         }
         maintenance_status_log_columns = {
             column["name"]
@@ -414,12 +456,27 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("maintenance_finance_currency_id", tenant_info_columns)
         self.assertIn("sku", crm_product_columns)
         self.assertIn("unit_price", crm_product_columns)
+        self.assertIn("product_id", crm_product_characteristic_columns)
+        self.assertIn("label", crm_product_characteristic_columns)
         self.assertIn("client_id", crm_opportunity_columns)
         self.assertIn("stage", crm_opportunity_columns)
+        self.assertIn("closed_at", crm_opportunity_columns)
+        self.assertIn("close_reason", crm_opportunity_columns)
+        self.assertIn("full_name", crm_opportunity_contact_columns)
+        self.assertIn("note", crm_opportunity_note_columns)
+        self.assertIn("activity_type", crm_opportunity_activity_columns)
+        self.assertIn("file_name", crm_opportunity_attachment_columns)
+        self.assertIn("event_type", crm_opportunity_stage_event_columns)
         self.assertIn("opportunity_id", crm_quote_columns)
         self.assertIn("total_amount", crm_quote_columns)
+        self.assertIn("template_id", crm_quote_columns)
+        self.assertIn("quote_id", crm_quote_section_columns)
         self.assertIn("quote_id", crm_quote_line_columns)
         self.assertIn("product_id", crm_quote_line_columns)
+        self.assertIn("section_id", crm_quote_line_columns)
+        self.assertIn("name", crm_quote_template_columns)
+        self.assertIn("template_id", crm_quote_template_section_columns)
+        self.assertIn("section_id", crm_quote_template_item_columns)
         self.assertIn("timezone", tenant_user_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
@@ -544,6 +601,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0038_maintenance_work_order_task_type",
                 "0039_social_community_groups",
                 "0040_crm_base",
+                "0041_crm_expansion",
             ],
         )
 

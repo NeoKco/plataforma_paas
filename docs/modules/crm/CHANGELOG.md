@@ -12,6 +12,33 @@
   - `Cotizaciones`
   - `Resumen`
 - `crm` ya entra al catálogo contractual de módulos tenant
-- regresión mínima agregada en:
+
+## 2026-04-23
+
+- se cierra la segunda ola del módulo `crm` y el alcance comercial actual queda operativo
+- nueva migración tenant en [v0041_crm_expansion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0041_crm_expansion.py)
+- productos ahora soportan `characteristics`
+- oportunidades ahora soportan:
+  - `kanban`
+  - `historical`
+  - `contacts`
+  - `notes`
+  - `activities`
+  - `attachments`
+  - `stage_events`
+  - cierre formal `won/lost`
+- cotizaciones ahora soportan:
+  - `template_id`
+  - `sections`
+  - `lines` libres y estructuradas
+- plantillas comerciales ya quedan operativas con:
+  - secciones
+  - ítems base
+- el overview comercial ya refleja:
+  - pipeline abierto
+  - históricas
+  - monto cotizado
+  - plantillas
+- regresión ampliada en:
   - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
   - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)

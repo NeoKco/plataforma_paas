@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { MetricCard } from "../../../../../components/common/MetricCard";
 import { PanelCard } from "../../../../../components/common/PanelCard";
@@ -48,6 +48,15 @@ export function CRMOverviewPage() {
   }, [session?.accessToken]);
 
   const metrics = data?.metrics;
+  const pipelineHealth = useMemo(() => {
+    if (!metrics) {
+      return 0;
+    }
+    if (metrics.opportunities_total === 0) {
+      return 0;
+    }
+    return Math.round((metrics.opportunities_open / metrics.opportunities_total) * 100);
+  }, [metrics]);
 
   return (
     <div className="d-grid gap-4">
@@ -57,8 +66,8 @@ export function CRMOverviewPage() {
         title={language === "es" ? "CRM, Cotizaciones y Productos" : "CRM, Quotes, and Products"}
         description={
           language === "es"
-            ? "Primer slice comercial del PaaS para oportunidades, propuestas y catálogo reutilizable."
-            : "First commercial slice of the PaaS for opportunities, proposals, and reusable catalog."
+            ? "Bloque comercial completo del tenant para oportunidades, catálogo reusable, plantillas y propuestas."
+            : "Complete tenant commercial block for opportunities, reusable catalog, templates, and proposals."
         }
         actions={
           <AppToolbar compact>
@@ -86,13 +95,19 @@ export function CRMOverviewPage() {
               icon="products"
               label={language === "es" ? "Productos activos" : "Active products"}
               value={metrics.products_active}
-              hint={language === "es" ? "Catálogo comercial reusable" : "Reusable commercial catalog"}
+              hint={language === "es" ? "Catálogo reutilizable disponible" : "Available reusable catalog"}
             />
             <MetricCard
               icon="pipeline"
-              label={language === "es" ? "Oportunidades" : "Opportunities"}
-              value={metrics.opportunities_total}
-              hint={language === "es" ? "Pipeline vigente" : "Current pipeline"}
+              label={language === "es" ? "Oportunidades abiertas" : "Open opportunities"}
+              value={metrics.opportunities_open}
+              hint={language === "es" ? "Pipeline vivo" : "Live pipeline"}
+            />
+            <MetricCard
+              icon="tenant-history"
+              label={language === "es" ? "Históricas" : "Historical"}
+              value={metrics.opportunities_historical}
+              hint={language === "es" ? "Ganadas o perdidas" : "Won or lost"}
             />
             <MetricCard
               icon="quotes"
@@ -107,34 +122,73 @@ export function CRMOverviewPage() {
               icon="crm"
               label={language === "es" ? "Valor pipeline" : "Pipeline value"}
               value={formatMoney(metrics.pipeline_value, language)}
-              hint={language === "es" ? "Monto esperado" : "Expected amount"}
+              hint={language === "es" ? "Ingreso esperado" : "Expected revenue"}
             />
             <MetricCard
               icon="reports"
               label={language === "es" ? "Monto cotizado" : "Quoted amount"}
               value={formatMoney(metrics.quoted_amount, language)}
-              hint={language === "es" ? "Total de propuestas activas" : "Total active proposals"}
+              hint={language === "es" ? "Total vigente del frente comercial" : "Current commercial front total"}
+            />
+            <MetricCard
+              icon="templates"
+              label={language === "es" ? "Plantillas" : "Templates"}
+              value={metrics.templates_total}
+              hint={language === "es" ? "Bases comerciales reutilizables" : "Reusable commercial bases"}
+            />
+            <MetricCard
+              icon="focus"
+              label={language === "es" ? "Salud pipeline" : "Pipeline health"}
+              value={`${pipelineHealth}%`}
+              hint={language === "es" ? "Proporción abierta del total" : "Open share of total"}
             />
           </div>
 
           <PanelCard
-            title={language === "es" ? "Lectura operativa del frente comercial" : "Operational reading of the commercial front"}
+            title={language === "es" ? "Lectura operativa del frente comercial" : "Operational read of the commercial front"}
             subtitle={
               language === "es"
-                ? "Este primer corte abre el bloque CRM + Cotizaciones + Productos con base tenant real y relación a clientes del core."
-                : "This first cut opens the CRM + Quotes + Products block with a real tenant base and links to business-core clients."
+                ? "El módulo ya cubre captura, seguimiento, histórico y preparación de propuestas comerciales reutilizables."
+                : "The module now covers capture, tracking, history, and reusable commercial proposal preparation."
             }
           >
-            <p className="mb-0">
-              {language === "es"
-                ? "Quedan para slices siguientes: notas/actividades CRM, archivos, plantillas comerciales, render/PDF y pipeline histórico más rico."
-                : "Next slices remain for CRM notes/activities, files, commercial templates, render/PDF, and richer pipeline history."}
-            </p>
+            <div className="crm-detail-grid">
+              <div className="crm-detail-card">
+                <div className="crm-detail-card__header">
+                  <strong>{language === "es" ? "Pipeline" : "Pipeline"}</strong>
+                </div>
+                <div className="text-muted small">
+                  {language === "es"
+                    ? "Oportunidades activas con kanban, detalle, notas, actividades, adjuntos y cierre formal."
+                    : "Active opportunities with kanban, detail, notes, activities, attachments, and formal close."}
+                </div>
+              </div>
+              <div className="crm-detail-card">
+                <div className="crm-detail-card__header">
+                  <strong>{language === "es" ? "Propuestas" : "Proposals"}</strong>
+                </div>
+                <div className="text-muted small">
+                  {language === "es"
+                    ? "Cotizaciones con líneas libres, estructura por secciones y plantillas base."
+                    : "Quotes with free lines, structured sections, and base templates."}
+                </div>
+              </div>
+              <div className="crm-detail-card">
+                <div className="crm-detail-card__header">
+                  <strong>{language === "es" ? "Catálogo" : "Catalog"}</strong>
+                </div>
+                <div className="text-muted small">
+                  {language === "es"
+                    ? "Productos y servicios enriquecidos con características técnicas/comerciales."
+                    : "Products and services enriched with technical/commercial characteristics."}
+                </div>
+              </div>
+            </div>
           </PanelCard>
 
           <DataTableCard
             title={language === "es" ? "Oportunidades recientes" : "Recent opportunities"}
-            subtitle={language === "es" ? "Lectura rápida del pipeline." : "Quick pipeline read."}
+            subtitle={language === "es" ? "Lectura rápida del pipeline abierto." : "Quick read of the open pipeline."}
             rows={data?.recent_opportunities || []}
             columns={[
               {
@@ -153,6 +207,11 @@ export function CRMOverviewPage() {
                 render: (row) => row.stage,
               },
               {
+                key: "probability",
+                header: language === "es" ? "Probabilidad" : "Probability",
+                render: (row) => `${row.probability_percent}%`,
+              },
+              {
                 key: "amount",
                 header: language === "es" ? "Valor esperado" : "Expected value",
                 render: (row) => formatMoney(row.expected_value || 0, language),
@@ -162,7 +221,11 @@ export function CRMOverviewPage() {
 
           <DataTableCard
             title={language === "es" ? "Cotizaciones recientes" : "Recent quotes"}
-            subtitle={language === "es" ? "Últimas propuestas registradas." : "Latest registered proposals."}
+            subtitle={
+              language === "es"
+                ? "Últimas propuestas estructuradas registradas."
+                : "Latest registered structured proposals."
+            }
             rows={data?.recent_quotes || []}
             columns={[
               {
@@ -174,6 +237,11 @@ export function CRMOverviewPage() {
                     <div className="text-muted small">{row.client_display_name || "—"}</div>
                   </div>
                 ),
+              },
+              {
+                key: "template",
+                header: language === "es" ? "Plantilla" : "Template",
+                render: (row) => row.template_name || "—",
               },
               {
                 key: "status",

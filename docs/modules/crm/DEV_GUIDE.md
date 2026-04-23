@@ -2,9 +2,9 @@
 
 Guía de desarrollo del módulo `crm`.
 
-## Objetivo técnico del primer slice
+## Objetivo técnico
 
-Abrir el bloque faltante `CRM + Cotizaciones + Productos` sin mezclarlo con:
+Cubrir el bloque faltante `CRM + Cotizaciones + Productos` sin mezclarlo con:
 
 - `maintenance`
 - `finance`
@@ -12,12 +12,13 @@ Abrir el bloque faltante `CRM + Cotizaciones + Productos` sin mezclarlo con:
 
 La frontera correcta es:
 
-- `business-core` es dueño de clientes y organizaciones
+- `business-core` es dueño de clientes, organizaciones, grupos sociales, contactos base y sitios
 - `crm` es dueño de:
-  - productos/servicios
+  - productos/servicios comerciales
   - oportunidades
+  - detalle comercial de oportunidad
   - cotizaciones
-  - líneas de cotización
+  - plantillas comerciales
 
 ## Estructura
 
@@ -25,44 +26,132 @@ La frontera correcta es:
   - [backend/app/apps/tenant_modules/crm](/home/felipe/platform_paas/backend/app/apps/tenant_modules/crm)
 - Frontend:
   - [frontend/src/apps/tenant_portal/modules/crm](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm)
-- Migración tenant:
+- Migraciones tenant:
   - [v0040_crm_base.py](/home/felipe/platform_paas/backend/migrations/tenant/v0040_crm_base.py)
+  - [v0041_crm_expansion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0041_crm_expansion.py)
 
 ## Modelo actual
 
-Entidades del primer corte:
+Entidades activas del módulo:
 
 - `crm_products`
+- `crm_product_characteristics`
 - `crm_opportunities`
+- `crm_opportunity_contacts`
+- `crm_opportunity_notes`
+- `crm_opportunity_activities`
+- `crm_opportunity_attachments`
+- `crm_opportunity_stage_events`
 - `crm_quotes`
+- `crm_quote_sections`
 - `crm_quote_lines`
+- `crm_quote_templates`
+- `crm_quote_template_sections`
+- `crm_quote_template_items`
 
-Relaciones clave:
+## Relaciones clave
 
 - `crm_opportunities.client_id -> business_clients.id`
 - `crm_quotes.client_id -> business_clients.id`
 - `crm_quotes.opportunity_id -> crm_opportunities.id`
+- `crm_quotes.template_id -> crm_quote_templates.id`
+- `crm_quote_sections.quote_id -> crm_quotes.id`
 - `crm_quote_lines.quote_id -> crm_quotes.id`
+- `crm_quote_lines.section_id -> crm_quote_sections.id`
 - `crm_quote_lines.product_id -> crm_products.id`
+- `crm_quote_template_sections.template_id -> crm_quote_templates.id`
+- `crm_quote_template_items.section_id -> crm_quote_template_sections.id`
+- `crm_quote_template_items.product_id -> crm_products.id`
 
 ## Contrato funcional actual
 
-- productos:
-  - CRUD básico
-  - validación de `name` y `sku`
-- oportunidades:
-  - CRUD básico
-  - etapas controladas:
-    - `lead`
-    - `qualified`
-    - `proposal`
-    - `negotiation`
-    - `won`
-    - `lost`
-- cotizaciones:
-  - CRUD básico
-  - líneas manuales o ligadas a producto
-  - recálculo de subtotal y total
+### Productos
+
+- CRUD completo
+- validación de unicidad por `name`
+- validación de unicidad case-insensitive por `sku`
+- características reemplazables en create/update
+
+### Oportunidades
+
+- CRUD completo
+- etapas controladas:
+  - `lead`
+  - `qualified`
+  - `proposal`
+  - `negotiation`
+  - `won`
+  - `lost`
+- cierre formal mediante `close_opportunity`
+- detalle rico con:
+  - contactos
+  - notas
+  - actividades
+  - adjuntos
+  - stage events
+- kanban abierto separado del histórico cerrado
+
+### Cotizaciones
+
+- CRUD completo
+- líneas libres y líneas por sección
+- plantilla opcional
+- recálculo server-side de subtotal y total
+- serialización con nombres auxiliares:
+  - cliente
+  - oportunidad
+  - plantilla
+  - producto
+
+### Plantillas
+
+- CRUD completo
+- toggle activa/inactiva
+- estructura por secciones
+- ítems base ligados o no al catálogo
+
+## API tenant actual
+
+Prefijo:
+
+- `/tenant/crm/*`
+
+Routers visibles:
+
+- `overview`
+- `products`
+- `opportunities`
+- `quotes`
+- `templates`
+
+Endpoints relevantes extra:
+
+- `GET /tenant/crm/opportunities/kanban`
+- `GET /tenant/crm/opportunities/historical`
+- `GET /tenant/crm/opportunities/{id}/detail`
+- `POST /tenant/crm/opportunities/{id}/close`
+- subrecursos de oportunidad:
+  - `contacts`
+  - `notes`
+  - `activities`
+  - `attachments`
+
+## Frontend tenant actual
+
+Rutas:
+
+- `/tenant-portal/crm`
+- `/tenant-portal/crm/opportunities`
+- `/tenant-portal/crm/history`
+- `/tenant-portal/crm/quotes`
+- `/tenant-portal/crm/templates`
+- `/tenant-portal/crm/products`
+
+Piezas relevantes:
+
+- `CRMModuleNav.tsx`
+- `crmService.ts`
+- páginas CRUD específicas
 
 ## Permisos
 
@@ -71,40 +160,27 @@ Relaciones clave:
 - gestión:
   - `tenant.crm.manage`
 
-## Integración tenant-side
-
-- router backend:
-  - `/tenant/crm/*`
-- router frontend:
-  - `/tenant-portal/crm`
-- visibilidad tenant:
-  - `module-visibility.ts`
-- ítems laterales:
-  - `TenantSidebarNav.tsx`
-
 ## Cobertura de regresión actual
 
 - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
-  - reglas básicas de productos, oportunidades y cotizaciones
+  - reglas de productos, oportunidades, cotizaciones estructuradas y plantillas
 - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
-  - presencia e idempotencia de `0040_crm_base`
-
-## Siguientes slices recomendados
-
-1. notas y actividades por oportunidad
-2. estado comercial más rico por cotización
-3. archivos y adjuntos
-4. plantillas comerciales
-5. render/PDF
-6. catálogo más rico y scraping
+  - presencia e idempotencia de `0040_crm_base` y `0041_crm_expansion`
 
 ## Regla de evolución
 
-No duplicar:
+No duplicar desde `crm`:
 
 - clientes
 - organizaciones
-- contactos
+- grupos sociales
 - sitios
 
-Todo eso se sigue resolviendo desde `business-core`.
+Todo eso sigue resolviéndose desde `business-core`.
+
+La siguiente evolución razonable del módulo ya no es “cerrar lo básico”, sino profundizar:
+
+- render/PDF
+- plantillas visuales
+- scraping de catálogo
+- IA comercial

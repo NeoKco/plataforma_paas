@@ -646,15 +646,17 @@ Resultado actual:
   - instalaciones
   - costos, visitas y sincronización con finanzas
 - la expansión posterior ya quedó iniciada con `crm`:
-  - productos
-  - oportunidades
-  - cotizaciones
-  - resumen comercial base
+  - productos con características
+  - oportunidades abiertas e históricas
+  - contactos, notas, actividades y adjuntos comerciales
+  - plantillas reutilizables
+  - cotizaciones estructuradas
+  - resumen comercial completo
 
 Resultado de cierre:
 
 - la PaaS ya no es solo base técnica: ya opera módulos de negocio reales y visibles
-- `finance`, `business-core` y `maintenance` ya cubren el cierre del alcance base de producto por dominio
+- `finance`, `business-core`, `maintenance` y `crm` ya cubren el cierre del alcance base de producto por dominio
 - módulos como `condos` o `iot` pasan a tratarse como expansión posterior, no como deuda del cierre base de la `Etapa 14`
 
 ## Etapa 15. Registro y Activacion de Modulos

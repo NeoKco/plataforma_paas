@@ -4,43 +4,47 @@ Estado del módulo `crm`.
 
 ## Estado actual
 
-`crm` ya quedó abierto como primer frente de expansión post-cierre del roadmap base.
+`crm` ya quedó operativo para el alcance comercial actual del PaaS.
 
-El primer slice ya cubre:
+El módulo ya cubre:
 
-- catálogo simple de productos/servicios
-- oportunidades base
-- cotizaciones base
-- overview comercial corto
-- integración con clientes de `business-core`
+- catálogo de productos y servicios con características
+- oportunidades comerciales
+- kanban abierto
+- histórico de oportunidades cerradas
+- contactos, notas, actividades y adjuntos por oportunidad
+- plantillas comerciales reutilizables
+- cotizaciones estructuradas con líneas libres y secciones
+- resumen comercial con métricas visibles
 
-## Cerrado en este primer corte
+## Cerrado en el alcance actual
 
-- módulo tenant backend/frontend creado
-- migración tenant `0040_crm_base`
+- módulo tenant backend/frontend creado y funcional
+- migraciones tenant:
+  - `0040_crm_base`
+  - `0041_crm_expansion`
 - permisos tenant propios
 - visibilidad por módulo en tenant portal
 - catálogo contractual del módulo `crm`
-- labels visibles del módulo en `platform_admin`
-- regresión mínima de servicios y migración
+- integración con clientes de `business-core`
+- regresión de servicios y migración
 
-## Siguiente nivel recomendado
+## Backlog posterior al cierre
 
-1. notas y actividades CRM
-2. estados y trazabilidad comercial más ricos
-3. adjuntos/archivos
-4. plantillas de cotización
-5. render/PDF
-6. productos y servicios más ricos
-7. scraping asistido
+Lo siguiente ya no corresponde a “cerrar el módulo”, sino a profundizarlo:
 
-## Deuda visible
+1. render/PDF formal de cotizaciones
+2. plantillas visuales comerciales
+3. scraping asistido de productos
+4. IA comercial/local
+5. workflow de aprobación comercial
+
+## Deuda visible no bloqueante
 
 - falta E2E específico del módulo
-- falta una capa de archivos comerciales
-- falta lectura histórica más rica del pipeline
-- falta integración posterior con plantillas y PDF
+- falta export comercial formal de propuestas
+- falta una presentación visual más rica de cotizaciones
 
 ## Criterio de evolución
 
-Lo siguiente sobre `crm` debe tratarse como expansión del módulo, no como corrección del primer scaffold ya abierto.
+Lo siguiente sobre `crm` debe tratarse como expansión del módulo, no como corrección de base.
