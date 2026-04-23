@@ -30,6 +30,7 @@ import {
   displayMaintenanceAccessMode,
   displayPlatformCode,
   displayTenantAccessDetail,
+  getUiCatalogLabel,
 } from "../../../../utils/platform-labels";
 import {
   createPlatformTenant,
@@ -303,6 +304,7 @@ export function TenantsPage() {
 
   const selectedTenantSummary =
     tenants.find((tenant) => tenant.id === selectedTenantId) || selectedTenant;
+  const uiLabelCatalog = capabilities?.ui_label_catalog || null;
   const selectedTenantVisibleBaseCode =
     selectedTenantSummary?.subscription_base_plan_code ||
     (selectedTenantSummary?.legacy_plan_fallback_active
@@ -317,8 +319,13 @@ export function TenantsPage() {
     () =>
       Array.from(
         new Set(["empresa", "condominio", ...tenants.map((tenant) => tenant.tenant_type)])
-      ).sort(),
-    [tenants]
+      )
+        .sort()
+        .map((value) => ({
+          value,
+          label: getUiCatalogLabel(uiLabelCatalog, "tenant_types", value, language),
+        })),
+    [language, tenants, uiLabelCatalog]
   );
 
   const filteredTenants = useMemo(() => {
@@ -329,7 +336,10 @@ export function TenantsPage() {
         !search ||
         tenant.name.toLowerCase().includes(search) ||
         tenant.slug.toLowerCase().includes(search) ||
-        tenant.tenant_type.toLowerCase().includes(search);
+        tenant.tenant_type.toLowerCase().includes(search) ||
+        getUiCatalogLabel(uiLabelCatalog, "tenant_types", tenant.tenant_type, language)
+          .toLowerCase()
+          .includes(search);
       const matchesStatus =
         !catalogStatusFilter || tenant.status === catalogStatusFilter;
       const matchesBilling =
@@ -346,6 +356,8 @@ export function TenantsPage() {
     catalogStatusFilter,
     catalogTypeFilter,
     tenants,
+    uiLabelCatalog,
+    language,
   ]);
 
   const filteredRetirementArchives = useMemo(() => {
@@ -1218,8 +1230,8 @@ export function TenantsPage() {
           language === "es" ? "Tenant actual" : "Current tenant"
         }: ${selectedTenantSummary?.name || "n/a"}`,
         `${language === "es" ? "Nuevo nombre" : "New name"}: ${identityName.trim() || "n/a"}`,
-        `${language === "es" ? "Tipo actual" : "Current type"}: ${selectedTenantSummary?.tenant_type || "n/a"}`,
-        `${language === "es" ? "Nuevo tipo" : "New type"}: ${identityTenantType || "n/a"}`,
+        `${language === "es" ? "Tipo actual" : "Current type"}: ${getUiCatalogLabel(uiLabelCatalog, "tenant_types", selectedTenantSummary?.tenant_type || null, language)}`,
+        `${language === "es" ? "Nuevo tipo" : "New type"}: ${getUiCatalogLabel(uiLabelCatalog, "tenant_types", identityTenantType, language)}`,
         `${language === "es" ? "Slug estable" : "Stable slug"}: ${selectedTenantSummary?.slug || "n/a"}`,
       ],
       confirmLabel: language === "es" ? "Actualizar identidad" : "Update identity",
@@ -2272,9 +2284,9 @@ export function TenantsPage() {
                   value={createTenantType}
                   onChange={(event) => setCreateTenantType(event.target.value)}
                 >
-                  {tenantTypeOptions.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
+                  {tenantTypeOptions.map((entry) => (
+                    <option key={entry.value} value={entry.value}>
+                      {entry.label}
                     </option>
                   ))}
                 </select>
@@ -2589,9 +2601,9 @@ export function TenantsPage() {
                 onChange={(event) => setCatalogTypeFilter(event.target.value)}
               >
                 <option value="">{language === "es" ? "Todos los tipos" : "All types"}</option>
-                {tenantTypeOptions.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
+                {tenantTypeOptions.map((entry) => (
+                  <option key={entry.value} value={entry.value}>
+                    {entry.label}
                   </option>
                 ))}
               </select>
@@ -2638,7 +2650,14 @@ export function TenantsPage() {
                             <div className="tenant-list__title">{tenant.name}</div>
                             <div className="tenant-list__meta">
                               <code>{tenant.slug}</code>
-                              <span>{tenant.tenant_type}</span>
+                              <span>
+                                {getUiCatalogLabel(
+                                  uiLabelCatalog,
+                                  "tenant_types",
+                                  tenant.tenant_type,
+                                  language
+                                )}
+                              </span>
                             </div>
                           </div>
                           <StatusBadge value={tenant.status} />
@@ -2793,7 +2812,12 @@ export function TenantsPage() {
                   <DetailField label="Slug" value={<code>{selectedTenantSummary.slug}</code>} />
                   <DetailField
                     label={language === "es" ? "Tipo de tenant" : "Tenant type"}
-                    value={selectedTenantSummary.tenant_type}
+                    value={getUiCatalogLabel(
+                      uiLabelCatalog,
+                      "tenant_types",
+                      selectedTenantSummary.tenant_type,
+                      language
+                    )}
                   />
                   <DetailField
                     label={language === "es" ? "Ciclo de vida" : "Lifecycle"}
@@ -4041,9 +4065,9 @@ export function TenantsPage() {
                         value={identityTenantType}
                         onChange={(event) => setIdentityTenantType(event.target.value)}
                       >
-                        {tenantTypeOptions.map((value) => (
-                          <option key={value} value={value}>
-                            {value}
+                        {tenantTypeOptions.map((entry) => (
+                          <option key={entry.value} value={entry.value}>
+                            {entry.label}
                           </option>
                         ))}
                       </select>
@@ -5184,8 +5208,14 @@ export function TenantsPage() {
                   columns={[
                     {
                       key: "module_key",
-                      header: language === "es" ? "Clave de módulo" : "Module key",
-                      render: (row) => <code>{row.module_key}</code>,
+                      header: language === "es" ? "Indicador" : "Metric",
+                      render: (row) =>
+                        getUiCatalogLabel(
+                          uiLabelCatalog,
+                          "module_limit_keys",
+                          row.module_key,
+                          language
+                        ),
                     },
                     {
                       key: "used_units",
@@ -5207,7 +5237,17 @@ export function TenantsPage() {
                     {
                       key: "limit_source",
                       header: language === "es" ? "Fuente" : "Source",
-                      render: (row) => row.limit_source || (language === "es" ? "ninguna" : "none"),
+                      render: (row) =>
+                        row.limit_source
+                          ? getUiCatalogLabel(
+                              uiLabelCatalog,
+                              "limit_sources",
+                              row.limit_source,
+                              language
+                            )
+                          : language === "es"
+                            ? "ninguna"
+                            : "none",
                     },
                     {
                       key: "at_limit",
@@ -5244,7 +5284,13 @@ export function TenantsPage() {
                     {
                       key: "event_type",
                       header: language === "es" ? "Evento" : "Event",
-                      render: (row) => row.event_type,
+                      render: (row) =>
+                        getUiCatalogLabel(
+                          uiLabelCatalog,
+                          "policy_event_types",
+                          row.event_type,
+                          language
+                        ),
                     },
                     {
                       key: "actor_email",
@@ -5259,7 +5305,16 @@ export function TenantsPage() {
                       header: language === "es" ? "Campos cambiados" : "Changed fields",
                       render: (row) =>
                         row.changed_fields.length > 0
-                          ? row.changed_fields.join(", ")
+                          ? row.changed_fields
+                              .map((value) =>
+                                getUiCatalogLabel(
+                                  uiLabelCatalog,
+                                  "policy_changed_fields",
+                                  value,
+                                  language
+                                )
+                              )
+                              .join(", ")
                           : language === "es"
                             ? "ninguno"
                             : "none",

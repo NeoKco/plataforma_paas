@@ -1851,6 +1851,7 @@ class TenantRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.tenant.access_allowed)
         self.assertIsNone(response.tenant.access_blocking_source)
         self.assertEqual(response.tenant.tenant_status, "active")
+        self.assertEqual(response.ui_label_catalog["tenant_types"]["empresa"]["es"], "Empresa")
         self.assertIsNone(response.tenant.tenant_status_reason)
         self.assertFalse(response.tenant.maintenance_mode)
         self.assertEqual(response.tenant.maintenance_reason, "scheduled maintenance")

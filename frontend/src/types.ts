@@ -104,6 +104,13 @@ export type PlatformModuleLimitCapability = {
   description: string | null;
 };
 
+export type UiLabelCatalogEntry = {
+  es: string;
+  en: string;
+};
+
+export type UiLabelCatalog = Record<string, Record<string, UiLabelCatalogEntry>>;
+
 export type PlatformPlanCatalogEntry = {
   plan_code: string;
   read_requests_per_minute: number | null;
@@ -171,6 +178,7 @@ export type PlatformCapabilities = {
   module_limit_capabilities: PlatformModuleLimitCapability[];
   billing_providers: string[];
   billing_sync_processing_results: string[];
+  ui_label_catalog: UiLabelCatalog;
   current_provisioning_dispatch_backend: string;
   provisioning_dispatch_backends: string[];
 };
@@ -1333,6 +1341,7 @@ export type TenantInfoResponse = {
   tenant: TenantInfoData;
   user: TenantUserData;
   token_scope: string;
+  ui_label_catalog: UiLabelCatalog;
 };
 
 export type TenantModuleUsageItem = {

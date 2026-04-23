@@ -1,3 +1,4 @@
+import type { UiLabelCatalog } from "../types";
 import type { Language } from "../store/language-context";
 import { getCurrentLanguage } from "./i18n";
 
@@ -170,4 +171,21 @@ export function displayTenantAccessDetail(
   }
 
   return ACCESS_DETAIL_LABELS[language][normalized] || value;
+}
+
+export function getUiCatalogLabel(
+  catalog: UiLabelCatalog | null | undefined,
+  section: string,
+  value: string | null | undefined,
+  language: Language = getCurrentLanguage()
+): string {
+  if (!value) {
+    return language === "es" ? "sin dato" : "unknown";
+  }
+  const normalized = value.trim().toLowerCase();
+  const entry = catalog?.[section]?.[normalized];
+  if (entry) {
+    return language === "es" ? entry.es : entry.en;
+  }
+  return displayPlatformCode(value, language);
 }

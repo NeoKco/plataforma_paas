@@ -4998,6 +4998,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             response.module_subscription_catalog[-1].module_key,
             "maintenance",
         )
+        self.assertEqual(response.ui_label_catalog["modules"]["finance"]["es"], "Finanzas")
         self.assertIsInstance(response.legacy_plan_fallback_available, bool)
         self.assertIsInstance(response.legacy_plan_catalog, list)
 

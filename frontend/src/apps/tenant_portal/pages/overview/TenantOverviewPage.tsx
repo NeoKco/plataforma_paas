@@ -24,6 +24,7 @@ import { getTimeZoneLabel } from "../../../../utils/timezone-options";
 import {
   displayPlatformCode,
   displayTenantAccessDetail,
+  getUiCatalogLabel,
 } from "../../../../utils/platform-labels";
 import type {
   ApiError,
@@ -263,6 +264,7 @@ export function TenantOverviewPage() {
   }, [session?.accessToken, tenantInfo?.user.role]);
 
   const tenant = tenantInfo?.tenant;
+  const uiLabelCatalog = tenantInfo?.ui_label_catalog || null;
 
   return (
     <div className="d-grid gap-4">
@@ -356,7 +358,11 @@ export function TenantOverviewPage() {
               <DetailField label="Slug" value={<code>{tenant.tenant_slug}</code>} />
               <DetailField
                 label={language === "es" ? "Tipo de tenant" : "Tenant type"}
-                value={tenant.tenant_type ? displayPlatformCode(tenant.tenant_type, language) : "n/a"}
+                value={
+                  tenant.tenant_type
+                    ? getUiCatalogLabel(uiLabelCatalog, "tenant_types", tenant.tenant_type, language)
+                    : "n/a"
+                }
               />
               <DetailField
                 label={language === "es" ? "Ciclo de vida" : "Lifecycle"}
@@ -411,7 +417,7 @@ export function TenantOverviewPage() {
                 {(tenant.effective_enabled_modules || []).length > 0 ? (
                   tenant.effective_enabled_modules?.map((value) => (
                     <span key={value} className="tenant-chip">
-                      {displayPlatformCode(value, language)}
+                      {getUiCatalogLabel(uiLabelCatalog, "modules", value, language)}
                     </span>
                   ))
                 ) : (
@@ -451,7 +457,19 @@ export function TenantOverviewPage() {
                   }
                 />
                 <DetailField label={language === "es" ? "ID usuario" : "User ID"} value={tenantInfo?.user.id || "n/a"} />
-                <DetailField label={language === "es" ? "Alcance del token" : "Token scope"} value={tenantInfo?.token_scope || "n/a"} />
+                <DetailField
+                  label={language === "es" ? "Alcance del token" : "Token scope"}
+                  value={
+                    tenantInfo?.token_scope
+                      ? getUiCatalogLabel(
+                          uiLabelCatalog,
+                          "token_scopes",
+                          tenantInfo.token_scope,
+                          language
+                        )
+                      : "n/a"
+                  }
+                />
               </div>
             </PanelCard>
           </div>
@@ -475,8 +493,14 @@ export function TenantOverviewPage() {
               columns={[
                 {
                   key: "module_key",
-                  header: language === "es" ? "Clave de módulo" : "Module key",
-                  render: (row) => <code>{row.module_key}</code>,
+                  header: language === "es" ? "Indicador" : "Metric",
+                  render: (row) =>
+                    getUiCatalogLabel(
+                      uiLabelCatalog,
+                      "module_limit_keys",
+                      row.module_key,
+                      language
+                    ),
                 },
                 {
                   key: "used_units",
@@ -498,7 +522,16 @@ export function TenantOverviewPage() {
                   key: "limit_source",
                   header: language === "es" ? "Fuente" : "Source",
                   render: (row) =>
-                    row.limit_source ? displayPlatformCode(row.limit_source, language) : language === "es" ? "ninguna" : "none",
+                    row.limit_source
+                      ? getUiCatalogLabel(
+                          uiLabelCatalog,
+                          "limit_sources",
+                          row.limit_source,
+                          language
+                        )
+                      : language === "es"
+                        ? "ninguna"
+                        : "none",
                 },
                 {
                   key: "at_limit",

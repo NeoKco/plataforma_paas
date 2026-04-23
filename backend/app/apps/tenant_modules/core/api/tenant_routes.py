@@ -59,6 +59,7 @@ from app.common.auth.dependencies import (
 from app.common.config.settings import settings
 from app.common.db.session_manager import get_control_db, get_tenant_db
 from app.common.timezone_utils import DEFAULT_TENANT_TIMEZONE, resolve_effective_timezone
+from app.common.utils.platform_ui_labels import build_tenant_ui_label_catalog
 
 router = APIRouter(prefix="/tenant", tags=["Tenant Protected"])
 tenant_data_service = TenantDataService()
@@ -540,6 +541,7 @@ def tenant_info(
             effective_timezone=effective_timezone,
         ),
         token_scope=request.state.token_scope,
+        ui_label_catalog=build_tenant_ui_label_catalog(),
     )
 
 

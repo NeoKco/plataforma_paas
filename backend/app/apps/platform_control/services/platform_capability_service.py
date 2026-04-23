@@ -1,5 +1,6 @@
 from app.apps.platform_control.services.tenant_service import TenantService
 from app.common.policies.module_limit_catalog import list_module_limit_capabilities
+from app.common.utils.platform_ui_labels import build_platform_ui_label_catalog
 from app.common.policies.tenant_module_subscription_policy_service import (
     TenantModuleSubscriptionPolicyService,
 )
@@ -95,6 +96,7 @@ class PlatformCapabilityService:
             "billing_sync_processing_results": list(
                 self.BILLING_SYNC_PROCESSING_RESULTS
             ),
+            "ui_label_catalog": build_platform_ui_label_catalog(),
             "current_provisioning_dispatch_backend": (
                 settings.PROVISIONING_DISPATCH_BACKEND.strip().lower()
             ),

@@ -9,15 +9,17 @@ import { EmptyState } from "../../../../components/feedback/EmptyState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
   getPlatformAuthAudit,
+  getPlatformCapabilities,
   getPlatformTenantPolicyActivity,
 } from "../../../../services/platform-api";
 import { useAuth } from "../../../../store/auth-context";
 import { useLanguage } from "../../../../store/language-context";
 import { getCurrentLocale } from "../../../../utils/i18n";
-import { displayPlatformCode } from "../../../../utils/platform-labels";
+import { displayPlatformCode, getUiCatalogLabel } from "../../../../utils/platform-labels";
 import type {
   ApiError,
   PlatformAuthAuditEvent,
+  PlatformCapabilities,
   PlatformTenantPolicyChangeEvent,
 } from "../../../../types";
 
@@ -56,6 +58,7 @@ function formatDateTime(value: string | null, language: "es" | "en"): string {
 export function PlatformActivityPage() {
   const { session } = useAuth();
   const { language } = useLanguage();
+  const [capabilities, setCapabilities] = useState<PlatformCapabilities | null>(null);
   const [events, setEvents] = useState<PlatformAuthAuditEvent[]>([]);
   const [tenantChanges, setTenantChanges] = useState<PlatformTenantPolicyChangeEvent[]>([]);
   const [search, setSearch] = useState("");
@@ -69,6 +72,7 @@ export function PlatformActivityPage() {
   const [limit, setLimit] = useState(25);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
+  const uiLabelCatalog = capabilities?.ui_label_catalog || null;
 
   const overview = useMemo(() => {
     const successCount = events.filter((item) => item.outcome === "success").length;
@@ -127,8 +131,8 @@ export function PlatformActivityPage() {
         key: "tenant-change",
         title:
           language === "es"
-            ? `Último cambio tenant: ${displayPlatformCode(latestTenantChange.event_type, language)}`
-            : `Latest tenant change: ${displayPlatformCode(latestTenantChange.event_type, language)}`,
+            ? `Último cambio tenant: ${getUiCatalogLabel(uiLabelCatalog, "policy_event_types", latestTenantChange.event_type, language)}`
+            : `Latest tenant change: ${getUiCatalogLabel(uiLabelCatalog, "policy_event_types", latestTenantChange.event_type, language)}`,
         detail:
           language === "es"
             ? `Se registró sobre ${latestTenantChange.tenant_slug} por ${latestTenantChange.actor_email || "actor no identificado"}. Úsalo para correlacionar soporte con mutaciones recientes.`
@@ -154,7 +158,7 @@ export function PlatformActivityPage() {
     }
 
     return signals;
-  }, [events, language, overview.deniedCount, overview.failedCount, tenantChanges]);
+  }, [events, language, overview.deniedCount, overview.failedCount, tenantChanges, uiLabelCatalog]);
 
   useEffect(() => {
     if (!session?.accessToken) {
@@ -173,7 +177,8 @@ export function PlatformActivityPage() {
     setError(null);
 
     try {
-      const [auditResponse, tenantPolicyResponse] = await Promise.all([
+      const [capabilitiesResponse, auditResponse, tenantPolicyResponse] = await Promise.all([
+        getPlatformCapabilities(session.accessToken),
         getPlatformAuthAudit(session.accessToken, {
           limit,
           subject_scope: scopeFilter || undefined,
@@ -191,10 +196,12 @@ export function PlatformActivityPage() {
           limit,
         }),
       ]);
+      setCapabilities(capabilitiesResponse);
       setEvents(auditResponse.data);
       setTenantChanges(tenantPolicyResponse.data);
     } catch (rawError) {
       setError(rawError as ApiError);
+      setCapabilities(null);
       setEvents([]);
       setTenantChanges([]);
     } finally {
@@ -359,8 +366,12 @@ export function PlatformActivityPage() {
                 onChange={(event) => setScopeFilter(event.target.value)}
               >
                 <option value="">{language === "es" ? "Todos los scopes" : "All scopes"}</option>
-                <option value="platform">platform</option>
-                <option value="tenant">tenant</option>
+                <option value="platform">
+                  {getUiCatalogLabel(uiLabelCatalog, "subject_scopes", "platform", language)}
+                </option>
+                <option value="tenant">
+                  {getUiCatalogLabel(uiLabelCatalog, "subject_scopes", "tenant", language)}
+                </option>
               </select>
               <select
                 className="form-select"
@@ -445,9 +456,9 @@ export function PlatformActivityPage() {
                     {events.map((item) => (
                       <tr key={item.id}>
                         <td>{formatDateTime(item.created_at, language)}</td>
-                        <td>{displayPlatformCode(item.subject_scope, language)}</td>
+                        <td>{getUiCatalogLabel(uiLabelCatalog, "subject_scopes", item.subject_scope, language)}</td>
                         <td>
-                          <code>{item.event_type}</code>
+                          {getUiCatalogLabel(uiLabelCatalog, "auth_event_types", item.event_type, language)}
                         </td>
                         <td>
                           <StatusBadge value={formatAuditOutcome(item.outcome)} />
@@ -515,10 +526,23 @@ export function PlatformActivityPage() {
                       <tr key={item.id}>
                         <td>{formatDateTime(item.recorded_at, language)}</td>
                         <td>{item.tenant_slug}</td>
-                        <td>{displayPlatformCode(item.event_type, language)}</td>
+                        <td>{getUiCatalogLabel(uiLabelCatalog, "policy_event_types", item.event_type, language)}</td>
                         <td>{item.actor_email || "n/a"}</td>
                         <td>{item.actor_role ? displayPlatformCode(item.actor_role, language) : "n/a"}</td>
-                        <td>{item.changed_fields.length > 0 ? item.changed_fields.join(", ") : "n/a"}</td>
+                        <td>
+                          {item.changed_fields.length > 0
+                            ? item.changed_fields
+                                .map((value) =>
+                                  getUiCatalogLabel(
+                                    uiLabelCatalog,
+                                    "policy_changed_fields",
+                                    value,
+                                    language
+                                  )
+                                )
+                                .join(", ")
+                            : "n/a"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

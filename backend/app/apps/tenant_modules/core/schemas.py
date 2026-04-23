@@ -127,6 +127,7 @@ class TenantInfoResponse(BaseModel):
     tenant: TenantInfoData
     user: TenantUserData
     token_scope: str
+    ui_label_catalog: dict[str, dict[str, dict[str, str]]]
 
 
 class TenantModuleUsageItemResponse(BaseModel):
