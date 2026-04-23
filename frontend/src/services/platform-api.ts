@@ -40,6 +40,8 @@ import type {
   PlatformTenantPolicyHistoryResponse,
   PlatformTenantPolicyActivityResponse,
   PlatformTenantPlanResponse,
+  PlatformTenantSubscriptionContractResponse,
+  PlatformTenantSubscriptionItemWriteRequest,
   PlatformTenantRateLimitResponse,
   PlatformTenantRestoreResponse,
   PlatformTenantStatusResponse,
@@ -611,6 +613,25 @@ export function updatePlatformTenantPlan(
 ) {
   return apiRequest<PlatformTenantPlanResponse>(
     `/platform/tenants/${tenantId}/plan`,
+    {
+      method: "PATCH",
+      token: accessToken,
+      body: payload,
+    }
+  );
+}
+
+export function updatePlatformTenantSubscription(
+  accessToken: string,
+  tenantId: number,
+  payload: {
+    base_plan_code: string;
+    billing_cycle: string;
+    addon_items: PlatformTenantSubscriptionItemWriteRequest[];
+  }
+) {
+  return apiRequest<PlatformTenantSubscriptionContractResponse>(
+    `/platform/tenants/${tenantId}/subscription`,
     {
       method: "PATCH",
       token: accessToken,

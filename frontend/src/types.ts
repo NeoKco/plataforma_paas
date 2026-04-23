@@ -137,6 +137,17 @@ export type PlatformModuleSubscriptionCatalogEntry = {
   is_active: boolean;
 };
 
+export type PlatformTenantSubscriptionItem = {
+  module_key: string;
+  item_kind: string;
+  billing_cycle: string | null;
+  status: string;
+  starts_at: string | null;
+  renews_at: string | null;
+  ends_at: string | null;
+  is_prorated: boolean;
+};
+
 export type PlatformCapabilities = {
   success: boolean;
   message: string;
@@ -323,10 +334,16 @@ export type PlatformTenant = {
   subscription_base_plan_code: string | null;
   subscription_status: string | null;
   subscription_billing_cycle: string | null;
+  subscription_current_period_starts_at: string | null;
+  subscription_current_period_ends_at: string | null;
+  subscription_next_renewal_at: string | null;
+  subscription_grace_until: string | null;
+  subscription_is_co_termed: boolean | null;
   subscription_included_modules: string[] | null;
   subscription_addon_modules: string[] | null;
   subscription_technical_modules: string[] | null;
   subscription_legacy_fallback_modules: string[] | null;
+  subscription_items: PlatformTenantSubscriptionItem[] | null;
   effective_enabled_modules: string[] | null;
   effective_activation_source: string | null;
   plan_module_limits: Record<string, number> | null;
@@ -571,6 +588,34 @@ export type PlatformTenantPlanResponse = {
   subscription_effective_enabled_modules: string[] | null;
   effective_activation_source: string | null;
   tenant_plan_module_limits: Record<string, number> | null;
+};
+
+export type PlatformTenantSubscriptionItemWriteRequest = {
+  module_key: string;
+  billing_cycle: string;
+};
+
+export type PlatformTenantSubscriptionContractResponse = {
+  success: boolean;
+  message: string;
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_status: string;
+  base_plan_code: string;
+  subscription_status: string;
+  billing_cycle: string;
+  current_period_starts_at: string | null;
+  current_period_ends_at: string | null;
+  next_renewal_at: string | null;
+  grace_until: string | null;
+  is_co_termed: boolean;
+  included_modules: string[] | null;
+  addon_modules: string[] | null;
+  technical_modules: string[] | null;
+  legacy_fallback_modules: string[] | null;
+  effective_enabled_modules: string[] | null;
+  effective_activation_source: string | null;
+  items: PlatformTenantSubscriptionItem[];
 };
 
 export type PlatformTenantBillingResponse = {

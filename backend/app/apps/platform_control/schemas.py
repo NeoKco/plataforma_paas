@@ -241,10 +241,16 @@ class TenantResponse(BaseModel):
     subscription_base_plan_code: str | None = None
     subscription_status: str | None = None
     subscription_billing_cycle: str | None = None
+    subscription_current_period_starts_at: datetime | None = None
+    subscription_current_period_ends_at: datetime | None = None
+    subscription_next_renewal_at: datetime | None = None
+    subscription_grace_until: datetime | None = None
+    subscription_is_co_termed: bool | None = None
     subscription_included_modules: list[str] | None = None
     subscription_addon_modules: list[str] | None = None
     subscription_technical_modules: list[str] | None = None
     subscription_legacy_fallback_modules: list[str] | None = None
+    subscription_items: list["TenantSubscriptionItemResponse"] | None = None
     effective_enabled_modules: list[str] | None = None
     effective_activation_source: str | None = None
     plan_module_limits: dict[str, int] | None = None
@@ -462,6 +468,51 @@ class TenantPlanResponse(BaseModel):
     subscription_effective_enabled_modules: list[str] | None = None
     effective_activation_source: str | None = None
     tenant_plan_module_limits: dict[str, int] | None = None
+
+
+class TenantSubscriptionItemWriteRequest(BaseModel):
+    module_key: str
+    billing_cycle: str
+
+
+class TenantSubscriptionContractUpdateRequest(BaseModel):
+    base_plan_code: str
+    billing_cycle: str
+    addon_items: list[TenantSubscriptionItemWriteRequest] = []
+
+
+class TenantSubscriptionItemResponse(BaseModel):
+    module_key: str
+    item_kind: str
+    billing_cycle: str | None = None
+    status: str
+    starts_at: datetime | None = None
+    renews_at: datetime | None = None
+    ends_at: datetime | None = None
+    is_prorated: bool = False
+
+
+class TenantSubscriptionContractResponse(BaseModel):
+    success: bool
+    message: str
+    tenant_id: int
+    tenant_slug: str
+    tenant_status: str
+    base_plan_code: str
+    subscription_status: str
+    billing_cycle: str
+    current_period_starts_at: datetime | None = None
+    current_period_ends_at: datetime | None = None
+    next_renewal_at: datetime | None = None
+    grace_until: datetime | None = None
+    is_co_termed: bool = True
+    included_modules: list[str] | None = None
+    addon_modules: list[str] | None = None
+    technical_modules: list[str] | None = None
+    legacy_fallback_modules: list[str] | None = None
+    effective_enabled_modules: list[str] | None = None
+    effective_activation_source: str | None = None
+    items: list[TenantSubscriptionItemResponse]
 
 
 class TenantBillingUpdateRequest(BaseModel):

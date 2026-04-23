@@ -136,10 +136,14 @@ Estado práctico de cierre:
       - activación efectiva actual desde suscripciones tenant
       - fallback legacy visible cuando aplica
       - ruta formal hacia contratación tenant de add-ons
-  - el siguiente corte ya no es modelar ni visibilizar el catálogo, sino:
-    - contratar add-ons desde consola sobre `tenant_subscriptions` y `tenant_subscription_items`
+  - `Tenants > Plan y módulos` ya deja también contratación formal visible:
+    - `Contrato comercial tenant` opera sobre `tenant_subscriptions` y `tenant_subscription_items`
+    - `Baseline legacy por plan_code` queda como compatibilidad temporal
+    - la vista ya separa `Plan Base`, add-ons arrendados y dependencias técnicas auto-resueltas
+  - el siguiente corte ya no es modelar ni contratar add-ons, sino:
     - retirar gradualmente el fallback legacy por `plan_code`
-    - separar en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
+    - conectar billing, grace y suspensión al contrato comercial nuevo
+    - seguir separando en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`

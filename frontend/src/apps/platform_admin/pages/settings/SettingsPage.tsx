@@ -921,8 +921,8 @@ export function SettingsPage() {
                 </div>
                 <div>
                   {language === "es"
-                    ? "El siguiente paso formal ya no es consumir suscripciones en la activación efectiva, sino contratar add-ons desde consola y retirar gradualmente el fallback legacy por `plan_code`."
-                    : "The next formal step is no longer consuming subscriptions in effective activation, but contracting add-ons from the console and gradually retiring the legacy `plan_code` fallback."}
+                    ? "La activación efectiva ya consume suscripciones tenant y la consola ya puede contratar add-ons. Lo siguiente es retirar gradualmente el fallback legacy por `plan_code`."
+                    : "Effective activation already consumes tenant subscriptions and the console can already contract add-ons. The next step is gradually retiring the legacy `plan_code` fallback."}
                 </div>
               </div>
               <div className="settings-token-chips mt-3">

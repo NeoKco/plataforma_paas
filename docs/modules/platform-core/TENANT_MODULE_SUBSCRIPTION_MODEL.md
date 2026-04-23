@@ -5,8 +5,8 @@ Definición formal del modelo comercial y técnico para la `Etapa 15. Registro y
 Estado actual:
 
 - decisión de producto: `Aprobada`
-- implementación repo/control model: `Primer corte técnico completado`
-- implementación runtime: `Primer corte técnico promovido en staging y production`
+- implementación repo/control model: `Contratación formal desde consola completada`
+- implementación runtime: `Contratación formal promovida en staging y production`
 - política vigente de activación efectiva: `tenant_subscriptions + fallback legacy por plan_code`
 
 ## Objetivo
@@ -256,7 +256,7 @@ Sino como:
 
 ## Estado visible actual
 
-Además del primer corte técnico ya promovido, la consola visible ya quedó adaptada así:
+Además del corte técnico ya promovido, la consola visible ya quedó adaptada así:
 
 1. `Configuración` ya expone:
    - `Planes base`
@@ -265,6 +265,7 @@ Además del primer corte técnico ya promovido, la consola visible ya quedó ada
    - `Política efectiva actual por plan`
 2. `Tenants > Plan y módulos` ya expone:
    - `Plan Base aprobado`
+   - `Contrato comercial tenant`
    - `Plan operativo actual`
    - add-ons visibles
    - ciclos visibles
@@ -275,12 +276,17 @@ Además del primer corte técnico ya promovido, la consola visible ya quedó ada
    - módulos técnicos
    - fallback legacy cuando aplica
    - fuente efectiva de activación
+4. la consola ya permite además:
+   - contratar add-ons desde `Tenants > Plan y módulos`
+   - fijar ciclo comercial por tenant y por add-on
+   - programar salida de un add-on al cierre del período al desmarcarlo
+   - mantener separado el `Baseline legacy por plan_code`
 
 ## Siguiente corte técnico recomendado
 
-1. contratar add-ons desde consola sobre:
+1. retirar gradualmente el fallback legacy por `plan_code`
+2. conectar billing, grace y suspensión sobre:
    - `tenant_subscriptions`
    - `tenant_subscription_items`
-2. mantener separada la habilitación técnica efectiva del contrato comercial
-3. retirar gradualmente el fallback legacy por `plan_code`
-4. recién después conectar billing, grace y suspensión sobre esa misma base
+3. seguir manteniendo separada la habilitación técnica efectiva del contrato comercial
+4. recién después cerrar el retiro total del baseline legacy

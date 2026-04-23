@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-22
-- foco operativo nuevo ya cerrado en runtime dentro de la `Etapa 15`: `platform_control` ya tiene el primer corte técnico persistente del modelo `Plan Base + módulos arrendables por suscripción`, promovido y validado en `staging` y `production`; además `Configuración` y `Tenants > Plan y módulos` ya quedaron adaptados y publicados al lenguaje visible `Plan Base + add-ons`, y la activación efectiva visible ya consume `tenant_subscriptions` con fallback legacy por `plan_code`
+- foco operativo nuevo ya cerrado en runtime dentro de la `Etapa 15`: `platform_control` ya no solo tiene el primer corte técnico persistente del modelo `Plan Base + módulos arrendables por suscripción`, promovido y validado en `staging` y `production`; además `Configuración` y `Tenants > Plan y módulos` ya quedaron adaptados y publicados al lenguaje visible `Plan Base + add-ons`, la activación efectiva visible ya consume `tenant_subscriptions` con fallback legacy por `plan_code`, y `Tenants > Plan y módulos` ya permite contratación formal de add-ons sobre `tenant_subscriptions` y `tenant_subscription_items`
 - foco de iteración: el roadmap ya dejó suficientemente institucionalizado `platform-core hardening + E2E sobre Provisioning y DLQ` y ya abrió formalmente la `Etapa 15. Registro y Activación de Módulos`. El frente anterior queda cerrado en repo y runtime: el bloque broker-only de `Provisioning/DLQ` ya no mantiene el mapping `target -> specs` duplicado entre helper local, helper published y workflow manual; ahora existe un runner compartido [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh), consumido por [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh), [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) y [.github/workflows/frontend-broker-dlq-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-broker-dlq-e2e.yml). Después, ya quedó institucionalizado un baseline published curado de `Provisioning/DLQ` mediante [run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh): siempre corre `dispatch-capability + surface-gating + observability-visible`, y suma broker-only solo cuando el entorno realmente usa `broker`. Para sostener esa pasada published sin depender de seeds en producción, se agrega además el smoke [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts). Y ese baseline ya quedó convertido en rutina operativa explícita por ambiente con:
   - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
   - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
@@ -101,6 +101,24 @@
     - fallback legacy
     - fuente efectiva de activación
   - `Tenants > Plan y módulos` ya deja visible ese mismo breakdown operativo en consola
+  Subcorte nuevo ya cerrado en repo y runtime dentro de la Etapa 15:
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ya agrega `PATCH /platform/tenants/{tenant_id}/subscription`
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya persiste contratos comerciales en:
+    - `tenant_subscriptions`
+    - `tenant_subscription_items`
+    - con co-terminación y programación de salida al cierre del período para add-ons removidos
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ya deja dos bloques separados:
+    - `Contrato comercial tenant`
+    - `Baseline legacy por plan_code`
+  - la vista ya diferencia:
+    - `Plan Base`
+    - add-ons arrendados
+    - dependencias técnicas auto-resueltas
+    - baseline legacy
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `206 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `94 tests OK`
+    - `cd frontend && npm run build` -> `OK`
   Subcorte nuevo ya cerrado en repo dentro de ese frente:
   - [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh) centraliza el dispatch broker-only `target -> specs`
   - [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh) ya deja de quedarse solo en `all|batch|row|filters`

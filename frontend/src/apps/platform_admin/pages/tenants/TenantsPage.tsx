@@ -65,6 +65,7 @@ import {
   updatePlatformTenantMaintenance,
   updatePlatformTenantModuleLimits,
   updatePlatformTenantPlan,
+  updatePlatformTenantSubscription,
   updatePlatformTenantRateLimits,
   updatePlatformTenantStatus,
 } from "../../../../services/platform-api";
@@ -246,6 +247,14 @@ export function TenantsPage() {
   const [maintenanceScopes, setMaintenanceScopes] = useState<string[]>(["all"]);
   const [maintenanceAccessMode, setMaintenanceAccessMode] = useState("write_block");
   const [planCode, setPlanCode] = useState("");
+  const [subscriptionBasePlanCode, setSubscriptionBasePlanCode] = useState("");
+  const [subscriptionBillingCycle, setSubscriptionBillingCycle] = useState("");
+  const [subscriptionAddonSelections, setSubscriptionAddonSelections] = useState<
+    Record<string, boolean>
+  >({});
+  const [subscriptionAddonBillingCycles, setSubscriptionAddonBillingCycles] = useState<
+    Record<string, string>
+  >({});
   const [readRateLimit, setReadRateLimit] = useState("");
   const [writeRateLimit, setWriteRateLimit] = useState("");
   const [billingProvider, setBillingProvider] = useState("");
@@ -415,6 +424,17 @@ export function TenantsPage() {
     [capabilities?.module_subscription_catalog]
   );
 
+  const selectedTenantContractItems = useMemo(
+    () =>
+      new Map(
+        (selectedTenantSummary?.subscription_items || []).map((item) => [
+          item.module_key,
+          item,
+        ])
+      ),
+    [selectedTenantSummary?.subscription_items]
+  );
+
   const selectedCreatePlanDependencyStatus = useMemo(
     () =>
       buildTenantPlanDependencyStatus(
@@ -432,6 +452,38 @@ export function TenantsPage() {
       ),
     [capabilities?.module_dependency_catalog, planCatalogByCode, planCode]
   );
+
+  const selectedTenantSubscriptionDependencyStatus = useMemo(() => {
+    const includedModules = defaultBasePlanCatalog?.included_modules || [];
+    const selectedAddons = rentableModuleCatalog
+      .filter((entry) => subscriptionAddonSelections[entry.module_key])
+      .map((entry) => entry.module_key);
+    return buildTenantPlanDependencyStatus(
+      [...includedModules, ...selectedAddons],
+      capabilities?.module_dependency_catalog || []
+    );
+  }, [
+    capabilities?.module_dependency_catalog,
+    defaultBasePlanCatalog?.included_modules,
+    rentableModuleCatalog,
+    subscriptionAddonSelections,
+  ]);
+
+  const selectedTenantSubscriptionAddons = useMemo(
+    () =>
+      rentableModuleCatalog
+        .filter((entry) => subscriptionAddonSelections[entry.module_key])
+        .map((entry) => entry.module_key),
+    [rentableModuleCatalog, subscriptionAddonSelections]
+  );
+
+  const selectedTenantSubscriptionTechnicalPreview = useMemo(() => {
+    const technicalModules = new Set<string>();
+    selectedTenantSubscriptionDependencyStatus.missing.forEach((entry) => {
+      entry.requires_modules.forEach((moduleKey) => technicalModules.add(moduleKey));
+    });
+    return Array.from(technicalModules);
+  }, [selectedTenantSubscriptionDependencyStatus.missing]);
 
   const moduleLimitCapabilityMap = useMemo(
     () =>
@@ -907,6 +959,50 @@ export function TenantsPage() {
     setMaintenanceScopes(selectedTenantSummary.maintenance_scopes || ["all"]);
     setMaintenanceAccessMode(selectedTenantSummary.maintenance_access_mode);
     setPlanCode(selectedTenantSummary.plan_code || "");
+    setSubscriptionBasePlanCode(
+      selectedTenantSummary.subscription_base_plan_code ||
+        defaultBasePlanCatalog?.plan_code ||
+        ""
+    );
+    setSubscriptionBillingCycle(
+      selectedTenantSummary.subscription_billing_cycle ||
+        defaultBasePlanCatalog?.default_billing_cycle ||
+        "monthly"
+    );
+    setSubscriptionAddonSelections(
+      Object.fromEntries(
+        rentableModuleCatalog.map((entry) => {
+          const existingItem = (selectedTenantSummary.subscription_items || []).find(
+            (item) => item.module_key === entry.module_key
+          );
+          return [
+            entry.module_key,
+            Boolean(
+              existingItem &&
+                ["active", "scheduled_cancel", "grace_period", "pending_activation"].includes(
+                  existingItem.status
+                )
+            ),
+          ];
+        })
+      )
+    );
+    setSubscriptionAddonBillingCycles(
+      Object.fromEntries(
+        rentableModuleCatalog.map((entry) => {
+          const existingItem = (selectedTenantSummary.subscription_items || []).find(
+            (item) => item.module_key === entry.module_key
+          );
+          return [
+            entry.module_key,
+            existingItem?.billing_cycle ||
+              entry.billing_cycles[0] ||
+              selectedTenantSummary.subscription_billing_cycle ||
+              "monthly",
+          ];
+        })
+      )
+    );
     setReadRateLimit(
       selectedTenantSummary.api_read_requests_per_minute === null
         ? ""
@@ -938,7 +1034,13 @@ export function TenantsPage() {
     );
     setModuleLimitDrafts(nextDrafts);
     setActionFeedback(null);
-  }, [moduleLimitKeys, selectedTenantSummary]);
+  }, [
+    defaultBasePlanCatalog?.default_billing_cycle,
+    defaultBasePlanCatalog?.plan_code,
+    moduleLimitKeys,
+    rentableModuleCatalog,
+    selectedTenantSummary,
+  ]);
 
   useEffect(() => {
     if (tenantPortalUsers.length === 0) {
@@ -1251,6 +1353,55 @@ export function TenantsPage() {
       action: () =>
         updatePlatformTenantPlan(session.accessToken, selectedTenantId, {
           plan_code: normalizeNullableString(planCode),
+        }),
+    });
+  }
+
+  function handleSubscriptionContractSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken || selectedTenantId === null) {
+      return;
+    }
+
+    const selectedAddonItems = rentableModuleCatalog
+      .filter((entry) => subscriptionAddonSelections[entry.module_key])
+      .map((entry) => ({
+        module_key: entry.module_key,
+        billing_cycle:
+          subscriptionAddonBillingCycles[entry.module_key] ||
+          entry.billing_cycles[0] ||
+          subscriptionBillingCycle,
+      }));
+
+    requestConfirmation({
+      scope: "subscription-contract",
+      title:
+        language === "es"
+          ? "Confirmar contratación de add-ons"
+          : "Confirm add-on contracting",
+      description:
+        language === "es"
+          ? "Se actualizará la suscripción comercial del tenant sobre `tenant_subscriptions` y `tenant_subscription_items`."
+          : "The tenant commercial subscription will be updated over `tenant_subscriptions` and `tenant_subscription_items`.",
+      details: [
+        `Tenant: ${selectedTenantSummary?.name || "n/a"}`,
+        `${language === "es" ? "Plan Base" : "Base plan"}: ${
+          subscriptionBasePlanCode || "n/a"
+        }`,
+        `${language === "es" ? "Ciclo base" : "Base cycle"}: ${
+          getTenantBillingCycleLabel(subscriptionBillingCycle)
+        }`,
+        `${language === "es" ? "Add-ons seleccionados" : "Selected add-ons"}: ${
+          selectedAddonItems.length
+        }`,
+      ],
+      confirmLabel:
+        language === "es" ? "Guardar contratación" : "Save subscription contract",
+      action: () =>
+        updatePlatformTenantSubscription(session.accessToken, selectedTenantId, {
+          base_plan_code: subscriptionBasePlanCode,
+          billing_cycle: subscriptionBillingCycle,
+          addon_items: selectedAddonItems,
         }),
     });
   }
@@ -2660,8 +2811,8 @@ export function TenantsPage() {
                     : "Formal activation route"}
                   :{" "}
                   {language === "es"
-                    ? "el catálogo vive en Configuración, la activación efectiva ya consume `tenant_subscriptions` cuando existen, y esta ficha todavía escribe `plan_code` como baseline/fallback legacy hasta que llegue la contratación formal de add-ons."
-                    : "the catalog lives in Settings, effective activation already consumes `tenant_subscriptions` when present, and this form still writes `plan_code` as the legacy baseline/fallback until formal add-on contracting arrives."}
+                    ? "el catálogo vive en Configuración, la contratación comercial tenant ya opera sobre `tenant_subscriptions`, y este bloque legacy sigue existiendo solo como baseline/fallback por `plan_code` mientras se retira esa compatibilidad."
+                    : "the catalog lives in Settings, tenant commercial contracting already operates over `tenant_subscriptions`, and this legacy block remains only as the `plan_code` baseline/fallback while that compatibility is retired."}
                 </div>
                 {selectedTenantSummary.maintenance_reason ? (
                   <div className="tenant-inline-note">
@@ -4098,11 +4249,252 @@ export function TenantsPage() {
                     </AppFormActions>
                   </AppForm>
 
+                  <AppForm
+                    className="tenant-action-form"
+                    onSubmit={handleSubscriptionContractSubmit}
+                  >
+                    <h3 className="tenant-action-form__title">
+                      {language === "es"
+                        ? "Contrato comercial tenant"
+                        : "Tenant commercial contract"}
+                    </h3>
+                    <AppFormField>
+                      <FieldHelpLabel
+                        label={language === "es" ? "Plan Base" : "Base plan"}
+                        help={
+                          language === "es"
+                            ? "El tenant siempre debe mantener un Plan Base activo. Aquí ya no se usa `plan_code`, sino la suscripción formal."
+                            : "The tenant must always keep an active Base plan. This writes the formal subscription instead of `plan_code`."
+                        }
+                        placement="left"
+                      />
+                      <select
+                        className="form-select"
+                        value={subscriptionBasePlanCode}
+                        onChange={(event) =>
+                          setSubscriptionBasePlanCode(event.target.value)
+                        }
+                      >
+                        {(capabilities?.base_plan_catalog || []).map((entry) => (
+                          <option key={entry.plan_code} value={entry.plan_code}>
+                            {entry.display_name}
+                          </option>
+                        ))}
+                      </select>
+                    </AppFormField>
+                    <AppFormField>
+                      <FieldHelpLabel
+                        label={language === "es" ? "Ciclo base" : "Base cycle"}
+                        help={
+                          language === "es"
+                            ? "La suscripción principal del tenant se alinea a este ciclo."
+                            : "The tenant primary subscription aligns to this cycle."
+                        }
+                      />
+                      <select
+                        className="form-select"
+                        value={subscriptionBillingCycle}
+                        onChange={(event) =>
+                          setSubscriptionBillingCycle(event.target.value)
+                        }
+                      >
+                        {(capabilities?.subscription_billing_cycles || []).map((value) => (
+                          <option key={value} value={value}>
+                            {getTenantBillingCycleLabel(value)}
+                          </option>
+                        ))}
+                      </select>
+                    </AppFormField>
+                    <div className="app-form-field app-form-field--full">
+                      <div className="tenant-help-box">
+                        <div className="tenant-scope-list">
+                          <div className="tenant-scope-list__item">
+                            <strong>
+                              {language === "es"
+                                ? "Estado de suscripción"
+                                : "Subscription status"}
+                            </strong>
+                            :{" "}
+                            {displayPlatformCode(
+                              selectedTenantSummary?.subscription_status || "active",
+                              language
+                            )}
+                          </div>
+                          <div className="tenant-scope-list__item">
+                            <strong>
+                              {language === "es"
+                                ? "Renovación próxima"
+                                : "Next renewal"}
+                            </strong>
+                            :{" "}
+                            {formatDateTime(
+                              selectedTenantSummary?.subscription_next_renewal_at
+                            )}
+                          </div>
+                          <div className="tenant-scope-list__item">
+                            <strong>
+                              {language === "es"
+                                ? "Fin de período"
+                                : "Current period end"}
+                            </strong>
+                            :{" "}
+                            {formatDateTime(
+                              selectedTenantSummary?.subscription_current_period_ends_at
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="app-form-field app-form-field--full">
+                      <FieldHelpLabel
+                        label={
+                          language === "es"
+                            ? "Add-ons arrendables"
+                            : "Rentable add-ons"
+                        }
+                        help={
+                          language === "es"
+                            ? "Selecciona los módulos adicionales realmente contratados. Si quitas uno ya activo, quedará programado para salida al cierre del período actual."
+                            : "Select the additional modules that are actually contracted. Removing an active one schedules it to leave at the end of the current period."
+                        }
+                        placement="left"
+                      />
+                      <div className="tenant-help-box">
+                        {rentableModuleCatalog.map((entry) => {
+                          const currentItem =
+                            selectedTenantContractItems.get(entry.module_key) || null;
+                          return (
+                            <div
+                              key={`subscription-addon-${entry.module_key}`}
+                              className="tenant-scope-list__item"
+                            >
+                              <label className="tenant-checkbox-inline">
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(
+                                    subscriptionAddonSelections[entry.module_key]
+                                  )}
+                                  onChange={(event) =>
+                                    setSubscriptionAddonSelections((current) => ({
+                                      ...current,
+                                      [entry.module_key]: event.target.checked,
+                                    }))
+                                  }
+                                />
+                                <strong>
+                                  {getTenantPlanModuleLabel(entry.module_key)}
+                                </strong>
+                              </label>
+                              <div className="tenant-inline-select">
+                                <select
+                                  className="form-select"
+                                  value={
+                                    subscriptionAddonBillingCycles[entry.module_key] ||
+                                    entry.billing_cycles[0] ||
+                                    subscriptionBillingCycle
+                                  }
+                                  onChange={(event) =>
+                                    setSubscriptionAddonBillingCycles((current) => ({
+                                      ...current,
+                                      [entry.module_key]: event.target.value,
+                                    }))
+                                  }
+                                  disabled={!subscriptionAddonSelections[entry.module_key]}
+                                >
+                                  {entry.billing_cycles.map((value) => (
+                                    <option key={`${entry.module_key}-${value}`} value={value}>
+                                      {getTenantBillingCycleLabel(value)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              {currentItem ? (
+                                <div className="tenant-help-text">
+                                  {language === "es"
+                                    ? "Actual"
+                                    : "Current"}
+                                  : {displayPlatformCode(currentItem.status, language)}
+                                  {currentItem.billing_cycle
+                                    ? ` · ${getTenantBillingCycleLabel(
+                                        currentItem.billing_cycle
+                                      )}`
+                                    : ""}
+                                </div>
+                              ) : (
+                                <div className="tenant-help-text">
+                                  {language === "es"
+                                    ? "Aún no contratado"
+                                    : "Not contracted yet"}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="app-form-field app-form-field--full">
+                      <p className="tenant-help-text mt-2 mb-2">
+                        {language === "es"
+                          ? "Vista previa de la activación efectiva:"
+                          : "Effective activation preview:"}
+                      </p>
+                      <div className="tenant-help-box">
+                        <div>
+                          <strong>{language === "es" ? "Plan Base" : "Base Plan"}</strong>:{" "}
+                          {formatTenantModuleList(
+                            defaultBasePlanCatalog?.included_modules || null,
+                            language
+                          )}
+                        </div>
+                        <div>
+                          <strong>{language === "es" ? "Add-ons" : "Add-ons"}</strong>:{" "}
+                          {selectedTenantSubscriptionAddons.length
+                            ? selectedTenantSubscriptionAddons
+                                .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                                .join(", ")
+                            : language === "es"
+                              ? "sin add-ons arrendados"
+                              : "no rented add-ons"}
+                        </div>
+                        <div>
+                          <strong>
+                            {language === "es"
+                              ? "Dependencias técnicas auto-resueltas"
+                              : "Auto-resolved technical dependencies"}
+                          </strong>
+                          :{" "}
+                          {selectedTenantSubscriptionTechnicalPreview.length
+                            ? selectedTenantSubscriptionTechnicalPreview
+                                .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                                .join(", ")
+                            : language === "es"
+                              ? "sin dependencias técnicas adicionales"
+                              : "no extra technical dependencies"}
+                        </div>
+                      </div>
+                    </div>
+                    <AppFormActions>
+                      <button
+                        className="btn btn-primary"
+                        type="submit"
+                        disabled={
+                          isActionSubmitting ||
+                          !subscriptionBasePlanCode ||
+                          !subscriptionBillingCycle
+                        }
+                      >
+                        {language === "es"
+                          ? "Guardar contratación"
+                          : "Save subscription contract"}
+                      </button>
+                    </AppFormActions>
+                  </AppForm>
+
                   <AppForm className="tenant-action-form" onSubmit={handlePlanSubmit}>
                     <h3 className="tenant-action-form__title">
                       {language === "es"
-                        ? "Plan Base y add-ons"
-                        : "Base plan and add-ons"}
+                        ? "Baseline legacy por plan_code"
+                        : "Legacy plan_code baseline"}
                     </h3>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
@@ -4245,8 +4637,8 @@ export function TenantsPage() {
                       ) : null}
                       <p className="tenant-help-text mt-2 mb-0">
                         {language === "es"
-                          ? "Aquí todavía solo puedes aplicar planes backend como baseline/fallback legacy. Los add-ons arrendables ya son visibles y la activación efectiva ya lee suscripciones tenant; lo que falta es la contratación formal de esos add-ons desde consola."
-                          : "You can still only apply backend-defined plans here as the legacy baseline/fallback. Rentable add-ons are already visible and effective activation already reads tenant subscriptions; what is still missing is formal add-on contracting from the console."}
+                          ? "Aquí solo ajustas el baseline/fallback legacy por `plan_code`. La contratación comercial real ya vive en el bloque superior de suscripción tenant."
+                          : "This block only adjusts the legacy `plan_code` baseline/fallback. Real commercial contracting now lives in the tenant subscription block above."}
                       </p>
                     </div>
                     <AppFormActions>

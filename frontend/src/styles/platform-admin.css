@@ -787,6 +787,21 @@ code {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.tenant-checkbox-inline {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.tenant-checkbox-inline input[type="checkbox"] {
+  margin: 0;
+}
+
+.tenant-inline-select {
+  max-width: 15rem;
+}
+
 .tenant-scope-list {
   display: flex;
   flex-wrap: wrap;

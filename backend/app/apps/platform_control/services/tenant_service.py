@@ -1,3 +1,4 @@
+from calendar import monthrange
 from datetime import datetime, timezone
 from dataclasses import dataclass
 from email.utils import parseaddr
@@ -13,6 +14,10 @@ from app.apps.installer.services.postgres_bootstrap_service import (
     PostgresBootstrapService,
 )
 from app.apps.platform_control.models.tenant import Tenant
+from app.apps.platform_control.models.tenant_subscription import TenantSubscription
+from app.apps.platform_control.models.tenant_subscription_item import (
+    TenantSubscriptionItem,
+)
 from app.apps.platform_control.models.provisioning_job import ProvisioningJob
 from app.apps.platform_control.models.tenant_billing_sync_event import (
     TenantBillingSyncEvent,
@@ -1135,6 +1140,130 @@ class TenantService:
         tenant.plan_code = normalized_plan_code
         return self.tenant_repository.save(db, tenant)
 
+    def set_subscription_contract(
+        self,
+        db: Session,
+        tenant_id: int,
+        *,
+        base_plan_code: str,
+        billing_cycle: str,
+        addon_items: list[dict[str, str]] | None = None,
+    ) -> Tenant:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        normalized_base_plan = self._normalize_base_plan_code(base_plan_code)
+        base_plan_entry = (
+            self.tenant_module_subscription_policy_service.get_base_plan_catalog_entry(
+                normalized_base_plan
+            )
+        )
+        if base_plan_entry is None:
+            raise ValueError("Invalid tenant base plan")
+
+        normalized_billing_cycle = self._normalize_subscription_billing_cycle(
+            billing_cycle,
+            allowed_cycles=base_plan_entry.allowed_billing_cycles,
+        )
+        normalized_addon_items = self._normalize_subscription_addon_items(addon_items)
+        current_time = datetime.now(timezone.utc)
+
+        subscription = getattr(tenant, "subscription", None)
+        previous_billing_cycle = getattr(subscription, "billing_cycle", None)
+        reanchor_period = (
+            subscription is None
+            or not getattr(subscription, "current_period_starts_at", None)
+            or not getattr(subscription, "current_period_ends_at", None)
+            or previous_billing_cycle != normalized_billing_cycle
+        )
+
+        if subscription is None:
+            subscription = TenantSubscription(
+                tenant_id=tenant.id,
+                base_plan_code=normalized_base_plan,
+                status="active",
+                billing_cycle=normalized_billing_cycle,
+                is_co_termed=True,
+            )
+            tenant.subscription = subscription
+
+        subscription.base_plan_code = normalized_base_plan
+        subscription.status = "active"
+        subscription.billing_cycle = normalized_billing_cycle
+        subscription.is_co_termed = True
+
+        if reanchor_period:
+            subscription.current_period_starts_at = current_time
+            subscription.current_period_ends_at = self._advance_billing_cycle(
+                current_time,
+                normalized_billing_cycle,
+            )
+
+        subscription.next_renewal_at = subscription.current_period_ends_at
+
+        existing_items = {
+            getattr(item, "module_key", None): item
+            for item in list(getattr(subscription, "items", []) or [])
+            if getattr(item, "module_key", None)
+        }
+
+        selected_module_keys = {item["module_key"] for item in normalized_addon_items}
+        current_period_ends_at = getattr(subscription, "current_period_ends_at", None)
+        current_period_starts_at = getattr(subscription, "current_period_starts_at", None)
+        item_renews_at = getattr(subscription, "next_renewal_at", None) or current_period_ends_at
+
+        for item_payload in normalized_addon_items:
+            existing_item = existing_items.get(item_payload["module_key"])
+            is_mid_cycle_addition = bool(
+                subscription.is_co_termed
+                and current_period_starts_at is not None
+                and current_period_ends_at is not None
+                and current_time > self._coerce_utc_datetime(current_period_starts_at)
+                and current_time < self._coerce_utc_datetime(current_period_ends_at)
+            )
+
+            if existing_item is None:
+                existing_item = TenantSubscriptionItem(
+                    module_key=item_payload["module_key"],
+                    item_kind="addon",
+                    billing_cycle=item_payload["billing_cycle"],
+                    status="active",
+                    starts_at=current_time,
+                    renews_at=item_renews_at,
+                    ends_at=None,
+                    is_prorated=is_mid_cycle_addition,
+                )
+                subscription.items.append(existing_item)
+                existing_items[item_payload["module_key"]] = existing_item
+                continue
+
+            existing_item.item_kind = "addon"
+            existing_item.billing_cycle = item_payload["billing_cycle"]
+            existing_item.status = "active"
+            existing_item.renews_at = item_renews_at
+            existing_item.ends_at = None
+            existing_item.is_prorated = is_mid_cycle_addition
+            if getattr(existing_item, "starts_at", None) is None:
+                existing_item.starts_at = current_time
+
+        for module_key, existing_item in existing_items.items():
+            if getattr(existing_item, "item_kind", None) != "addon":
+                continue
+            if module_key in selected_module_keys:
+                continue
+            existing_item.renews_at = None
+            existing_item.ends_at = item_renews_at or current_time
+            existing_item.status = (
+                "scheduled_cancel"
+                if item_renews_at is not None
+                and self._coerce_utc_datetime(item_renews_at) > current_time
+                else "cancelled"
+            )
+            existing_item.is_prorated = False
+
+        return self.tenant_repository.save(db, tenant)
+
     def get_tenant_module_limits(self, tenant: Tenant) -> dict[str, int] | None:
         raw_value = getattr(tenant, "module_limits_json", None)
         if not raw_value:
@@ -1619,6 +1748,96 @@ class TenantService:
             raise ValueError("Invalid tenant plan")
 
         return normalized_plan_code
+
+    def _normalize_base_plan_code(self, base_plan_code: str | None) -> str:
+        normalized = (base_plan_code or "").strip().lower()
+        if not normalized:
+            raise ValueError("Tenant base plan is required")
+        if (
+            self.tenant_module_subscription_policy_service.get_base_plan_catalog_entry(
+                normalized
+            )
+            is None
+        ):
+            raise ValueError("Invalid tenant base plan")
+        return normalized
+
+    def _normalize_subscription_billing_cycle(
+        self,
+        billing_cycle: str | None,
+        *,
+        allowed_cycles: tuple[str, ...] | list[str] | None = None,
+    ) -> str:
+        normalized = (billing_cycle or "").strip().lower()
+        if not normalized:
+            raise ValueError("Tenant subscription billing cycle is required")
+
+        valid_cycles = tuple(
+            allowed_cycles
+            or self.tenant_module_subscription_policy_service.list_subscription_billing_cycles()
+        )
+        if normalized not in valid_cycles:
+            raise ValueError("Invalid tenant subscription billing cycle")
+        return normalized
+
+    def _normalize_subscription_addon_items(
+        self,
+        addon_items: list[dict[str, str]] | None,
+    ) -> list[dict[str, str]]:
+        normalized_items: dict[str, dict[str, str]] = {}
+
+        for raw_item in addon_items or []:
+            raw_module_key = None if raw_item is None else raw_item.get("module_key")
+            normalized_module_key = (raw_module_key or "").strip().lower()
+            if not normalized_module_key:
+                raise ValueError("Tenant subscription add-on module key is required")
+
+            catalog_entry = (
+                self.tenant_module_subscription_policy_service.get_module_subscription_catalog_entry(
+                    normalized_module_key
+                )
+            )
+            if catalog_entry is None or catalog_entry.activation_kind != "addon":
+                raise ValueError("Invalid tenant subscription add-on module")
+
+            normalized_items[normalized_module_key] = {
+                "module_key": normalized_module_key,
+                "billing_cycle": self._normalize_subscription_billing_cycle(
+                    None if raw_item is None else raw_item.get("billing_cycle"),
+                    allowed_cycles=catalog_entry.billing_cycles,
+                ),
+            }
+
+        return list(normalized_items.values())
+
+    def _advance_billing_cycle(
+        self,
+        value: datetime,
+        billing_cycle: str,
+    ) -> datetime:
+        normalized_value = self._coerce_utc_datetime(value)
+        months_by_cycle = {
+            "monthly": 1,
+            "quarterly": 3,
+            "semiannual": 6,
+            "annual": 12,
+        }
+        months = months_by_cycle.get(billing_cycle)
+        if months is None:
+            raise ValueError("Invalid tenant subscription billing cycle")
+        return self._add_months(normalized_value, months)
+
+    def _add_months(
+        self,
+        value: datetime,
+        months: int,
+    ) -> datetime:
+        normalized_value = self._coerce_utc_datetime(value)
+        month_index = normalized_value.month - 1 + months
+        year = normalized_value.year + month_index // 12
+        month = month_index % 12 + 1
+        day = min(normalized_value.day, monthrange(year, month)[1])
+        return normalized_value.replace(year=year, month=month, day=day)
 
     def _is_valid_email(self, value: str) -> bool:
         parsed_name, parsed_email = parseaddr(value)

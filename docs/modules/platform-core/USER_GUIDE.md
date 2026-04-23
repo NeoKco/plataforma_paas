@@ -84,10 +84,13 @@ La base visible actual de la Etapa 15 ya queda así:
    - `Plan operativo actual`
    - add-ons visibles
    - ciclos comerciales visibles
+   - `Contrato comercial tenant`
+   - `Baseline legacy por plan_code`
 6. leer ahí mismo:
    - si la activación efectiva viene de suscripción tenant o de fallback legacy
    - qué módulos quedan incluidos, arrendados, técnicos y en fallback
-   - si el baseline legacy cubre o no las dependencias requeridas antes de aplicar cambios
+   - qué dependencias técnicas se auto-resolverán por la activación efectiva
+   - qué parte del estado sigue viniendo solo del baseline legacy
 
 Regla operativa:
 
@@ -101,12 +104,15 @@ Regla operativa:
   - `base_plan_catalog`
   - `module_subscription_catalog`
 - ese catálogo nuevo ya existe y ya fue promovido a runtime como base persistente de `platform_control`
+- la contratación comercial ya puede operarse desde consola:
+  - el bloque `Contrato comercial tenant` escribe sobre `tenant_subscriptions` y `tenant_subscription_items`
+  - el bloque `Baseline legacy por plan_code` queda solo como compatibilidad temporal
 - los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
 - la dirección aprobada del producto pasa a ser:
   - `Plan Base` obligatorio por tenant
   - `finance` siempre incluido
   - módulos adicionales arrendables por suscripción
-- el siguiente corte ya no es consumir suscripciones en la activación efectiva, sino contratar add-ons desde consola y retirar gradualmente el fallback legacy
+- el siguiente corte ya no es contratar add-ons, sino retirar gradualmente el fallback legacy por `plan_code` y conectar billing/grace/suspensión al modelo nuevo
 - referencia formal:
   - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 

@@ -2,6 +2,30 @@
 
 ## 2026-04-22
 
+- la `Etapa 15` ya deja contratación formal de add-ons desde consola sobre suscripciones tenant:
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) agrega `PATCH /platform/tenants/{tenant_id}/subscription`
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya persiste contratos comerciales en:
+    - `tenant_subscriptions`
+    - `tenant_subscription_items`
+    - con co-terminación y programación de salida para add-ons removidos
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py), [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) exponen:
+    - período actual de suscripción
+    - próxima renovación
+    - `subscription_items`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ya deja dos capas visibles:
+    - `Contrato comercial tenant` para operar `tenant_subscriptions`
+    - `Baseline legacy por plan_code` como compatibilidad temporal
+  - la vista visible ya separa:
+    - `Plan Base`
+    - add-ons arrendados
+    - dependencias técnicas auto-resueltas
+    - baseline legacy
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) deja de describir la contratación como pendiente
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `206 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `94 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - la `Etapa 15` ya consume activación efectiva desde suscripciones tenant con compatibilidad legacy:
   - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ahora devuelve en `TenantResponse` y `TenantPlanResponse`:
     - `subscription_base_plan_code`

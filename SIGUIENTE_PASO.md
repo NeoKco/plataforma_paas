@@ -113,9 +113,12 @@
           - `tenant_subscriptions`
           - `tenant_subscription_items`
           - con fallback legacy por `plan_code`
+        - la contratación formal de add-ons ya quedó disponible desde consola sobre:
+          - `tenant_subscriptions`
+          - `tenant_subscription_items`
         - siguiente slice:
-          - contratación formal de add-ons desde consola
-          - retiro gradual del fallback legacy
+          - retiro gradual del fallback legacy por `plan_code`
+          - conexión de billing, grace y suspensión al contrato comercial nuevo
         - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:

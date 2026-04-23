@@ -29,6 +29,7 @@ Tenants:
 - `GET /platform/tenants`
 - `POST /platform/tenants`
 - `GET /platform/tenants/{tenant_id}`
+- `PATCH /platform/tenants/{tenant_id}/subscription`
 - `POST /platform/tenants/{tenant_id}/data-export-jobs`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs/{job_id}`
@@ -105,6 +106,7 @@ Payload operativo actual de `GET /platform/capabilities`:
     - `Política efectiva actual por plan`
   - `Tenants > Plan y módulos`:
     - `Plan Base aprobado`
+    - `Contrato comercial tenant`
     - `Plan operativo actual`
     - add-ons visibles
     - dependencias visibles
@@ -114,6 +116,17 @@ Payload operativo actual de `GET /platform/capabilities`:
       - módulos técnicos
       - fallback legacy
       - fuente efectiva
+  - `PATCH /platform/tenants/{tenant_id}/subscription` hoy acepta:
+    - `base_plan_code`
+    - `billing_cycle`
+    - `addon_items[]`
+  - y devuelve además:
+    - `current_period_starts_at`
+    - `current_period_ends_at`
+    - `next_renewal_at`
+    - `grace_until`
+    - `is_co_termed`
+    - `items[]`
   - nota:
     - la activación efectiva del tenant ya se resuelve desde `tenant_subscriptions` con fallback legacy por `plan_code`
 - el payload `export_scope` hoy soporta:

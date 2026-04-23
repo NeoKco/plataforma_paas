@@ -76,7 +76,8 @@ Documentación base:
     - catálogo comercial aprobado visible en consola
     - activación técnica efectiva visible desde `tenant_subscriptions`
     - fallback legacy por `plan_code` solo mientras siga existiendo compatibilidad
-    - siguiente corte: contratación formal de add-ons desde consola y retiro gradual del fallback legacy
+    - contratación formal de add-ons desde consola sobre `tenant_subscriptions`
+    - siguiente corte: retiro gradual del fallback legacy y conexión de billing/grace sobre el modelo nuevo
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal

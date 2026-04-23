@@ -1,5 +1,32 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - la `Etapa 15` ya deja contratación formal de add-ons desde consola
+
+- objetivo:
+  - cerrar el siguiente slice funcional de la Etapa 15 dejando la contratación real de `Plan Base + add-ons` operable desde `platform_admin`
+- cambios y acciones ejecutadas:
+  - [backend/app/apps/platform_control/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py):
+    - agrega `PATCH /platform/tenants/{tenant_id}/subscription`
+    - serializa período actual, próxima renovación y `subscription_items`
+  - [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+    - persiste contratos comerciales sobre `tenant_subscriptions` y `tenant_subscription_items`
+    - crea la suscripción si falta
+    - actualiza base plan, ciclo y add-ons
+    - programa salida de add-ons removidos al cierre del período cuando aplica
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - agrega `Contrato comercial tenant`
+    - separa explícitamente `Baseline legacy por plan_code`
+    - muestra `Plan Base`, add-ons seleccionados y dependencias técnicas auto-resueltas
+  - [frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+    - deja de presentar la contratación formal como paso futuro
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `206 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_flow -v` -> `94 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- resultado:
+  - la Etapa 15 ya no solo calcula activación efectiva desde suscripciones tenant, sino que también permite contratar add-ons desde consola
+  - el siguiente paso deja de ser “contratar add-ons” y pasa a retirar gradualmente el fallback legacy por `plan_code` y conectar billing/grace al modelo nuevo
+
 ## 2026-04-22 - la `Etapa 15` ya resuelve activación efectiva desde suscripciones tenant con fallback legacy
 
 - objetivo:

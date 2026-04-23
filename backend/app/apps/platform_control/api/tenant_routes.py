@@ -41,6 +41,9 @@ from app.apps.platform_control.schemas import (
     TenantListResponse,
     TenantPlanResponse,
     TenantPlanUpdateRequest,
+    TenantSubscriptionContractResponse,
+    TenantSubscriptionContractUpdateRequest,
+    TenantSubscriptionItemResponse,
     ProvisioningJobResponse,
     TenantRateLimitResponse,
     TenantRateLimitUpdateRequest,
@@ -191,6 +194,7 @@ def _raise_tenant_db_credentials_rotation_http_error(exc: ValueError) -> None:
 def _build_tenant_response(tenant) -> TenantResponse:
     activation_state = tenant_service.get_tenant_module_activation_state(tenant)
     effective_enabled_modules = tenant_service.get_effective_enabled_modules(tenant)
+    subscription = getattr(tenant, "subscription", None)
     return TenantResponse(
         id=tenant.id,
         name=tenant.name,
@@ -217,6 +221,31 @@ def _build_tenant_response(tenant) -> TenantResponse:
         subscription_base_plan_code=activation_state.subscription_base_plan_code,
         subscription_status=activation_state.subscription_status,
         subscription_billing_cycle=activation_state.subscription_billing_cycle,
+        subscription_current_period_starts_at=getattr(
+            subscription,
+            "current_period_starts_at",
+            None,
+        ),
+        subscription_current_period_ends_at=getattr(
+            subscription,
+            "current_period_ends_at",
+            None,
+        ),
+        subscription_next_renewal_at=getattr(
+            subscription,
+            "next_renewal_at",
+            None,
+        ),
+        subscription_grace_until=getattr(
+            subscription,
+            "grace_until",
+            None,
+        ),
+        subscription_is_co_termed=getattr(
+            subscription,
+            "is_co_termed",
+            None,
+        ),
         subscription_included_modules=(
             list(activation_state.subscription_included_modules)
             if activation_state.subscription_included_modules is not None
@@ -235,6 +264,23 @@ def _build_tenant_response(tenant) -> TenantResponse:
         subscription_legacy_fallback_modules=(
             list(activation_state.subscription_legacy_fallback_modules)
             if activation_state.subscription_legacy_fallback_modules is not None
+            else None
+        ),
+        subscription_items=(
+            [
+                TenantSubscriptionItemResponse(
+                    module_key=item.module_key,
+                    item_kind=item.item_kind,
+                    billing_cycle=item.billing_cycle,
+                    status=item.status,
+                    starts_at=item.starts_at,
+                    renews_at=item.renews_at,
+                    ends_at=item.ends_at,
+                    is_prorated=item.is_prorated,
+                )
+                for item in (getattr(subscription, "items", []) or [])
+            ]
+            if subscription is not None
             else None
         ),
         effective_enabled_modules=(
@@ -1490,6 +1536,117 @@ def update_tenant_plan(
         tenant_plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
             tenant.plan_code
         ),
+    )
+
+
+@router.patch(
+    "/{tenant_id}/subscription",
+    response_model=TenantSubscriptionContractResponse,
+)
+def update_tenant_subscription_contract(
+    tenant_id: int,
+    payload: TenantSubscriptionContractUpdateRequest,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantSubscriptionContractResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.set_subscription_contract(
+            db=db,
+            tenant_id=tenant_id,
+            base_plan_code=payload.base_plan_code,
+            billing_cycle=payload.billing_cycle,
+            addon_items=[
+                {
+                    "module_key": item.module_key,
+                    "billing_cycle": item.billing_cycle,
+                }
+                for item in payload.addon_items
+            ],
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="subscription_contract",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.tenant.subscription_contract_updated",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        tenant_slug=tenant.slug,
+        detail=(
+            f"Actualizo contrato tenant {tenant.slug}: "
+            f"base_plan={payload.base_plan_code}, addons="
+            f"{','.join(item.module_key for item in payload.addon_items) or 'none'}"
+        ),
+    )
+
+    activation_state = tenant_service.get_tenant_module_activation_state(tenant)
+    subscription = getattr(tenant, "subscription", None)
+
+    return TenantSubscriptionContractResponse(
+        success=True,
+        message="Contrato tenant actualizado correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        base_plan_code=activation_state.subscription_base_plan_code or payload.base_plan_code,
+        subscription_status=activation_state.subscription_status or "active",
+        billing_cycle=activation_state.subscription_billing_cycle or payload.billing_cycle,
+        current_period_starts_at=getattr(subscription, "current_period_starts_at", None),
+        current_period_ends_at=getattr(subscription, "current_period_ends_at", None),
+        next_renewal_at=getattr(subscription, "next_renewal_at", None),
+        grace_until=getattr(subscription, "grace_until", None),
+        is_co_termed=bool(getattr(subscription, "is_co_termed", True)),
+        included_modules=(
+            list(activation_state.subscription_included_modules)
+            if activation_state.subscription_included_modules is not None
+            else None
+        ),
+        addon_modules=(
+            list(activation_state.subscription_addon_modules)
+            if activation_state.subscription_addon_modules is not None
+            else None
+        ),
+        technical_modules=(
+            list(activation_state.subscription_technical_modules)
+            if activation_state.subscription_technical_modules is not None
+            else None
+        ),
+        legacy_fallback_modules=(
+            list(activation_state.subscription_legacy_fallback_modules)
+            if activation_state.subscription_legacy_fallback_modules is not None
+            else None
+        ),
+        effective_enabled_modules=(
+            list(activation_state.subscription_effective_enabled_modules)
+            if activation_state.subscription_effective_enabled_modules is not None
+            else None
+        ),
+        effective_activation_source=activation_state.activation_source,
+        items=[
+            TenantSubscriptionItemResponse(
+                module_key=item.module_key,
+                item_kind=item.item_kind,
+                billing_cycle=item.billing_cycle,
+                status=item.status,
+                starts_at=item.starts_at,
+                renews_at=item.renews_at,
+                ends_at=item.ends_at,
+                is_prorated=item.is_prorated,
+            )
+            for item in (getattr(subscription, "items", []) or [])
+        ],
     )
 
 

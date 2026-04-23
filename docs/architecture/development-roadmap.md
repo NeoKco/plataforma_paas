@@ -613,6 +613,10 @@ Resultado actual:
     - ciclos comerciales visibles
     - dependencias ya cubiertas o no
     - lectura explícita de activación efectiva desde suscripciones tenant con fallback legacy por `plan_code`
+- `Tenants > Plan y módulos` ya deja también contratación formal:
+  - `Contrato comercial tenant` opera sobre `tenant_subscriptions` y `tenant_subscription_items`
+  - `Baseline legacy por plan_code` queda como compatibilidad temporal
+  - la vista ya separa `Plan Base`, add-ons arrendados y dependencias técnicas auto-resueltas
 
 Falta para cerrarlo:
 
@@ -634,8 +638,8 @@ Falta para cerrarlo:
   - arrendado por suscripción
   - efectivamente habilitado
 - siguiente corte pendiente:
-  - contratación formal de add-ons desde consola
   - retiro gradual del fallback legacy por `plan_code`
+  - conexión de billing, grace y suspensión al contrato comercial nuevo
 
 Decisión formal cerrada:
 
