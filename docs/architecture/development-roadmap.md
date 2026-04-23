@@ -16,6 +16,11 @@ Cada etapa esta marcada con uno de estos estados:
 - `En progreso`: existe una parte importante, pero faltan piezas para considerarlo cerrado
 - `Pendiente`: aun no esta desarrollado o no esta endurecido
 
+Estado global actual:
+
+- para el alcance actual del roadmap base, todas las etapas `0` a `17` ya quedan `Completado`
+- `En progreso` y `Pendiente` se mantienen como estados validos del documento para futuras ampliaciones, pero ya no describen deuda abierta del roadmap base actual
+
 ## Vision final
 
 La app apunta a terminar en un estado donde exista:
@@ -959,11 +964,11 @@ Documento de referencia para esta decision:
 
 Si el equipo quiere avanzar con buen retorno tecnico, el orden recomendado es:
 
-1. considerar cerrado el backend base actual
-2. abrir frontend de plataforma
-3. ajustar backend solo cuando el frontend descubra un hueco real de contrato o uso
-4. despues abrir frontend tenant
-5. recien luego retomar ampliaciones grandes de modulos o hardening avanzado adicional
+1. considerar cerrado el roadmap base actual
+2. elegir el siguiente frente de expansion o endurecimiento extra
+3. abrir ese frente nuevo con spec, ownership y evidencia desde el inicio
+4. ajustar backend/frontend solo cuando ese frente nuevo descubra un hueco real de contrato o uso
+5. no reabrir etapas base ya cerradas salvo evidencia nueva
 
 ## Regla para developers
 
