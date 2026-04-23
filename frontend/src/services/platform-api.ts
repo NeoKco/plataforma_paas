@@ -640,6 +640,19 @@ export function updatePlatformTenantSubscription(
   );
 }
 
+export function migratePlatformTenantLegacySubscription(
+  accessToken: string,
+  tenantId: number
+) {
+  return apiRequest<PlatformTenantSubscriptionContractResponse>(
+    `/platform/tenants/${tenantId}/subscription/migrate-legacy`,
+    {
+      method: "POST",
+      token: accessToken,
+    }
+  );
+}
+
 export function updatePlatformTenantRateLimits(
   accessToken: string,
   tenantId: number,

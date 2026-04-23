@@ -64,6 +64,7 @@ import {
   updatePlatformTenantIdentity,
   updatePlatformTenantMaintenance,
   updatePlatformTenantModuleLimits,
+  migratePlatformTenantLegacySubscription,
   updatePlatformTenantPlan,
   updatePlatformTenantSubscription,
   updatePlatformTenantRateLimits,
@@ -1406,6 +1407,39 @@ export function TenantsPage() {
     });
   }
 
+  function handleMigrateLegacyContract() {
+    if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
+      return;
+    }
+    requestConfirmation({
+      scope: "subscription-contract",
+      title:
+        language === "es"
+          ? "Confirmar migración del baseline legacy"
+          : "Confirm legacy baseline migration",
+      description:
+        language === "es"
+          ? "Se migrará este tenant al contrato formal `Plan Base + add-ons`, infiriendo add-ons desde el baseline legacy actual y retirando `plan_code`."
+          : "This tenant will be migrated to the formal `Base plan + add-ons` contract, inferring add-ons from the current legacy baseline and retiring `plan_code`.",
+      details: [
+        `Tenant: ${selectedTenantSummary.name || "n/a"}`,
+        `${language === "es" ? "Plan legacy actual" : "Current legacy plan"}: ${
+          selectedTenantSummary.plan_code || (language === "es" ? "sin plan" : "no plan")
+        }`,
+        `${language === "es" ? "Plan Base resultante" : "Resulting base plan"}: ${
+          selectedTenantSummary.subscription_base_plan_code ||
+          subscriptionBasePlanCode ||
+          defaultBasePlanCatalog?.plan_code ||
+          "base_finance"
+        }`,
+      ],
+      confirmLabel:
+        language === "es" ? "Migrar baseline legacy" : "Migrate legacy baseline",
+      action: () =>
+        migratePlatformTenantLegacySubscription(session.accessToken, selectedTenantId),
+    });
+  }
+
   function handleRateLimitSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!session?.accessToken || selectedTenantId === null) {
@@ -2548,7 +2582,14 @@ export function TenantsPage() {
                             billing: {displayPlatformCode(tenant.billing_status || "none", language)}
                           </span>
                           <span className="tenant-chip">
-                            plan: {tenant.plan_code || (language === "es" ? "ninguno" : "none")}
+                            {tenant.subscription_contract_managed
+                              ? `${language === "es" ? "base" : "base"}: ${
+                                  tenant.subscription_base_plan_code ||
+                                  (language === "es" ? "ninguno" : "none")
+                                }`
+                              : `plan: ${
+                                  tenant.plan_code || (language === "es" ? "ninguno" : "none")
+                                }`}
                           </span>
                           <span className="tenant-chip">
                             {language === "es" ? "modelo" : "model"}:{" "}
@@ -2694,8 +2735,14 @@ export function TenantsPage() {
                     }
                   />
                   <DetailField
-                    label={language === "es" ? "Plan" : "Plan"}
-                    value={selectedTenantSummary.plan_code || (language === "es" ? "Sin plan" : "No plan")}
+                    label={language === "es" ? "Plan / Base" : "Plan / Base"}
+                    value={
+                      selectedTenantSummary.subscription_contract_managed
+                        ? selectedTenantSummary.subscription_base_plan_code ||
+                          (language === "es" ? "Sin plan base" : "No base plan")
+                        : selectedTenantSummary.plan_code ||
+                          (language === "es" ? "Sin plan" : "No plan")
+                    }
                   />
                   <DetailField
                     label={language === "es" ? "Modelo contractual" : "Contract model"}
@@ -2854,7 +2901,21 @@ export function TenantsPage() {
                     {language === "es"
                       ? "Compatibilidad legacy activa: los límites baseline siguen arrastrando compatibilidad con la política antigua para este tenant."
                       : "Legacy compatibility active: baseline limits still carry old-policy compatibility for this tenant."}
-                </div>
+                  </div>
+                ) : null}
+                {selectedTenantSummary.legacy_plan_fallback_active ? (
+                  <div className="tenant-context-actions__buttons mt-2">
+                    <button
+                      className="btn btn-outline-warning btn-sm"
+                      type="button"
+                      onClick={handleMigrateLegacyContract}
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es"
+                        ? "Migrar baseline legacy al contrato"
+                        : "Migrate legacy baseline to contract"}
+                    </button>
+                  </div>
                 ) : null}
                 {selectedTenantSummary.maintenance_reason ? (
                   <div className="tenant-inline-note">

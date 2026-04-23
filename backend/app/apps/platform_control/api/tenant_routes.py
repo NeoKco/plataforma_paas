@@ -1683,6 +1683,112 @@ def update_tenant_subscription_contract(
     )
 
 
+@router.post(
+    "/{tenant_id}/subscription/migrate-legacy",
+    response_model=TenantSubscriptionContractResponse,
+)
+def migrate_tenant_legacy_subscription_contract(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantSubscriptionContractResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        tenant = tenant_service.migrate_legacy_plan_to_subscription_contract(
+            db=db,
+            tenant_id=tenant_id,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        status_code = 404 if detail == "Tenant not found" else 400
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="subscription_contract_migration",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.tenant.subscription_contract_migrated_from_legacy",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token["sub"]) if _token.get("sub") is not None else None,
+        email=_token.get("email"),
+        tenant_slug=tenant.slug,
+        detail=(
+            "Migro baseline legacy del tenant {slug} al modelo "
+            "`Plan Base + add-ons` y retiro `plan_code`."
+        ).format(slug=tenant.slug),
+    )
+
+    activation_state = tenant_service.get_tenant_module_activation_state(tenant)
+    subscription = getattr(tenant, "subscription", None)
+
+    return TenantSubscriptionContractResponse(
+        success=True,
+        message="Baseline legacy migrado al contrato tenant correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        base_plan_code=activation_state.subscription_base_plan_code
+        or getattr(subscription, "base_plan_code", None)
+        or tenant_service.tenant_module_subscription_policy_service.DEFAULT_BASE_PLAN_CODE,
+        subscription_status=activation_state.subscription_status or "active",
+        billing_cycle=(
+            activation_state.subscription_billing_cycle
+            or getattr(subscription, "billing_cycle", None)
+            or "monthly"
+        ),
+        current_period_starts_at=getattr(subscription, "current_period_starts_at", None),
+        current_period_ends_at=getattr(subscription, "current_period_ends_at", None),
+        next_renewal_at=getattr(subscription, "next_renewal_at", None),
+        grace_until=getattr(subscription, "grace_until", None),
+        is_co_termed=bool(getattr(subscription, "is_co_termed", True)),
+        included_modules=(
+            list(activation_state.subscription_included_modules)
+            if activation_state.subscription_included_modules is not None
+            else None
+        ),
+        addon_modules=(
+            list(activation_state.subscription_addon_modules)
+            if activation_state.subscription_addon_modules is not None
+            else None
+        ),
+        technical_modules=(
+            list(activation_state.subscription_technical_modules)
+            if activation_state.subscription_technical_modules is not None
+            else None
+        ),
+        legacy_fallback_modules=(
+            list(activation_state.subscription_legacy_fallback_modules)
+            if activation_state.subscription_legacy_fallback_modules is not None
+            else None
+        ),
+        effective_enabled_modules=(
+            list(activation_state.subscription_effective_enabled_modules)
+            if activation_state.subscription_effective_enabled_modules is not None
+            else None
+        ),
+        effective_activation_source=activation_state.activation_source,
+        items=[
+            TenantSubscriptionItemResponse(
+                module_key=item.module_key,
+                item_kind=item.item_kind,
+                billing_cycle=item.billing_cycle,
+                status=item.status,
+                starts_at=item.starts_at,
+                renews_at=item.renews_at,
+                ends_at=item.ends_at,
+                is_prorated=bool(item.is_prorated),
+            )
+            for item in getattr(subscription, "items", []) or []
+        ],
+    )
+
+
 @router.patch(
     "/{tenant_id}/billing-identity",
     response_model=TenantBillingResponse,

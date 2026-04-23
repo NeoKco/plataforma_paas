@@ -1169,6 +1169,8 @@ class TenantService:
         base_plan_code: str,
         billing_cycle: str,
         addon_items: list[dict[str, str]] | None = None,
+        retire_legacy_plan_code: bool = True,
+        attempt_module_seed_backfill: bool = True,
     ) -> Tenant:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:
@@ -1283,7 +1285,93 @@ class TenantService:
             )
             existing_item.is_prorated = False
 
+        effective_modules = tuple(
+            sorted(
+                set(base_plan_entry.included_modules)
+                | selected_module_keys
+                | set(
+                    self._resolve_subscription_technical_modules(
+                        included_modules=base_plan_entry.included_modules,
+                        addon_modules=tuple(sorted(selected_module_keys)),
+                    )
+                )
+            )
+        )
+        if attempt_module_seed_backfill:
+            self._backfill_module_seed_defaults_if_needed(
+                tenant,
+                enabled_modules=effective_modules,
+            )
+        self._sync_subscription_from_billing_state(
+            tenant,
+            billing_status=getattr(tenant, "billing_status", None),
+            billing_current_period_ends_at=getattr(
+                tenant,
+                "billing_current_period_ends_at",
+                None,
+            ),
+            billing_grace_until=getattr(tenant, "billing_grace_until", None),
+        )
+        if retire_legacy_plan_code:
+            tenant.plan_code = None
+
         return self.tenant_repository.save(db, tenant)
+
+    def migrate_legacy_plan_to_subscription_contract(
+        self,
+        db: Session,
+        tenant_id: int,
+        *,
+        base_plan_code: str | None = None,
+    ) -> Tenant:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+        if not getattr(tenant, "plan_code", None):
+            raise ValueError("Tenant has no legacy plan baseline to migrate")
+
+        subscription = getattr(tenant, "subscription", None)
+        resolved_base_plan_code = (
+            base_plan_code
+            or getattr(subscription, "base_plan_code", None)
+            or self.tenant_module_subscription_policy_service.DEFAULT_BASE_PLAN_CODE
+        )
+        normalized_base_plan_code = self._normalize_base_plan_code(resolved_base_plan_code)
+        base_plan_entry = (
+            self.tenant_module_subscription_policy_service.get_base_plan_catalog_entry(
+                normalized_base_plan_code
+            )
+        )
+        if base_plan_entry is None:
+            raise ValueError("Invalid tenant base plan")
+
+        inferred_billing_cycle = (
+            getattr(subscription, "billing_cycle", None)
+            or self.tenant_module_subscription_policy_service.infer_billing_cycle_from_legacy_plan_code(
+                getattr(tenant, "plan_code", None)
+            )
+        )
+        normalized_billing_cycle = self._normalize_subscription_billing_cycle(
+            inferred_billing_cycle,
+            allowed_cycles=base_plan_entry.allowed_billing_cycles,
+        )
+        addon_items = (
+            self._collect_active_subscription_addon_items(subscription)
+            or self._infer_subscription_addon_items_from_legacy_plan(
+                getattr(tenant, "plan_code", None),
+                billing_cycle=normalized_billing_cycle,
+            )
+        )
+
+        return self.set_subscription_contract(
+            db=db,
+            tenant_id=tenant_id,
+            base_plan_code=normalized_base_plan_code,
+            billing_cycle=normalized_billing_cycle,
+            addon_items=addon_items,
+            retire_legacy_plan_code=True,
+            attempt_module_seed_backfill=False,
+        )
 
     def get_tenant_module_limits(self, tenant: Tenant) -> dict[str, int] | None:
         raw_value = getattr(tenant, "module_limits_json", None)
@@ -1914,6 +2002,79 @@ class TenantService:
             "cancelled": "cancelled",
         }
         return status_mapping.get(normalized_billing_status)
+
+    def _collect_active_subscription_addon_items(
+        self,
+        subscription: TenantSubscription | None,
+    ) -> list[dict[str, str]]:
+        if subscription is None:
+            return []
+
+        active_statuses = {
+            "active",
+            "scheduled_cancel",
+            "grace_period",
+            "pending_activation",
+        }
+        items: list[dict[str, str]] = []
+        for item in getattr(subscription, "items", []) or []:
+            module_key = getattr(item, "module_key", None)
+            item_kind = getattr(item, "item_kind", None)
+            item_status = (
+                getattr(item, "status", None).strip().lower()
+                if getattr(item, "status", None)
+                else None
+            )
+            if item_kind != "addon" or item_status not in active_statuses or not module_key:
+                continue
+            catalog_entry = (
+                self.tenant_module_subscription_policy_service.get_module_subscription_catalog_entry(
+                    module_key
+                )
+            )
+            if catalog_entry is None or catalog_entry.activation_kind != "addon":
+                continue
+            item_billing_cycle = getattr(item, "billing_cycle", None)
+            normalized_billing_cycle = (
+                self._normalize_subscription_billing_cycle(
+                    item_billing_cycle,
+                    allowed_cycles=catalog_entry.billing_cycles,
+                )
+                if item_billing_cycle
+                else catalog_entry.billing_cycles[0]
+            )
+            items.append(
+                {
+                    "module_key": catalog_entry.module_key,
+                    "billing_cycle": normalized_billing_cycle,
+                }
+            )
+        return items
+
+    def _infer_subscription_addon_items_from_legacy_plan(
+        self,
+        plan_code: str | None,
+        *,
+        billing_cycle: str,
+    ) -> list[dict[str, str]]:
+        enabled_modules = set(
+            self.tenant_plan_policy_service.get_enabled_modules(plan_code) or ()
+        )
+        items: list[dict[str, str]] = []
+        for entry in self.tenant_module_subscription_policy_service.MODULE_SUBSCRIPTION_CATALOG:
+            if entry.activation_kind != "addon" or entry.module_key not in enabled_modules:
+                continue
+            normalized_billing_cycle = self._normalize_subscription_billing_cycle(
+                billing_cycle,
+                allowed_cycles=entry.billing_cycles,
+            )
+            items.append(
+                {
+                    "module_key": entry.module_key,
+                    "billing_cycle": normalized_billing_cycle,
+                }
+            )
+        return items
 
     def _normalize_rate_limit_override(
         self,

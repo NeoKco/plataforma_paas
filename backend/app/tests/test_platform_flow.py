@@ -108,6 +108,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     sync_tenant_schema,
     update_tenant_maintenance_mode,
     update_tenant_module_limits,
+    migrate_tenant_legacy_subscription_contract,
     update_tenant_plan,
     update_tenant_rate_limits,
     update_tenant_subscription_contract,
@@ -3258,6 +3259,102 @@ class PlatformServicesTestCase(unittest.TestCase):
             datetime(2026, 5, 1, tzinfo=timezone.utc),
         )
 
+    def test_tenant_service_retires_legacy_plan_code_when_saving_subscription_contract(self) -> None:
+        period_end = datetime(2026, 5, 1, tzinfo=timezone.utc)
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            plan_code="pro",
+            billing_status="active",
+            billing_current_period_ends_at=period_end,
+            subscription=None,
+        )
+        tenant.id = 1
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant if tenant_id == 1 else None
+
+            def save(self, db, tenant_to_save):
+                return tenant_to_save
+
+        service = TenantService(tenant_repository=FakeTenantRepository())
+
+        result = service.set_subscription_contract(
+            db=object(),
+            tenant_id=1,
+            base_plan_code="base_finance",
+            billing_cycle="monthly",
+            addon_items=[{"module_key": "maintenance", "billing_cycle": "monthly"}],
+        )
+
+        self.assertIsNone(result.plan_code)
+        self.assertEqual(result.subscription.status, "active")
+        self.assertEqual(result.subscription.current_period_ends_at, period_end)
+
+    def test_tenant_service_migrates_legacy_plan_to_subscription_contract(self) -> None:
+        period_end = datetime(2026, 7, 1, tzinfo=timezone.utc)
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            plan_code="mensual",
+            billing_status="active",
+            billing_current_period_ends_at=period_end,
+            subscription=None,
+        )
+        tenant.id = 1
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant if tenant_id == 1 else None
+
+            def save(self, db, tenant_to_save):
+                return tenant_to_save
+
+        service = TenantService(
+            tenant_repository=FakeTenantRepository(),
+            tenant_plan_policy_service=TenantPlanPolicyService(
+                plan_enabled_modules="mensual=core,users,finance,maintenance",
+                plan_rate_limits="mensual=120:40",
+            ),
+        )
+
+        result = service.migrate_legacy_plan_to_subscription_contract(
+            db=object(),
+            tenant_id=1,
+        )
+
+        self.assertIsNone(result.plan_code)
+        self.assertEqual(result.subscription.base_plan_code, "base_finance")
+        self.assertEqual(result.subscription.billing_cycle, "monthly")
+        self.assertEqual(len(result.subscription.items), 1)
+        self.assertEqual(result.subscription.items[0].module_key, "maintenance")
+        self.assertEqual(result.subscription.current_period_ends_at, period_end)
+
+    def test_tenant_service_migrate_legacy_plan_requires_plan_code(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            plan_code=None,
+            subscription=None,
+        )
+        tenant.id = 1
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant if tenant_id == 1 else None
+
+            def save(self, db, tenant_to_save):
+                return tenant_to_save
+
+        service = TenantService(tenant_repository=FakeTenantRepository())
+
+        with self.assertRaises(ValueError):
+            service.migrate_legacy_plan_to_subscription_contract(
+                db=object(),
+                tenant_id=1,
+            )
+
     def test_tenant_plan_policy_service_lists_plan_codes_from_policy_sources(self) -> None:
         service = TenantPlanPolicyService(
             plan_rate_limits="mensual=120:40;anual=360:120",
@@ -5614,11 +5711,81 @@ class PlatformRoutesTestCase(unittest.TestCase):
                     _token=self._token_payload(),
                 )
 
-        self.assertEqual(exc.exception.status_code, 400)
-        self.assertEqual(
-            exc.exception.detail,
-            "Invalid tenant subscription billing cycle",
+    def test_migrate_tenant_legacy_subscription_contract_returns_schema(self) -> None:
+        previous_tenant = build_tenant_record_stub(plan_code="pro")
+        previous_tenant.id = 1
+        tenant = build_tenant_record_stub(
+            plan_code=None,
+            subscription=SimpleNamespace(
+                base_plan_code="base_finance",
+                status="active",
+                billing_cycle="monthly",
+                current_period_starts_at=datetime(2026, 4, 1, tzinfo=timezone.utc),
+                current_period_ends_at=datetime(2026, 5, 1, tzinfo=timezone.utc),
+                next_renewal_at=datetime(2026, 5, 1, tzinfo=timezone.utc),
+                grace_until=None,
+                is_co_termed=True,
+                items=[
+                    SimpleNamespace(
+                        module_key="maintenance",
+                        item_kind="addon",
+                        billing_cycle="monthly",
+                        status="active",
+                        starts_at=datetime(2026, 4, 1, tzinfo=timezone.utc),
+                        renews_at=datetime(2026, 5, 1, tzinfo=timezone.utc),
+                        ends_at=None,
+                        is_prorated=False,
+                    )
+                ],
+            ),
         )
+        tenant.id = 1
+        tenant.status = "active"
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.tenant_repository.get_by_id",
+            return_value=previous_tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.migrate_legacy_plan_to_subscription_contract",
+            return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_tenant_module_activation_state",
+            return_value=SimpleNamespace(
+                subscription_base_plan_code="base_finance",
+                subscription_status="active",
+                subscription_billing_cycle="monthly",
+                subscription_included_modules=("finance",),
+                subscription_addon_modules=("maintenance",),
+                subscription_technical_modules=("core", "users"),
+                subscription_legacy_fallback_modules=None,
+                subscription_effective_enabled_modules=(
+                    "core",
+                    "finance",
+                    "maintenance",
+                    "users",
+                ),
+                activation_source="subscriptions",
+            ),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_policy_event_service.record_change",
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "auth_audit_service.log_event",
+        ):
+            response = migrate_tenant_legacy_subscription_contract(
+                tenant_id=1,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.base_plan_code, "base_finance")
+        self.assertEqual(response.addon_modules, ["maintenance"])
+        self.assertEqual(response.items[0].module_key, "maintenance")
 
     def test_get_tenant_finance_usage_returns_operational_view(self) -> None:
         tenant = build_tenant_record_stub(
