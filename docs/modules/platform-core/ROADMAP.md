@@ -233,12 +233,16 @@ Estado práctico de cierre:
       - `eligible_for_sync_batch`
       - `eligible_for_rotation_batch`
     - la distribución/rotación centralizada ya deja de depender de inferencia manual
-  - ese sexto slice ya queda también publicado en runtime:
+  - octavo slice repo ya cerrado:
+    - `Configuración -> Plan central de secretos runtime` ya permite seleccionar tenants antes de correr `sync batch` o `rotate batch`
+    - `POST /platform/security-posture/sync-runtime-secrets` y `POST /platform/security-posture/rotate-db-credentials` ya aceptan `tenant_slugs` opcionales
+    - la campaña batch puede quedar acotada a un subconjunto manual sin reabrir rescate desde `/.env`
+  - ese séptimo slice ya queda también publicado en runtime:
     - `staging` backend redeployado con `572 tests OK`
     - `production` backend redeployado con `572 tests OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - siguiente corte recomendado:
-    - publicar el séptimo slice y luego abrir un corte más gobernado de campañas/exclusiones batch
+    - publicar el octavo slice y luego abrir persistencia/auditoría más formal de campañas batch
     - mantener el rescate legacy solo como tooling excepcional
 
 ## Cierre operativo del bloque central

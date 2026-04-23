@@ -226,6 +226,11 @@ class PlatformTenantRuntimeSecretBatchSyncItemResponse(BaseModel):
     already_runtime_managed: bool = False
 
 
+class PlatformTenantRuntimeSecretBatchRequest(BaseModel):
+    tenant_slugs: list[str] | None = None
+    excluded_tenant_slugs: list[str] | None = None
+
+
 class PlatformTenantRuntimeSecretBatchSyncResponse(BaseModel):
     success: bool
     message: str

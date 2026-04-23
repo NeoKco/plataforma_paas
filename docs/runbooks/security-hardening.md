@@ -176,6 +176,24 @@ Objetivo:
 - evitar que el operador adivine si un tenant debe rotar, sincronizar o salir al tooling legacy
 - formalizar la capa previa de distribución/rotación centralizada sin reintroducir rescate desde `/.env`
 
+### Campañas batch gobernadas desde consola
+
+El `Plan central de secretos runtime` ya permite además seleccionar tenants antes de ejecutar:
+
+- `Sincronizar runtime central`
+- `Rotar credenciales central`
+
+Regla operativa:
+
+- sin selección visible, el batch sigue operando sobre todos los tenants activos evaluados
+- con selección visible, el batch queda acotado a `tenant_slugs` explícitos
+- el backend también tolera exclusiones opcionales para tooling futuro, pero la consola hoy prioriza selección positiva simple
+
+Objetivo:
+
+- permitir campañas cortas y controladas sin abrir todavía persistencia formal de campañas
+- no volver a mezclar rescate legacy dentro del carril batch normal
+
 ### Postura operativa de secretos por carril
 
 El script canónico [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya expone tambien una lectura rápida de postura de secretos:

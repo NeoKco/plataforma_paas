@@ -230,6 +230,11 @@ export type PlatformTenantRuntimeSecretBatchSyncResponse = {
   data: PlatformTenantRuntimeSecretBatchSyncItem[];
 };
 
+export type PlatformTenantRuntimeSecretBatchRequest = {
+  tenant_slugs?: string[];
+  excluded_tenant_slugs?: string[];
+};
+
 export type PlatformTenantDbCredentialsRotateBatchItem = {
   tenant_id: number;
   tenant_slug: string;

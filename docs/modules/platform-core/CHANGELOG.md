@@ -2,6 +2,16 @@
 
 ## 2026-04-23
 
+- `Etapa 11` ya agrega targeting manual gobernado para campañas batch de secretos runtime:
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) ya agrega `PlatformTenantRuntimeSecretBatchRequest`
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya filtra tenants activos por `tenant_slugs` y exclusiones opcionales antes de `sync` o `rotate`
+  - [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py) ya acepta selección opcional en los dos endpoints batch
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya permite seleccionar tenants desde `Plan central de secretos runtime`
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `235 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - `Etapa 11` ya agrega una lectura central previa para secretos tenant runtime:
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya agrega `plan_active_tenant_runtime_secret_operations(...)`
   - [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py) ya expone `GET /platform/security-posture/runtime-secret-plan`

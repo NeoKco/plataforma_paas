@@ -1,5 +1,40 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya deja gobernar campañas batch por selección manual de tenants
+
+Contexto:
+
+- el séptimo slice ya había dejado un `Plan central de secretos runtime`
+- faltaba usar esa lectura para acotar campañas batch desde consola sin abrir todavía persistencia formal de campañas
+
+Cambios:
+
+- [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py):
+  - agrega `PlatformTenantRuntimeSecretBatchRequest`
+- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+  - agrega selección previa de tenants activos por `tenant_slugs`
+  - aplica ese targeting tanto a `sync_active_tenant_runtime_secrets(...)` como a `rotate_active_tenant_db_credentials(...)`
+- [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py):
+  - acepta targeting opcional en los dos endpoints batch de secretos runtime
+- [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts):
+  - agregan el request tipado del subconjunto manual
+- [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+  - deja seleccionar tenants desde `Plan central de secretos runtime`
+  - permite campañas manuales por:
+    - todos
+    - solo sync
+    - solo rotate
+    - selección libre
+
+Resultado:
+
+- la consola ya permite campañas batch más gobernadas sin abrir aún persistencia formal de campañas
+- si no hay selección visible, el comportamiento sigue siendo batch global sobre tenants activos
+- validación repo:
+  - `backend.app.tests.test_platform_flow` -> `235 tests OK`
+  - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-23 - `Etapa 11` ya agrega un plan central previo para secretos runtime tenant
 
 Contexto:

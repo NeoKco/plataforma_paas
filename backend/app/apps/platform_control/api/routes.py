@@ -5,6 +5,7 @@ from app.apps.platform_control.schemas import (
     PlatformCapabilityCatalogResponse,
     PlatformTenantDbCredentialsRotateBatchResponse,
     PlatformRuntimeSecurityPostureResponse,
+    PlatformTenantRuntimeSecretBatchRequest,
     PlatformTenantRuntimeSecretPlanResponse,
     PlatformTenantRuntimeSecretBatchSyncResponse,
 )
@@ -150,10 +151,15 @@ def get_platform_runtime_secret_plan(
     response_model=PlatformTenantRuntimeSecretBatchSyncResponse,
 )
 def sync_platform_runtime_secrets(
+    payload: PlatformTenantRuntimeSecretBatchRequest | None = None,
     db: Session = Depends(get_control_db),
     token: dict = Depends(require_role("superadmin")),
 ) -> PlatformTenantRuntimeSecretBatchSyncResponse:
-    result = tenant_service.sync_active_tenant_runtime_secrets(db=db)
+    result = tenant_service.sync_active_tenant_runtime_secrets(
+        db=db,
+        tenant_slugs=payload.tenant_slugs if payload else None,
+        excluded_tenant_slugs=payload.excluded_tenant_slugs if payload else None,
+    )
     auth_audit_service.log_event(
         db=db,
         event_type="platform.tenant_runtime_secret_sync_batch",
@@ -166,7 +172,7 @@ def sync_platform_runtime_secrets(
             f"processed={result['processed']} synced={result['synced']} "
             f"already_runtime_managed={result['already_runtime_managed']} "
             f"skipped_legacy_rescue_required={result['skipped_legacy_rescue_required']} "
-            f"failed={result['failed']}"
+            f"failed={result['failed']} targeted={result['processed']}"
         ),
     )
     return PlatformTenantRuntimeSecretBatchSyncResponse(
@@ -188,10 +194,15 @@ def sync_platform_runtime_secrets(
     response_model=PlatformTenantDbCredentialsRotateBatchResponse,
 )
 def rotate_platform_tenant_db_credentials(
+    payload: PlatformTenantRuntimeSecretBatchRequest | None = None,
     db: Session = Depends(get_control_db),
     token: dict = Depends(require_role("superadmin")),
 ) -> PlatformTenantDbCredentialsRotateBatchResponse:
-    result = tenant_service.rotate_active_tenant_db_credentials(db=db)
+    result = tenant_service.rotate_active_tenant_db_credentials(
+        db=db,
+        tenant_slugs=payload.tenant_slugs if payload else None,
+        excluded_tenant_slugs=payload.excluded_tenant_slugs if payload else None,
+    )
     auth_audit_service.log_event(
         db=db,
         event_type="platform.tenant_db_credentials_rotate_batch",
@@ -203,7 +214,7 @@ def rotate_platform_tenant_db_credentials(
         detail=(
             f"processed={result['processed']} rotated={result['rotated']} "
             f"skipped_legacy_rescue_required={result['skipped_legacy_rescue_required']} "
-            f"failed={result['failed']}"
+            f"failed={result['failed']} targeted={result['processed']}"
         ),
     )
     return PlatformTenantDbCredentialsRotateBatchResponse(

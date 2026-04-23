@@ -124,6 +124,7 @@ from app.apps.platform_control.models.tenant_retirement_archive import (  # noqa
 from app.apps.platform_control.schemas import (  # noqa: E402
     LoginRequest,
     PlatformRootRecoveryRequest,
+    PlatformTenantRuntimeSecretBatchRequest,
     PlatformUserCreateRequest,
     PlatformUserPasswordResetRequest,
     PlatformUserStatusUpdateRequest,
@@ -1571,6 +1572,23 @@ class PlatformServicesTestCase(unittest.TestCase):
                 "skipped_not_configured",
             ],
         )
+
+    def test_tenant_service_filters_runtime_secret_batch_targets(self) -> None:
+        tenant_a = build_tenant_record_stub(status="active", tenant_slug="empresa-a")
+        tenant_b = build_tenant_record_stub(status="active", tenant_slug="empresa-b")
+        tenant_c = build_tenant_record_stub(status="active", tenant_slug="empresa-c")
+
+        tenant_repository = MagicMock()
+        tenant_repository.list_active.return_value = [tenant_a, tenant_b, tenant_c]
+        service = TenantService(tenant_repository=tenant_repository)
+
+        selected = service._select_active_tenants_for_runtime_secret_batch(
+            db=object(),
+            tenant_slugs=["empresa-b", "empresa-a", "empresa-b", "missing"],
+            excluded_tenant_slugs=["empresa-a"],
+        )
+
+        self.assertEqual([tenant.slug for tenant in selected], ["empresa-b"])
 
     def test_tenant_service_rotation_rejects_implicit_legacy_rescue(self) -> None:
         tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
@@ -5066,6 +5084,9 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.routes.auth_audit_service.log_event",
         ) as audit_mock:
             response = sync_platform_runtime_secrets(
+                payload=PlatformTenantRuntimeSecretBatchRequest(
+                    tenant_slugs=["empresa-demo"],
+                ),
                 db=object(),
                 token=self._token_payload(),
             )
@@ -5074,6 +5095,10 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.processed, 2)
         self.assertEqual(response.synced, 1)
         self.assertEqual(response.already_runtime_managed, 1)
+        self.assertEqual(
+            sync_mock.call_args.kwargs["tenant_slugs"],
+            ["empresa-demo"],
+        )
 
     def test_rotate_platform_tenant_db_credentials_returns_batch_schema(self) -> None:
         rotated_at = datetime.now(timezone.utc)
@@ -5102,6 +5127,9 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.routes.auth_audit_service.log_event",
         ) as audit_mock:
             response = rotate_platform_tenant_db_credentials(
+                payload=PlatformTenantRuntimeSecretBatchRequest(
+                    tenant_slugs=["empresa-demo"],
+                ),
                 db=object(),
                 token=self._token_payload(),
             )
@@ -5110,7 +5138,10 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.processed, 2)
         self.assertEqual(response.rotated, 1)
         self.assertEqual(response.skipped_legacy_rescue_required, 1)
-        rotate_mock.assert_called_once()
+        self.assertEqual(
+            rotate_mock.call_args.kwargs["tenant_slugs"],
+            ["empresa-demo"],
+        )
         audit_mock.assert_called_once()
 
     def test_get_platform_runtime_secret_plan_returns_schema(self) -> None:

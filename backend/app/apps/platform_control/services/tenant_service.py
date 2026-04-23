@@ -633,11 +633,16 @@ class TenantService:
         self,
         db: Session,
         *,
+        tenant_slugs: list[str] | None = None,
+        excluded_tenant_slugs: list[str] | None = None,
         limit: int | None = None,
     ) -> dict:
-        active_tenants = self.tenant_repository.list_active(db)
-        if limit is not None:
-            active_tenants = active_tenants[: max(limit, 0)]
+        active_tenants = self._select_active_tenants_for_runtime_secret_batch(
+            db,
+            tenant_slugs=tenant_slugs,
+            excluded_tenant_slugs=excluded_tenant_slugs,
+            limit=limit,
+        )
 
         rows: list[dict] = []
         synced = 0
@@ -731,11 +736,16 @@ class TenantService:
         self,
         db: Session,
         *,
+        tenant_slugs: list[str] | None = None,
+        excluded_tenant_slugs: list[str] | None = None,
         limit: int | None = None,
     ) -> dict:
-        active_tenants = self.tenant_repository.list_active(db)
-        if limit is not None:
-            active_tenants = active_tenants[: max(limit, 0)]
+        active_tenants = self._select_active_tenants_for_runtime_secret_batch(
+            db,
+            tenant_slugs=tenant_slugs,
+            excluded_tenant_slugs=excluded_tenant_slugs,
+            limit=limit,
+        )
 
         rows: list[dict] = []
         rotated = 0
@@ -841,11 +851,16 @@ class TenantService:
         self,
         db: Session,
         *,
+        tenant_slugs: list[str] | None = None,
+        excluded_tenant_slugs: list[str] | None = None,
         limit: int | None = None,
     ) -> dict:
-        active_tenants = self.tenant_repository.list_active(db)
-        if limit is not None:
-            active_tenants = active_tenants[: max(limit, 0)]
+        active_tenants = self._select_active_tenants_for_runtime_secret_batch(
+            db,
+            tenant_slugs=tenant_slugs,
+            excluded_tenant_slugs=excluded_tenant_slugs,
+            limit=limit,
+        )
 
         rows: list[dict] = []
         runtime_ready = 0
@@ -958,6 +973,53 @@ class TenantService:
             "data": rows,
             "planned_at": datetime.now(timezone.utc),
         }
+
+    def _select_active_tenants_for_runtime_secret_batch(
+        self,
+        db: Session,
+        *,
+        tenant_slugs: list[str] | None = None,
+        excluded_tenant_slugs: list[str] | None = None,
+        limit: int | None = None,
+    ) -> list[Tenant]:
+        active_tenants = self.tenant_repository.list_active(db)
+        if tenant_slugs:
+            tenants_by_slug = {
+                str(tenant.slug).strip().lower(): tenant
+                for tenant in active_tenants
+                if tenant.slug
+            }
+            selected: list[Tenant] = []
+            seen: set[str] = set()
+            for raw_slug in tenant_slugs:
+                normalized_slug = str(raw_slug).strip().lower()
+                if (
+                    not normalized_slug
+                    or normalized_slug in seen
+                    or normalized_slug not in tenants_by_slug
+                ):
+                    continue
+                selected.append(tenants_by_slug[normalized_slug])
+                seen.add(normalized_slug)
+            active_tenants = selected
+
+        if excluded_tenant_slugs:
+            excluded = {
+                str(raw_slug).strip().lower()
+                for raw_slug in excluded_tenant_slugs
+                if str(raw_slug).strip()
+            }
+            if excluded:
+                active_tenants = [
+                    tenant
+                    for tenant in active_tenants
+                    if str(tenant.slug).strip().lower() not in excluded
+                ]
+
+        if limit is not None:
+            active_tenants = active_tenants[: max(limit, 0)]
+
+        return active_tenants
 
     def deprovision_tenant(self, db: Session, tenant_id: int) -> dict:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)

@@ -167,6 +167,23 @@ Esta lectura:
   - `missing_secret`
   - `planned_at`
 
+Campañas batch gobernadas:
+
+- `POST /platform/security-posture/sync-runtime-secrets`
+- `POST /platform/security-posture/rotate-db-credentials`
+
+Ahora ambas mutaciones aceptan opcionalmente:
+
+- `tenant_slugs[]`
+- `excluded_tenant_slugs[]`
+
+Regla actual:
+
+- si no se envía selección, el batch opera sobre todos los tenants activos
+- si se envía `tenant_slugs`, el batch queda acotado a ese subconjunto
+- `excluded_tenant_slugs` permite recortar aún más el subconjunto seleccionado
+- la consola ya usa esta capacidad para campañas manuales cortas desde `Plan central de secretos runtime`
+
 Esta mutación:
 
 - recorre tenants activos

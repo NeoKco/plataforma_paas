@@ -118,6 +118,22 @@ Regla operativa:
   - solo reaparece si `legacy_plan_fallback_available=true`
   - y entonces usa `legacy_plan_catalog`
 - el alta nueva ya no deja tenants operando con `plan_code`:
+
+### Operar campañas batch de secretos runtime
+
+En `Configuración -> Postura de secretos y runtime`:
+
+1. revisar primero `Plan central de secretos runtime`
+2. marcar solo los tenants que quieres incluir en la campaña, si no quieres operar sobre todos
+3. usar:
+   - `Sincronizar runtime central` si el tenant aún requiere llevar el secreto al carril runtime
+   - `Rotar credenciales central` si ya está `runtime_ready`
+
+Regla operativa:
+
+- si no seleccionas tenants, la campaña batch sigue usando todos los tenants activos evaluados
+- si seleccionas tenants, el batch queda acotado a ese subconjunto
+- el rescate legacy sigue fuera de la consola normal; si el plan marca `legacy_rescue_required`, debes usar tooling controlado
   - crea la suscripción desde `base_plan_code`
   - no debe tratar `plan_code` como entrada contractual normal
 - el bloque `Baseline legacy por plan_code` ya no es camino normal:

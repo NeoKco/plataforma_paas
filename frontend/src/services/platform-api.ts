@@ -6,6 +6,7 @@ import type {
   PlatformRootRecoveryResponse,
   PlatformRootRecoveryStatusResponse,
   PlatformRuntimeSecurityPostureResponse,
+  PlatformTenantRuntimeSecretBatchRequest,
   PlatformTenantDbCredentialsRotateBatchResponse,
   PlatformTenantRuntimeSecretPlanResponse,
   PlatformTenantRuntimeSecretBatchSyncResponse,
@@ -124,22 +125,30 @@ export function getPlatformSecurityPosture(accessToken: string) {
   );
 }
 
-export function syncPlatformRuntimeSecrets(accessToken: string) {
+export function syncPlatformRuntimeSecrets(
+  accessToken: string,
+  payload?: PlatformTenantRuntimeSecretBatchRequest
+) {
   return apiRequest<PlatformTenantRuntimeSecretBatchSyncResponse>(
     "/platform/security-posture/sync-runtime-secrets",
     {
       method: "POST",
       token: accessToken,
+      body: payload,
     }
   );
 }
 
-export function rotatePlatformRuntimeDbCredentials(accessToken: string) {
+export function rotatePlatformRuntimeDbCredentials(
+  accessToken: string,
+  payload?: PlatformTenantRuntimeSecretBatchRequest
+) {
   return apiRequest<PlatformTenantDbCredentialsRotateBatchResponse>(
     "/platform/security-posture/rotate-db-credentials",
     {
       method: "POST",
       token: accessToken,
+      body: payload,
     }
   );
 }

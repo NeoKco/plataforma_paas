@@ -25,6 +25,7 @@ import type {
   PlatformCapabilities,
   PlatformRootRecoveryStatusResponse,
   PlatformTenantDbCredentialsRotateBatchResponse,
+  PlatformTenantRuntimeSecretBatchRequest,
   PlatformRuntimeSecurityPostureResponse,
   PlatformTenantRuntimeSecretPlanResponse,
   PlatformTenantRuntimeSecretBatchSyncResponse,
@@ -53,6 +54,7 @@ export function SettingsPage() {
   );
   const [runtimeSyncFeedback, setRuntimeSyncFeedback] = useState<string | null>(null);
   const [runtimeRotateFeedback, setRuntimeRotateFeedback] = useState<string | null>(null);
+  const [selectedRuntimePlanTenants, setSelectedRuntimePlanTenants] = useState<string[]>([]);
   const [isRuntimeSyncing, setIsRuntimeSyncing] = useState(false);
   const [isRuntimeRotating, setIsRuntimeRotating] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -97,6 +99,19 @@ export function SettingsPage() {
       skippedNotConfigured: runtimeSecretPlan?.skipped_not_configured || 0,
     };
   }, [runtimeSecretPlan]);
+
+  const runtimeSecretPlanRows = runtimeSecretPlan?.data || [];
+
+  const selectedRuntimePlanOverview = useMemo(() => {
+    const selectedRows = runtimeSecretPlanRows.filter((row) =>
+      selectedRuntimePlanTenants.includes(row.tenant_slug)
+    );
+    return {
+      count: selectedRows.length,
+      syncEligible: selectedRows.filter((row) => row.eligible_for_sync_batch).length,
+      rotationEligible: selectedRows.filter((row) => row.eligible_for_rotation_batch).length,
+    };
+  }, [runtimeSecretPlanRows, selectedRuntimePlanTenants]);
 
   async function loadSettings() {
     if (!session?.accessToken) {
@@ -185,6 +200,13 @@ export function SettingsPage() {
     void loadSettings();
   }, [session?.accessToken]);
 
+  useEffect(() => {
+    const validSlugs = new Set(runtimeSecretPlanRows.map((row) => row.tenant_slug));
+    setSelectedRuntimePlanTenants((current) =>
+      current.filter((tenantSlug) => validSlugs.has(tenantSlug))
+    );
+  }, [runtimeSecretPlanRows]);
+
   async function handleSyncRuntimeSecrets() {
     if (!session?.accessToken || isRuntimeSyncing) {
       return;
@@ -193,12 +215,16 @@ export function SettingsPage() {
     setRuntimeSyncFeedback(null);
     setIsRuntimeSyncing(true);
     try {
+      const payload: PlatformTenantRuntimeSecretBatchRequest | undefined =
+        selectedRuntimePlanTenants.length > 0
+          ? { tenant_slugs: selectedRuntimePlanTenants }
+          : undefined;
       const response: PlatformTenantRuntimeSecretBatchSyncResponse =
-        await syncPlatformRuntimeSecrets(session.accessToken);
+        await syncPlatformRuntimeSecrets(session.accessToken, payload);
       const summary =
         language === "es"
-          ? `Sincronización central completada: procesados ${response.processed}, sincronizados ${response.synced}, ya gestionados ${response.already_runtime_managed}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}.`
-          : `Central sync completed: processed ${response.processed}, synced ${response.synced}, already managed ${response.already_runtime_managed}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}.`;
+          ? `Sincronización central completada: procesados ${response.processed}, sincronizados ${response.synced}, ya gestionados ${response.already_runtime_managed}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}.${selectedRuntimePlanTenants.length > 0 ? ` Alcance manual: ${selectedRuntimePlanTenants.length} tenant(s) seleccionados.` : ""}`
+          : `Central sync completed: processed ${response.processed}, synced ${response.synced}, already managed ${response.already_runtime_managed}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}.${selectedRuntimePlanTenants.length > 0 ? ` Manual scope: ${selectedRuntimePlanTenants.length} selected tenant(s).` : ""}`;
       setRuntimeSyncFeedback(summary);
       await loadSettings();
     } catch (rawError) {
@@ -223,12 +249,16 @@ export function SettingsPage() {
     setRuntimeRotateFeedback(null);
     setIsRuntimeRotating(true);
     try {
+      const payload: PlatformTenantRuntimeSecretBatchRequest | undefined =
+        selectedRuntimePlanTenants.length > 0
+          ? { tenant_slugs: selectedRuntimePlanTenants }
+          : undefined;
       const response: PlatformTenantDbCredentialsRotateBatchResponse =
-        await rotatePlatformRuntimeDbCredentials(session.accessToken);
+        await rotatePlatformRuntimeDbCredentials(session.accessToken, payload);
       const summary =
         language === "es"
-          ? `Rotación central completada: procesados ${response.processed}, rotados ${response.rotated}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}.`
-          : `Central rotation completed: processed ${response.processed}, rotated ${response.rotated}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}.`;
+          ? `Rotación central completada: procesados ${response.processed}, rotados ${response.rotated}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}.${selectedRuntimePlanTenants.length > 0 ? ` Alcance manual: ${selectedRuntimePlanTenants.length} tenant(s) seleccionados.` : ""}`
+          : `Central rotation completed: processed ${response.processed}, rotated ${response.rotated}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}.${selectedRuntimePlanTenants.length > 0 ? ` Manual scope: ${selectedRuntimePlanTenants.length} selected tenant(s).` : ""}`;
       setRuntimeRotateFeedback(summary);
       await loadSettings();
     } catch (rawError) {
@@ -243,6 +273,25 @@ export function SettingsPage() {
     } finally {
       setIsRuntimeRotating(false);
     }
+  }
+
+  function toggleRuntimePlanTenantSelection(tenantSlug: string) {
+    setSelectedRuntimePlanTenants((current) =>
+      current.includes(tenantSlug)
+        ? current.filter((slug) => slug !== tenantSlug)
+        : [...current, tenantSlug]
+    );
+  }
+
+  function setRuntimePlanTenantSelection(tenantSlugs: string[]) {
+    const next = Array.from(
+      new Set(
+        tenantSlugs.filter((tenantSlug) =>
+          runtimeSecretPlanRows.some((row) => row.tenant_slug === tenantSlug)
+        )
+      )
+    );
+    setSelectedRuntimePlanTenants(next);
   }
 
   return (
@@ -702,6 +751,10 @@ export function SettingsPage() {
               label={language === "es" ? "DB sin configurar" : "DB not configured"}
               value={runtimeSecretPlanOverview.skippedNotConfigured}
             />
+            <DetailField
+              label={language === "es" ? "Tenant(s) seleccionados" : "Selected tenant(s)"}
+              value={selectedRuntimePlanOverview.count}
+            />
           </div>
           {runtimeSecretPlanError ? (
             <div className="alert alert-warning mt-3 mb-0">
@@ -735,6 +788,15 @@ export function SettingsPage() {
               {language === "es"
                 ? "La rotación central usa el mismo carril runtime-only: no rescata desde `/.env` y deja fuera a los tenants que todavía requieren tooling controlado."
                 : "Central rotation uses the same runtime-only lane: it does not rescue from `/.env` and skips tenants that still require controlled tooling."}
+            </div>
+            <div>
+              {selectedRuntimePlanOverview.count > 0
+                ? language === "es"
+                  ? `La próxima campaña batch quedará acotada a ${selectedRuntimePlanOverview.count} tenant(s) seleccionados desde la tabla inferior.`
+                  : `The next batch campaign will be scoped to ${selectedRuntimePlanOverview.count} tenant(s) selected in the table below.`
+                : language === "es"
+                  ? "Si no seleccionas tenants en la tabla inferior, la campaña batch se aplicará sobre todos los tenants activos evaluados por el plan central."
+                  : "If no tenants are selected in the table below, the batch campaign applies to all active tenants evaluated by the central plan."}
             </div>
             {securityPosture?.tenant_secret_distribution_summary?.missing_runtime_secret_slugs
               ?.length ? (
@@ -830,7 +892,75 @@ export function SettingsPage() {
               : "Pre-read to decide whether each tenant can go straight to rotation, needs runtime-only sync first, or remains restricted to controlled legacy tooling."
           }
           rows={runtimeSecretPlan.data}
+          actions={
+            <>
+              <span className="data-table-card__meta">
+                {language === "es"
+                  ? `${selectedRuntimePlanOverview.count} seleccionados`
+                  : `${selectedRuntimePlanOverview.count} selected`}
+              </span>
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                type="button"
+                onClick={() =>
+                  setRuntimePlanTenantSelection(
+                    runtimeSecretPlanRows.map((row) => row.tenant_slug)
+                  )
+                }
+              >
+                {language === "es" ? "Seleccionar todos" : "Select all"}
+              </button>
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                type="button"
+                onClick={() =>
+                  setRuntimePlanTenantSelection(
+                    runtimeSecretPlanRows
+                      .filter((row) => row.eligible_for_sync_batch)
+                      .map((row) => row.tenant_slug)
+                  )
+                }
+              >
+                {language === "es" ? "Solo sync" : "Sync only"}
+              </button>
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                type="button"
+                onClick={() =>
+                  setRuntimePlanTenantSelection(
+                    runtimeSecretPlanRows
+                      .filter((row) => row.eligible_for_rotation_batch)
+                      .map((row) => row.tenant_slug)
+                  )
+                }
+              >
+                {language === "es" ? "Solo rotate" : "Rotate only"}
+              </button>
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                type="button"
+                onClick={() => setSelectedRuntimePlanTenants([])}
+                disabled={selectedRuntimePlanOverview.count === 0}
+              >
+                {language === "es" ? "Limpiar" : "Clear"}
+              </button>
+            </>
+          }
           columns={[
+            {
+              key: "selected",
+              header: language === "es" ? "Sel." : "Sel.",
+              render: (row) => (
+                <label className="form-check m-0 d-inline-flex align-items-center gap-2">
+                  <input
+                    className="form-check-input m-0"
+                    type="checkbox"
+                    checked={selectedRuntimePlanTenants.includes(row.tenant_slug)}
+                    onChange={() => toggleRuntimePlanTenantSelection(row.tenant_slug)}
+                  />
+                </label>
+              ),
+            },
             {
               key: "tenant_slug",
               header: language === "es" ? "Tenant" : "Tenant",

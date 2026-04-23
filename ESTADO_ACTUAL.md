@@ -4,6 +4,17 @@
 
 - fecha: 2026-04-23
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 11`:
+  - octavo corte ya cerrado en repo:
+    - `Settings -> Plan central de secretos runtime` ya permite seleccionar manualmente tenants antes de correr `Sincronizar runtime central` o `Rotar credenciales central`
+    - la consola ya puede limitar el batch a `tenant_slugs` explícitos; si no hay selección, sigue operando sobre todos los tenants activos evaluados
+    - backend ya acepta targeting opcional en:
+      - `POST /platform/security-posture/sync-runtime-secrets`
+      - `POST /platform/security-posture/rotate-db-credentials`
+    - la selección visible ya deja gobernar campañas cortas sin abrir todavía persistencia/auditoría formal de campañas
+  - validación repo de este octavo corte:
+    - `backend.app.tests.test_platform_flow` -> `235 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
   - séptimo corte ya cerrado en repo:
     - `Settings -> Postura de secretos y runtime` ya agrega un `Plan central de secretos runtime`
     - la lectura nueva ya clasifica tenants activos por:
