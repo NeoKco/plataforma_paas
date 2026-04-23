@@ -19,6 +19,12 @@ class TenantPlanRateLimitPolicy:
 class TenantPlanPolicyService:
     VALID_MODULES = VALID_PLAN_MODULES
     VALID_MODULE_LIMIT_KEYS = SUPPORTED_MODULE_LIMIT_KEYS
+    MODULE_DEPENDENCIES = {
+        "maintenance": ("core",),
+    }
+    MODULE_DEPENDENCY_REASONS = {
+        "maintenance": "Maintenance depende de business-core y no debe duplicarlo.",
+    }
 
     def __init__(
         self,
@@ -89,6 +95,24 @@ class TenantPlanPolicyService:
         if policy is None or policy.module_limits is None:
             return None
         return dict(policy.module_limits)
+
+    def get_module_dependencies(self) -> dict[str, tuple[str, ...]]:
+        return {
+            module_key: tuple(required_modules)
+            for module_key, required_modules in self.MODULE_DEPENDENCIES.items()
+        }
+
+    def list_module_dependency_catalog(self) -> list[dict]:
+        catalog: list[dict] = []
+        for module_key in sorted(self.MODULE_DEPENDENCIES):
+            catalog.append(
+                {
+                    "module_key": module_key,
+                    "requires_modules": list(self.MODULE_DEPENDENCIES[module_key]),
+                    "reason": self.MODULE_DEPENDENCY_REASONS.get(module_key),
+                }
+            )
+        return catalog
 
     def parse_plan_rate_limits(self) -> dict[str, tuple[int, int]]:
         parsed: dict[str, tuple[int, int]] = {}

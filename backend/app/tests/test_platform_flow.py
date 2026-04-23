@@ -2852,6 +2852,26 @@ class PlatformServicesTestCase(unittest.TestCase):
             },
         )
 
+    def test_tenant_plan_policy_service_exposes_module_dependencies(self) -> None:
+        service = TenantPlanPolicyService()
+
+        self.assertEqual(
+            service.get_module_dependencies(),
+            {
+                "maintenance": ("core",),
+            },
+        )
+        self.assertEqual(
+            service.list_module_dependency_catalog(),
+            [
+                {
+                    "module_key": "maintenance",
+                    "requires_modules": ["core"],
+                    "reason": "Maintenance depende de business-core y no debe duplicarlo.",
+                }
+            ],
+        )
+
     def test_platform_capability_service_returns_supported_catalog(self) -> None:
         service = PlatformCapabilityService(
             tenant_service=TenantService(tenant_repository=SimpleNamespace()),
@@ -2863,6 +2883,14 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("active", catalog["tenant_statuses"])
         self.assertIn("past_due", catalog["tenant_billing_statuses"])
         self.assertIn("finance", catalog["maintenance_scopes"])
+        self.assertEqual(
+            catalog["module_dependency_catalog"][0]["module_key"],
+            "maintenance",
+        )
+        self.assertEqual(
+            catalog["module_dependency_catalog"][0]["requires_modules"],
+            ["core"],
+        )
         self.assertIn("maintenance", catalog["maintenance_scopes"])
         self.assertIn("full_block", catalog["maintenance_access_modes"])
         self.assertIn("all", catalog["plan_modules"])
@@ -3959,6 +3987,11 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.billing_providers, ["stripe"])
         self.assertEqual(response.current_provisioning_dispatch_backend, "database")
         self.assertIn("broker", response.provisioning_dispatch_backends)
+        self.assertEqual(response.module_dependency_catalog[0].module_key, "maintenance")
+        self.assertEqual(
+            response.module_dependency_catalog[0].requires_modules,
+            ["core"],
+        )
         self.assertIsInstance(response.plan_catalog, list)
 
     @patch("app.apps.platform_control.api.routes.runtime_security_service")

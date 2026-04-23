@@ -152,6 +152,12 @@ class PlatformPlanCatalogEntryResponse(BaseModel):
     module_limits: dict[str, int] | None = None
 
 
+class PlatformModuleDependencyResponse(BaseModel):
+    module_key: str
+    requires_modules: list[str]
+    reason: str | None = None
+
+
 class PlatformCapabilityCatalogResponse(BaseModel):
     success: bool
     message: str
@@ -161,6 +167,7 @@ class PlatformCapabilityCatalogResponse(BaseModel):
     maintenance_access_modes: list[str]
     available_plan_codes: list[str]
     plan_modules: list[str]
+    module_dependency_catalog: list[PlatformModuleDependencyResponse]
     plan_catalog: list[PlatformPlanCatalogEntryResponse]
     supported_module_limit_keys: list[str]
     module_limit_capabilities: list[PlatformModuleLimitCapabilityResponse]

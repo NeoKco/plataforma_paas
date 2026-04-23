@@ -623,6 +623,52 @@ export function SettingsPage() {
             ]}
           />
 
+          <DataTableCard
+            title={
+              language === "es"
+                ? "Dependencias entre módulos"
+                : "Module dependencies"
+            }
+            subtitle={
+              language === "es"
+                ? "Dependencias explícitas declaradas por backend para no abrir activaciones inválidas por tenant."
+                : "Explicit dependencies declared by the backend to avoid invalid tenant activations."
+            }
+            rows={capabilities.module_dependency_catalog}
+            columns={[
+              {
+                key: "module_key",
+                header: language === "es" ? "Módulo" : "Module",
+                render: (row) => (
+                  <span className="tenant-chip">
+                    {getPlanModuleLabel(row.module_key, language)}
+                  </span>
+                ),
+              },
+              {
+                key: "requires_modules",
+                header: language === "es" ? "Requiere" : "Requires",
+                render: (row) =>
+                  row.requires_modules?.length ? (
+                    <div className="settings-token-chips">
+                      {row.requires_modules.map((moduleKey) => (
+                        <span key={`${row.module_key}-${moduleKey}`} className="tenant-chip">
+                          {getPlanModuleLabel(moduleKey, language)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    "—"
+                  ),
+              },
+              {
+                key: "reason",
+                header: language === "es" ? "Motivo" : "Reason",
+                render: (row) => row.reason || "—",
+              },
+            ]}
+          />
+
           <div className="settings-grid">
             <PanelCard
               icon="catalogs"
@@ -717,6 +763,11 @@ export function SettingsPage() {
                   {language === "es"
                     ? "Los overrides de límites por tenant siguen existiendo, pero no reemplazan el catálogo de módulos ni las dependencias que declare backend."
                     : "Tenant-specific limit overrides still exist, but they do not replace the module catalog or the dependencies declared by the backend."}
+                </div>
+                <div>
+                  {language === "es"
+                    ? "Las dependencias explícitas ya se leen desde el backend y deben revisarse antes de abrir activaciones parciales por tenant."
+                    : "Explicit dependencies are now read from the backend and should be reviewed before opening partial tenant activations."}
                 </div>
                 <div>
                   {language === "es"

@@ -73,6 +73,7 @@ import { useLanguage } from "../../../../store/language-context";
 import type {
   ApiError,
   PlatformCapabilities,
+  PlatformModuleDependency,
   ProvisioningJob,
   PlatformTenant,
   PlatformTenantAccessPolicy,
@@ -370,6 +371,17 @@ export function TenantsPage() {
     [capabilities?.plan_catalog]
   );
 
+  const moduleDependencyMap = useMemo(
+    () =>
+      new Map(
+        (capabilities?.module_dependency_catalog || []).map((entry) => [
+          entry.module_key,
+          entry,
+        ])
+      ),
+    [capabilities?.module_dependency_catalog]
+  );
+
   const selectedCreatePlanCatalog = createTenantPlanCode
     ? planCatalogByCode.get(createTenantPlanCode) || null
     : null;
@@ -378,6 +390,24 @@ export function TenantsPage() {
     selectedTenantSummary?.plan_code
       ? planCatalogByCode.get(selectedTenantSummary.plan_code) || null
       : null;
+
+  const selectedCreatePlanDependencyStatus = useMemo(
+    () =>
+      buildTenantPlanDependencyStatus(
+        selectedCreatePlanCatalog?.enabled_modules || null,
+        capabilities?.module_dependency_catalog || []
+      ),
+    [capabilities?.module_dependency_catalog, selectedCreatePlanCatalog?.enabled_modules]
+  );
+
+  const selectedTenantPlanDependencyStatus = useMemo(
+    () =>
+      buildTenantPlanDependencyStatus(
+        planCode ? planCatalogByCode.get(planCode)?.enabled_modules || null : null,
+        capabilities?.module_dependency_catalog || []
+      ),
+    [capabilities?.module_dependency_catalog, planCatalogByCode, planCode]
+  );
 
   const moduleLimitCapabilityMap = useMemo(
     () =>
@@ -2089,6 +2119,50 @@ export function TenantsPage() {
                         </span>
                       ))}
                     </div>
+                    {selectedCreatePlanDependencyStatus.covered.length ? (
+                      <>
+                        <p className="tenant-help-text mt-3 mb-2">
+                          {language === "es"
+                            ? "Dependencias cubiertas por este plan:"
+                            : "Dependencies covered by this plan:"}
+                        </p>
+                        <div className="tenant-help-box">
+                          {selectedCreatePlanDependencyStatus.covered.map((entry) => (
+                            <div key={`create-covered-${entry.module_key}`}>
+                              <strong>{getTenantPlanModuleLabel(entry.module_key)}</strong>:{" "}
+                              {entry.requires_modules
+                                .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                                .join(", ")}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : null}
+                    {selectedCreatePlanDependencyStatus.missing.length ? (
+                      <>
+                        <p className="tenant-help-text mt-3 mb-2">
+                          {language === "es"
+                            ? "Dependencias faltantes detectadas en este plan:"
+                            : "Missing dependencies detected in this plan:"}
+                        </p>
+                        <div className="tenant-help-box">
+                          {selectedCreatePlanDependencyStatus.missing.map((entry) => (
+                            <div key={`create-missing-${entry.module_key}`}>
+                              <strong>{getTenantPlanModuleLabel(entry.module_key)}</strong>:{" "}
+                              {entry.requires_modules
+                                .filter(
+                                  (moduleKey) =>
+                                    !selectedCreatePlanDependencyStatus.enabledModules.includes(
+                                      moduleKey
+                                    )
+                                )
+                                .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                                .join(", ")}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : null}
                   </>
                 ) : (
                   <p className="tenant-help-text mt-2 mb-0">
@@ -3978,6 +4052,50 @@ export function TenantsPage() {
                               </div>
                             </>
                           ) : null}
+                          {selectedTenantPlanDependencyStatus.covered.length ? (
+                            <>
+                              <p className="tenant-help-text mt-3 mb-2">
+                                {language === "es"
+                                  ? "Dependencias ya cubiertas por este plan:"
+                                  : "Dependencies already covered by this plan:"}
+                              </p>
+                              <div className="tenant-help-box">
+                                {selectedTenantPlanDependencyStatus.covered.map((entry) => (
+                                  <div key={`covered-${entry.module_key}`}>
+                                    <strong>{getTenantPlanModuleLabel(entry.module_key)}</strong>:{" "}
+                                    {entry.requires_modules
+                                      .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                                      .join(", ")}
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          ) : null}
+                          {selectedTenantPlanDependencyStatus.missing.length ? (
+                            <>
+                              <p className="tenant-help-text mt-3 mb-2">
+                                {language === "es"
+                                  ? "Dependencias faltantes que este plan todavía no cubre:"
+                                  : "Missing dependencies that this plan does not cover yet:"}
+                              </p>
+                              <div className="tenant-help-box">
+                                {selectedTenantPlanDependencyStatus.missing.map((entry) => (
+                                  <div key={`missing-${entry.module_key}`}>
+                                    <strong>{getTenantPlanModuleLabel(entry.module_key)}</strong>:{" "}
+                                    {entry.requires_modules
+                                      .filter(
+                                        (moduleKey) =>
+                                          !selectedTenantPlanDependencyStatus.enabledModules.includes(
+                                            moduleKey
+                                          )
+                                      )
+                                      .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                                      .join(", ")}
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          ) : null}
                         </>
                       ) : null}
                       <p className="tenant-help-text mt-2 mb-0">
@@ -5321,4 +5439,54 @@ function getTenantPlanModuleLabel(moduleKey: string): string {
   };
 
   return labels[moduleKey] || moduleKey;
+}
+
+function buildTenantPlanDependencyStatus(
+  enabledModules: string[] | null,
+  dependencyCatalog: PlatformModuleDependency[]
+): {
+  enabledModules: string[];
+  covered: PlatformModuleDependency[];
+  missing: PlatformModuleDependency[];
+} {
+  const normalizedModules = enabledModules ? [...enabledModules] : [];
+  if (!normalizedModules.length) {
+    return {
+      enabledModules: [],
+      covered: [],
+      missing: [],
+    };
+  }
+
+  if (normalizedModules.includes("all")) {
+    return {
+      enabledModules: normalizedModules,
+      covered: dependencyCatalog,
+      missing: [],
+    };
+  }
+
+  const moduleSet = new Set(normalizedModules);
+  const covered: PlatformModuleDependency[] = [];
+  const missing: PlatformModuleDependency[] = [];
+
+  dependencyCatalog.forEach((entry) => {
+    if (!moduleSet.has(entry.module_key)) {
+      return;
+    }
+    const unmetDependencies = entry.requires_modules.filter(
+      (moduleKey) => !moduleSet.has(moduleKey)
+    );
+    if (unmetDependencies.length) {
+      missing.push(entry);
+      return;
+    }
+    covered.push(entry);
+  });
+
+  return {
+    enabledModules: normalizedModules,
+    covered,
+    missing,
+  };
 }

@@ -112,6 +112,12 @@ export type PlatformPlanCatalogEntry = {
   module_limits: Record<string, number> | null;
 };
 
+export type PlatformModuleDependency = {
+  module_key: string;
+  requires_modules: string[];
+  reason: string | null;
+};
+
 export type PlatformCapabilities = {
   success: boolean;
   message: string;
@@ -121,6 +127,7 @@ export type PlatformCapabilities = {
   maintenance_access_modes: string[];
   available_plan_codes: string[];
   plan_modules: string[];
+  module_dependency_catalog: PlatformModuleDependency[];
   plan_catalog: PlatformPlanCatalogEntry[];
   supported_module_limit_keys: string[];
   module_limit_capabilities: PlatformModuleLimitCapability[];

@@ -56,6 +56,7 @@ class PlatformCapabilityService:
             ),
             "available_plan_codes": self.tenant_plan_policy_service.list_plan_codes(),
             "plan_modules": sorted(self.tenant_plan_policy_service.VALID_MODULES),
+            "module_dependency_catalog": self.tenant_plan_policy_service.list_module_dependency_catalog(),
             "plan_catalog": plan_catalog,
             "supported_module_limit_keys": sorted(
                 self.tenant_plan_policy_service.VALID_MODULE_LIMIT_KEYS
