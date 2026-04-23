@@ -72,7 +72,9 @@ class PlatformCapabilityService:
             "subscription_billing_cycles": (
                 self.tenant_module_subscription_policy_service.list_subscription_billing_cycles()
             ),
-            "base_plan_catalog": self.tenant_module_subscription_policy_service.list_base_plan_catalog(),
+            "base_plan_catalog": self.tenant_module_subscription_policy_service.list_base_plan_catalog(
+                tenant_plan_policy_service=self.tenant_plan_policy_service
+            ),
             "module_subscription_catalog": self.tenant_module_subscription_policy_service.list_module_subscription_catalog(),
             "plan_catalog": plan_catalog,
             "supported_module_limit_keys": sorted(

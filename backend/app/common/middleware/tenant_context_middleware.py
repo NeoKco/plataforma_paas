@@ -240,18 +240,47 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
             if callable(tenant_module_limits_resolver)
             else self._parse_tenant_module_limits(tenant)
         )
-        plan_policy = self.tenant_plan_policy_service.get_policy(tenant.plan_code)
+        baseline_policy_resolver = getattr(
+            self.tenant_service,
+            "get_tenant_baseline_policy_state",
+            None,
+        )
+        baseline_policy = (
+            baseline_policy_resolver(tenant)
+            if callable(baseline_policy_resolver)
+            else None
+        )
         request.state.tenant_plan_api_read_requests_per_minute = (
-            None if plan_policy is None else plan_policy.read_requests_per_minute
+            None
+            if baseline_policy is None
+            else baseline_policy.read_requests_per_minute
         )
         request.state.tenant_plan_api_write_requests_per_minute = (
-            None if plan_policy is None else plan_policy.write_requests_per_minute
+            None
+            if baseline_policy is None
+            else baseline_policy.write_requests_per_minute
         )
         request.state.tenant_plan_enabled_modules = (
-            None if plan_policy is None else plan_policy.enabled_modules
+            None if baseline_policy is None else baseline_policy.enabled_modules
         )
         request.state.tenant_plan_module_limits = (
-            None if plan_policy is None else plan_policy.module_limits
+            None if baseline_policy is None else baseline_policy.module_limits
+        )
+        request.state.tenant_subscription_contract_managed = (
+            False
+            if baseline_policy is None
+            else baseline_policy.subscription_contract_managed
+        )
+        request.state.tenant_legacy_plan_fallback_active = (
+            False
+            if baseline_policy is None
+            else baseline_policy.legacy_plan_fallback_active
+        )
+        request.state.tenant_baseline_policy_source = (
+            None if baseline_policy is None else baseline_policy.source
+        )
+        request.state.tenant_baseline_compatibility_policy_code = (
+            None if baseline_policy is None else baseline_policy.compatibility_policy_code
         )
         activation_state = self.tenant_service.get_tenant_module_activation_state(tenant)
         request.state.tenant_subscription_base_plan_code = (

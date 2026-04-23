@@ -2183,8 +2183,8 @@ export function TenantsPage() {
                   }
                   help={
                     language === "es"
-                      ? "Mientras la activación efectiva todavía no usa suscripciones tenant, este campo sigue escribiendo `plan_code` y define el baseline operativo inicial."
-                      : "While effective activation does not yet use tenant subscriptions, this field still writes `plan_code` and defines the initial operational baseline."
+                      ? "Este campo sigue escribiendo `plan_code` solo como baseline de compatibilidad legacy. Los tenants recontratados ya toman activación y límites base desde `tenant_subscriptions`."
+                      : "This field still writes `plan_code` only as the legacy compatibility baseline. Recontracted tenants already take activation and base limits from `tenant_subscriptions`."
                   }
                 />
                 <select
@@ -2550,6 +2550,14 @@ export function TenantsPage() {
                           <span className="tenant-chip">
                             plan: {tenant.plan_code || (language === "es" ? "ninguno" : "none")}
                           </span>
+                          <span className="tenant-chip">
+                            {language === "es" ? "modelo" : "model"}:{" "}
+                            {getTenantContractManagementLabel(
+                              tenant.subscription_contract_managed,
+                              tenant.legacy_plan_fallback_active,
+                              language
+                            )}
+                          </span>
                           {tenant.maintenance_mode ? (
                             <span className="tenant-chip tenant-chip--warning">
                               {language === "es" ? "mantenimiento" : "maintenance"}
@@ -2690,6 +2698,21 @@ export function TenantsPage() {
                     value={selectedTenantSummary.plan_code || (language === "es" ? "Sin plan" : "No plan")}
                   />
                   <DetailField
+                    label={language === "es" ? "Modelo contractual" : "Contract model"}
+                    value={getTenantContractManagementLabel(
+                      selectedTenantSummary.subscription_contract_managed,
+                      selectedTenantSummary.legacy_plan_fallback_active,
+                      language
+                    )}
+                  />
+                  <DetailField
+                    label={language === "es" ? "Fuente baseline" : "Baseline source"}
+                    value={getTenantBaselinePolicySourceLabel(
+                      selectedTenantSummary.baseline_policy_source,
+                      language
+                    )}
+                  />
+                  <DetailField
                     label={language === "es" ? "Mantenimiento" : "Maintenance"}
                     value={
                       selectedTenantSummary.maintenance_mode
@@ -2810,10 +2833,29 @@ export function TenantsPage() {
                     ? "Ruta formal de activación"
                     : "Formal activation route"}
                   :{" "}
-                  {language === "es"
-                    ? "el catálogo vive en Configuración, la contratación comercial tenant ya opera sobre `tenant_subscriptions`, y este bloque legacy sigue existiendo solo como baseline/fallback por `plan_code` mientras se retira esa compatibilidad."
-                    : "the catalog lives in Settings, tenant commercial contracting already operates over `tenant_subscriptions`, and this legacy block remains only as the `plan_code` baseline/fallback while that compatibility is retired."}
+                  {selectedTenantSummary.subscription_contract_managed
+                    ? language === "es"
+                      ? "este tenant ya calcula activación y baseline técnico desde `tenant_subscriptions`; `plan_code` queda solo como compatibilidad visible si aún existe."
+                      : "this tenant already computes activation and technical baseline from `tenant_subscriptions`; `plan_code` remains only as visible compatibility when still present."
+                    : language === "es"
+                      ? "este tenant todavía mantiene baseline/fallback legacy por `plan_code`; el siguiente paso es recontratarlo al modelo `Plan Base + add-ons`."
+                      : "this tenant still keeps the legacy `plan_code` baseline/fallback; the next step is to recontract it into the `Base plan + add-ons` model."}
                 </div>
+                {selectedTenantSummary.baseline_compatibility_policy_code ? (
+                  <div className="tenant-inline-note">
+                    {language === "es"
+                      ? "Política de compatibilidad baseline"
+                      : "Baseline compatibility policy"}
+                    : <code>{selectedTenantSummary.baseline_compatibility_policy_code}</code>
+                  </div>
+                ) : null}
+                {selectedTenantSummary.legacy_plan_fallback_active ? (
+                  <div className="tenant-inline-note">
+                    {language === "es"
+                      ? "Compatibilidad legacy activa: los límites baseline siguen arrastrando compatibilidad con la política antigua para este tenant."
+                      : "Legacy compatibility active: baseline limits still carry old-policy compatibility for this tenant."}
+                </div>
+                ) : null}
                 {selectedTenantSummary.maintenance_reason ? (
                   <div className="tenant-inline-note">
                     {language === "es" ? "Motivo de mantenimiento" : "Maintenance reason"}: {selectedTenantSummary.maintenance_reason}
@@ -4505,8 +4547,8 @@ export function TenantsPage() {
                         }
                         help={
                           language === "es"
-                            ? "Este campo sigue escribiendo `plan_code` como baseline/fallback legacy. La activación efectiva visible ya se calcula con `tenant_subscriptions` cuando existen."
-                            : "This field still writes `plan_code` as the legacy baseline/fallback. Visible effective activation is already computed from `tenant_subscriptions` when present."
+                            ? "Este campo sigue escribiendo `plan_code` solo para compatibilidad legacy. Si el tenant ya está gestionado por contrato, la activación y los límites base visibles salen desde `tenant_subscriptions`."
+                            : "This field still writes `plan_code` only for legacy compatibility. If the tenant is already contract-managed, visible activation and base limits come from `tenant_subscriptions`."
                         }
                         placement="left"
                       />
@@ -4527,8 +4569,8 @@ export function TenantsPage() {
                       <div className="tenant-help-box">
                         <p className="tenant-help-text mb-0">
                           {language === "es"
-                            ? "Etapa 15 ya no se explica como `plan-driven puro`: el modelo aprobado es `Plan Base + add-ons`, y la activación efectiva visible ya combina suscripciones tenant, dependencias técnicas y fallback legacy cuando aplica."
-                            : "Stage 15 is no longer explained as pure `plan-driven`: the approved model is `Base plan + add-ons`, and visible effective activation already combines tenant subscriptions, technical dependencies and legacy fallback when applicable."}
+                            ? "Etapa 15 ya no se explica como `plan-driven puro`: el modelo aprobado es `Plan Base + add-ons`, y el baseline técnico también sale desde la suscripción cuando el tenant ya fue recontratado."
+                            : "Stage 15 is no longer explained as pure `plan-driven`: the approved model is `Base plan + add-ons`, and the technical baseline also comes from the subscription once the tenant has been recontracted."}
                         </p>
                         <div className="tenant-scope-list">
                           <div className="tenant-scope-list__item">
@@ -4637,8 +4679,8 @@ export function TenantsPage() {
                       ) : null}
                       <p className="tenant-help-text mt-2 mb-0">
                         {language === "es"
-                          ? "Aquí solo ajustas el baseline/fallback legacy por `plan_code`. La contratación comercial real ya vive en el bloque superior de suscripción tenant."
-                          : "This block only adjusts the legacy `plan_code` baseline/fallback. Real commercial contracting now lives in the tenant subscription block above."}
+                          ? "Aquí solo ajustas la compatibilidad legacy por `plan_code`. La contratación comercial real y el baseline técnico de tenants gestionados ya viven en la suscripción tenant."
+                          : "This block only adjusts legacy `plan_code` compatibility. Real commercial contracting and the technical baseline for managed tenants already live in the tenant subscription above."}
                       </p>
                     </div>
                     <AppFormActions>
@@ -6009,6 +6051,41 @@ function getTenantActivationSourceLabel(
   };
 
   return labels[activationSource] || activationSource;
+}
+
+function getTenantContractManagementLabel(
+  subscriptionContractManaged: boolean,
+  legacyPlanFallbackActive: boolean,
+  language: "es" | "en"
+): string {
+  if (subscriptionContractManaged) {
+    return legacyPlanFallbackActive
+      ? language === "es"
+        ? "suscripción gestionada + compatibilidad"
+        : "managed subscription + compatibility"
+      : language === "es"
+        ? "suscripción gestionada"
+        : "managed subscription";
+  }
+  return language === "es" ? "tenant legacy" : "legacy tenant";
+}
+
+function getTenantBaselinePolicySourceLabel(
+  source: string | null,
+  language: "es" | "en"
+): string {
+  if (!source) {
+    return language === "es" ? "sin baseline visible" : "no visible baseline";
+  }
+
+  const labels: Record<string, string> = {
+    subscription_base_plan:
+      language === "es" ? "Plan Base por suscripción" : "subscription base plan",
+    legacy_plan_code:
+      language === "es" ? "compatibilidad legacy por plan_code" : "legacy plan_code compatibility",
+  };
+
+  return labels[source] || source;
 }
 
 function formatTenantModuleList(

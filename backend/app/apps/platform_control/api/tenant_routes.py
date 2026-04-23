@@ -193,6 +193,7 @@ def _raise_tenant_db_credentials_rotation_http_error(exc: ValueError) -> None:
 
 def _build_tenant_response(tenant) -> TenantResponse:
     activation_state = tenant_service.get_tenant_module_activation_state(tenant)
+    baseline_policy = tenant_service.get_tenant_baseline_policy_state(tenant)
     effective_enabled_modules = tenant_service.get_effective_enabled_modules(tenant)
     subscription = getattr(tenant, "subscription", None)
     return TenantResponse(
@@ -212,11 +213,17 @@ def _build_tenant_response(tenant) -> TenantResponse:
             tenant, "tenant_db_credentials_rotated_at", None
         ),
         plan_code=tenant.plan_code,
+        subscription_contract_managed=baseline_policy.subscription_contract_managed,
+        legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
+        baseline_policy_source=baseline_policy.source,
+        baseline_compatibility_policy_code=baseline_policy.compatibility_policy_code,
         billing_provider=tenant.billing_provider,
         billing_provider_customer_id=tenant.billing_provider_customer_id,
         billing_provider_subscription_id=tenant.billing_provider_subscription_id,
-        plan_enabled_modules=tenant_service.tenant_plan_policy_service.get_enabled_modules(
-            tenant.plan_code
+        plan_enabled_modules=(
+            list(baseline_policy.enabled_modules)
+            if baseline_policy.enabled_modules is not None
+            else None
         ),
         subscription_base_plan_code=activation_state.subscription_base_plan_code,
         subscription_status=activation_state.subscription_status,
@@ -289,8 +296,10 @@ def _build_tenant_response(tenant) -> TenantResponse:
             else None
         ),
         effective_activation_source=activation_state.activation_source,
-        plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
-            tenant.plan_code
+        plan_module_limits=(
+            None
+            if baseline_policy.module_limits is None
+            else dict(baseline_policy.module_limits)
         ),
         module_limits=tenant_service.get_tenant_module_limits(tenant),
         billing_status=tenant.billing_status,
@@ -1024,6 +1033,7 @@ def get_tenant_finance_usage(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
+    baseline_policy = tenant_service.get_tenant_baseline_policy_state(tenant)
     effective_module_limits = tenant_service.get_effective_module_limits(tenant)
     effective_module_limit_sources = tenant_service.get_effective_module_limit_sources(
         tenant
@@ -1051,9 +1061,14 @@ def get_tenant_finance_usage(
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
         tenant_plan_code=tenant.plan_code,
+        subscription_contract_managed=baseline_policy.subscription_contract_managed,
+        legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
+        baseline_policy_source=baseline_policy.source,
         billing_in_grace=access_policy.billing_in_grace,
-        tenant_plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
-            tenant.plan_code
+        tenant_plan_module_limits=(
+            None
+            if baseline_policy.module_limits is None
+            else dict(baseline_policy.module_limits)
         ),
         tenant_module_limits=tenant_service.get_tenant_module_limits(tenant),
         billing_grace_module_limits=(
@@ -1084,6 +1099,7 @@ def get_tenant_module_usage(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
+    baseline_policy = tenant_service.get_tenant_baseline_policy_state(tenant)
     access_policy = tenant_service.get_tenant_access_policy(tenant)
     effective_module_limits = tenant_service.get_effective_module_limits(tenant)
     effective_module_limit_sources = tenant_service.get_effective_module_limit_sources(
@@ -1109,6 +1125,9 @@ def get_tenant_module_usage(
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
         tenant_plan_code=tenant.plan_code,
+        subscription_contract_managed=baseline_policy.subscription_contract_managed,
+        legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
+        baseline_policy_source=baseline_policy.source,
         billing_in_grace=access_policy.billing_in_grace,
         total_modules=len(usage_rows),
         data=[TenantModuleUsageItemResponse(**item) for item in usage_rows],
@@ -1430,6 +1449,7 @@ def update_tenant_rate_limits(
         previous_state=previous_state,
         actor_context=_token,
     )
+    baseline_policy = tenant_service.get_tenant_baseline_policy_state(tenant)
 
     return TenantRateLimitResponse(
         success=True,
@@ -1438,6 +1458,9 @@ def update_tenant_rate_limits(
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
         tenant_plan_code=tenant.plan_code,
+        subscription_contract_managed=baseline_policy.subscription_contract_managed,
+        legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
+        baseline_policy_source=baseline_policy.source,
         api_read_requests_per_minute=tenant.api_read_requests_per_minute,
         api_write_requests_per_minute=tenant.api_write_requests_per_minute,
     )
@@ -1471,6 +1494,7 @@ def update_tenant_module_limits(
         previous_state=previous_state,
         actor_context=_token,
     )
+    baseline_policy = tenant_service.get_tenant_baseline_policy_state(tenant)
 
     return TenantModuleLimitsResponse(
         success=True,
@@ -1479,8 +1503,13 @@ def update_tenant_module_limits(
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
         tenant_plan_code=tenant.plan_code,
-        tenant_plan_module_limits=tenant_service.tenant_plan_policy_service.get_module_limits(
-            tenant.plan_code
+        subscription_contract_managed=baseline_policy.subscription_contract_managed,
+        legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
+        baseline_policy_source=baseline_policy.source,
+        tenant_plan_module_limits=(
+            None
+            if baseline_policy.module_limits is None
+            else dict(baseline_policy.module_limits)
         ),
         module_limits=tenant_service.get_tenant_module_limits(tenant),
     )
@@ -1515,6 +1544,7 @@ def update_tenant_plan(
         actor_context=_token,
     )
     activation_state = tenant_service.get_tenant_module_activation_state(tenant)
+    baseline_policy = tenant_service.get_tenant_baseline_policy_state(tenant)
 
     return TenantPlanResponse(
         success=True,
@@ -1523,6 +1553,9 @@ def update_tenant_plan(
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
         tenant_plan_code=tenant.plan_code,
+        subscription_contract_managed=baseline_policy.subscription_contract_managed,
+        legacy_plan_fallback_active=baseline_policy.legacy_plan_fallback_active,
+        baseline_policy_source=baseline_policy.source,
         tenant_plan_enabled_modules=tenant_service.tenant_plan_policy_service.get_enabled_modules(
             tenant.plan_code
         ),

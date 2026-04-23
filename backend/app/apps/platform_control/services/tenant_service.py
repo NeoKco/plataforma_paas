@@ -94,6 +94,18 @@ class TenantCommercialState:
     grace_until: datetime | None = None
 
 
+@dataclass(frozen=True)
+class TenantBaselinePolicyState:
+    source: str | None = None
+    subscription_contract_managed: bool = False
+    legacy_plan_fallback_active: bool = False
+    compatibility_policy_code: str | None = None
+    enabled_modules: tuple[str, ...] | None = None
+    read_requests_per_minute: int | None = None
+    write_requests_per_minute: int | None = None
+    module_limits: dict[str, int] | None = None
+
+
 class TenantService:
     VALID_STATUSES = {"pending", "active", "suspended", "error", "archived"}
     VALID_BILLING_STATUSES = {
@@ -1286,6 +1298,80 @@ class TenantService:
         normalized = self._normalize_module_limits_override(parsed)
         return normalized
 
+    def get_tenant_baseline_policy_state(
+        self,
+        tenant: Tenant,
+    ) -> TenantBaselinePolicyState:
+        activation_state = self.get_tenant_module_activation_state(tenant)
+        subscription = getattr(tenant, "subscription", None)
+        subscription_is_managed = self._is_subscription_contract_managed(subscription)
+
+        if subscription_is_managed and activation_state.subscription_base_plan_code:
+            base_plan_entry = (
+                self.tenant_module_subscription_policy_service.resolve_base_plan_catalog_entry(
+                    activation_state.subscription_base_plan_code,
+                    tenant_plan_policy_service=self.tenant_plan_policy_service,
+                )
+            )
+            enabled_modules = tuple(
+                sorted(
+                    set(activation_state.subscription_included_modules or ())
+                    | set(activation_state.subscription_technical_modules or ())
+                )
+            ) or None
+            return TenantBaselinePolicyState(
+                source="subscription_base_plan",
+                subscription_contract_managed=True,
+                legacy_plan_fallback_active=bool(
+                    activation_state.subscription_legacy_fallback_modules
+                ),
+                compatibility_policy_code=(
+                    None
+                    if base_plan_entry is None
+                    else base_plan_entry.compatibility_policy_code
+                ),
+                enabled_modules=enabled_modules,
+                read_requests_per_minute=(
+                    None
+                    if base_plan_entry is None
+                    else base_plan_entry.read_requests_per_minute
+                ),
+                write_requests_per_minute=(
+                    None
+                    if base_plan_entry is None
+                    else base_plan_entry.write_requests_per_minute
+                ),
+                module_limits=(
+                    None
+                    if base_plan_entry is None or base_plan_entry.module_limits is None
+                    else dict(base_plan_entry.module_limits)
+                ),
+            )
+
+        legacy_policy = self.tenant_plan_policy_service.get_policy(tenant.plan_code)
+        return TenantBaselinePolicyState(
+            source="legacy_plan_code" if tenant.plan_code else None,
+            subscription_contract_managed=False,
+            legacy_plan_fallback_active=bool(tenant.plan_code),
+            compatibility_policy_code=(
+                None if legacy_policy is None else legacy_policy.plan_code
+            ),
+            enabled_modules=(
+                None if legacy_policy is None else legacy_policy.enabled_modules
+            ),
+            read_requests_per_minute=(
+                None if legacy_policy is None else legacy_policy.read_requests_per_minute
+            ),
+            write_requests_per_minute=(
+                None if legacy_policy is None else legacy_policy.write_requests_per_minute
+            ),
+            module_limits=(
+                None
+                if legacy_policy is None or legacy_policy.module_limits is None
+                else dict(legacy_policy.module_limits)
+            ),
+        )
+
     def get_tenant_module_activation_state(
         self,
         tenant: Tenant,
@@ -2087,7 +2173,8 @@ class TenantService:
         now: datetime | None = None,
     ) -> tuple[dict[str, int] | None, dict[str, str] | None]:
         tenant_limits = self.get_tenant_module_limits(tenant)
-        plan_limits = self.tenant_plan_policy_service.get_module_limits(tenant.plan_code)
+        baseline_policy = self.get_tenant_baseline_policy_state(tenant)
+        plan_limits = baseline_policy.module_limits
         access_policy = self.get_tenant_access_policy(tenant, now=now)
         grace_policy = (
             self.tenant_billing_grace_policy_service.get_policy()

@@ -577,8 +577,8 @@ export function SettingsPage() {
             title={language === "es" ? "Plan Base" : "Base plan"}
             subtitle={
               language === "es"
-                ? "Catálogo comercial obligatorio del tenant: base mínima, finanzas incluidas y ciclos permitidos."
-                : "Tenant mandatory commercial catalog: minimum base, included finance and allowed cycles."
+                ? "Catálogo comercial obligatorio del tenant: base mínima, finanzas incluidas, ciclos permitidos y baseline técnico ya desligado del `plan_code` por tenant."
+                : "Tenant mandatory commercial catalog: minimum base, included finance, allowed cycles and technical baseline already detached from per-tenant `plan_code`."
             }
             rows={capabilities.base_plan_catalog}
             columns={[
@@ -601,6 +601,42 @@ export function SettingsPage() {
                       {row.included_modules.map((value) => (
                         <span key={`${row.plan_code}-included-${value}`} className="tenant-chip">
                           {getPlanModuleLabel(value, language)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    "—"
+                  ),
+              },
+              {
+                key: "compatibility_policy_code",
+                header: language === "es" ? "Compatibilidad" : "Compatibility",
+                render: (row) =>
+                  row.compatibility_policy_code ? (
+                    <code>{row.compatibility_policy_code}</code>
+                  ) : (
+                    "—"
+                  ),
+              },
+              {
+                key: "read_requests_per_minute",
+                header: language === "es" ? "Lecturas/min" : "Read/min",
+                render: (row) => row.read_requests_per_minute ?? "—",
+              },
+              {
+                key: "write_requests_per_minute",
+                header: language === "es" ? "Escrituras/min" : "Write/min",
+                render: (row) => row.write_requests_per_minute ?? "—",
+              },
+              {
+                key: "module_limits",
+                header: language === "es" ? "Límites base" : "Base limits",
+                render: (row) =>
+                  row.module_limits && Object.keys(row.module_limits).length ? (
+                    <div className="settings-token-chips">
+                      {Object.entries(row.module_limits).map(([key, value]) => (
+                        <span key={`${row.plan_code}-limit-${key}`} className="tenant-chip">
+                          {displayPlatformCode(key, language)}: {value}
                         </span>
                       ))}
                     </div>
@@ -686,13 +722,13 @@ export function SettingsPage() {
           <DataTableCard
             title={
               language === "es"
-                ? "Política efectiva actual por plan"
-                : "Current effective policy by plan"
+                ? "Catálogo legacy de compatibilidad por plan"
+                : "Legacy compatibility catalog by plan"
             }
             subtitle={
               language === "es"
-                ? "Compatibilidad vigente mientras la activación efectiva todavía se resuelve por `plan_code` y no por suscripciones tenant."
-                : "Current compatibility while effective activation is still resolved through `plan_code` rather than tenant subscriptions."
+                ? "Matriz antigua que todavía sirve como compatibilidad para tenants legacy y como policy source de transición del Plan Base cuando corresponde."
+                : "Legacy matrix that still serves as compatibility for legacy tenants and as a transitional policy source for the Base plan when needed."
             }
             rows={capabilities.plan_catalog}
             columns={[

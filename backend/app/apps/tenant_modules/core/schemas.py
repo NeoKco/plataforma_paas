@@ -60,6 +60,10 @@ class TenantInfoData(BaseModel):
     user_timezone: str | None = None
     effective_timezone: str | None = None
     plan_code: str | None = None
+    subscription_contract_managed: bool = False
+    legacy_plan_fallback_active: bool = False
+    baseline_policy_source: str | None = None
+    baseline_compatibility_policy_code: str | None = None
     plan_enabled_modules: list[str] | None = None
     subscription_base_plan_code: str | None = None
     subscription_status: str | None = None

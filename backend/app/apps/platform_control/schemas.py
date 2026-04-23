@@ -163,6 +163,10 @@ class PlatformBasePlanCatalogEntryResponse(BaseModel):
     display_name: str
     description: str | None = None
     included_modules: list[str]
+    compatibility_policy_code: str | None = None
+    read_requests_per_minute: int | None = None
+    write_requests_per_minute: int | None = None
+    module_limits: dict[str, int] | None = None
     default_billing_cycle: str
     allowed_billing_cycles: list[str]
     is_default: bool = False
@@ -234,6 +238,10 @@ class TenantResponse(BaseModel):
     tenant_schema_synced_at: datetime | None = None
     tenant_db_credentials_rotated_at: datetime | None = None
     plan_code: str | None = None
+    subscription_contract_managed: bool = False
+    legacy_plan_fallback_active: bool = False
+    baseline_policy_source: str | None = None
+    baseline_compatibility_policy_code: str | None = None
     billing_provider: str | None = None
     billing_provider_customer_id: str | None = None
     billing_provider_subscription_id: str | None = None
@@ -385,6 +393,9 @@ class TenantRateLimitResponse(BaseModel):
     tenant_slug: str
     tenant_status: str
     tenant_plan_code: str | None = None
+    subscription_contract_managed: bool = False
+    legacy_plan_fallback_active: bool = False
+    baseline_policy_source: str | None = None
     api_read_requests_per_minute: int | None = None
     api_write_requests_per_minute: int | None = None
 
@@ -400,6 +411,9 @@ class TenantModuleLimitsResponse(BaseModel):
     tenant_slug: str
     tenant_status: str
     tenant_plan_code: str | None = None
+    subscription_contract_managed: bool = False
+    legacy_plan_fallback_active: bool = False
+    baseline_policy_source: str | None = None
     tenant_plan_module_limits: dict[str, int] | None = None
     module_limits: dict[str, int] | None = None
 
@@ -420,6 +434,9 @@ class TenantFinanceUsageResponse(BaseModel):
     tenant_slug: str
     tenant_status: str
     tenant_plan_code: str | None = None
+    subscription_contract_managed: bool = False
+    legacy_plan_fallback_active: bool = False
+    baseline_policy_source: str | None = None
     billing_in_grace: bool = False
     tenant_plan_module_limits: dict[str, int] | None = None
     tenant_module_limits: dict[str, int] | None = None
@@ -447,6 +464,9 @@ class TenantModuleUsageSummaryResponse(BaseModel):
     tenant_slug: str
     tenant_status: str
     tenant_plan_code: str | None = None
+    subscription_contract_managed: bool = False
+    legacy_plan_fallback_active: bool = False
+    baseline_policy_source: str | None = None
     billing_in_grace: bool = False
     total_modules: int
     data: list[TenantModuleUsageItemResponse]
@@ -463,6 +483,9 @@ class TenantPlanResponse(BaseModel):
     tenant_slug: str
     tenant_status: str
     tenant_plan_code: str | None = None
+    subscription_contract_managed: bool = False
+    legacy_plan_fallback_active: bool = False
+    baseline_policy_source: str | None = None
     tenant_plan_enabled_modules: list[str] | None = None
     subscription_base_plan_code: str | None = None
     subscription_effective_enabled_modules: list[str] | None = None

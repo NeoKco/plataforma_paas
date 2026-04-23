@@ -123,6 +123,10 @@ export type PlatformBasePlanCatalogEntry = {
   display_name: string;
   description: string | null;
   included_modules: string[];
+  compatibility_policy_code: string | null;
+  read_requests_per_minute: number | null;
+  write_requests_per_minute: number | null;
+  module_limits: Record<string, number> | null;
   default_billing_cycle: string;
   allowed_billing_cycles: string[];
   is_default: boolean;
@@ -327,6 +331,10 @@ export type PlatformTenant = {
   tenant_schema_synced_at: string | null;
   tenant_db_credentials_rotated_at: string | null;
   plan_code: string | null;
+  subscription_contract_managed: boolean;
+  legacy_plan_fallback_active: boolean;
+  baseline_policy_source: string | null;
+  baseline_compatibility_policy_code: string | null;
   billing_provider: string | null;
   billing_provider_customer_id: string | null;
   billing_provider_subscription_id: string | null;
@@ -477,6 +485,9 @@ export type PlatformTenantModuleUsageSummary = {
   tenant_slug: string;
   tenant_status: string;
   tenant_plan_code: string | null;
+  subscription_contract_managed: boolean;
+  legacy_plan_fallback_active: boolean;
+  baseline_policy_source: string | null;
   billing_in_grace: boolean;
   total_modules: number;
   data: PlatformTenantModuleUsageItem[];
@@ -572,6 +583,9 @@ export type PlatformTenantRateLimitResponse = {
   tenant_slug: string;
   tenant_status: string;
   tenant_plan_code: string | null;
+  subscription_contract_managed: boolean;
+  legacy_plan_fallback_active: boolean;
+  baseline_policy_source: string | null;
   api_read_requests_per_minute: number | null;
   api_write_requests_per_minute: number | null;
 };
@@ -583,6 +597,9 @@ export type PlatformTenantPlanResponse = {
   tenant_slug: string;
   tenant_status: string;
   tenant_plan_code: string | null;
+  subscription_contract_managed: boolean;
+  legacy_plan_fallback_active: boolean;
+  baseline_policy_source: string | null;
   tenant_plan_enabled_modules: string[] | null;
   subscription_base_plan_code: string | null;
   subscription_effective_enabled_modules: string[] | null;
@@ -640,6 +657,9 @@ export type PlatformTenantModuleLimitsResponse = {
   tenant_slug: string;
   tenant_status: string;
   tenant_plan_code: string | null;
+  subscription_contract_managed: boolean;
+  legacy_plan_fallback_active: boolean;
+  baseline_policy_source: string | null;
   tenant_plan_module_limits: Record<string, number> | null;
   module_limits: Record<string, number> | null;
 };
@@ -1089,6 +1109,10 @@ export type TenantInfoData = {
   user_timezone: string | null;
   effective_timezone: string | null;
   plan_code: string | null;
+  subscription_contract_managed: boolean;
+  legacy_plan_fallback_active: boolean;
+  baseline_policy_source: string | null;
+  baseline_compatibility_policy_code: string | null;
   plan_enabled_modules: string[] | null;
   subscription_base_plan_code: string | null;
   subscription_status: string | null;

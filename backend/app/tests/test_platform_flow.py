@@ -2973,6 +2973,10 @@ class PlatformServicesTestCase(unittest.TestCase):
             ["finance"],
         )
         self.assertEqual(
+            service.list_base_plan_catalog()[0]["compatibility_policy_code"],
+            None,
+        )
+        self.assertEqual(
             service.list_module_subscription_catalog()[0]["module_key"],
             "finance",
         )
@@ -2988,6 +2992,26 @@ class PlatformServicesTestCase(unittest.TestCase):
             service.infer_billing_cycle_from_legacy_plan_code("anual"),
             "annual",
         )
+
+    def test_tenant_module_subscription_policy_service_resolves_base_plan_compatibility(
+        self,
+    ) -> None:
+        service = TenantModuleSubscriptionPolicyService()
+        plan_policy_service = TenantPlanPolicyService(
+            plan_rate_limits="mensual=120:40",
+            plan_module_limits="mensual=finance.entries:250",
+        )
+
+        resolved = service.resolve_base_plan_catalog_entry(
+            "base_finance",
+            tenant_plan_policy_service=plan_policy_service,
+        )
+
+        self.assertIsNotNone(resolved)
+        self.assertEqual(resolved.compatibility_policy_code, "mensual")
+        self.assertEqual(resolved.read_requests_per_minute, 120)
+        self.assertEqual(resolved.write_requests_per_minute, 40)
+        self.assertEqual(resolved.module_limits, {"finance.entries": 250})
 
     def test_platform_capability_service_returns_supported_catalog(self) -> None:
         service = PlatformCapabilityService(

@@ -220,6 +220,26 @@ def tenant_info(
             user_timezone=user_timezone,
             effective_timezone=effective_timezone,
             plan_code=getattr(request.state, "tenant_plan_code", None),
+            subscription_contract_managed=getattr(
+                request.state,
+                "tenant_subscription_contract_managed",
+                False,
+            ),
+            legacy_plan_fallback_active=getattr(
+                request.state,
+                "tenant_legacy_plan_fallback_active",
+                False,
+            ),
+            baseline_policy_source=getattr(
+                request.state,
+                "tenant_baseline_policy_source",
+                None,
+            ),
+            baseline_compatibility_policy_code=getattr(
+                request.state,
+                "tenant_baseline_compatibility_policy_code",
+                None,
+            ),
             plan_enabled_modules=(
                 list(getattr(request.state, "tenant_plan_enabled_modules", ()))
                 if getattr(request.state, "tenant_plan_enabled_modules", None)
