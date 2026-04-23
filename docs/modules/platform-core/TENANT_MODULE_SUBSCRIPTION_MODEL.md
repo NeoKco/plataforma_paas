@@ -6,7 +6,7 @@ Estado actual:
 
 - decisión de producto: `Aprobada`
 - implementación repo/control model: `Primer corte técnico completado`
-- implementación runtime: `Pendiente de promoción por ambiente`
+- implementación runtime: `Primer corte técnico promovido en staging y production`
 - política vigente de activación efectiva mientras no se resuelva la suscripción tenant: `plan-driven`
 
 ## Objetivo
@@ -219,6 +219,23 @@ El primer corte técnico ya existe en `platform_control` y deja modelado:
 - `tenant_module_price_catalog`
 - `tenant_subscriptions`
 - `tenant_subscription_items`
+- `module_subscription_catalog` expuesto desde `/platform/capabilities`
+
+## Estado del primer corte técnico
+
+El primer corte técnico ya quedó:
+
+- validado en repo con `migration_flow` y `platform_flow`
+- promovido en `staging` y `production`
+- ejecutado con backend deploy completo `531 tests OK` por ambiente
+
+Resultado operativo:
+
+- sin migraciones de control pendientes en ambos carriles
+- `tenant_schema_sync` verde por ambiente
+- auditoría activa multi-tenant en verde:
+  - `staging`: `processed=4, warnings=0, failed=0`
+  - `production`: `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
 - expansión de `GET /platform/capabilities` con:
   - `subscription_activation_model`
   - `subscription_billing_cycles`

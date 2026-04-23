@@ -39,6 +39,11 @@ def _infer_subscription_status(tenant_status: str | None, billing_status: str | 
     return "active"
 
 
+def _next_id(connection, table_name: str) -> int:
+    row = connection.execute(text(f"SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM {table_name}")).mappings().first()
+    return int(row["next_id"])
+
+
 def upgrade(connection) -> None:
     inspector = inspect(connection)
     existing_tables = set(inspector.get_table_names())
@@ -113,12 +118,12 @@ def upgrade(connection) -> None:
                     base_plan_code VARCHAR(100) NOT NULL,
                     status VARCHAR(50) NOT NULL DEFAULT 'active',
                     billing_cycle VARCHAR(30) NOT NULL DEFAULT 'monthly',
-                    current_period_starts_at TIMESTAMP WITH TIME ZONE,
-                    current_period_ends_at TIMESTAMP WITH TIME ZONE,
-                    next_renewal_at TIMESTAMP WITH TIME ZONE,
-                    grace_until TIMESTAMP WITH TIME ZONE,
+                    current_period_starts_at TIMESTAMP,
+                    current_period_ends_at TIMESTAMP,
+                    next_renewal_at TIMESTAMP,
+                    grace_until TIMESTAMP,
                     is_co_termed BOOLEAN NOT NULL DEFAULT TRUE,
-                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                 )
                 """
             )
@@ -143,11 +148,11 @@ def upgrade(connection) -> None:
                     item_kind VARCHAR(30) NOT NULL,
                     billing_cycle VARCHAR(30),
                     status VARCHAR(50) NOT NULL DEFAULT 'active',
-                    starts_at TIMESTAMP WITH TIME ZONE,
-                    renews_at TIMESTAMP WITH TIME ZONE,
-                    ends_at TIMESTAMP WITH TIME ZONE,
+                    starts_at TIMESTAMP,
+                    renews_at TIMESTAMP,
+                    ends_at TIMESTAMP,
                     is_prorated BOOLEAN NOT NULL DEFAULT FALSE,
-                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     CONSTRAINT uq_tenant_subscription_module UNIQUE (tenant_subscription_id, module_key)
                 )
                 """
@@ -171,6 +176,7 @@ def upgrade(connection) -> None:
             text(
                 """
                 INSERT INTO tenant_base_plan_catalog (
+                    id,
                     plan_code,
                     display_name,
                     description,
@@ -180,6 +186,7 @@ def upgrade(connection) -> None:
                     is_default,
                     is_active
                 ) VALUES (
+                    :id,
                     :plan_code,
                     :display_name,
                     :description,
@@ -192,6 +199,7 @@ def upgrade(connection) -> None:
                 """
             ),
             {
+                "id": _next_id(connection, "tenant_base_plan_catalog"),
                 "plan_code": "base_finance",
                 "display_name": "Plan Base",
                 "description": "Incluye tenant activo, finanzas y operación base.",
@@ -240,12 +248,14 @@ def upgrade(connection) -> None:
             text(
                 """
                 INSERT INTO tenant_module_catalog (
+                    id,
                     module_key,
                     display_name,
                     description,
                     activation_kind,
                     is_active
                 ) VALUES (
+                    :id,
                     :module_key,
                     :display_name,
                     :description,
@@ -255,6 +265,7 @@ def upgrade(connection) -> None:
                 """
             ),
             {
+                "id": _next_id(connection, "tenant_module_catalog"),
                 "module_key": module_key,
                 "display_name": display_name,
                 "description": description,
@@ -293,12 +304,14 @@ def upgrade(connection) -> None:
                 text(
                     """
                     INSERT INTO tenant_module_price_catalog (
+                        id,
                         module_catalog_id,
                         billing_cycle,
                         price_reference_cents,
                         commitment_discount_percent,
                         is_active
                     ) VALUES (
+                        :id,
                         :module_catalog_id,
                         :billing_cycle,
                         NULL,
@@ -308,6 +321,7 @@ def upgrade(connection) -> None:
                     """
                 ),
                 {
+                    "id": _next_id(connection, "tenant_module_price_catalog"),
                     "module_catalog_id": maintenance_row["id"],
                     "billing_cycle": billing_cycle,
                     "commitment_discount_percent": discount,
@@ -344,10 +358,12 @@ def upgrade(connection) -> None:
 
         billing_cycle = _infer_billing_cycle(row["plan_code"])
         status = _infer_subscription_status(row["status"], row["billing_status"])
-        inserted = connection.execute(
+        subscription_id = _next_id(connection, "tenant_subscriptions")
+        connection.execute(
             text(
                 """
                 INSERT INTO tenant_subscriptions (
+                    id,
                     tenant_id,
                     base_plan_code,
                     status,
@@ -357,6 +373,7 @@ def upgrade(connection) -> None:
                     grace_until,
                     is_co_termed
                 ) VALUES (
+                    :id,
                     :tenant_id,
                     :base_plan_code,
                     :status,
@@ -366,10 +383,10 @@ def upgrade(connection) -> None:
                     :grace_until,
                     TRUE
                 )
-                RETURNING id
                 """
             ),
             {
+                "id": subscription_id,
                 "tenant_id": row["id"],
                 "base_plan_code": "base_finance",
                 "status": status,
@@ -378,12 +395,13 @@ def upgrade(connection) -> None:
                 "next_renewal_at": row["billing_current_period_ends_at"],
                 "grace_until": row["billing_grace_until"],
             },
-        ).mappings().first()
+        )
 
         connection.execute(
             text(
                 """
                 INSERT INTO tenant_subscription_items (
+                    id,
                     tenant_subscription_id,
                     module_key,
                     item_kind,
@@ -393,6 +411,7 @@ def upgrade(connection) -> None:
                     ends_at,
                     is_prorated
                 ) VALUES (
+                    :id,
                     :tenant_subscription_id,
                     :module_key,
                     :item_kind,
@@ -405,7 +424,8 @@ def upgrade(connection) -> None:
                 """
             ),
             {
-                "tenant_subscription_id": inserted["id"],
+                "id": _next_id(connection, "tenant_subscription_items"),
+                "tenant_subscription_id": subscription_id,
                 "module_key": "finance",
                 "item_kind": "included_module",
                 "billing_cycle": billing_cycle,

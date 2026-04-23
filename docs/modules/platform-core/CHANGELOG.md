@@ -22,7 +22,13 @@
     - `base_plan_catalog`
     - `module_subscription_catalog`
   - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_migration_flow -v` -> `16 tests OK`
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `202 tests OK`
+  - promoción runtime:
+    - `staging` backend redeployado con `531 tests OK`
+    - `production` backend redeployado con `531 tests OK`
+    - `staging`: `tenant_schema_sync processed=4, synced=4, failed=0`
+    - `production`: `tenant_schema_sync processed=4, synced=4, failed=0`
 
 - se cierra la definición formal del modelo comercial de la `Etapa 15`:
   - el producto ya no seguirá con `plan-driven puro` como modelo final

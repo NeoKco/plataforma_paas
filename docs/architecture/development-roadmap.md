@@ -600,7 +600,7 @@ Resultado actual:
   - `subscription_billing_cycles`
   - `base_plan_catalog`
   - `module_subscription_catalog`
-- la migración de control ya quedó preparada en repo para backfillear una suscripción base por tenant con `finance` incluido
+- la migración de control ya quedó aplicada en `staging` y `production` para backfillear una suscripción base por tenant con `finance` incluido
 
 Falta para cerrarlo:
 
@@ -615,7 +615,7 @@ Falta para cerrarlo:
   - suscripción tenant
   - habilitación técnica efectiva
 - separar mejor catálogo de módulos, límites por módulo y degradación por billing grace dentro de la UI operativa
-- promover ese modelo nuevo a `staging` y `production`
+- el primer corte técnico del modelo nuevo ya quedó promovido a `staging` y `production`
 - resolver la activación técnica efectiva desde suscripciones y no solo desde plan legacy
 - adaptar `Configuración` y `Tenants > Plan y módulos` al modelo `Plan Base + add-ons`
 

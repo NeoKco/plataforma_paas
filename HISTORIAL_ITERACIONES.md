@@ -1,5 +1,36 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - la `Etapa 15` promueve su primer corte técnico a `staging` y `production`
+
+- objetivo:
+  - cerrar la promoción runtime del primer corte técnico del modelo `Plan Base + módulos arrendables por suscripción`
+- cambios y acciones ejecutadas:
+  - [v0027_tenant_module_subscription_model.py](/home/felipe/platform_paas/backend/migrations/control/v0027_tenant_module_subscription_model.py):
+    - se corrige para compatibilidad `SQLite` del runner de migraciones:
+      - timestamps raw pasan a `TIMESTAMP`
+      - `created_at` usa `DEFAULT CURRENT_TIMESTAMP`
+    - se cierra además el backfill explícito por `id` para evitar dependencia de autoincrement implícito en DDL raw
+  - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py):
+    - incorpora `0027_tenant_module_subscription_model` al inventario esperado de control
+    - valida presencia de:
+      - `tenant_base_plan_catalog`
+      - `tenant_module_catalog`
+      - `tenant_module_price_catalog`
+      - `tenant_subscriptions`
+      - `tenant_subscription_items`
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_migration_flow -v` -> `16 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `202 tests OK`
+  - `staging` backend redeployado -> `531 tests OK`
+  - `production` backend redeployado -> `531 tests OK`
+  - `staging`: `tenant_schema_sync processed=4, synced=4, failed=0`
+  - `production`: `tenant_schema_sync processed=4, synced=4, failed=0`
+  - `staging`: auditoría activa `processed=4, warnings=0, failed=0`
+  - `production`: auditoría activa `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+- resultado:
+  - el primer corte técnico de la Etapa 15 ya no queda solo en repo; queda promovido y validado en ambos carriles
+  - el siguiente paso ya no es migrar/promover, sino consumir `tenant_subscriptions` y `tenant_subscription_items` en la activación efectiva y en la UI tenant-side
+
 ## 2026-04-22 - la `Etapa 15` deja su primer corte técnico persistente en `platform_control`
 
 - objetivo:
@@ -28,7 +59,7 @@
   - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `202 tests OK`
 - resultado:
   - la Etapa 15 deja de estar solo aprobada en docs y ya tiene base persistente real en repo
-  - el siguiente paso ya no es modelar estas tablas, sino promoverlas a runtime y adaptar la gestión tenant-side
+  - este estado quedó superado más tarde el mismo día cuando el corte se promovió y validó en `staging` y `production`
 
 ## 2026-04-22 - la `Etapa 15` fija su modelo comercial final como `Plan Base + módulos arrendables`
 

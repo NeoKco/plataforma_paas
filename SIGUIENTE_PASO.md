@@ -97,7 +97,7 @@
         - `Tenants > Plan y módulos` deja explícita la ruta formal de activación tenant-side
         - el mismo bloque ya muestra límites por módulo del plan seleccionado
       - siguiente paso correcto dentro de la Etapa 15:
-        - promover a runtime el primer corte técnico ya implementado en `platform_control`
+        - el primer corte técnico ya quedó promovido a runtime en `staging` y `production`
         - adaptar `Configuración` y `Tenants > Plan y módulos` a `Plan Base + add-ons`
         - empezar a resolver la activación técnica efectiva desde:
           - `tenant_subscriptions`
