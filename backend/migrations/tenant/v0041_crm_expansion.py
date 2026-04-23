@@ -8,6 +8,38 @@ def _column_names(inspector, table_name: str) -> set[str]:
     return {column["name"] for column in inspector.get_columns(table_name)}
 
 
+def _drop_orphan_postgres_composite_type(connection, table_name: str) -> None:
+    if connection.dialect.name != "postgresql":
+        return
+
+    connection.execute(
+        text(
+            f"""
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1
+                    FROM pg_type t
+                    JOIN pg_namespace n ON n.oid = t.typnamespace
+                    WHERE t.typname = '{table_name}'
+                      AND n.nspname = current_schema()
+                ) AND NOT EXISTS (
+                    SELECT 1
+                    FROM pg_class c
+                    JOIN pg_namespace n ON n.oid = c.relnamespace
+                    WHERE c.relname = '{table_name}'
+                      AND c.relkind IN ('r', 'p')
+                      AND n.nspname = current_schema()
+                ) THEN
+                    EXECUTE 'DROP TYPE IF EXISTS "{table_name}"';
+                END IF;
+            END
+            $$;
+            """
+        )
+    )
+
+
 def upgrade(connection) -> None:
     inspector = inspect(connection)
     existing_tables = set(inspector.get_table_names())
@@ -19,6 +51,7 @@ def upgrade(connection) -> None:
             pass
 
     if "crm_product_characteristics" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_product_characteristics")
         connection.execute(
             text(
                 """
@@ -62,6 +95,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_opportunities_close_reason ON crm_opportunities (close_reason)"))
 
     if "crm_opportunity_contacts" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_opportunity_contacts")
         connection.execute(
             text(
                 """
@@ -96,6 +130,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_opportunity_contacts_opportunity_id ON crm_opportunity_contacts (opportunity_id)"))
 
     if "crm_opportunity_notes" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_opportunity_notes")
         connection.execute(
             text(
                 """
@@ -122,6 +157,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_opportunity_notes_opportunity_id ON crm_opportunity_notes (opportunity_id)"))
 
     if "crm_opportunity_activities" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_opportunity_activities")
         connection.execute(
             text(
                 """
@@ -157,6 +193,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_opportunity_activities_status ON crm_opportunity_activities (status)"))
 
     if "crm_opportunity_attachments" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_opportunity_attachments")
         connection.execute(
             text(
                 """
@@ -191,6 +228,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_opportunity_attachments_opportunity_id ON crm_opportunity_attachments (opportunity_id)"))
 
     if "crm_opportunity_stage_events" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_opportunity_stage_events")
         connection.execute(
             text(
                 """
@@ -226,6 +264,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_opportunity_stage_events_event_type ON crm_opportunity_stage_events (event_type)"))
 
     if "crm_quote_templates" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_quote_templates")
         connection.execute(
             text(
                 """
@@ -259,6 +298,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_quote_templates_is_active ON crm_quote_templates (is_active)"))
 
     if "crm_quote_template_sections" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_quote_template_sections")
         connection.execute(
             text(
                 """
@@ -287,6 +327,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_quote_template_sections_template_id ON crm_quote_template_sections (template_id)"))
 
     if "crm_quote_template_items" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_quote_template_items")
         connection.execute(
             text(
                 """

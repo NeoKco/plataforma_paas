@@ -4,12 +4,45 @@ MIGRATION_ID = "0040_crm_base"
 DESCRIPTION = "Create CRM products, opportunities, quotes, and quote lines"
 
 
+def _drop_orphan_postgres_composite_type(connection, table_name: str) -> None:
+    if connection.dialect.name != "postgresql":
+        return
+
+    connection.execute(
+        text(
+            f"""
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1
+                    FROM pg_type t
+                    JOIN pg_namespace n ON n.oid = t.typnamespace
+                    WHERE t.typname = '{table_name}'
+                      AND n.nspname = current_schema()
+                ) AND NOT EXISTS (
+                    SELECT 1
+                    FROM pg_class c
+                    JOIN pg_namespace n ON n.oid = c.relnamespace
+                    WHERE c.relname = '{table_name}'
+                      AND c.relkind IN ('r', 'p')
+                      AND n.nspname = current_schema()
+                ) THEN
+                    EXECUTE 'DROP TYPE IF EXISTS "{table_name}"';
+                END IF;
+            END
+            $$;
+            """
+        )
+    )
+
+
 def upgrade(connection) -> None:
     inspector = inspect(connection)
     existing_tables = set(inspector.get_table_names())
     is_postgres = connection.dialect.name == "postgresql"
 
     if "crm_products" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_products")
         connection.execute(
             text(
                 """
@@ -50,6 +83,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_products_is_active ON crm_products (is_active)"))
 
     if "crm_opportunities" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_opportunities")
         connection.execute(
             text(
                 """
@@ -98,6 +132,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_opportunities_is_active ON crm_opportunities (is_active)"))
 
     if "crm_quotes" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_quotes")
         connection.execute(
             text(
                 """
@@ -151,6 +186,7 @@ def upgrade(connection) -> None:
         connection.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_quotes_is_active ON crm_quotes (is_active)"))
 
     if "crm_quote_lines" not in existing_tables:
+        _drop_orphan_postgres_composite_type(connection, "crm_quote_lines")
         connection.execute(
             text(
                 """

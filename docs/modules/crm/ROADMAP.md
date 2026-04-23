@@ -23,11 +23,14 @@ El módulo ya cubre:
 - migraciones tenant:
   - `0040_crm_base`
   - `0041_crm_expansion`
+- migraciones CRM endurecidas para estados parciales de PostgreSQL
 - permisos tenant propios
 - visibilidad por módulo en tenant portal
 - catálogo contractual del módulo `crm`
 - integración con clientes de `business-core`
 - regresión de servicios y migración
+- publicación y validación runtime en `staging` y `production`
+- convergencia tenant confirmada en los 4 tenants activos de ambos carriles
 
 ## Backlog posterior al cierre
 

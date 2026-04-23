@@ -1,5 +1,47 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `crm` queda cerrado para el alcance comercial actual
+
+Contexto:
+
+- el primer corte ya había abierto `crm` como módulo nuevo real de expansión
+- faltaba dejarlo completo para el alcance comercial actual y no solo como scaffold inicial
+
+Cambios:
+
+- nueva migración tenant en [v0041_crm_expansion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0041_crm_expansion.py)
+- endurecimiento de migraciones CRM en:
+  - [v0040_crm_base.py](/home/felipe/platform_paas/backend/migrations/tenant/v0040_crm_base.py)
+  - [v0041_crm_expansion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0041_crm_expansion.py)
+  - ahora limpian tipos compuestos huérfanos de PostgreSQL antes de recrear tablas en estados parciales
+- backend CRM ampliado con:
+  - características de producto
+  - histórico comercial
+  - contactos, notas, actividades y adjuntos por oportunidad
+  - stage events
+  - plantillas comerciales
+  - cotizaciones por secciones y líneas libres
+- frontend CRM ampliado con:
+  - `Histórico`
+  - `Plantillas`
+  - cotizaciones estructuradas
+  - overview comercial completo
+- documentación canónica del módulo actualizada en `docs/modules/crm/*`
+- regresión ampliada:
+  - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
+  - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
+- validación final de runtime:
+  - `staging` backend redeployado con `581 tests OK`, convergencia `processed=4, synced=4, failed=0`
+  - `production` backend redeployado con `581 tests OK`, convergencia `processed=4, synced=4, failed=0`
+  - frontend publicado en ambos carriles con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`
+
+Resultado:
+
+- `crm` ya deja de ser un primer slice incompleto
+- el bloque `CRM + Cotizaciones + Productos + Plantillas` ya queda operativo y coherente con el patrón de módulos tenant del PaaS
+- el módulo ya queda efectivamente publicado y convergido en `staging` y `production`
+- lo siguiente ya no es “cerrar CRM”, sino decidir su expansión posterior o abrir el siguiente módulo faltante
+
 ## 2026-04-23 - Se abre `crm` como primer frente de expansión post-cierre
 
 Contexto:

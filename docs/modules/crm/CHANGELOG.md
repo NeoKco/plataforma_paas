@@ -42,3 +42,12 @@
 - regresión ampliada en:
   - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
   - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
+- endurecimiento adicional de migraciones:
+  - [v0040_crm_base.py](/home/felipe/platform_paas/backend/migrations/tenant/v0040_crm_base.py)
+  - [v0041_crm_expansion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0041_crm_expansion.py)
+  - ahora limpian tipos compuestos huérfanos de PostgreSQL antes de recrear tablas CRM en estados parciales
+- el cierre ya queda promovido a runtime:
+  - `staging` backend redeployado con `581 tests OK`, convergencia `processed=4, synced=4, failed=0`
+  - `production` backend redeployado con `581 tests OK`, convergencia `processed=4, synced=4, failed=0`
+  - `staging` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`
+  - `production` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`

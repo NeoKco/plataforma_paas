@@ -3547,6 +3547,7 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(
             service.get_module_dependencies(),
             {
+                "crm": ("core",),
                 "maintenance": ("core",),
             },
         )
@@ -3554,10 +3555,15 @@ class PlatformServicesTestCase(unittest.TestCase):
             service.list_module_dependency_catalog(),
             [
                 {
+                    "module_key": "crm",
+                    "requires_modules": ["core"],
+                    "reason": "CRM depende de business-core para reutilizar clientes y base compartida.",
+                },
+                {
                     "module_key": "maintenance",
                     "requires_modules": ["core"],
                     "reason": "Maintenance depende de business-core y no debe duplicarlo.",
-                }
+                },
             ],
         )
 
@@ -3586,11 +3592,15 @@ class PlatformServicesTestCase(unittest.TestCase):
         )
         self.assertEqual(
             service.list_module_subscription_catalog()[-1]["module_key"],
-            "maintenance",
+            "crm",
         )
         self.assertEqual(
             service.list_module_subscription_catalog()[-1]["billing_cycles"],
             ["monthly", "quarterly", "semiannual", "annual"],
+        )
+        self.assertEqual(
+            service.list_module_subscription_catalog()[-1]["activation_kind"],
+            "addon",
         )
         self.assertEqual(
             service.infer_billing_cycle_from_legacy_plan_code("anual"),
@@ -3630,11 +3640,15 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("finance", catalog["maintenance_scopes"])
         self.assertEqual(
             catalog["module_dependency_catalog"][0]["module_key"],
-            "maintenance",
+            "crm",
         )
         self.assertEqual(
             catalog["module_dependency_catalog"][0]["requires_modules"],
             ["core"],
+        )
+        self.assertEqual(
+            catalog["module_dependency_catalog"][1]["module_key"],
+            "maintenance",
         )
         self.assertEqual(
             catalog["subscription_activation_model"],
@@ -3651,12 +3665,17 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("compatibility_policy_code", catalog["base_plan_catalog"][0])
         self.assertEqual(
             catalog["module_subscription_catalog"][-1]["module_key"],
+            "crm",
+        )
+        self.assertEqual(
+            catalog["module_subscription_catalog"][-2]["module_key"],
             "maintenance",
         )
         self.assertIn("maintenance", catalog["maintenance_scopes"])
         self.assertIn("full_block", catalog["maintenance_access_modes"])
         self.assertIn("all", catalog["plan_modules"])
         self.assertIn("maintenance", catalog["plan_modules"])
+        self.assertIn("crm", catalog["plan_modules"])
         self.assertIn("legacy_plan_fallback_available", catalog)
         self.assertIn("legacy_plan_catalog", catalog)
         self.assertIn(
@@ -4980,11 +4999,12 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.billing_providers, ["stripe"])
         self.assertEqual(response.current_provisioning_dispatch_backend, "database")
         self.assertIn("broker", response.provisioning_dispatch_backends)
-        self.assertEqual(response.module_dependency_catalog[0].module_key, "maintenance")
+        self.assertEqual(response.module_dependency_catalog[0].module_key, "crm")
         self.assertEqual(
             response.module_dependency_catalog[0].requires_modules,
             ["core"],
         )
+        self.assertEqual(response.module_dependency_catalog[1].module_key, "maintenance")
         self.assertEqual(
             response.subscription_activation_model,
             "base_plan_plus_module_subscriptions",
@@ -4996,6 +5016,10 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.base_plan_catalog[0].plan_code, "base_finance")
         self.assertEqual(
             response.module_subscription_catalog[-1].module_key,
+            "crm",
+        )
+        self.assertEqual(
+            response.module_subscription_catalog[-2].module_key,
             "maintenance",
         )
         self.assertEqual(response.ui_label_catalog["modules"]["finance"]["es"], "Finanzas")

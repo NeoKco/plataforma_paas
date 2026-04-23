@@ -3,13 +3,18 @@
 ## Prioridad vigente
 
 - primer frente de expansión ya abierto:
-  - `crm` ya existe como módulo tenant real nuevo
-  - no conviene abrir otro módulo grande antes de profundizar este bloque comercial
-  - el siguiente paso correcto ahora es una segunda ola de `crm`, por ejemplo:
-    - notas y actividades por oportunidad
-    - adjuntos comerciales
-    - estados comerciales más ricos
-    - plantillas/render de cotización
+  - `crm` ya queda cerrado para el alcance comercial actual también en runtime
+  - no conviene reabrirlo por inercia salvo para expansión explícita como:
+    - render/PDF
+    - scraping comercial
+    - IA comercial
+  - el siguiente frente correcto ahora es abrir el próximo módulo faltante desde `ieris_app`
+  - recomendación actual:
+    - `TaskOps` / tareas internas con kanban, comentarios, adjuntos e histórico
+  - criterio de salida ya cumplido:
+    - backend redeployado en `staging` y `production`
+    - tenant schemas convergidos a `0041_crm_expansion` en ambos carriles
+    - frontend publicado en ambos carriles con readiness verde
 - el roadmap base actual ya queda formalmente cerrado:
   - las `Etapas 9`, `10`, `11`, `12`, `13`, `14`, `15`, `16` y `17` ya quedaron cerradas para el alcance actual
   - la base PaaS ya no necesita más cierres estructurales para operar

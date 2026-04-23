@@ -4,18 +4,30 @@
 
 - fecha: 2026-04-23
 - foco operativo nuevo ya cerrado en repo fuera del roadmap base:
-  - `crm` ya queda abierto como primer módulo nuevo de expansión
-  - primer slice ya cubre:
-    - `Productos`
-    - `Oportunidades`
-    - `Cotizaciones`
+  - `crm` ya queda cerrado para su alcance comercial actual como primer módulo nuevo de expansión
+  - backend tenant ya expone:
+    - `/tenant/crm/overview`
+    - `/tenant/crm/products`
+    - `/tenant/crm/opportunities`
+    - `/tenant/crm/quotes`
+    - `/tenant/crm/templates`
+  - frontend tenant ya publica:
     - `Resumen`
-  - backend tenant nuevo ya expone `/tenant/crm/*`
-  - frontend tenant nuevo ya publica `/tenant-portal/crm`
+    - `Oportunidades`
+    - `Histórico`
+    - `Cotizaciones`
+    - `Plantillas`
+    - `Productos`
   - el módulo ya reutiliza clientes de `business-core` y entra al catálogo contractual como add-on `crm`
   - validación repo:
-    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_crm_services backend.app.tests.test_migration_flow -v` -> `20 tests OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow backend.app.tests.test_crm_services backend.app.tests.test_migration_flow -v` -> `262 tests OK`
     - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend redeployado con `581 tests OK`, convergencia `processed=4, synced=4, failed=0`
+    - `production` backend redeployado con `581 tests OK`, convergencia `processed=4, synced=4, failed=0`
+    - `staging` publicado con `CRMOverviewPage-BRCUMIKP.js`, `CRMHistoryPage-ClBRQ52x.js`, `CRMProductsPage-DXgBLDtD.js`, `CRMTemplatesPage-B6WPyDzm.js`, `CRMQuotesPage-0pASYhpK.js`, `CRMOpportunitiesPage-CU8HfyXv.js` e `index-CycUPBOZ.js`
+    - `production` publicado con `CRMOverviewPage-BNzDa4DE.js`, `CRMHistoryPage-CBu1Jnq7.js`, `CRMProductsPage-DTDZ4C8u.js`, `CRMTemplatesPage-O5g-_vu0.js`, `CRMQuotesPage-Dlc34IL_.js`, `CRMOpportunitiesPage-DtBu6Chk.js` e `index-4e8-eYe2.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco operativo nuevo ya cerrado en repo y handoff dentro de las `Etapas 16` y `17`:
   - el roadmap base ya queda formalmente cerrado para el alcance actual
   - `Etapa 16. Infraestructura y Operación Real` ya queda cerrada con:
