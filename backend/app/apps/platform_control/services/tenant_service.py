@@ -85,6 +85,15 @@ class TenantModuleActivationState:
     activation_source: str | None = None
 
 
+@dataclass(frozen=True)
+class TenantCommercialState:
+    source: str
+    billing_status: str | None = None
+    billing_status_reason: str | None = None
+    current_period_ends_at: datetime | None = None
+    grace_until: datetime | None = None
+
+
 class TenantService:
     VALID_STATUSES = {"pending", "active", "suspended", "error", "archived"}
     VALID_BILLING_STATUSES = {
@@ -1292,6 +1301,7 @@ class TenantService:
         )
         subscription_billing_cycle = getattr(subscription, "billing_cycle", None)
         subscription_base_plan_code = getattr(subscription, "base_plan_code", None)
+        subscription_is_managed = self._is_subscription_contract_managed(subscription)
 
         included_modules: tuple[str, ...] = ()
         addon_modules: tuple[str, ...] = ()
@@ -1341,14 +1351,16 @@ class TenantService:
                 addon_modules=addon_modules,
             )
 
-        legacy_fallback_modules = tuple(
-            sorted(
-                set(legacy_plan_modules)
-                - set(included_modules)
-                - set(addon_modules)
-                - set(technical_modules)
+        legacy_fallback_modules = ()
+        if not subscription_is_managed:
+            legacy_fallback_modules = tuple(
+                sorted(
+                    set(legacy_plan_modules)
+                    - set(included_modules)
+                    - set(addon_modules)
+                    - set(technical_modules)
+                )
             )
-        )
         effective_modules = tuple(
             sorted(
                 set(included_modules)
@@ -1464,6 +1476,12 @@ class TenantService:
         )
         tenant.billing_current_period_ends_at = billing_current_period_ends_at
         tenant.billing_grace_until = billing_grace_until
+        self._sync_subscription_from_billing_state(
+            tenant,
+            billing_status=normalized_billing_status,
+            billing_current_period_ends_at=billing_current_period_ends_at,
+            billing_grace_until=billing_grace_until,
+        )
         return self.tenant_repository.save(db, tenant)
 
     def set_billing_identity(
@@ -1635,16 +1653,13 @@ class TenantService:
                 blocking_source="status",
             )
 
-        billing_status = (getattr(tenant, "billing_status", None) or "").strip().lower()
         current_time = now or datetime.now(timezone.utc)
-        billing_current_period_ends_at = getattr(
-            tenant,
-            "billing_current_period_ends_at",
-            None,
-        )
-        billing_grace_until = getattr(tenant, "billing_grace_until", None)
+        commercial_state = self._resolve_tenant_commercial_state(tenant)
+        billing_status = (commercial_state.billing_status or "").strip().lower()
+        billing_current_period_ends_at = commercial_state.current_period_ends_at
+        billing_grace_until = commercial_state.grace_until
 
-        if billing_status == "past_due":
+        if billing_status in {"past_due", "grace_period"}:
             in_grace = (
                 billing_grace_until is not None
                 and current_time <= billing_grace_until
@@ -1655,7 +1670,7 @@ class TenantService:
                     billing_in_grace=True,
                 )
 
-        if billing_status == "canceled":
+        if billing_status in {"canceled", "cancelled"}:
             in_current_period = (
                 billing_current_period_ends_at is not None
                 and current_time <= billing_current_period_ends_at
@@ -1682,19 +1697,16 @@ class TenantService:
         now: datetime | None = None,
     ) -> tuple[int, str] | None:
         current_time = now or datetime.now(timezone.utc)
-        billing_status = (getattr(tenant, "billing_status", None) or "").strip().lower()
-        billing_status_reason = getattr(tenant, "billing_status_reason", None)
-        billing_current_period_ends_at = getattr(
-            tenant,
-            "billing_current_period_ends_at",
-            None,
-        )
-        billing_grace_until = getattr(tenant, "billing_grace_until", None)
+        commercial_state = self._resolve_tenant_commercial_state(tenant)
+        billing_status = (commercial_state.billing_status or "").strip().lower()
+        billing_status_reason = commercial_state.billing_status_reason
+        billing_current_period_ends_at = commercial_state.current_period_ends_at
+        billing_grace_until = commercial_state.grace_until
 
-        if billing_status in {"", "trialing", "active"}:
+        if billing_status in {"", "trialing", "active", "pending_activation"}:
             return None
 
-        if billing_status == "past_due":
+        if billing_status in {"past_due", "grace_period"}:
             if (
                 billing_grace_until is not None
                 and current_time <= billing_grace_until
@@ -1711,7 +1723,7 @@ class TenantService:
                 billing_status_reason or "Tenant suspended by billing policy",
             )
 
-        if billing_status == "canceled":
+        if billing_status in {"canceled", "cancelled"}:
             if (
                 billing_current_period_ends_at is not None
                 and current_time <= billing_current_period_ends_at
@@ -1723,6 +1735,99 @@ class TenantService:
             )
 
         return None
+
+    def _resolve_tenant_commercial_state(
+        self,
+        tenant: Tenant,
+    ) -> TenantCommercialState:
+        subscription = getattr(tenant, "subscription", None)
+        subscription_status = (
+            getattr(subscription, "status", None).strip().lower()
+            if getattr(subscription, "status", None)
+            else None
+        )
+        if subscription is not None and subscription_status:
+            return TenantCommercialState(
+                source="subscription",
+                billing_status=subscription_status,
+                billing_status_reason=getattr(tenant, "billing_status_reason", None),
+                current_period_ends_at=getattr(
+                    subscription,
+                    "current_period_ends_at",
+                    None,
+                ),
+                grace_until=getattr(subscription, "grace_until", None),
+            )
+
+        return TenantCommercialState(
+            source="tenant_billing",
+            billing_status=(
+                getattr(tenant, "billing_status", None).strip().lower()
+                if getattr(tenant, "billing_status", None)
+                else None
+            ),
+            billing_status_reason=getattr(tenant, "billing_status_reason", None),
+            current_period_ends_at=getattr(
+                tenant,
+                "billing_current_period_ends_at",
+                None,
+            ),
+            grace_until=getattr(tenant, "billing_grace_until", None),
+        )
+
+    def _is_subscription_contract_managed(self, subscription: TenantSubscription | None) -> bool:
+        if subscription is None:
+            return False
+        return getattr(subscription, "current_period_starts_at", None) is not None
+
+    def _sync_subscription_from_billing_state(
+        self,
+        tenant: Tenant,
+        *,
+        billing_status: str | None,
+        billing_current_period_ends_at: datetime | None,
+        billing_grace_until: datetime | None,
+    ) -> None:
+        subscription = getattr(tenant, "subscription", None)
+        if subscription is None:
+            return
+
+        mapped_subscription_status = self._map_billing_status_to_subscription_status(
+            billing_status
+        )
+        if mapped_subscription_status is not None:
+            subscription.status = mapped_subscription_status
+
+        if billing_current_period_ends_at is not None:
+            subscription.current_period_ends_at = billing_current_period_ends_at
+            subscription.next_renewal_at = billing_current_period_ends_at
+
+        if billing_grace_until is not None:
+            subscription.grace_until = billing_grace_until
+        elif billing_status not in {"past_due", "grace_period"}:
+            subscription.grace_until = None
+
+    def _map_billing_status_to_subscription_status(
+        self,
+        billing_status: str | None,
+    ) -> str | None:
+        if billing_status is None:
+            return None
+
+        normalized_billing_status = billing_status.strip().lower()
+        if not normalized_billing_status:
+            return None
+
+        status_mapping = {
+            "trialing": "active",
+            "active": "active",
+            "past_due": "grace_period",
+            "grace_period": "grace_period",
+            "suspended": "suspended",
+            "canceled": "cancelled",
+            "cancelled": "cancelled",
+        }
+        return status_mapping.get(normalized_billing_status)
 
     def _normalize_rate_limit_override(
         self,

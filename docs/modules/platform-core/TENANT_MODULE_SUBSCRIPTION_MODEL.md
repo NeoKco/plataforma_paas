@@ -7,7 +7,7 @@ Estado actual:
 - decisión de producto: `Aprobada`
 - implementación repo/control model: `Contratación formal desde consola completada`
 - implementación runtime: `Contratación formal promovida en staging y production`
-- política vigente de activación efectiva: `tenant_subscriptions + fallback legacy por plan_code`
+- política vigente de activación efectiva: `tenant_subscriptions` como fuente principal, con fallback legacy por `plan_code` solo para tenants legacy aún no recontratados en el modelo nuevo
 
 ## Objetivo
 
@@ -213,7 +213,7 @@ Hoy la operación visible queda así:
 
 - catálogo backend-driven por `plan`
 - activación tenant-side efectiva desde `tenant_subscriptions`
-- fallback legacy por `plan_code` solo cuando todavía hace falta compatibilidad
+- fallback legacy por `plan_code` solo cuando todavía hace falta compatibilidad en tenants legacy aún no gestionados desde contrato
 
 El primer corte técnico ya existe en `platform_control` y deja modelado:
 
@@ -281,12 +281,14 @@ Además del corte técnico ya promovido, la consola visible ya quedó adaptada a
    - fijar ciclo comercial por tenant y por add-on
    - programar salida de un add-on al cierre del período al desmarcarlo
    - mantener separado el `Baseline legacy por plan_code`
+5. política comercial efectiva ya conectada:
+   - `billing`, `grace` y `suspensión` ya se evalúan primero desde `tenant_subscriptions`
+   - los eventos y campos `billing_*` siguen existiendo como compatibilidad/proyección
+   - el fallback legacy de módulos ya no se aplica a tenants con contrato ya gestionado en el modelo nuevo
 
 ## Siguiente corte técnico recomendado
 
-1. retirar gradualmente el fallback legacy por `plan_code`
-2. conectar billing, grace y suspensión sobre:
-   - `tenant_subscriptions`
-   - `tenant_subscription_items`
+1. retirar el fallback legacy restante en cuotas/límites todavía resueltos por `plan_code`
+2. volver visible en consola la diferencia entre tenant legacy y tenant ya recontratado/gestionado
 3. seguir manteniendo separada la habilitación técnica efectiva del contrato comercial
 4. recién después cerrar el retiro total del baseline legacy

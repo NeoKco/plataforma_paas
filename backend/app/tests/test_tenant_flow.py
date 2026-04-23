@@ -893,6 +893,7 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
                 base_plan_code="base_finance",
                 status="active",
                 billing_cycle="monthly",
+                current_period_starts_at=None,
                 items=[],
             ),
         )
@@ -919,6 +920,55 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
         self.assertEqual(
             request.state.tenant_effective_activation_source,
             "subscriptions_with_legacy_fallback",
+        )
+
+    def test_apply_tenant_runtime_state_hides_legacy_fallback_for_managed_subscription(self) -> None:
+        tenant_service = TenantService(
+            tenant_plan_policy_service=TenantPlanPolicyService(
+                plan_enabled_modules="pro=core,users,finance,maintenance"
+            )
+        )
+        request = SimpleNamespace(
+            method="GET",
+            url=SimpleNamespace(path="/tenant/info"),
+            state=SimpleNamespace(tenant_slug="empresa-bootstrap"),
+        )
+        middleware = self._middleware()
+        middleware.tenant_service = SimpleNamespace(
+            get_tenant_status_error=tenant_service.get_tenant_status_error,
+            get_tenant_access_policy=lambda tenant: tenant_service.get_tenant_access_policy(
+                tenant
+            ),
+            is_tenant_under_maintenance=tenant_service.is_tenant_under_maintenance,
+            get_tenant_maintenance_scopes=tenant_service.get_tenant_maintenance_scopes,
+            get_tenant_module_activation_state=tenant_service.get_tenant_module_activation_state,
+            get_effective_enabled_modules=tenant_service.get_effective_enabled_modules,
+            get_tenant_module_limits=tenant_service.get_tenant_module_limits,
+            get_effective_module_limits=None,
+            get_effective_module_limit_sources=None,
+        )
+        middleware._load_tenant = lambda tenant_slug: build_tenant_record_stub(  # type: ignore[attr-defined]
+            plan_code="pro",
+            subscription=SimpleNamespace(
+                base_plan_code="base_finance",
+                status="active",
+                billing_cycle="monthly",
+                current_period_starts_at=datetime.now(timezone.utc) - timedelta(days=10),
+                current_period_ends_at=datetime.now(timezone.utc) + timedelta(days=20),
+                items=[],
+            ),
+        )
+
+        middleware._apply_tenant_runtime_state(request)  # type: ignore[arg-type]
+
+        self.assertIsNone(request.state.tenant_subscription_legacy_fallback_modules)
+        self.assertEqual(
+            request.state.tenant_effective_enabled_modules,
+            ("core", "finance", "users"),
+        )
+        self.assertEqual(
+            request.state.tenant_effective_activation_source,
+            "subscriptions",
         )
 
     def test_apply_tenant_runtime_state_exposes_plan_module_limits(self) -> None:

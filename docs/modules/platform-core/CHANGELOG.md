@@ -2,6 +2,14 @@
 
 ## 2026-04-22
 
+- la `Etapa 15` ya conecta `billing`, `grace` y `suspensión` al contrato comercial nuevo:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ahora evalúa acceso comercial priorizando `tenant_subscriptions` cuando existe suscripción
+  - los eventos y ajustes de billing ya proyectan estado/fechas sobre la suscripción cuando existe
+  - el fallback legacy de módulos ya no se aplica a tenants con contrato ya gestionado en el modelo nuevo
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `210 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `95 tests OK`
+
 - la `Etapa 15` ya deja contratación formal de add-ons desde consola sobre suscripciones tenant:
   - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) agrega `PATCH /platform/tenants/{tenant_id}/subscription`
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya persiste contratos comerciales en:

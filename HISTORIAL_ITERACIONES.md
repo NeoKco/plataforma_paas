@@ -1,5 +1,26 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - la `Etapa 15` ya conecta billing/grace/suspensión a suscripciones tenant y acota el fallback legacy
+
+- objetivo:
+  - dejar de evaluar acceso comercial principalmente desde `billing_*` legacy y moverlo al contrato real en `tenant_subscriptions`
+  - retirar el fallback legacy de módulos cuando el tenant ya fue gestionado desde el modelo nuevo
+- cambios y acciones ejecutadas:
+  - [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+    - ahora evalúa `billing`, `grace` y `suspensión` priorizando `tenant_subscriptions`
+    - proyecta eventos/ajustes de billing sobre la suscripción cuando existe
+    - deja el fallback legacy de módulos solo para tenants legacy todavía no gestionados desde contrato
+  - cobertura nueva:
+    - `backend.app.tests.test_platform_flow`
+    - `backend.app.tests.test_tenant_flow`
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `210 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_flow -v` -> `95 tests OK`
+- resultado:
+  - `billing/grace/suspensión` ya no quedan atados únicamente a `billing_*`
+  - un tenant ya recontratado/gestionado no sigue heredando módulos extras solo por `plan_code`
+  - el siguiente paso deja de ser “conectar billing a suscripciones” y pasa a retirar el fallback restante en cuotas/límites y volver visible qué tenants siguen legacy
+
 ## 2026-04-22 - la `Etapa 15` ya deja contratación formal de add-ons desde consola
 
 - objetivo:

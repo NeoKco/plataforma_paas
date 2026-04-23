@@ -633,13 +633,17 @@ Falta para cerrarlo:
 - separar mejor catálogo de módulos, límites por módulo y degradación por billing grace dentro de la UI operativa
 - el primer corte técnico del modelo nuevo ya quedó promovido a `staging` y `production`
 - el cálculo de activación técnica efectiva desde suscripciones tenant ya quedó implementado con fallback legacy por `plan_code`
+- la política comercial ya da un paso más:
+  - `billing`, `grace` y `suspensión` ya se evalúan primero desde `tenant_subscriptions`
+  - los eventos de billing ya proyectan estado/fechas sobre la suscripción cuando existe
+  - el fallback legacy de módulos ya no se aplica a tenants con contrato ya gestionado en el modelo nuevo
 - separar el estado visible entre:
   - incluido por `Plan Base`
   - arrendado por suscripción
   - efectivamente habilitado
 - siguiente corte pendiente:
-  - retiro gradual del fallback legacy por `plan_code`
-  - conexión de billing, grace y suspensión al contrato comercial nuevo
+  - retiro del fallback legacy restante en cuotas/límites todavía resueltos por `plan_code`
+  - visibilidad explícita en consola de tenants legacy vs tenants ya recontratados/gestionados
 
 Decisión formal cerrada:
 

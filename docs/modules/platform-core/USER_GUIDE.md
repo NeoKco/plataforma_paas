@@ -97,7 +97,8 @@ Regla operativa:
 - el catálogo de módulos hoy sale de backend
 - las dependencias explícitas entre módulos también salen de backend mediante `module_dependency_catalog`
 - la consola ya muestra el modelo aprobado `Plan Base + add-ons`
-- la activación tenant-side efectiva ya se resuelve desde `tenant_subscriptions` con fallback legacy por `plan_code` cuando todavía hace falta compatibilidad
+- la activación tenant-side efectiva ya se resuelve desde `tenant_subscriptions`
+- el fallback legacy por `plan_code` ya queda acotado a tenants legacy todavía no recontratados en el modelo nuevo
 - backend ya expone además el catálogo del modelo nuevo:
   - `subscription_activation_model`
   - `subscription_billing_cycles`
@@ -107,12 +108,14 @@ Regla operativa:
 - la contratación comercial ya puede operarse desde consola:
   - el bloque `Contrato comercial tenant` escribe sobre `tenant_subscriptions` y `tenant_subscription_items`
   - el bloque `Baseline legacy por plan_code` queda solo como compatibilidad temporal
+  - si el tenant ya quedó gestionado por contrato, ese baseline legacy ya no debe seguir agregando módulos efectivos
 - los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
 - la dirección aprobada del producto pasa a ser:
   - `Plan Base` obligatorio por tenant
   - `finance` siempre incluido
   - módulos adicionales arrendables por suscripción
-- el siguiente corte ya no es contratar add-ons, sino retirar gradualmente el fallback legacy por `plan_code` y conectar billing/grace/suspensión al modelo nuevo
+- `billing`, `grace` y `suspensión` ya quedan conectados al modelo nuevo de suscripción
+- el siguiente corte ya no es contratar add-ons, sino retirar el fallback legacy restante en cuotas/límites y hacer visible qué tenants siguen en baseline legacy
 - referencia formal:
   - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 

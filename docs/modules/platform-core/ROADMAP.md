@@ -140,9 +140,13 @@ Estado práctico de cierre:
     - `Contrato comercial tenant` opera sobre `tenant_subscriptions` y `tenant_subscription_items`
     - `Baseline legacy por plan_code` queda como compatibilidad temporal
     - la vista ya separa `Plan Base`, add-ons arrendados y dependencias técnicas auto-resueltas
+  - siguiente subcorte ya cerrado en repo:
+    - `billing`, `grace` y `suspensión` ya se evalúan primero desde `tenant_subscriptions`
+    - los eventos de billing ya proyectan estado/fechas sobre la suscripción cuando existe
+    - el fallback legacy de módulos ya no se aplica a tenants con contrato ya gestionado en el modelo nuevo
   - el siguiente corte ya no es modelar ni contratar add-ons, sino:
-    - retirar gradualmente el fallback legacy por `plan_code`
-    - conectar billing, grace y suspensión al contrato comercial nuevo
+    - retirar el fallback legacy restante en cuotas/límites todavía resueltos por `plan_code`
+    - volver visible en consola qué tenants siguen legacy vs ya recontratados/gestionados
     - seguir separando en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)

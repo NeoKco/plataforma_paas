@@ -1836,6 +1836,44 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(result.billing_status_reason, "invoice overdue")
         self.assertEqual(result.billing_grace_until, grace_until)
 
+    def test_tenant_service_updates_billing_state_syncs_subscription(self) -> None:
+        grace_until = datetime.now(timezone.utc) + timedelta(days=3)
+        current_period_ends_at = datetime.now(timezone.utc) + timedelta(days=1)
+        tenant = build_tenant_record_stub(
+            billing_status=None,
+            billing_status_reason=None,
+            subscription=SimpleNamespace(
+                status="active",
+                current_period_starts_at=datetime.now(timezone.utc) - timedelta(days=20),
+                current_period_ends_at=None,
+                next_renewal_at=None,
+                grace_until=None,
+            ),
+        )
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+            def save(self, db, tenant_to_save):
+                return tenant_to_save
+
+        service = TenantService(tenant_repository=FakeTenantRepository())
+
+        result = service.set_billing_state(
+            db=object(),
+            tenant_id=1,
+            billing_status="past_due",
+            billing_status_reason="invoice overdue",
+            billing_current_period_ends_at=current_period_ends_at,
+            billing_grace_until=grace_until,
+        )
+
+        self.assertEqual(result.subscription.status, "grace_period")
+        self.assertEqual(result.subscription.current_period_ends_at, current_period_ends_at)
+        self.assertEqual(result.subscription.next_renewal_at, current_period_ends_at)
+        self.assertEqual(result.subscription.grace_until, grace_until)
+
     def test_tenant_service_updates_billing_identity(self) -> None:
         tenant = build_tenant_record_stub()
         tenant.id = 1
@@ -2664,6 +2702,26 @@ class PlatformServicesTestCase(unittest.TestCase):
 
         self.assertIsNone(service.get_tenant_status_error(tenant))
 
+    def test_tenant_service_access_policy_allows_subscription_grace_period(self) -> None:
+        grace_until = datetime.now(timezone.utc) + timedelta(days=1)
+        tenant = build_tenant_record_stub(
+            status="active",
+            billing_status=None,
+            subscription=SimpleNamespace(
+                status="grace_period",
+                current_period_starts_at=datetime.now(timezone.utc) - timedelta(days=20),
+                current_period_ends_at=datetime.now(timezone.utc) + timedelta(days=10),
+                next_renewal_at=datetime.now(timezone.utc) + timedelta(days=10),
+                grace_until=grace_until,
+            ),
+        )
+        service = TenantService(tenant_repository=SimpleNamespace())
+
+        policy = service.get_tenant_access_policy(tenant)
+
+        self.assertTrue(policy.allowed)
+        self.assertTrue(policy.billing_in_grace)
+
     def test_tenant_service_billing_error_blocks_past_due_without_grace(self) -> None:
         grace_until = datetime.now(timezone.utc) - timedelta(days=1)
         tenant = build_tenant_record_stub(
@@ -2750,6 +2808,28 @@ class PlatformServicesTestCase(unittest.TestCase):
             status="active",
             billing_status="suspended",
             billing_status_reason="billing policy suspended this tenant",
+        )
+        service = TenantService(tenant_repository=SimpleNamespace())
+
+        policy = service.get_tenant_access_policy(tenant)
+
+        self.assertFalse(policy.allowed)
+        self.assertEqual(policy.blocking_source, "billing")
+        self.assertEqual(policy.status_code, 423)
+        self.assertEqual(policy.detail, "billing policy suspended this tenant")
+
+    def test_tenant_service_access_policy_blocks_suspended_subscription(self) -> None:
+        tenant = build_tenant_record_stub(
+            status="active",
+            billing_status=None,
+            billing_status_reason="billing policy suspended this tenant",
+            subscription=SimpleNamespace(
+                status="suspended",
+                current_period_starts_at=datetime.now(timezone.utc) - timedelta(days=20),
+                current_period_ends_at=datetime.now(timezone.utc) + timedelta(days=10),
+                next_renewal_at=datetime.now(timezone.utc) + timedelta(days=10),
+                grace_until=None,
+            ),
         )
         service = TenantService(tenant_repository=SimpleNamespace())
 
@@ -4945,6 +5025,34 @@ class PlatformRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(response.data[1].billing_status, "past_due")
         self.assertEqual(response.data[1].effective_activation_source, "legacy_plan_only")
+
+    def test_tenant_service_activation_state_ignores_legacy_plan_for_managed_subscription(self) -> None:
+        service = TenantService(
+            tenant_repository=SimpleNamespace(),
+            tenant_plan_policy_service=TenantPlanPolicyService(
+                plan_enabled_modules="pro=core,users,finance,maintenance"
+            ),
+        )
+        tenant = build_tenant_record_stub(
+            plan_code="pro",
+            subscription=SimpleNamespace(
+                base_plan_code="base_finance",
+                status="active",
+                billing_cycle="monthly",
+                current_period_starts_at=datetime.now(timezone.utc) - timedelta(days=10),
+                current_period_ends_at=datetime.now(timezone.utc) + timedelta(days=20),
+                items=[],
+            ),
+        )
+
+        activation_state = service.get_tenant_module_activation_state(tenant)
+
+        self.assertIsNone(activation_state.subscription_legacy_fallback_modules)
+        self.assertEqual(
+            activation_state.subscription_effective_enabled_modules,
+            ("core", "finance", "users"),
+        )
+        self.assertEqual(activation_state.activation_source, "subscriptions")
 
     def test_get_tenant_returns_detail(self) -> None:
         tenant = build_tenant_record_stub(
