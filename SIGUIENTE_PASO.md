@@ -79,9 +79,12 @@
       - `surface-gating`
       - `observability-visible`
     - y suma broker-only solo cuando el entorno publicado realmente usa `broker`
+    - la rutina explícita por ambiente ya queda disponible en:
+      - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
+      - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
     - siguiente paso recomendado dentro de este frente:
       - decidir si se endurece ahora otro hardening visible de `platform_admin`
-      - o si se promueve este baseline published como rutina operativa explícita por ambiente
+      - o si se publica también una rutina manual equivalente para CI/workflow published
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la asignación del `Grupo social común`

@@ -271,10 +271,14 @@ frontend/
 
 scripts/
 └── dev/
+    ├── run_broker_dlq_playwright_target.sh
     ├── run_local_backend_baseline.sh
     ├── run_local_browser_baseline.sh
     ├── run_local_broker_dlq_baseline.sh
+    ├── run_production_published_provisioning_baseline.sh
+    ├── run_published_provisioning_baseline.sh
     ├── run_remote_backend_smoke.sh
+    ├── run_staging_published_provisioning_baseline.sh
     └── run_staging_published_broker_dlq_smoke.sh
 ```
 

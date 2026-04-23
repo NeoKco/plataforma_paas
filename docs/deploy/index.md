@@ -10,6 +10,8 @@ Esta seccion agrupa guias de despliegue y operacion del proyecto.
 - [Checklist de Cutover a Producción](./production-cutover-checklist.md): orden recomendado para publicar backend y frontend con validación corta de terreno.
 - [Backend HTTPS con Nginx](./backend-https-nginx.md): terminacion TLS base con redirect a `443` y headers de seguridad.
 - [Checklist de Aceptacion Operativa](./operational-acceptance-checklist.md): criterio minimo para aceptar deploys y restore drills.
+- `scripts/dev/run_staging_published_provisioning_baseline.sh`: baseline published curado de `Provisioning/DLQ` para `staging`.
+- `scripts/dev/run_production_published_provisioning_baseline.sh`: baseline published curado de `Provisioning/DLQ` para `production`.
 - [Checklist de Release Funcional](./functional-release-checklist.md): validaciones funcionales para considerar la app usable despues de un release.
 - [Verificacion Post-Deploy Backend](./backend-post-deploy-verification.md): checks minimos despues de un release, incluyendo convergencia tenant y `base smoke` del carril.
 - [Backend Release y Rollback](./backend-release-and-rollback.md): base de deploy manual desde repo y rollback por ref git.

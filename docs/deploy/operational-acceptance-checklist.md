@@ -23,6 +23,7 @@ Un deploy backend se considera aceptable si:
 - no hay errores persistentes en logs recientes del servicio
 - la verificacion post-deploy termina exitosa
 - la lectura operativa base de `business-core` y `maintenance` no presenta errores visibles en la prueba corta de terreno definida para el release
+- si el release toca `Provisioning` o `Operación DLQ`, el baseline published curado del entorno objetivo queda ejecutado o explicitamente descartado
 
 Comandos minimos:
 
@@ -31,6 +32,30 @@ systemctl status platform-paas-backend --no-pager
 curl -I http://127.0.0.1/health
 sudo journalctl -u platform-paas-backend -n 100 --no-pager
 ```
+
+Baseline published recomendado cuando el release toca `Provisioning` o `DLQ`:
+
+- `staging`:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_staging_published_provisioning_baseline.sh
+```
+
+- `production`:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_production_published_provisioning_baseline.sh
+```
+
+Qué valida siempre:
+
+- `dispatch-capability`
+- `surface-gating`
+- `observability-visible`
+
+Y si el entorno publicado usa `broker`, suma además el pack broker-only correspondiente.
 
 ## Aceptacion Minima Post-Restore Drill de `platform_control`
 

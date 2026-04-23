@@ -89,6 +89,9 @@ Estado práctico de cierre:
 - validación browser de matriz broker-only `tenant + capa técnica` dentro de `Provisioning`, para aislar la combinación operativa correcta entre tenant y capa técnica visible
 - hardening E2E broker-only ya institucionalizado con runner compartido único para `local`, `staging published` y `workflow_dispatch` manual
 - baseline published curado de `Provisioning/DLQ` ya institucionalizado para correr siempre `dispatch-capability + surface-gating + observability-visible`, y sumar broker-only solo cuando el entorno publicado realmente usa `broker`
+- wrappers por ambiente ya disponibles para volver ese baseline rutina explícita:
+  - `staging`: `scripts/dev/run_staging_published_provisioning_baseline.sh`
+  - `production`: `scripts/dev/run_production_published_provisioning_baseline.sh`
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`

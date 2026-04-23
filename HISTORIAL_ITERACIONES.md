@@ -33,6 +33,30 @@
   - el baseline published de `Provisioning/DLQ` ya no depende de sembrar observabilidad nueva ni de recordar manualmente qué subset visible debe correr siempre
   - el siguiente subcorte del frente ya puede decidir entre operación visible de `platform_admin` o adopción operativa formal de este baseline por ambiente
 
+## 2026-04-22 - el baseline published de Provisioning/DLQ ya queda como rutina explícita por ambiente
+
+- objetivo:
+  - convertir el baseline published curado recién agregado en una rutina operativa explícita para `staging` y `production`, sin obligar al operador a recordar `PUBLISHED_ROOT`, `BASE_URL` o `env file`
+- cambios y acciones ejecutadas:
+  - [scripts/dev/run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh):
+    - wrapper explícito para `staging`
+  - [scripts/dev/run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh):
+    - wrapper explícito para `production`
+  - documentación operativa alineada en:
+    - [PAQUETE_RELEASE_OPERADOR.md](/home/felipe/platform_paas/PAQUETE_RELEASE_OPERADOR.md)
+    - [docs/deploy/operational-acceptance-checklist.md](/home/felipe/platform_paas/docs/deploy/operational-acceptance-checklist.md)
+    - [docs/deploy/index.md](/home/felipe/platform_paas/docs/deploy/index.md)
+    - [docs/modules/platform-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
+    - [docs/architecture/project-structure.md](/home/felipe/platform_paas/docs/architecture/project-structure.md)
+    - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+    - [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
+    - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- validaciones:
+  - `bash -n scripts/dev/run_staging_published_provisioning_baseline.sh scripts/dev/run_production_published_provisioning_baseline.sh scripts/dev/run_published_provisioning_baseline.sh` -> `OK`
+  - wrappers `--help` visibles -> `OK`
+- resultado:
+  - el baseline published curado ya no queda solo como helper genérico de dev, sino como rutina operativa explícita por ambiente
+
 ## 2026-04-22 - `platform-core` endurece el runner E2E broker-only de Provisioning/DLQ
 
 - objetivo:

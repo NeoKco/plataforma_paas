@@ -1036,9 +1036,14 @@ Resumen curado del bloque central.
     - [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts)
   - suma broker-only solo si el entorno publicado realmente usa `broker`
   - puede detectar el backend activo desde el env file published o forzarlo con `--dispatch-backend`
+- se agregan wrappers explícitos por ambiente:
+  - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
+  - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
+- estos wrappers convierten el baseline published curado en rutina operativa directa por ambiente sin recordar flags manuales
 - se agrega el smoke [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts) para fijar la capa visible mínima de observabilidad sin depender de sembrar datos nuevos en un entorno publicado
 - validación:
   - `bash -n scripts/dev/run_published_provisioning_baseline.sh` -> `OK`
+  - `bash -n scripts/dev/run_staging_published_provisioning_baseline.sh scripts/dev/run_production_published_provisioning_baseline.sh` -> `OK`
   - `npx playwright test e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts --list` -> `OK`
 - se endurece el paquete E2E broker-only de `Provisioning/DLQ` para no seguir manteniendo targets duplicados entre helper local, helper published y workflow manual
 - se agrega el runner compartido [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh)

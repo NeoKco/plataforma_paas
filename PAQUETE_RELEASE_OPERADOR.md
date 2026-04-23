@@ -154,6 +154,28 @@ Evidencia runtime más reciente del baseline técnico institucionalizado:
 
 - `/opt/platform_paas/operational_evidence/remote_backend_smoke_20260420_204638.json`
 
+Baseline published curado de `Provisioning/DLQ`, útil cuando el release toca `Provisioning` o la superficie visible de `DLQ`:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_production_published_provisioning_baseline.sh
+```
+
+Ese baseline published corre siempre:
+
+1. `dispatch-capability`
+2. `surface-gating`
+3. `observability-visible`
+
+Y suma broker-only solo si el entorno realmente usa `broker`.
+
+Para `staging`:
+
+```bash
+cd /home/felipe/platform_paas
+scripts/dev/run_staging_published_provisioning_baseline.sh
+```
+
 ## 7. Si algo falla
 
 ### Falla backend
@@ -216,5 +238,8 @@ Lección operativa ya asentada:
 - si el release toca `Provisioning`, validar también el smoke visible del slice afectado; para este corte ya quedó aprobado [platform-admin-provisioning-observability-history.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-history.smoke.spec.ts) en `staging` y `production`
 - si el release toca `Provisioning`, validar además [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts) para fijar en browser si el entorno publicado corre hoy con `dispatch backend` `broker` o `database`
 - si el release toca la superficie `Operación DLQ`, validar además [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts) para confirmar que la UI publicada oculta o reemplaza acciones broker-only cuando el entorno corre con `database`
+- si el release toca `Provisioning` o `DLQ`, la rutina published recomendada ya no es recordar esos smokes por separado:
+  - `staging`: [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
+  - `production`: [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
 - si el release toca `Provisioning` sobre DLQ broker-only, validar el smoke correspondiente en un entorno cuyo `PROVISIONING_DISPATCH_BACKEND=broker`; para el corte `requeue guiado`, [platform-admin-provisioning-guided-requeue.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-guided-requeue.smoke.spec.ts) quedó `OK` en `staging` y `skipped` en `production` porque ese host hoy no resuelve como `broker`
 - si el release cambia UI visible de `platform_admin` o `tenant_portal`, no basta con deploy backend: también hay que reconstruir el frontend publicado

@@ -109,6 +109,9 @@ Documentación base:
 - Helper published broker-only staging: [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
 - Runner compartido broker-only: [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh)
 - Baseline published curado de Provisioning/DLQ: [run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh)
+- Wrappers published por ambiente:
+  - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
+  - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
 
 ## E2E vigente
 
@@ -162,6 +165,9 @@ Hardening operativo vigente del bloque broker-only:
     - `surface-gating`
     - `observability-visible`
   - suma broker-only solo si el entorno publicado realmente usa `broker`
+  - ya tiene wrappers operativos por ambiente:
+    - `staging`: [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
+    - `production`: [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
 - targets hoy institucionalizados:
   - `all`
   - `batch`

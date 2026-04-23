@@ -280,6 +280,9 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target matrix
   - corre siempre `dispatch-capability`, `surface-gating` y `observability-visible`
   - suma el bloque broker-only solo si el entorno publicado realmente usa `broker`
   - puede forzar `broker|database` con `--dispatch-backend` si no quieres depender del env file
+  - wrappers por ambiente ya disponibles:
+    - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
+    - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
 
 Baseline recomendado para desarrollo local:
 

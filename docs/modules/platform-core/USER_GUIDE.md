@@ -83,6 +83,19 @@ Referencia:
 
 - [provisioning-guided-test.md](/home/felipe/platform_paas/docs/runbooks/provisioning-guided-test.md)
 
+Rutina operativa publicada recomendada cuando el release toca `Provisioning` o `DLQ`:
+
+- `staging`: [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
+- `production`: [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
+
+Ese baseline corre siempre:
+
+1. `Capacidad activa de provisioning`
+2. `Operación DLQ` con `surface-gating`
+3. `Observabilidad visible`
+
+Y solo suma broker-only cuando el entorno publicado realmente usa `broker`.
+
 ### Export portable por tenant desde platform admin
 
 Desde `Tenants`, el bloque `Portabilidad tenant` ya permite:
