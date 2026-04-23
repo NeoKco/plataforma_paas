@@ -92,14 +92,14 @@ try:
         name="Empresa Provisioning Demo",
         slug="empresa-provisioning-demo",
         tenant_type="empresa",
-        plan_code="mensual",
+        base_plan_code="base_finance",
         admin_full_name="Provisioning Demo Admin",
         admin_email="admin@empresa-provisioning-demo.local",
         admin_password="TenantAdmin123!",
     )
     print(
         f"tenant_id={tenant.id} slug={tenant.slug} "
-        f"status={tenant.status} plan={tenant.plan_code}"
+        f"status={tenant.status} base_plan={tenant.subscription.base_plan_code if tenant.subscription else None}"
     )
 finally:
     db.close()

@@ -105,7 +105,7 @@ Pendiente corto de endurecimiento antes o en paralelo a nuevos modulos:
 - la superficie visible de `platform_admin` ya usa una matriz de acceso por rol centralizada para navegación, redirecciones y edición de usuarios de plataforma
 - ya existe un stack E2E browser local con `Playwright` sobre `frontend/`, cubriendo login `platform_admin`, lifecycle tenant base (`create/archive/restore`), acceso rápido desde `Tenants` hacia `tenant_portal`, congelamiento visible de la matriz por rol para `admin` y `support` en `platform_admin`, workspace tenant de `Billing` con reconcile individual y batch sobre eventos persistidos, `Histórico tenants` con filtros/export y detalle del snapshot de retiro, visibilidad de jobs nuevos en `Provisioning`, ejecución manual de jobs `pending`, requeue de jobs `failed`, disparo de `schema auto-sync` y variantes broker-only de DLQ; junto a eso cubre `tenant_portal` para login condicionado por billing, enforcement visible de límites de usuarios activos, de cuota admin y de cuota mensual, de `finance`, de la precedencia entre `finance.entries` y `finance.entries.monthly`, del cupo mensual `finance.entries.monthly`, de los cupos mensuales por tipo `finance.entries.monthly.income` / `finance.entries.monthly.expense`, del mantenimiento básico de cuentas/categorías, de la configuración financiera base (`currencies`, `exchange rates`, `settings`), del flujo base de presupuestos, del flujo base de préstamos y del batch/reversal de préstamos, además de `finance` en creación, adjunto, anulación y conciliación; en la práctica el frente browser principal ya queda casi cerrado y solo debería ampliarse si aparecen nuevas regresiones funcionales o nuevos módulos
 - recaptura visual del bloque tenant cuando la UX ya se considere estable
-- la `Etapa 15` ya dejó migrados al contrato nuevo los 4 tenants activos de `staging` y `production`; el siguiente paso ya no es migrar tenants activos, sino retirar el fallback residual por `plan_code`
+- la `Etapa 15` ya dejó migrados al contrato nuevo los 4 tenants activos de `staging` y `production`; la revisión repo-wide posterior ya confirma que el fallback residual por `plan_code` quedó suficientemente acotado y deja de ser foco activo principal
 
 ## Etapa 0. Base de Proyecto
 
@@ -432,6 +432,11 @@ Resultado actual:
 - el equipo ya tiene documentado que las passwords bootstrap tenant de ejemplo solo son aceptables para baseline local o pruebas
 - `Settings` ya puede leer la postura de seguridad de runtime sin exponer secretos, solo hallazgos y readiness para produccion
 - ya existe rotacion formal de credenciales tecnicas tenant con validacion del nuevo acceso y rollback al secreto anterior si la prueba falla
+- `GET /platform/security-posture` y `Settings` ya dejan visible además:
+  - archivo runtime efectivo de secretos tenant
+  - si ese carril queda separado del `.env` legacy
+  - si el backend puede leerlo y escribirlo
+- `production_ready` ya cae si `TENANT_SECRETS_FILE` sigue mezclado con el `.env` principal
 
 Falta para cerrarlo:
 
@@ -621,17 +626,12 @@ Resultado actual:
 
 Falta para cerrarlo:
 
-- dejar implementado el modelo comercial aprobado:
-  - `Plan Base` obligatorio por tenant
-  - `finance` siempre incluido dentro del `Plan Base`
-  - módulos adicionales arrendables por suscripción
-  - ciclos normalizados `monthly|quarterly|semiannual|annual`
-  - co-terminación y prorrateo como política recomendada
-- separar explícitamente:
-  - catálogo comercial
-  - suscripción tenant
-  - habilitación técnica efectiva
-- separar mejor catálogo de módulos, límites por módulo y degradación por billing grace dentro de la UI operativa
+- endurecer después la baja definitiva del carril legacy si reaparece un tenant heredado real
+- mejorar visibilidad operativa de:
+  - grace period
+  - suspensión
+  - co-terminación / próxima renovación
+  - prorrateo aplicado
 - el primer corte técnico del modelo nuevo ya quedó promovido a `staging` y `production`
 - el cálculo de activación técnica efectiva desde suscripciones tenant ya quedó implementado con fallback legacy por `plan_code`
 - la política comercial ya da un paso más:
@@ -655,9 +655,8 @@ Falta para cerrarlo:
   - arrendado por suscripción
   - efectivamente habilitado
 - siguiente corte pendiente:
-  - migrar los tenants legacy restantes al contrato nuevo
-  - retirar después el fallback legacy total por `plan_code`
-  - dejar la consola y la API libres de baseline operativo legacy
+  - mover el foco principal fuera de la `Etapa 15`
+  - mantener la compatibilidad legacy solo como rescate si reaparece un tenant heredado real
 
 Decisión formal cerrada:
 

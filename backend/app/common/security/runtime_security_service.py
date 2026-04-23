@@ -1,4 +1,13 @@
+from app.common.security.tenant_secret_service import TenantSecretService
+
+
 class RuntimeSecurityService:
+    def __init__(
+        self,
+        tenant_secret_service: TenantSecretService | None = None,
+    ) -> None:
+        self.tenant_secret_service = tenant_secret_service or TenantSecretService()
+
     def _collect_tenant_bootstrap_password_findings(self, current_settings) -> list[str]:
         findings: list[str] = []
         insecure_defaults = {
@@ -32,6 +41,23 @@ class RuntimeSecurityService:
 
         return findings
 
+    def describe_security_posture(self, current_settings) -> dict:
+        findings = self.validate_settings(current_settings)
+        secret_posture = self.tenant_secret_service.build_secret_posture(current_settings)
+        runtime_secret = secret_posture["runtime"]
+        legacy_secret = secret_posture["legacy"]
+        runtime_isolated_from_legacy = (
+            runtime_secret["path"] != legacy_secret["path"]
+            and runtime_secret["classification"] != "legacy_env_file"
+        )
+        return {
+            "findings": findings,
+            "production_ready": len(findings) == 0,
+            "tenant_secrets_runtime": runtime_secret,
+            "tenant_secrets_legacy": legacy_secret,
+            "tenant_secrets_isolated_from_legacy": runtime_isolated_from_legacy,
+        }
+
     def validate_settings(self, current_settings) -> list[str]:
         findings: list[str] = []
 
@@ -54,6 +80,29 @@ class RuntimeSecurityService:
             findings.append("JWT_TENANT_AUDIENCE no esta configurado")
 
         findings.extend(self._collect_tenant_bootstrap_password_findings(current_settings))
+
+        secret_posture = self.tenant_secret_service.build_secret_posture(current_settings)
+        runtime_secret = secret_posture["runtime"]
+        legacy_secret = secret_posture["legacy"]
+
+        if runtime_secret["path"] == legacy_secret["path"]:
+            findings.append(
+                "TENANT_SECRETS_FILE sigue apuntando al .env legacy; separa los secretos tenant del .env principal"
+            )
+
+        if not runtime_secret["readable"]:
+            findings.append("TENANT_SECRETS_FILE no es legible por el backend")
+
+        if not runtime_secret["writable"]:
+            findings.append("TENANT_SECRETS_FILE no es escribible por el backend")
+
+        if (
+            current_settings.APP_ENV.lower() == "production"
+            and runtime_secret["path"] == legacy_secret["path"]
+        ):
+            findings.append(
+                "production sigue mezclando secretos tenant con el .env principal"
+            )
 
         if current_settings.APP_ENV.lower() == "production" and findings:
             raise RuntimeError(

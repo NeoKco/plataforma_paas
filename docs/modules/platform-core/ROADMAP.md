@@ -176,7 +176,9 @@ Estado práctico de cierre:
     - `tenant_policy_event_service` ya deja `plan_code=null` en snapshots y `changed_fields` para tenants contract-managed
     - el baseline contractual sin `base_plan_code` ya no recae en `legacy_plan_code`; se informa como `subscription_contract`
   - el siguiente corte ya no es migrar tenants activos ni limpiar la lectura visible, sino:
-    - revisar si todavía queda algún consumidor real de `plan_code` en `platform_capability_service`, reportes o capas históricas
+    - revisión repo-wide ya cerrada:
+      - no queda consumidor contractual real de `plan_code` fuera del carril legacy explícito
+      - `plan_code` queda suficientemente acotado para salir del foco activo
     - dejar explícito si en el futuro reaparece algún tenant realmente legacy fuera del set activo actual
     - seguir separando en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:
@@ -194,6 +196,10 @@ Estado práctico de cierre:
 - validación browser del flujo base de presupuestos `finance` en `tenant_portal`
 - validación browser del flujo base de préstamos `finance` en `tenant_portal`
 - validación browser del pago y reversa en lote de préstamos `finance` en `tenant_portal`
+- primer slice visible de `Etapa 11. Secretos y Seguridad Operativa`:
+  - `GET /platform/security-posture` ya expone el carril runtime real de secretos tenant
+  - `Settings` ya muestra si `TENANT_SECRETS_FILE` está separado del `.env` legacy y si el backend puede escribir ahí
+  - `production_ready` ya cae si el runtime sigue mezclando secretos tenant con el `.env` principal
 
 ## Cierre operativo del bloque central
 

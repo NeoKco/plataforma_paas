@@ -43,10 +43,11 @@
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - siguiente paso correcto del roadmap:
-  - `business-core` y el hardening inmediato de `Provisioning/DLQ` ya quedan suficientemente institucionalizados; no corresponde seguir limándolos por inercia
-  - la prioridad vigente dentro de la `Etapa 15` pasa a ser:
-    - retirar la compatibilidad residual de `plan_code` que todavía sobreviva más abajo en policy/repository/scripts no visibles
-    - mantener visibilidad explícita de legacy solo si reaparece un tenant realmente heredado
+  - `business-core`, el hardening inmediato de `Provisioning/DLQ` y el cleanup residual de `plan_code` ya quedan suficientemente institucionalizados; no corresponde seguir limándolos por inercia
+  - la `Etapa 15` ya puede considerarse cerrada para el alcance actual:
+    - el runtime contractual normal ya no depende de `plan_code`
+    - la compatibilidad legacy queda acotada solo a superficies explícitas de rescate
+    - la revisión repo-wide ya no encontró consumidores contractuales escondidos fuera de ese carril
   - lo ya cerrado y que no debe reabrirse:
     - tenants nuevos ya nacen contract-managed desde `base_plan_code`
     - `Provisioning` ya bootstrappea por `effective_enabled_modules`
@@ -57,10 +58,16 @@
     - los seeds demo y la auditoría multi-tenant ya no deben tratar `plan_code` como baseline normal
     - `tenant_service` ya no debe consultar módulos ni baseline legacy para tenants contract-managed solo porque el registro aún arrastre un `plan_code` histórico
     - los snapshots de `tenant_policy_event_service` ya no deben exponer ni marcar cambios de `plan_code` para tenants contract-managed
-  - remanente real después de este corte:
-    - revisar si todavía sobrevive algún consumidor profundo de `plan_code` fuera de `legacy_plan_catalog`
-    - revisar si algún script o reporte histórico todavía usa `plan_code` como etiqueta contractual normal en vez de solo `compatibility_policy_code`
-    - si no aparece otro consumidor real, el siguiente paso correcto ya pasa a ser declarar el fallback legacy suficientemente acotado y salir de este frente
+  - siguiente frente formal recomendado del roadmap:
+    - abrir `Etapa 11. Secretos y Seguridad Operativa`
+    - foco inicial:
+      - primer corte ya abierto:
+        - enforcement visible de `TENANT_SECRETS_FILE` separado del `.env` legacy
+        - lectura operativa explícita del carril runtime de secretos tenant en `Settings`
+      - siguiente slice:
+        - dejar de tratar el `.env` legacy como candidato normal de resolución cuando el runtime ya tiene `TENANT_SECRETS_FILE`
+        - fortalecer política de distribución/rotación centralizada de secretos fuera de `.env`
+        - cerrar mejor política de reactivación, acceso y evidencia operativa ligada a credenciales
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual

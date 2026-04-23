@@ -211,6 +211,9 @@ class PlatformRuntimeSecurityPostureResponse(BaseModel):
     production_ready: bool
     findings_count: int
     findings: list[str]
+    tenant_secrets_runtime: dict
+    tenant_secrets_legacy: dict
+    tenant_secrets_isolated_from_legacy: bool
 
 
 class TenantCreateRequest(BaseModel):

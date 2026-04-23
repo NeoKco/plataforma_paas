@@ -729,7 +729,7 @@ Este apendice sirve para unir la pantalla visible con la operacion tecnica real.
 | Cambiar estado lifecycle | `PATCH /platform/tenants/{tenant_id}/status` | actualiza `status` y `status_reason` |
 | Cambiar mantenimiento | `PATCH /platform/tenants/{tenant_id}/maintenance` | actualiza modo, ventanas y scopes |
 | Cambiar billing | `PATCH /platform/tenants/{tenant_id}/billing` | actualiza estado y fechas de billing |
-| Cambiar plan | `PATCH /platform/tenants/{tenant_id}/plan` | ajusta `plan_code` |
+| Cambiar plan legacy | `PATCH /platform/tenants/{tenant_id}/plan` | ajusta `plan_code` solo para compatibilidad heredada |
 | Cambiar rate limits | `PATCH /platform/tenants/{tenant_id}/rate-limits` | ajusta limites API efectivos |
 | Cambiar identidad de billing | `PATCH /platform/tenants/{tenant_id}/billing-identity` | enlaza IDs externos del proveedor |
 | Cambiar module limits | `PATCH /platform/tenants/{tenant_id}/module-limits` | ajusta cuotas por modulo |

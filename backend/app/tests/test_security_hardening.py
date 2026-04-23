@@ -55,6 +55,8 @@ class RuntimeSecurityServiceTestCase(unittest.TestCase):
         service = RuntimeSecurityService()
         fake_settings = SimpleNamespace(
             APP_ENV="development",
+            BASE_DIR=Path("/tmp/platform-paas"),
+            TENANT_SECRETS_FILE="/tmp/platform-paas/.tenant-secrets.env",
             JWT_SECRET_KEY="change_this_secret_in_production",
             CONTROL_DB_PASSWORD="change_me",
             POSTGRES_ADMIN_PASSWORD="",
@@ -74,6 +76,60 @@ class RuntimeSecurityServiceTestCase(unittest.TestCase):
         )
         self.assertTrue(
             any("TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO" in finding for finding in findings)
+        )
+
+    def test_validate_settings_flags_runtime_secrets_file_mixed_with_legacy_env(self) -> None:
+        service = RuntimeSecurityService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            fake_settings = SimpleNamespace(
+                APP_ENV="development",
+                BASE_DIR=base_dir,
+                TENANT_SECRETS_FILE=str(base_dir / ".env"),
+                JWT_SECRET_KEY="safe-jwt-secret-123456",
+                CONTROL_DB_PASSWORD="safe-control-password-123456",
+                POSTGRES_ADMIN_PASSWORD="safe-postgres-password-123456",
+                JWT_ISSUER="platform_paas",
+                JWT_PLATFORM_AUDIENCE="platform-api",
+                JWT_TENANT_AUDIENCE="tenant-api",
+                TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP="",
+                TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO="",
+            )
+
+            findings = service.validate_settings(fake_settings)
+
+        self.assertTrue(
+            any("TENANT_SECRETS_FILE sigue apuntando al .env legacy" in finding for finding in findings)
+        )
+
+    def test_describe_security_posture_reports_secret_file_isolation(self) -> None:
+        service = RuntimeSecurityService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            runtime_path = base_dir / ".tenant-secrets.env"
+            runtime_path.write_text("", encoding="utf-8")
+            fake_settings = SimpleNamespace(
+                APP_ENV="development",
+                BASE_DIR=base_dir,
+                TENANT_SECRETS_FILE=str(runtime_path),
+                JWT_SECRET_KEY="safe-jwt-secret-123456",
+                CONTROL_DB_PASSWORD="safe-control-password-123456",
+                POSTGRES_ADMIN_PASSWORD="safe-postgres-password-123456",
+                JWT_ISSUER="platform_paas",
+                JWT_PLATFORM_AUDIENCE="platform-api",
+                JWT_TENANT_AUDIENCE="tenant-api",
+                TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP="",
+                TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO="",
+            )
+
+            posture = service.describe_security_posture(fake_settings)
+
+        self.assertTrue(posture["tenant_secrets_isolated_from_legacy"])
+        self.assertEqual(
+            posture["tenant_secrets_runtime"]["classification"],
+            "runtime_secrets_file",
         )
 
 

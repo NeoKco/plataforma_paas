@@ -49,6 +49,10 @@ Documentación base:
 - frontend y backend deben consumir el catálogo de capacidades como fuente de verdad cuando aplique
 - si `Provisioning` muestra o condiciona recorridos broker-only, la fuente de verdad visible del entorno debe salir del catálogo de capacidades y no de inferencias locales; hoy eso se expone como `current_provisioning_dispatch_backend`
 - el bootstrap tenant-side tampoco debe volver a inferir módulos desde `tenant.plan_code`; debe consumir `effective_enabled_modules`
+- en `Etapa 11`, el runtime ya debe tratar `TENANT_SECRETS_FILE` como carril normal de secretos tenant:
+  - si apunta al mismo `.env` legacy, `security-posture` ya debe marcar hallazgo
+  - si no es legible o escribible, `security-posture` ya debe marcar hallazgo
+  - cualquier evolución nueva debe fortalecer ese carril, no reintroducir escritura normal sobre `.env`
 - la apertura formal de `Etapa 15` también queda backend-driven:
   - `base_plan_catalog`, `module_subscription_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo comercial vigente
   - `module_dependency_catalog` de ese mismo endpoint es la fuente de verdad de las dependencias explícitas entre módulos
@@ -92,7 +96,8 @@ Documentación base:
     - los scripts operativos internos (`seed_frontend_demo_baseline.py`, `seed_demo_data.py`, `audit_active_tenant_convergence.py`) tampoco deben volver a usar `tenant.plan_code` como baseline normal
     - `tenant_service` tampoco debe consultar `tenant_plan_policy_service` para módulos o baseline de un tenant contract-managed solo porque aún arrastre un `plan_code` histórico
     - `tenant_policy_event_service` debe serializar `plan_code=null` en snapshots de tenants contract-managed para no contaminar `changed_fields`
-    - siguiente corte: revisar si todavía queda algún consumidor real de `plan_code` en capas internas de capabilities/reporting
+    - revisión repo-wide ya cerrada: no queda consumidor contractual real de `plan_code` fuera del carril legacy explícito, archivado o documental
+    - cualquier uso nuevo de `plan_code` debe justificarse solo como compatibilidad legacy real
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
   - mutación nueva de migración:

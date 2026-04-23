@@ -2,6 +2,24 @@
 
 ## 2026-04-23
 
+- `Etapa 11` ya abre su primer slice visible real sobre secretos tenant:
+  - [runtime_security_service.py](/home/felipe/platform_paas/backend/app/common/security/runtime_security_service.py) ya marca hallazgo si `TENANT_SECRETS_FILE` apunta al mismo `.env` legacy o si el archivo runtime no es legible/escribible
+  - `production_ready` de `/platform/security-posture` ya cae cuando el runtime sigue mezclando secretos tenant con el `.env` principal
+  - [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py) ahora expone además:
+    - `tenant_secrets_runtime`
+    - `tenant_secrets_legacy`
+    - `tenant_secrets_isolated_from_legacy`
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya muestra archivo runtime efectivo, aislamiento frente al `.env` legacy y si ese carril es escribible
+  - validación repo:
+    - `backend.app.tests.test_security_hardening` -> `12 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `220 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
+- la `Etapa 15` ya cierra la revisión repo-wide del fallback legacy por `plan_code`:
+  - no aparece consumidor contractual real fuera del carril legacy explícito en runtime
+  - la documentación histórica que todavía lo describía como baseline normal ya quedó corregida
+  - el frente `plan_code cleanup` deja de ser foco activo y la compatibilidad residual queda solo como rescate legacy
+
 - la `Etapa 15` ya recorta la superficie pública residual de `plan_code` en capacidades y consola:
   - [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) ya no expone `plan_catalog` ni `available_plan_codes` como catálogo normal
   - el endpoint `/platform/capabilities` ahora publica `legacy_plan_fallback_available` y `legacy_plan_catalog` solo cuando existe al menos un tenant realmente legacy

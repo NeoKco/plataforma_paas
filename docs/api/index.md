@@ -294,7 +294,9 @@ Respuesta esperada:
       "name": "Condominio Demo",
       "slug": "condominio-demo",
       "tenant_type": "condos",
-      "plan_code": "pro",
+      "plan_code": null,
+      "legacy_plan_fallback_active": false,
+      "subscription_base_plan_code": "base_finance",
       "billing_status": "active",
       "status": "active",
       "maintenance_mode": false
@@ -314,7 +316,7 @@ Requiere:
 
 ### `GET /platform/tenants/{tenant_id}`
 
-Devuelve el detalle base de un tenant, incluyendo plan, billing, maintenance y overrides persistidos.
+Devuelve el detalle base de un tenant, incluyendo plan base contractual, compatibilidad legacy cuando aplica, billing, maintenance y overrides persistidos.
 
 Uso esperado:
 
@@ -446,7 +448,9 @@ Respuesta esperada:
   "tenant_id": 1,
   "tenant_slug": "condominio-demo",
   "tenant_status": "active",
-  "tenant_plan_code": "pro",
+  "tenant_plan_code": null,
+  "legacy_plan_fallback_active": false,
+  "subscription_base_plan_code": "base_finance",
   "api_read_requests_per_minute": 120,
   "api_write_requests_per_minute": 30
 }
@@ -460,7 +464,7 @@ Notas:
 
 ### `PATCH /platform/tenants/{tenant_id}/plan`
 
-Asigna o limpia el `plan_code` del tenant.
+Asigna o limpia el `plan_code` del tenant solo para compatibilidad legacy.
 
 Request body:
 
@@ -486,9 +490,11 @@ Respuesta esperada:
 
 Notas:
 
-- `null` limpia el plan actual
+- `null` limpia el plan actual legacy
 - el valor debe existir en `TENANT_PLAN_RATE_LIMITS` o en `TENANT_PLAN_ENABLED_MODULES`
-- si el plan declara modulos en `TENANT_PLAN_ENABLED_MODULES`, el middleware tenant bloquea con `403` las rutas de modulos no habilitados
+- si el tenant ya es `contract-managed`, la ruta responde `409`
+- el carril contractual normal ya no pasa por aquí; usa `base_plan_code` + `PATCH /platform/tenants/{tenant_id}/subscription`
+- si el plan legacy declara modulos en `TENANT_PLAN_ENABLED_MODULES`, el middleware tenant bloquea con `403` las rutas de modulos no habilitados
 
 Requiere:
 

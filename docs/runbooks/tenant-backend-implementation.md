@@ -175,14 +175,14 @@ Alcance actual:
 - en `redis` pasa a ser una cuota compartida entre procesos backend
 - separa buckets por `tenant_slug` y por tipo de operacion (`read` o `write`)
 - se activa con `TENANT_API_RATE_LIMIT_BACKEND=redis`
-- si el tenant tiene `plan_code`, el middleware puede tomar la cuota `read/write` desde `TENANT_PLAN_RATE_LIMITS`
-- si el tenant tiene `plan_code`, el middleware tambien puede habilitar o bloquear modulos segun `TENANT_PLAN_ENABLED_MODULES`
+- si el tenant sigue realmente legacy y tiene `plan_code`, el middleware puede tomar la cuota `read/write` desde `TENANT_PLAN_RATE_LIMITS`
+- si el tenant sigue realmente legacy y tiene `plan_code`, el middleware tambien puede habilitar o bloquear modulos segun `TENANT_PLAN_ENABLED_MODULES`
 - `maintenance` ya no hereda acceso desde `core`; si la ruta cae bajo `/tenant/maintenance`, el plan o la gracia de billing deben incluir explícitamente `maintenance`
-- si el tenant tiene `plan_code`, el middleware tambien puede resolver limites de uso por modulo desde `TENANT_PLAN_MODULE_LIMITS`
+- si el tenant sigue realmente legacy y tiene `plan_code`, el middleware tambien puede resolver limites de uso por modulo desde `TENANT_PLAN_MODULE_LIMITS`
 - si el tenant esta en `billing_in_grace`, el middleware puede degradar cuotas y modulos con `TENANT_BILLING_GRACE_*`
 - si existe `TENANT_BILLING_GRACE_MODULE_LIMITS`, tambien puede degradar el limite efectivo por modulo
 - si el tenant tiene override persistido, ese valor tiene prioridad sobre la configuracion global
-- la prioridad final de cuota es `gracia billing > override tenant > plan > global`
+- la prioridad final de cuota es `gracia billing > override tenant > baseline legacy por plan_code > global`
 - los modulos efectivos salen de la interseccion `plan` y `billing grace` cuando ambas politicas existen
 - si una ruta tenant pertenece a un modulo no habilitado por plan, la API responde `403`
 - si una ruta tenant pertenece a un modulo excluido por la politica de gracia vigente, la API responde `403`

@@ -64,15 +64,32 @@ def get_platform_security_posture(
     _token: dict = Depends(require_role("superadmin")),
 ) -> PlatformRuntimeSecurityPostureResponse:
     try:
-        findings = runtime_security_service.validate_settings(settings)
+        posture = runtime_security_service.describe_security_posture(settings)
     except RuntimeError as exc:
-        findings = [str(exc)]
+        posture = runtime_security_service.tenant_secret_service.build_secret_posture(
+            settings
+        )
+        posture = {
+            "findings": [str(exc)],
+            "production_ready": False,
+            "tenant_secrets_runtime": posture["runtime"],
+            "tenant_secrets_legacy": posture["legacy"],
+            "tenant_secrets_isolated_from_legacy": (
+                posture["runtime"]["path"] != posture["legacy"]["path"]
+                and posture["runtime"]["classification"] != "legacy_env_file"
+            ),
+        }
 
     return PlatformRuntimeSecurityPostureResponse(
         success=True,
         message="Postura de seguridad de runtime recuperada correctamente",
         app_env=settings.APP_ENV,
-        production_ready=len(findings) == 0,
-        findings_count=len(findings),
-        findings=findings,
+        production_ready=posture["production_ready"],
+        findings_count=len(posture["findings"]),
+        findings=posture["findings"],
+        tenant_secrets_runtime=posture["tenant_secrets_runtime"],
+        tenant_secrets_legacy=posture["tenant_secrets_legacy"],
+        tenant_secrets_isolated_from_legacy=posture[
+            "tenant_secrets_isolated_from_legacy"
+        ],
     )

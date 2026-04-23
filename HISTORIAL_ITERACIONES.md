@@ -1,5 +1,68 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya abre su primer slice visible sobre secretos tenant
+
+Contexto:
+
+- abrir el siguiente frente formal del roadmap fuera de la `Etapa 15`
+- elegir un corte concreto que mejorara el carril real de secretos tenant sin abrir todavía un secret manager completo
+
+Cambios:
+
+- [runtime_security_service.py](/home/felipe/platform_paas/backend/app/common/security/runtime_security_service.py):
+  - ahora considera hallazgo si `TENANT_SECRETS_FILE` apunta al mismo `.env` legacy
+  - también marca hallazgo si el archivo runtime de secretos tenant no es legible o escribible
+- [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py):
+  - `/platform/security-posture` ahora expone:
+    - `tenant_secrets_runtime`
+    - `tenant_secrets_legacy`
+    - `tenant_secrets_isolated_from_legacy`
+- [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+  - ahora muestra el archivo runtime efectivo
+  - si está separado del `.env` legacy
+  - y si ese carril es escribible
+
+Resultado:
+
+- la consola deja de depender de interpretación manual para saber si el runtime sigue mezclando secretos tenant con `.env`
+- `production_ready` ya cae si el carril de secretos tenant sigue mal separado
+- la `Etapa 11` deja de ser solo intención documental y ya tiene un primer enforcement visible
+
+## 2026-04-23 - la `Etapa 15` ya deja el fallback legacy por `plan_code` suficientemente acotado
+
+Contexto:
+
+- cerrar la duda final de si todavía sobrevivía algún consumidor contractual real de `plan_code` fuera del carril legacy explícito
+- limpiar documentación vieja que todavía describía `plan_code` como baseline normal aunque el runtime ya no opere así
+
+Cambios:
+
+- revisión repo-wide del runtime vivo:
+  - no aparece consumidor contractual real de `plan_code` fuera de:
+    - compatibilidad legacy explícita
+    - archivado histórico
+    - rutas/documentación heredada
+- actualización documental en:
+  - `docs/api/index.md`
+  - `docs/architecture/app-visual-manual.md`
+  - `docs/architecture/backend-current-flow.md`
+  - `docs/runbooks/tenant-backend-implementation.md`
+  - `docs/runbooks/platform-backend-implementation.md`
+  - `docs/runbooks/provisioning-guided-test.md`
+- memoria viva alineada para sacar este frente del foco activo:
+  - `ESTADO_ACTUAL.md`
+  - `SIGUIENTE_PASO.md`
+  - `HANDOFF_STATE.json`
+  - `docs/modules/platform-core/{DEV_GUIDE,ROADMAP,CHANGELOG}.md`
+  - `docs/architecture/development-roadmap.md`
+
+Resultado:
+
+- `plan_code` deja de considerarse riesgo operativo activo
+- la compatibilidad residual queda solo como rescate legacy
+- la `Etapa 15` puede considerarse suficientemente cerrada para el alcance actual
+- el siguiente frente recomendado del roadmap pasa a `Etapa 11. Secretos y Seguridad Operativa`
+
 ## 2026-04-23 - la `Etapa 15` ya alinea seeds demo y auditoría multi-tenant al modelo contractual nuevo
 
 - objetivo:

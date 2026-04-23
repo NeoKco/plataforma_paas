@@ -4453,10 +4453,28 @@ class PlatformRoutesTestCase(unittest.TestCase):
         fake_runtime_security_service,
     ) -> None:
         fake_settings.APP_ENV = "development"
-        fake_runtime_security_service.validate_settings.return_value = [
-            "JWT_SECRET_KEY sigue con un valor inseguro por defecto",
-            "TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP sigue con una password bootstrap insegura de demo",
-        ]
+        fake_runtime_security_service.describe_security_posture.return_value = {
+            "findings": [
+                "JWT_SECRET_KEY sigue con un valor inseguro por defecto",
+                "TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP sigue con una password bootstrap insegura de demo",
+            ],
+            "production_ready": False,
+            "tenant_secrets_runtime": {
+                "path": "/tmp/.tenant-secrets.env",
+                "classification": "runtime_secrets_file",
+                "exists": True,
+                "readable": True,
+                "writable": True,
+            },
+            "tenant_secrets_legacy": {
+                "path": "/tmp/.env",
+                "classification": "legacy_env_file",
+                "exists": True,
+                "readable": True,
+                "writable": True,
+            },
+            "tenant_secrets_isolated_from_legacy": True,
+        }
 
         response = get_platform_security_posture(
             _token=self._token_payload(),
@@ -4467,6 +4485,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertFalse(response.production_ready)
         self.assertEqual(response.findings_count, 2)
         self.assertEqual(len(response.findings), 2)
+        self.assertTrue(response.tenant_secrets_isolated_from_legacy)
 
     def test_list_platform_users_returns_catalog(self) -> None:
         users = [

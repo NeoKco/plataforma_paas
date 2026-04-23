@@ -47,6 +47,9 @@ Esta lectura no expone secretos; solo resume:
 - si el runtime quedaria listo para produccion
 - cantidad de hallazgos
 - lista de hallazgos descriptivos
+- archivo runtime efectivo de secretos tenant
+- si ese archivo realmente queda separado del `.env` legacy
+- si el backend puede leerlo y escribirlo
 
 ## 2. Secretos tenant dinamicos
 
@@ -66,11 +69,12 @@ Archivo principal:
 
 Resolucion actual:
 
-- primero intenta `os.environ`
+- primero intenta `TENANT_SECRETS_FILE`
+- luego `/.env` legacy solo como compatibilidad residual de lectura
+- luego `os.environ`
 - luego settings estaticos ya declarados
-- y finalmente lee la clave directamente desde `/.env`
 
-Esto ultimo es importante porque el provisioning puede crear secretos tenant dinamicos despues de la instalacion inicial y el backend necesita poder resolverlos tras reinicios.
+Esto permite que el provisioning cree secretos tenant dinámicos después de la instalación inicial y que el backend pueda resolverlos tras reinicios, sin tratar el `.env` principal como carril normal de escritura.
 
 ### Rotacion formal de credenciales tecnicas tenant
 
@@ -82,7 +86,7 @@ Politica actual:
 - altera la password del rol PostgreSQL del tenant
 - valida que el nuevo acceso realmente funcione
 - si la validacion falla, restaura la password anterior
-- guarda el secreto dinamico nuevo en `/.env`
+- guarda el secreto dinámico nuevo en `TENANT_SECRETS_FILE`
 - limpia la variable bootstrap antigua si todavia existia
 - deja trazabilidad en actividad e historial de politica tenant
 
@@ -104,6 +108,16 @@ Objetivo:
 - detectar más rápido si el carril está leyendo/escribiendo donde corresponde
 - evitar diagnósticos ambiguos entre `staging`, `production` y repo local
 - dejar visible cuándo un operador intenta reutilizar el `.env` legacy como target de sincronización
+
+### Regla visible nueva de readiness
+
+`GET /platform/security-posture` y `Configuración -> Postura de secretos y runtime` ahora también marcan hallazgo si:
+
+- `TENANT_SECRETS_FILE` apunta al mismo path que el `.env` legacy
+- el archivo runtime de secretos tenant no es legible
+- el archivo runtime de secretos tenant no es escribible
+
+En `production`, esa mezcla con `.env` principal ya deja `production_ready=false`.
 
 ### Regla nueva para sincronización cross-env
 

@@ -263,9 +263,9 @@ Referencia tecnica principal:
 - `backend/app/apps/provisioning/services/provisioning_service.py`
 - `backend/app/apps/platform_control/services/tenant_service.py`
 
-Ademas, hoy `platform` puede asignar `plan_code` al tenant.
+Ademas, hoy `platform` todavia puede asignar `plan_code` al tenant solo para compatibilidad legacy.
 
-Con eso el backend puede resolver cuotas por plan y tambien modulos habilitados por plan desde configuracion, sin depender todavia de un modulo formal de billing.
+Con eso el backend puede resolver cuotas por plan y modulos habilitados por plan solo para tenants heredados, mientras el carril contractual normal ya opera con `base_plan_code` + `tenant_subscriptions`.
 
 Ademas, hoy `platform` puede persistir un estado minimo de billing por tenant:
 

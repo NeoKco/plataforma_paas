@@ -182,6 +182,21 @@ export type PlatformRuntimeSecurityPostureResponse = {
   production_ready: boolean;
   findings_count: number;
   findings: string[];
+  tenant_secrets_runtime: {
+    path: string;
+    classification: string;
+    exists: boolean;
+    readable: boolean;
+    writable: boolean;
+  };
+  tenant_secrets_legacy: {
+    path: string;
+    classification: string;
+    exists: boolean;
+    readable: boolean;
+    writable: boolean;
+  };
+  tenant_secrets_isolated_from_legacy: boolean;
 };
 
 export type PlatformLoginResponse = {

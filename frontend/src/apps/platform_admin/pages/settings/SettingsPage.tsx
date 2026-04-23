@@ -480,6 +480,42 @@ export function SettingsPage() {
               label={language === "es" ? "Hallazgos" : "Findings"}
               value={securityPosture?.findings_count ?? "n/d"}
             />
+            <DetailField
+              label={
+                language === "es"
+                  ? "Archivo runtime de secretos tenant"
+                  : "Tenant runtime secrets file"
+              }
+              value={securityPosture?.tenant_secrets_runtime?.path || "n/d"}
+            />
+            <DetailField
+              label={language === "es" ? "Separado de .env legacy" : "Separated from legacy .env"}
+              value={
+                securityPosture
+                  ? securityPosture.tenant_secrets_isolated_from_legacy
+                    ? language === "es"
+                      ? "sí"
+                      : "yes"
+                    : language === "es"
+                      ? "no"
+                      : "no"
+                  : "n/d"
+              }
+            />
+            <DetailField
+              label={language === "es" ? "Runtime escribible" : "Runtime writable"}
+              value={
+                securityPosture?.tenant_secrets_runtime
+                  ? securityPosture.tenant_secrets_runtime.writable
+                    ? language === "es"
+                      ? "sí"
+                      : "yes"
+                    : language === "es"
+                      ? "no"
+                      : "no"
+                  : "n/d"
+              }
+            />
           </div>
           {securityPostureError ? (
             <div className="alert alert-warning mt-3 mb-0">
@@ -500,6 +536,11 @@ export function SettingsPage() {
               {language === "es"
                 ? "Las passwords bootstrap tenant de demo o demasiado cortas ya quedan prohibidas cuando `APP_ENV=production`."
                 : "Demo or overly short tenant bootstrap passwords are already forbidden when `APP_ENV=production`."}
+            </div>
+            <div>
+              {language === "es"
+                ? "En producción, el runtime ya no debería mezclar secretos tenant con el `.env` principal; `TENANT_SECRETS_FILE` debe quedar aislado y escribible."
+                : "In production, runtime should no longer mix tenant secrets with the main `.env`; `TENANT_SECRETS_FILE` should remain isolated and writable."}
             </div>
             <div>
               {language === "es"

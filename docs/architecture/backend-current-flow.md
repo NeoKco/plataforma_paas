@@ -240,10 +240,10 @@ Adicionalmente, para requests tenant el middleware hoy tambien:
 - bloquea tambien por lifecycle tenant si el estado ya no es `active`
 - puede bloquear tambien por politica de billing aunque el `status` manual siga en `active`
 - la decision efectiva de acceso tenant ya puede leerse como una politica consolidada, no solo como checks dispersos
-- puede bloquear rutas de modulo con `403` si el `plan_code` no habilita ese modulo
+- puede bloquear rutas de modulo con `403` si un tenant realmente legacy mantiene `plan_code` y ese baseline no habilita ese modulo
 - bloquea con `503` segun mantenimiento manual o ventana activa, respetando scope y access mode configurados
 - puede aplicar cuota por tenant separando lecturas y escrituras si se habilitan limites por minuto
-- puede resolver primero una cuota por plan cuando el tenant tiene `plan_code`
+- puede resolver primero una cuota por plan solo cuando el tenant sigue realmente legacy y mantiene `plan_code`
 - si el tenant esta en gracia de billing, puede degradar antes la cuota y los modulos efectivos
 - `finance` ya expone uso contra limite efectivo tanto desde `tenant` como desde `platform`
 - tambien existe una vista generica de uso por modulo para no acoplar operacion solo a `finance`

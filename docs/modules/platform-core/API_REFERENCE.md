@@ -66,6 +66,7 @@ Activity:
 Capabilities:
 
 - `GET /platform/capabilities`
+- `GET /platform/security-posture`
 
 Payload operativo actual de `GET /platform/capabilities`:
 
@@ -78,6 +79,16 @@ Payload operativo actual de `GET /platform/capabilities`:
 - `module_subscription_catalog`
 - `legacy_plan_catalog` solo si todavía existe algún tenant realmente legacy
 - `current_provisioning_dispatch_backend`
+
+Payload operativo actual de `GET /platform/security-posture`:
+
+- `app_env`
+- `production_ready`
+- `findings_count`
+- `findings`
+- `tenant_secrets_runtime`
+- `tenant_secrets_legacy`
+- `tenant_secrets_isolated_from_legacy`
 
 ## Notas
 
