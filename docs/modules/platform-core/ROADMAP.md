@@ -102,6 +102,10 @@ Estado práctico de cierre:
     - baseline visible global
     - bajada al workspace tenant cuando ya toca reconcile
     - referencia repo/CI equivalente con los smokes de reconcile individual y batch
+- la salida formal de ese frente ya deja abierto el siguiente bloque maestro:
+  - `Etapa 15. Registro y Activación de Módulos` pasa de pendiente a primera ejecución visible
+  - `Configuración` ya expone `Catálogo de planes y módulos`
+  - `Tenants > Plan y módulos` ya deja explícita la activación tenant-side y los límites por módulo del plan seleccionado
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`

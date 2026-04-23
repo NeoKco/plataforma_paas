@@ -538,6 +538,55 @@ export function SettingsPage() {
       {capabilities ? (
         <>
           <DataTableCard
+            title={language === "es" ? "Catálogo de planes y módulos" : "Plans and modules catalog"}
+            subtitle={
+              language === "es"
+                ? "Primera base formal de la Etapa 15: qué módulos declara hoy backend por plan y qué límites por módulo ya existen."
+                : "First formal base for Stage 15: which modules the backend currently declares per plan and which per-module limits already exist."
+            }
+            rows={capabilities.plan_catalog}
+            columns={[
+              {
+                key: "plan_code",
+                header: language === "es" ? "Plan" : "Plan",
+                render: (row) => <code>{row.plan_code}</code>,
+              },
+              {
+                key: "enabled_modules",
+                header: language === "es" ? "Módulos declarados" : "Declared modules",
+                render: (row) =>
+                  row.enabled_modules?.length ? (
+                    <div className="settings-token-chips">
+                      {row.enabled_modules.map((value) => (
+                        <span key={`${row.plan_code}-${value}`} className="tenant-chip">
+                          {getPlanModuleLabel(value, language)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    "—"
+                  ),
+              },
+              {
+                key: "module_limits",
+                header: language === "es" ? "Límites por módulo" : "Per-module limits",
+                render: (row) =>
+                  formatModuleLimitsSummary(row.module_limits, language),
+              },
+              {
+                key: "read_requests_per_minute",
+                header: language === "es" ? "Read req/min" : "Read req/min",
+                render: (row) => row.read_requests_per_minute ?? "—",
+              },
+              {
+                key: "write_requests_per_minute",
+                header: language === "es" ? "Write req/min" : "Write req/min",
+                render: (row) => row.write_requests_per_minute ?? "—",
+              },
+            ]}
+          />
+
+          <DataTableCard
             title={language === "es" ? "Catálogo de capacidades" : "Capabilities catalog"}
             subtitle={
               language === "es"
@@ -639,6 +688,50 @@ export function SettingsPage() {
                 </div>
               </div>
             </PanelCard>
+
+            <PanelCard
+              icon="catalogs"
+              title={
+                language === "es"
+                  ? "Registro y activación de módulos"
+                  : "Module registry and activation"
+              }
+              subtitle={
+                language === "es"
+                  ? "Lectura operativa corta del slice inicial de la Etapa 15."
+                  : "Short operational read for the initial slice of Stage 15."
+              }
+            >
+              <div className="dashboard-quick-hints mt-0">
+                <div>
+                  {language === "es"
+                    ? "El catálogo explícito hoy sale de `GET /platform/capabilities`: planes, módulos declarados y límites por módulo."
+                    : "The explicit catalog now comes from `GET /platform/capabilities`: plans, declared modules and per-module limits."}
+                </div>
+                <div>
+                  {language === "es"
+                    ? "La activación tenant-side sigue ocurriendo en `Tenants > Plan y módulos`; el plan seleccionado es la fuente principal de módulos habilitados."
+                    : "Tenant-side activation still happens in `Tenants > Plan and modules`; the selected plan is the main source of enabled modules."}
+                </div>
+                <div>
+                  {language === "es"
+                    ? "Los overrides de límites por tenant siguen existiendo, pero no reemplazan el catálogo de módulos ni las dependencias que declare backend."
+                    : "Tenant-specific limit overrides still exist, but they do not replace the module catalog or the dependencies declared by the backend."}
+                </div>
+                <div>
+                  {language === "es"
+                    ? "El siguiente paso formal ya no es inventar módulos nuevos en la UI, sino modelar mejor dependencias y activación/desactivación explícita por tenant sobre esta base."
+                    : "The next formal step is no longer inventing new modules in the UI, but modeling dependencies and explicit tenant activation/deactivation on top of this base."}
+                </div>
+              </div>
+              <div className="settings-token-chips mt-3">
+                {capabilities.plan_modules.map((moduleKey) => (
+                  <span key={moduleKey} className="tenant-chip">
+                    {getPlanModuleLabel(moduleKey, language)}
+                  </span>
+                ))}
+              </div>
+            </PanelCard>
           </div>
         </>
       ) : null}
@@ -682,4 +775,31 @@ function SettingsTokenGroup({
       </div>
     </div>
   );
+}
+
+function getPlanModuleLabel(
+  moduleKey: string,
+  language: "es" | "en"
+): string {
+  const labels: Record<string, string> = {
+    all: language === "es" ? "Todos los módulos" : "All modules",
+    core: language === "es" ? "Core negocio" : "Business core",
+    users: language === "es" ? "Usuarios" : "Users",
+    finance: language === "es" ? "Finanzas" : "Finance",
+    maintenance: language === "es" ? "Mantenciones" : "Maintenance",
+  };
+  return labels[moduleKey] || moduleKey;
+}
+
+function formatModuleLimitsSummary(
+  value: Record<string, number> | null,
+  language: "es" | "en"
+): string {
+  if (!value || Object.keys(value).length === 0) {
+    return "—";
+  }
+
+  return Object.entries(value)
+    .map(([key, amount]) => `${displayPlatformCode(key, language)}: ${amount}`)
+    .join(" · ");
 }

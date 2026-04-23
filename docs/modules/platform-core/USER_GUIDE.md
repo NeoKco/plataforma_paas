@@ -50,6 +50,7 @@ Nota operativa:
 - los módulos del tenant no se habilitan con toggles manuales en el alta; se habilitan por el `plan`
 - la misma pantalla ya debe mostrar qué módulos activa el plan seleccionado
 - en tenants existentes, el bloque correcto para revisar o cambiar eso es `Plan y módulos`
+- `Configuración` ya deja además un `Catálogo de planes y módulos` para ver qué declara backend hoy por plan antes de tocar un tenant puntual
 - `Mantenciones` ya no se considera implícito dentro de `Core negocio`; si quieres que el tenant lo use, el `plan` debe traer explícitamente el módulo `maintenance`
 - el bloque `Postura operativa tenant` en `Tenants` debe leerse antes de reabrir un bug:
   - si marca bloqueo, revisar lifecycle/billing/maintenance
@@ -61,6 +62,22 @@ Referencia:
 
 - [tenant-basic-cycle.md](/home/felipe/platform_paas/docs/runbooks/tenant-basic-cycle.md)
 - [tenant-data-portability.md](/home/felipe/platform_paas/docs/runbooks/tenant-data-portability.md)
+
+### Leer catálogo y activación de módulos
+
+La primera base operativa de la Etapa 15 ya queda visible así:
+
+1. abrir `Configuración`
+2. revisar `Catálogo de planes y módulos`
+3. confirmar qué módulos y límites por módulo declara backend para cada plan
+4. abrir `Tenants`
+5. usar `Plan y módulos` para activar la combinación correcta en un tenant específico
+
+Regla operativa:
+
+- el catálogo de módulos hoy sale de backend
+- la activación tenant-side sigue siendo plan-driven
+- los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
 
 ### Operar provisioning
 

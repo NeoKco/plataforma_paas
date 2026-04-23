@@ -91,12 +91,15 @@
       - `Provisioning/DLQ` y el hardening visible inmediato de `platform_admin` ya quedan suficientemente institucionalizados para salir del foco activo
       - no conviene seguir limando `platform-core hardening + E2E` por inercia
     - siguiente frente formal del roadmap:
-      - abrir `Etapa 15. Registro y Activación de Módulos`
-      - foco recomendado:
-        - catálogo explícito de módulos
-        - activación/desactivación por tenant
-        - dependencias entre módulos
-        - relación operativa con planes y límites
+      - `Etapa 15. Registro y Activación de Módulos` ya quedó formalmente abierta
+      - primer slice visible ya cerrado en runtime:
+        - `Configuración` expone `Catálogo de planes y módulos`
+        - `Tenants > Plan y módulos` deja explícita la ruta formal de activación tenant-side
+        - el mismo bloque ya muestra límites por módulo del plan seleccionado
+      - siguiente paso correcto dentro de la Etapa 15:
+        - modelar dependencias explícitas entre módulos y volverlas visibles en consola
+        - después decidir si la activación/desactivación tenant seguirá siendo solo plan-driven o abrirá excepciones formales por tenant
+        - por último separar mejor catálogo de módulos, límites por módulo y degradación por billing grace en la UI operativa
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la asignación del `Grupo social común`

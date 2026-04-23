@@ -2,6 +2,16 @@
 
 ## 2026-04-22
 
+- `Etapa 15. Registro y Activación de Módulos` ya abre su primer slice visible backend-driven:
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) agrega `Catálogo de planes y módulos` y una lectura corta de `Registro y activación de módulos`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ya deja explícita la `Ruta formal de activación` y muestra módulos declarados por backend y límites por módulo del plan seleccionado antes de aplicar cambios
+  - la base visible de la etapa sale de `plan_catalog` y `plan_modules` de `GET /platform/capabilities`
+  - validación:
+    - `cd frontend && npm run build` -> `OK`
+    - `staging` publicado con `SettingsPage-Bq7Xiyko.js`, `TenantsPage-wL8Ai7PO.js`, `DashboardPage-CSX9vNvH.js`, `ProvisioningPage-BQ4phs-J.js`, `BillingPage-CnLhJhaf.js`, `index-CM3Bv8ns.js`
+    - `production` publicado con `SettingsPage-Cpl5FIIa.js`, `TenantsPage-kN_U9TbX.js`, `DashboardPage-DJiASzzX.js`, `ProvisioningPage-DVRj0jqk.js`, `BillingPage-CmmsK6ct.js`, `index-ntzjsIr4.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - `platform_admin > Billing` ya explicita también la revalidación del carril:
   - [BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx) agrega una `Ruta de revalidación del carril`
   - la guía visible deja tres decisiones rápidas:

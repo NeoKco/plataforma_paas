@@ -2454,6 +2454,15 @@ export function TenantsPage() {
                       ? "sin plan activo o sin módulos declarados"
                       : "no active plan or declared modules"}
                 </div>
+                <div className="tenant-inline-note">
+                  {language === "es"
+                    ? "Ruta formal de activación"
+                    : "Formal activation route"}
+                  :{" "}
+                  {language === "es"
+                    ? "el catálogo vive en Configuración y la activación tenant se ejecuta desde Plan y módulos."
+                    : "the catalog lives in Settings and tenant activation is applied from Plan and modules."}
+                </div>
                 {selectedTenantSummary.maintenance_reason ? (
                   <div className="tenant-inline-note">
                     {language === "es" ? "Motivo de mantenimiento" : "Maintenance reason"}: {selectedTenantSummary.maintenance_reason}
@@ -3917,6 +3926,22 @@ export function TenantsPage() {
                       </select>
                     </AppFormField>
                     <div className="app-form-field app-form-field--full">
+                      <div className="tenant-help-box">
+                        <p className="tenant-help-text mb-0">
+                          {language === "es"
+                            ? "Etapa 15 ya queda abierta sobre esta regla: el plan activa módulos y define su baseline. Los overrides tenant siguen siendo solo para límites y no reemplazan el catálogo."
+                            : "Stage 15 now opens on top of this rule: the plan activates modules and defines their baseline. Tenant overrides remain for limits only and do not replace the catalog."}
+                        </p>
+                        <div className="tenant-scope-list">
+                          {(capabilities?.plan_modules || []).map((moduleKey) => (
+                            <div key={moduleKey} className="tenant-scope-list__item">
+                              <strong>{getTenantPlanModuleLabel(moduleKey)}</strong>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="app-form-field app-form-field--full">
                       {planCode && planCatalogByCode.get(planCode)?.enabled_modules?.length ? (
                         <>
                           <p className="tenant-help-text mt-2 mb-2">
@@ -3933,6 +3958,26 @@ export function TenantsPage() {
                               )
                             )}
                           </div>
+                          {planCatalogByCode.get(planCode)?.module_limits &&
+                          Object.keys(planCatalogByCode.get(planCode)?.module_limits || {})
+                            .length ? (
+                            <>
+                              <p className="tenant-help-text mt-3 mb-2">
+                                {language === "es"
+                                  ? "Límites por módulo que también entrarán por este plan:"
+                                  : "Per-module limits that will also come with this plan:"}
+                              </p>
+                              <div className="tenant-help-box">
+                                {Object.entries(
+                                  planCatalogByCode.get(planCode)?.module_limits || {}
+                                ).map(([limitKey, amount]) => (
+                                  <div key={limitKey}>
+                                    <strong>{displayPlatformCode(limitKey, language)}</strong>: {amount}
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          ) : null}
                         </>
                       ) : null}
                       <p className="tenant-help-text mt-2 mb-0">

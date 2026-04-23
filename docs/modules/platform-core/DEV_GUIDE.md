@@ -48,6 +48,10 @@ Documentación base:
 - `delete` físico de tenants sigue fuera del alcance normal de operación
 - frontend y backend deben consumir el catálogo de capacidades como fuente de verdad cuando aplique
 - si `Provisioning` muestra o condiciona recorridos broker-only, la fuente de verdad visible del entorno debe salir del catálogo de capacidades y no de inferencias locales; hoy eso se expone como `current_provisioning_dispatch_backend`
+- la apertura formal de `Etapa 15` también queda backend-driven:
+  - `plan_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo de módulos y planes
+  - `Tenants > Plan y módulos` sigue siendo la superficie de activación tenant-side
+  - no reintroducir toggles de módulos sueltos mientras la política activa siga siendo plan-driven
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal
 - en `tenant_portal`, `Usuarios` debe seguir el mismo patrón: catálogo visible primero y alta solo bajo demanda desde botón
 - `tenant_portal > Usuarios` ya expone además edición y borrado seguro: el backend bloquea autoeliminación y protege al último admin activo antes de aceptar `DELETE /tenant/users/{id}` o degradaciones equivalentes

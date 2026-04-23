@@ -565,7 +565,7 @@ Falta para cerrarlo:
 
 ## Etapa 15. Registro y Activacion de Modulos
 
-Estado: `Pendiente`
+Estado: `En progreso`
 
 Objetivo:
 
@@ -578,6 +578,20 @@ Entregables esperados:
 - activacion por tenant
 - dependencias entre modulos
 - limites por plan
+
+Resultado actual:
+
+- ya existe backend-driven `plan_catalog` en `GET /platform/capabilities`
+- ya existe `plan_modules` como catálogo explícito de módulos declarados por backend
+- `platform_admin > Configuración` ya expone una primera lectura formal del catálogo de planes y módulos
+- `platform_admin > Tenants > Plan y módulos` ya deja explícito que la activación tenant-side ocurre por plan y no por toggles sueltos
+- el mismo bloque ya muestra módulos y límites por módulo del plan seleccionado antes de aplicar el cambio
+
+Falta para cerrarlo:
+
+- modelar dependencias explícitas entre módulos y hacerlas visibles en la consola
+- decidir si la activación/desactivación tenant seguirá siendo solo plan-driven o si requiere excepciones formales por tenant
+- separar mejor catálogo de módulos, límites por módulo y degradación por billing grace dentro de la UI operativa
 
 ## Etapa 16. Infraestructura y Operacion Real
 

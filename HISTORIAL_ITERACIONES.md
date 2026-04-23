@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - `Etapa 15` abre su primer slice visible en `Configuración` y `Tenants`
+
+- objetivo:
+  - abrir formalmente la `Etapa 15. Registro y Activación de Módulos` sin reintroducir toggles sueltos ni romper el modelo plan-driven ya vigente
+- cambios y acciones ejecutadas:
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+    - agrega `Catálogo de planes y módulos`
+    - expone módulos declarados y límites por módulo de cada plan desde `plan_catalog`
+    - agrega la lectura operativa corta `Registro y activación de módulos`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - deja explícita la `Ruta formal de activación`
+    - muestra módulos backend-driven y límites por módulo del plan seleccionado antes de aplicar
+  - documentación alineada en:
+    - [docs/architecture/development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)
+    - [docs/modules/platform-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
+    - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+    - [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
+    - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- validaciones:
+  - `cd frontend && npm run build` -> `OK`
+  - `staging` publicado con `SettingsPage-Bq7Xiyko.js`, `TenantsPage-wL8Ai7PO.js`, `DashboardPage-CSX9vNvH.js`, `ProvisioningPage-BQ4phs-J.js`, `BillingPage-CnLhJhaf.js`, `index-CM3Bv8ns.js`
+  - `production` publicado con `SettingsPage-Cpl5FIIa.js`, `TenantsPage-kN_U9TbX.js`, `DashboardPage-DJiASzzX.js`, `ProvisioningPage-DVRj0jqk.js`, `BillingPage-CmmsK6ct.js`, `index-ntzjsIr4.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - `bash deploy/check_release_governance.sh` -> `OK`
+- resultado:
+  - `Etapa 15` deja de existir solo como siguiente frente y ya tiene primer slice visible backend-driven
+  - `Configuración` pasa a ser lectura formal del catálogo
+  - `Tenants > Plan y módulos` pasa a ser superficie explícita de activación tenant-side sobre esa misma base
+
 ## 2026-04-22 - `platform_admin > Billing` ya deja visible la ruta correcta de revalidación por carril
 
 - objetivo:
