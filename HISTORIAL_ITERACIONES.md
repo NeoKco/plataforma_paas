@@ -1,5 +1,31 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - la `Etapa 15` ya alinea seeds demo y auditoría multi-tenant al modelo contractual nuevo
+
+- objetivo:
+  - retirar remanentes operativos donde scripts internos todavía trataban `plan_code` como baseline normal
+  - dejar que seeds demo y auditoría activa usen la activación contractual efectiva
+- cambios y acciones ejecutadas:
+  - [backend/app/scripts/seed_frontend_demo_baseline.py](/home/felipe/platform_paas/backend/app/scripts/seed_frontend_demo_baseline.py):
+    - resuelve `base_plan_code` desde el catálogo nuevo
+    - crea suscripción contractual en los tenants demo
+    - deja `plan_code=null`
+  - [backend/app/scripts/seed_demo_data.py](/home/felipe/platform_paas/backend/app/scripts/seed_demo_data.py) y [backend/app/seeds/control/demo_catalog.py](/home/felipe/platform_paas/backend/app/seeds/control/demo_catalog.py):
+    - los tenants demo ya nacen contract-managed desde `base_plan_code`
+    - el catálogo demo ya no declara `plan_code` como baseline principal
+  - [backend/app/scripts/audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py):
+    - pasa a leer módulos habilitados desde `effective_enabled_modules`
+    - deja de inferirlos desde `tenant.plan_code`
+- validaciones:
+  - `backend.app.tests.test_seed_frontend_demo_baseline` -> `2 tests OK`
+  - `backend.app.tests.test_tenant_operational_drift_scripts` -> `17 tests OK`
+  - `python3 -m py_compile backend/app/scripts/seed_frontend_demo_baseline.py backend/app/scripts/seed_demo_data.py backend/app/scripts/audit_active_tenant_convergence.py backend/app/seeds/control/demo_catalog.py` -> `OK`
+  - `staging` backend deploy -> `551 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `production` backend deploy -> `551 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+- resultado:
+  - los scripts operativos internos ya no siguen reforzando `plan_code` como baseline normal
+  - el siguiente paso pasa a ser retirar compatibilidad `plan_code` más profunda en policy/repository donde todavía no haya valor operativo
+
 ## 2026-04-23 - la `Etapa 15` ya retira `plan_code` de las rutas de escritura contractuales normales
 
 - objetivo:

@@ -14,6 +14,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from app.apps.platform_control.models.tenant import Tenant  # noqa: E402
+from app.apps.platform_control.services.tenant_service import TenantService  # noqa: E402
 from app.apps.tenant_modules.core.services.tenant_connection_service import (  # noqa: E402
     TenantConnectionService,
 )
@@ -28,9 +29,6 @@ from app.apps.tenant_modules.maintenance.models.work_order import (  # noqa: E40
 )
 from app.apps.tenant_modules.maintenance.services.history_service import (  # noqa: E402
     MaintenanceHistoryService,
-)
-from app.common.policies.tenant_plan_policy_service import (  # noqa: E402
-    TenantPlanPolicyService,
 )
 from app.common.db.control_database import ControlSessionLocal  # noqa: E402
 from app.scripts.seed_missing_tenant_defaults import (  # noqa: E402
@@ -50,6 +48,8 @@ EXPECTED_FINANCE_SUMMARY_KEYS = {
 ACCEPTED_NOTE_PREFIXES = {
     "accepted_legacy_finance_base_currency",
 }
+
+tenant_service = TenantService()
 
 
 def is_accepted_tenant_note(note: str) -> bool:
@@ -263,11 +263,10 @@ def _audit_single_tenant(tenant) -> dict:
     tenant_db = _open_tenant_session(tenant)
     try:
         tenant_data_service = TenantDataService()
-        tenant_plan_policy_service = TenantPlanPolicyService()
         policy = tenant_data_service.get_maintenance_finance_sync_policy(tenant_db)
         enabled_modules = {
             item.strip().lower()
-            for item in (tenant_plan_policy_service.get_enabled_modules(tenant.plan_code) or [])
+            for item in (tenant_service.get_effective_enabled_modules(tenant) or [])
             if item and item.strip()
         }
         should_check_core_defaults = bool({"all", "core"} & enabled_modules)

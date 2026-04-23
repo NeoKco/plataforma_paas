@@ -87,6 +87,7 @@ Documentación base:
     - migración de tenants legacy ya disponible por API y script batch
     - `tenant_plan_code` en middleware y respuestas API ya debe quedar `null` para tenants contract-managed
     - `PATCH /platform/tenants/{tenant_id}/plan` debe quedar limitado a tenants realmente legacy
+    - los scripts operativos internos (`seed_frontend_demo_baseline.py`, `seed_demo_data.py`, `audit_active_tenant_convergence.py`) tampoco deben volver a usar `tenant.plan_code` como baseline normal
     - siguiente corte: retiro posterior de superficies residuales de compatibilidad `plan_code`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)

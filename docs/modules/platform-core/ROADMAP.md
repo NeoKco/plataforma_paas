@@ -166,6 +166,9 @@ Estado práctico de cierre:
     - `TenantCreateRequest` ya no declara `plan_code`
     - `PATCH /platform/tenants/{tenant_id}/plan` ya devuelve `409` para tenants contract-managed
     - la escritura contractual normal queda acotada a `base_plan_code` + `PATCH /platform/tenants/{tenant_id}/subscription`
+  - subcorte nuevo ya cerrado en repo y runtime:
+    - `seed_frontend_demo_baseline.py` y `seed_demo_data.py` ya generan tenants demo contract-managed desde `base_plan_code`
+    - `audit_active_tenant_convergence.py` ya lee módulos efectivos desde `effective_enabled_modules`
   - el siguiente corte ya no es migrar tenants activos ni limpiar la lectura visible, sino:
     - retirar compatibilidad residual `plan_code` más profunda donde ya no aporte
     - dejar explícito si en el futuro reaparece algún tenant realmente legacy fuera del set activo actual

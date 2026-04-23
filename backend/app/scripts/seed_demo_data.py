@@ -8,6 +8,7 @@ if str(BACKEND_DIR) not in sys.path:
 
 from app.apps.platform_control.models.tenant import Tenant
 from app.apps.platform_control.repositories.tenant_repository import TenantRepository
+from app.apps.platform_control.services.tenant_service import TenantService
 from app.apps.tenant_modules.core.models.role import Role
 from app.apps.tenant_modules.core.models.tenant_info import TenantInfo
 from app.apps.tenant_modules.core.models.user import User
@@ -15,8 +16,10 @@ from app.apps.tenant_modules.core.services.tenant_connection_service import (
     TenantConnectionService,
 )
 from app.apps.tenant_modules.finance.models.entry import FinanceEntry
+from app.common.policies.tenant_module_subscription_policy_service import (
+    TenantModuleSubscriptionPolicyService,
+)
 from app.common.db.control_database import ControlSessionLocal
-from app.common.policies.tenant_plan_policy_service import TenantPlanPolicyService
 from app.common.security.password_service import hash_password
 from app.seeds.control.demo_catalog import (
     DEMO_TENANT_USERS,
@@ -28,19 +31,32 @@ from app.scripts.seed_platform_control import seed_installation, seed_superadmin
 
 tenant_repository = TenantRepository()
 tenant_connection_service = TenantConnectionService()
-tenant_plan_policy_service = TenantPlanPolicyService()
+tenant_service = TenantService()
+tenant_module_subscription_policy_service = TenantModuleSubscriptionPolicyService()
 
 
-def _resolve_available_plan_codes() -> list[str]:
-    plan_codes = set(tenant_plan_policy_service.parse_plan_rate_limits().keys())
-    plan_codes.update(tenant_plan_policy_service.parse_plan_enabled_modules().keys())
-    plan_codes.update(tenant_plan_policy_service.parse_plan_module_limits().keys())
-    return sorted(plan_codes)
+def _resolve_default_base_plan_code() -> str:
+    default_entry = next(
+        (
+            entry
+            for entry in tenant_module_subscription_policy_service.BASE_PLAN_CATALOG
+            if entry.is_default
+        ),
+        None,
+    )
+    if default_entry is not None:
+        return default_entry.plan_code
+    return tenant_module_subscription_policy_service.DEFAULT_BASE_PLAN_CODE
 
 
 def upsert_demo_tenants(db: Session) -> list[Tenant]:
     demo_tenants: list[Tenant] = []
-    for spec in build_demo_tenant_specs(_resolve_available_plan_codes()):
+    for spec in build_demo_tenant_specs(_resolve_default_base_plan_code()):
+        base_plan_code = spec.pop("base_plan_code", None)
+        subscription_billing_cycle = spec.pop(
+            "subscription_billing_cycle",
+            "monthly",
+        )
         tenant = tenant_repository.get_by_slug(db, spec["slug"])
         if tenant is None:
             tenant = Tenant(
@@ -51,8 +67,19 @@ def upsert_demo_tenants(db: Session) -> list[Tenant]:
 
         for field_name, value in spec.items():
             setattr(tenant, field_name, value)
+        tenant.plan_code = None
 
         tenant = tenant_repository.save(db, tenant)
+        if base_plan_code:
+            tenant = tenant_service.set_subscription_contract(
+                db,
+                tenant.id,
+                base_plan_code=base_plan_code,
+                billing_cycle=subscription_billing_cycle,
+                addon_items=[],
+                retire_legacy_plan_code=True,
+                attempt_module_seed_backfill=False,
+            )
         demo_tenants.append(tenant)
 
     return demo_tenants

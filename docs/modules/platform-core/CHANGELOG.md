@@ -2,6 +2,18 @@
 
 ## 2026-04-23
 
+- la `Etapa 15` ya alinea seeds demo y auditoría multi-tenant al modelo contractual nuevo:
+  - [seed_frontend_demo_baseline.py](/home/felipe/platform_paas/backend/app/scripts/seed_frontend_demo_baseline.py) ya crea suscripción contractual para tenants demo y limpia `plan_code`
+  - [seed_demo_data.py](/home/felipe/platform_paas/backend/app/scripts/seed_demo_data.py) y [demo_catalog.py](/home/felipe/platform_paas/backend/app/seeds/control/demo_catalog.py) ya levantan tenants demo desde `base_plan_code`
+  - [audit_active_tenant_convergence.py](/home/felipe/platform_paas/backend/app/scripts/audit_active_tenant_convergence.py) ya audita módulos habilitados desde `effective_enabled_modules`
+  - validación repo:
+    - `backend.app.tests.test_seed_frontend_demo_baseline` -> `2 tests OK`
+    - `backend.app.tests.test_tenant_operational_drift_scripts` -> `17 tests OK`
+    - `python3 -m py_compile backend/app/scripts/seed_frontend_demo_baseline.py backend/app/scripts/seed_demo_data.py backend/app/scripts/audit_active_tenant_convergence.py backend/app/seeds/control/demo_catalog.py` -> `OK`
+  - validación runtime:
+    - `staging` backend deploy -> `551 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend deploy -> `551 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+
 - la `Etapa 15` ya retira `plan_code` de las rutas de escritura contractuales normales:
   - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) ya deja `TenantCreateRequest` solo con `base_plan_code` como baseline contractual
   - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ya crea tenants nuevos sin pasar `plan_code` y devuelve `409` si `PATCH /platform/tenants/{tenant_id}/plan` se intenta sobre un tenant contract-managed

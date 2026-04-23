@@ -6,8 +6,10 @@ set_test_environment()
 
 from app.apps.platform_control.models.provisioning_job import ProvisioningJob  # noqa: E402
 from app.apps.platform_control.models.tenant import Tenant  # noqa: E402
+from app.apps.platform_control.models.tenant_subscription import TenantSubscription  # noqa: E402
 from app.common.db.base import Base  # noqa: E402
 from app.scripts.seed_frontend_demo_baseline import (  # noqa: E402
+    _ensure_subscription_contract,
     _mark_pending_without_db_config,
 )
 from app.tests.db_test_utils import build_sqlite_session  # noqa: E402
@@ -68,6 +70,36 @@ class SeedFrontendDemoBaselineTestCase(unittest.TestCase):
         self.assertEqual(updated_job.error_code, "tenant_db_config_reset")
         self.assertIn("reset to pending without DB config", updated_job.error_message)
         self.assertIsNone(updated_job.next_retry_at)
+
+    def test_ensure_subscription_contract_keeps_tenant_contractual_and_clears_plan_code(self) -> None:
+        tenant = Tenant(
+            name="Empresa Demo",
+            slug="empresa-demo",
+            tenant_type="empresa",
+            status="active",
+            plan_code="mensual",
+        )
+        self.control_db.add(tenant)
+        self.control_db.commit()
+        self.control_db.refresh(tenant)
+
+        updated = _ensure_subscription_contract(
+            self.control_db,
+            tenant,
+            base_plan_code="base_finance",
+            billing_cycle="monthly",
+        )
+        self.control_db.refresh(updated)
+        subscription = (
+            self.control_db.query(TenantSubscription)
+            .filter(TenantSubscription.tenant_id == updated.id)
+            .one()
+        )
+
+        self.assertIsNone(updated.plan_code)
+        self.assertEqual(subscription.base_plan_code, "base_finance")
+        self.assertEqual(subscription.billing_cycle, "monthly")
+        self.assertEqual(subscription.status, "active")
 
 
 if __name__ == "__main__":

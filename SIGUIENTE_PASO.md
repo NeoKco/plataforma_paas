@@ -54,6 +54,7 @@
     - la consola y el portal tenant ya no muestran `plan_code` como baseline normal para tenants contract-managed
     - el alta nueva ya no acepta `plan_code` como campo contractual normal
     - `PATCH /platform/tenants/{tenant_id}/plan` ya no debe usarse sobre tenants contract-managed
+    - los seeds demo y la auditoría multi-tenant ya no deben tratar `plan_code` como baseline normal
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual
@@ -126,7 +127,7 @@
           - `Fuente baseline`
           - compatibilidad legacy cuando todavía aplica
         - siguiente slice:
-          - retirar el fallback residual por `plan_code` en capas profundas que todavía no estén visibles en consola
+          - retirar el fallback residual por `plan_code` en capas profundas que todavía no estén visibles en consola y que no hayan quedado ya cerradas en seeds/auditoría
           - mantener visible el estado legacy solo si reaparece algún tenant realmente heredado fuera del set activo actual
         - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 

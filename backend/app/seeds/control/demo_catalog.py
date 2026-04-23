@@ -1,23 +1,17 @@
-from datetime import datetime, timedelta, timezone
 import json
+from datetime import datetime, timedelta, timezone
 
 
-def build_demo_tenant_specs(available_plan_codes: list[str]) -> list[dict]:
+def build_demo_tenant_specs(base_plan_code: str | None) -> list[dict]:
     now = datetime.now(timezone.utc)
-
-    def pick_plan(index: int) -> str | None:
-        if not available_plan_codes:
-            return None
-        if index < len(available_plan_codes):
-            return available_plan_codes[index]
-        return available_plan_codes[-1]
 
     return [
         {
             "name": "Condominio Demo",
             "slug": "condominio-demo",
             "tenant_type": "condos",
-            "plan_code": pick_plan(0),
+            "base_plan_code": base_plan_code,
+            "subscription_billing_cycle": "monthly",
             "status": "active",
             "status_reason": None,
             "billing_provider": "stripe",
@@ -49,7 +43,8 @@ def build_demo_tenant_specs(available_plan_codes: list[str]) -> list[dict]:
             "name": "Empresa en Gracia",
             "slug": "empresa-gracia",
             "tenant_type": "empresa",
-            "plan_code": pick_plan(1),
+            "base_plan_code": base_plan_code,
+            "subscription_billing_cycle": "monthly",
             "status": "active",
             "status_reason": None,
             "billing_provider": "stripe",
@@ -80,7 +75,8 @@ def build_demo_tenant_specs(available_plan_codes: list[str]) -> list[dict]:
             "name": "Torre en Mantenimiento",
             "slug": "torre-mantenimiento",
             "tenant_type": "condos",
-            "plan_code": pick_plan(0),
+            "base_plan_code": base_plan_code,
+            "subscription_billing_cycle": "monthly",
             "status": "active",
             "status_reason": None,
             "billing_provider": "stripe",
@@ -110,7 +106,8 @@ def build_demo_tenant_specs(available_plan_codes: list[str]) -> list[dict]:
             "name": "Empresa Suspendida",
             "slug": "empresa-suspendida",
             "tenant_type": "empresa",
-            "plan_code": pick_plan(0),
+            "base_plan_code": base_plan_code,
+            "subscription_billing_cycle": "monthly",
             "status": "suspended",
             "status_reason": "Suspension administrativa de soporte",
             "billing_provider": "stripe",
@@ -134,7 +131,8 @@ def build_demo_tenant_specs(available_plan_codes: list[str]) -> list[dict]:
             "name": "Archivo Demo",
             "slug": "archivo-demo",
             "tenant_type": "empresa",
-            "plan_code": pick_plan(0),
+            "base_plan_code": base_plan_code,
+            "subscription_billing_cycle": "monthly",
             "status": "archived",
             "status_reason": "Tenant historico archivado para referencia",
             "billing_provider": "stripe",

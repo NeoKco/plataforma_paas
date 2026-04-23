@@ -13,10 +13,13 @@ from app.apps.platform_control.repositories.tenant_repository import TenantRepos
 from app.apps.platform_control.services.provisioning_job_service import (
     ProvisioningJobService,
 )
+from app.apps.platform_control.services.tenant_service import TenantService
 from app.apps.provisioning.services.provisioning_service import ProvisioningService
 from app.common.config.settings import settings
 from app.common.db.control_database import ControlSessionLocal
-from app.common.policies.tenant_plan_policy_service import TenantPlanPolicyService
+from app.common.policies.tenant_module_subscription_policy_service import (
+    TenantModuleSubscriptionPolicyService,
+)
 from app.scripts.seed_demo_data import seed_demo_tenant_database
 from app.scripts.seed_platform_control import seed_installation, seed_superadmin
 
@@ -24,16 +27,31 @@ from app.scripts.seed_platform_control import seed_installation, seed_superadmin
 tenant_repository = TenantRepository()
 provisioning_job_service = ProvisioningJobService()
 provisioning_service = ProvisioningService()
-tenant_plan_policy_service = TenantPlanPolicyService()
+tenant_service = TenantService()
+tenant_module_subscription_policy_service = TenantModuleSubscriptionPolicyService()
 
 
-def _resolve_default_plan_code() -> str | None:
-    plan_codes = set(tenant_plan_policy_service.parse_plan_rate_limits().keys())
-    plan_codes.update(tenant_plan_policy_service.parse_plan_enabled_modules().keys())
-    plan_codes.update(tenant_plan_policy_service.parse_plan_module_limits().keys())
-    if not plan_codes:
-        return None
-    return sorted(plan_codes)[0]
+def _resolve_default_base_plan_code() -> str:
+    default_entry = next(
+        (
+            entry
+            for entry in tenant_module_subscription_policy_service.BASE_PLAN_CATALOG
+            if entry.is_default
+        ),
+        None,
+    )
+    if default_entry is not None:
+        return default_entry.plan_code
+    return tenant_module_subscription_policy_service.DEFAULT_BASE_PLAN_CODE
+
+
+def _resolve_default_billing_cycle(base_plan_code: str) -> str:
+    entry = tenant_module_subscription_policy_service.get_base_plan_catalog_entry(
+        base_plan_code
+    )
+    if entry is None:
+        return "monthly"
+    return entry.default_billing_cycle
 
 
 def _upsert_tenant(
@@ -46,7 +64,6 @@ def _upsert_tenant(
     status_reason: str | None,
     billing_status: str | None,
     billing_status_reason: str | None,
-    plan_code: str | None,
 ) -> Tenant:
     tenant = tenant_repository.get_by_slug(db, slug)
     if tenant is None:
@@ -63,7 +80,7 @@ def _upsert_tenant(
     tenant.status_reason = status_reason
     tenant.billing_status = billing_status
     tenant.billing_status_reason = billing_status_reason
-    tenant.plan_code = plan_code
+    tenant.plan_code = None
     tenant.maintenance_mode = False
     tenant.maintenance_starts_at = None
     tenant.maintenance_ends_at = None
@@ -71,6 +88,24 @@ def _upsert_tenant(
     tenant.maintenance_scopes = None
     tenant.maintenance_access_mode = "write_block"
     return tenant_repository.save(db, tenant)
+
+
+def _ensure_subscription_contract(
+    db: Session,
+    tenant: Tenant,
+    *,
+    base_plan_code: str,
+    billing_cycle: str,
+) -> Tenant:
+    return tenant_service.set_subscription_contract(
+        db,
+        tenant.id,
+        base_plan_code=base_plan_code,
+        billing_cycle=billing_cycle,
+        addon_items=[],
+        retire_legacy_plan_code=True,
+        attempt_module_seed_backfill=False,
+    )
 
 
 def _mark_pending_without_db_config(db: Session, tenant: Tenant) -> Tenant:
@@ -137,7 +172,8 @@ def main() -> None:
         seed_installation(db)
         seed_superadmin(db)
 
-        default_plan_code = _resolve_default_plan_code()
+        default_base_plan_code = _resolve_default_base_plan_code()
+        default_billing_cycle = _resolve_default_billing_cycle(default_base_plan_code)
         pending_tenant = _upsert_tenant(
             db,
             slug="empresa-demo",
@@ -147,7 +183,12 @@ def main() -> None:
             status_reason="Pendiente de provisioning inicial",
             billing_status=None,
             billing_status_reason=None,
-            plan_code=None,
+        )
+        pending_tenant = _ensure_subscription_contract(
+            db,
+            pending_tenant,
+            base_plan_code=default_base_plan_code,
+            billing_cycle=default_billing_cycle,
         )
         pending_tenant = _mark_pending_without_db_config(db, pending_tenant)
 
@@ -160,7 +201,8 @@ def main() -> None:
                 "status_reason": None,
                 "billing_status": "active",
                 "billing_status_reason": "Tenant demo operativo",
-                "plan_code": default_plan_code,
+                "base_plan_code": default_base_plan_code,
+                "billing_cycle": default_billing_cycle,
             },
             {
                 "slug": "empresa-bootstrap",
@@ -170,13 +212,22 @@ def main() -> None:
                 "status_reason": None,
                 "billing_status": "active",
                 "billing_status_reason": "Tenant demo operativo",
-                "plan_code": default_plan_code,
+                "base_plan_code": default_base_plan_code,
+                "billing_cycle": default_billing_cycle,
             },
         ]
 
         results: list[str] = []
         for spec in active_specs:
+            base_plan_code = spec.pop("base_plan_code")
+            billing_cycle = spec.pop("billing_cycle")
             tenant = _upsert_tenant(db, **spec)
+            tenant = _ensure_subscription_contract(
+                db,
+                tenant,
+                base_plan_code=base_plan_code,
+                billing_cycle=billing_cycle,
+            )
             provision_status = _ensure_provisioned(db, tenant)
             results.append(
                 f"- {tenant.slug}: status={tenant.status}, billing={tenant.billing_status}, "

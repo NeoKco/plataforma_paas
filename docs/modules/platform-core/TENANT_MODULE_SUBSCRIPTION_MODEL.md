@@ -276,6 +276,11 @@ Estado endurecido actual:
 - el alta contractual nueva ya no debe usar fallback legacy por `plan_code`
 - `PATCH /platform/tenants/{tenant_id}/plan` queda reservado a rescate legacy
 - si el tenant ya es contract-managed, esa ruta responde `409 Tenant is already contract-managed`
+- los scripts operativos internos también ya quedaron alineados:
+  - `seed_frontend_demo_baseline.py`
+  - `seed_demo_data.py`
+  - `audit_active_tenant_convergence.py`
+  y ya no deben tratar `plan_code` como baseline contractual normal
 
 Resultado operativo actual:
 

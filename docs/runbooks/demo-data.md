@@ -14,6 +14,7 @@ El script:
 
 - asegura instalacion y `superadmin`
 - crea o actualiza tenants de demo en `platform_control`
+- deja esos tenants demo como `contract-managed` desde `base_plan_code`
 - deja escenarios distintos de lifecycle, billing y maintenance
 - intenta sembrar DB tenant cuando el tenant ya tiene DB configurada y accesible
 
@@ -39,6 +40,12 @@ Este baseline intenta dejar siempre estos tres casos:
 - `empresa-demo`: tenant `pending`, sin configuracion DB tenant, util para validar estados de onboarding o provisioning incompleto
 - `condominio-demo`: tenant `active`, con DB tenant provisionada y datos demo para `tenant_portal`
 - `empresa-bootstrap`: tenant `active`, con DB tenant provisionada y util para administracion desde `platform_admin`
+
+Ademas:
+
+- el baseline ya crea `tenant_subscriptions` para esos tenants demo
+- deja `plan_code=null`
+- alinea esos casos al modelo contractual real de la Etapa 15
 
 Al resetear `empresa-demo` a estado `pending` sin DB, el script tambien neutraliza jobs tecnicos vivos (`pending`, `retry_pending`, `running`) del tenant para no dejar reintentos stale de `sync_tenant_schema` contra una configuracion DB vacia.
 
