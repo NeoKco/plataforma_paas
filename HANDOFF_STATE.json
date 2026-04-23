@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-23T21:10:00-04:00",
+  "updated_at": "2026-04-23T19:32:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya deja cerrado el roadmap base y ahora también deja `crm` cerrado para el alcance comercial actual. `platform-core`, `finance`, `business-core` y `maintenance` siguen estables; `crm` ya cubre productos con características, oportunidades abiertas e históricas, detalle comercial, plantillas y cotizaciones estructuradas sobre la base de clientes de `business-core`.",
-  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada, y el siguiente salto recomendado ya no es profundizar CRM por inercia sino abrir el próximo módulo faltante con el mismo estándar.",
+  "current_focus": "La PaaS ya deja `crm` completamente cerrado para su alcance comercial actual en repo y runtime. `platform-core`, `finance`, `business-core` y `maintenance` siguen estables; `crm` ya cubre productos con características, oportunidades abiertas e históricas, detalle comercial, plantillas y cotizaciones estructuradas sobre la base de clientes de `business-core`, publicado y convergido en `staging` y `production`.",
+  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada, con `crm` ya institucionalizado en runtime y con el siguiente salto recomendado moviéndose a `TaskOps` como próximo módulo faltante.",
   "active_modules": [
     "platform-core",
     "finance",
@@ -13,8 +13,8 @@
   ],
   "module_in_focus": [
     "crm",
-    "business-core",
-    "platform-core"
+    "platform-core",
+    "business-core"
   ],
   "decisions_closed": [
     "editar el repo no equivale a tener el cambio activo en /opt/platform_paas_staging ni en /opt/platform_paas; siempre requiere deploy o sincronizacion runtime",
@@ -81,7 +81,11 @@
   ],
   "completed_recently": [
     "CRM ya queda cerrado para el alcance comercial actual: productos con características, oportunidades abiertas e históricas, contactos/notas/actividades/adjuntos, plantillas comerciales y cotizaciones estructuradas",
-    "validación repo del cierre CRM: py_compile OK, unittest backend.app.tests.test_crm_services + test_migration_flow -> 24 tests OK y npm run build OK",
+    "validación final del cierre CRM: py_compile OK, unittest backend.app.tests.test_platform_flow + test_crm_services + test_migration_flow -> 262 tests OK y npm run build OK",
+    "staging backend redeployado con el cierre CRM y 581 tests OK; convergencia tenant processed=4 synced=4 failed=0",
+    "production backend redeployado con el cierre CRM y 581 tests OK; convergencia tenant processed=4 synced=4 failed=0",
+    "staging frontend publicado con API_BASE_URL=http://192.168.7.42:8081, bundles CRMOverviewPage-BRCUMIKP.js CRMHistoryPage-ClBRQ52x.js CRMProductsPage-DXgBLDtD.js CRMTemplatesPage-B6WPyDzm.js CRMQuotesPage-0pASYhpK.js CRMOpportunitiesPage-CU8HfyXv.js index-CycUPBOZ.js y static readiness OK",
+    "production frontend publicado con API_BASE_URL=https://orkestia.ddns.net, bundles CRMOverviewPage-BNzDa4DE.js CRMHistoryPage-CBu1Jnq7.js CRMProductsPage-DTDZ4C8u.js CRMTemplatesPage-O5g-_vu0.js CRMQuotesPage-Dlc34IL_.js CRMOpportunitiesPage-DtBu6Chk.js index-4e8-eYe2.js y static readiness OK",
     "CRM ya queda abierto como primer frente de expansión post-cierre: backend tenant nuevo, migración 0040_crm_base, frontend tenant nuevo y catálogo contractual del módulo crm",
     "validación repo del primer slice CRM: py_compile OK, unittest backend.app.tests.test_crm_services + test_migration_flow -> 20 tests OK, npm run build OK",
     "Etapa 13 cerrada para el alcance actual: GET /platform/capabilities y GET /tenant/info ya exponen ui_label_catalog backend-driven",
