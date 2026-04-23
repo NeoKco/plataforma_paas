@@ -3907,6 +3907,51 @@ class PlatformServicesTestCase(unittest.TestCase):
             datetime(2026, 5, 1, tzinfo=timezone.utc),
         )
 
+    def test_tenant_service_accepts_multiple_addons_in_subscription_contract(self) -> None:
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            plan_code="pro",
+            subscription=SimpleNamespace(
+                base_plan_code="base_finance",
+                status="active",
+                billing_cycle="annual",
+                current_period_starts_at=datetime(2026, 4, 1, tzinfo=timezone.utc),
+                current_period_ends_at=datetime(2027, 4, 1, tzinfo=timezone.utc),
+                next_renewal_at=datetime(2027, 4, 1, tzinfo=timezone.utc),
+                grace_until=None,
+                is_co_termed=True,
+                items=[],
+            ),
+        )
+        tenant.id = 1
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant if tenant_id == 1 else None
+
+            def save(self, db, tenant_to_save):
+                return tenant_to_save
+
+        service = TenantService(tenant_repository=FakeTenantRepository())
+
+        result = service.set_subscription_contract(
+            db=object(),
+            tenant_id=1,
+            base_plan_code="base_finance",
+            billing_cycle="annual",
+            addon_items=[
+                {"module_key": "maintenance", "billing_cycle": "annual"},
+                {"module_key": "crm", "billing_cycle": "annual"},
+            ],
+        )
+
+        self.assertEqual(
+            sorted(item.module_key for item in result.subscription.items),
+            ["crm", "maintenance"],
+        )
+        self.assertTrue(all(item.status == "active" for item in result.subscription.items))
+
     def test_tenant_service_retires_legacy_plan_code_when_saving_subscription_contract(self) -> None:
         period_end = datetime(2026, 5, 1, tzinfo=timezone.utc)
         tenant = build_tenant_record_stub(

@@ -97,6 +97,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0027_tenant_module_subscription_model",
                 "0028_tenant_runtime_secret_campaigns",
                 "0029_auth_audit_observability_fields",
+                "0030_contract_tables_postgres_identity_fix",
             ],
         )
         self.assertIn("platform_installation", tables)
