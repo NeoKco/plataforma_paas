@@ -1,5 +1,40 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - la `Etapa 15` ya mueve también el baseline de cuotas/límites al contrato nuevo
+
+- objetivo:
+  - dejar que el baseline técnico de cuotas/límites ya no dependa de `plan_code` para tenants gestionados por contrato
+  - volver visible en consola y API qué tenants siguen legacy vs cuáles ya toman baseline desde el `Plan Base`
+- cambios y acciones ejecutadas:
+  - [backend/app/common/policies/tenant_module_subscription_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_module_subscription_policy_service.py):
+    - resuelve el `base_plan_catalog` con:
+      - `compatibility_policy_code`
+      - `read_requests_per_minute`
+      - `write_requests_per_minute`
+      - `module_limits`
+  - [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+    - agrega resolución explícita de baseline técnico por tenant
+    - usa `tenant_subscriptions` + `base_plan_catalog` para tenants gestionados
+    - deja `plan_code` solo para tenants legacy todavía no recontratados
+  - [backend/app/common/middleware/tenant_context_middleware.py](/home/felipe/platform_paas/backend/app/common/middleware/tenant_context_middleware.py):
+    - expone `tenant_subscription_contract_managed`, `tenant_legacy_plan_fallback_active`, `tenant_baseline_policy_source` y `tenant_baseline_compatibility_policy_code`
+  - [backend/app/apps/platform_control/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) y [backend/app/apps/tenant_modules/core/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py):
+    - reflejan ese estado en `/platform/tenants`, `TenantPlanResponse` y `/tenant/info`
+  - [frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+    - muestra el baseline resuelto del `Plan Base`
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - agrega `Modelo contractual`
+    - agrega `Fuente baseline`
+    - deja visible la compatibilidad legacy cuando todavía aplica
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `212 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_flow -v` -> `96 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- resultado:
+  - tenants gestionados por contrato ya no toman el baseline técnico de cuotas/límites desde `plan_code`
+  - la consola ya deja ver qué parte del baseline sigue legacy y cuál ya proviene del `Plan Base`
+  - el siguiente paso deja de ser “hacer visible managed vs legacy” y pasa a migrar tenants legacy restantes para retirar después el fallback total
+
 ## 2026-04-22 - la `Etapa 15` ya conecta billing/grace/suspensión a suscripciones tenant y acota el fallback legacy
 
 - objetivo:
