@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.apps.tenant_modules.crm.api.serializers import build_quote_item
 from app.apps.tenant_modules.crm.dependencies import (
     build_crm_requested_by,
     require_crm_manage,
@@ -8,7 +9,6 @@ from app.apps.tenant_modules.crm.dependencies import (
 )
 from app.apps.tenant_modules.crm.schemas import (
     CRMQuoteCreateRequest,
-    CRMQuoteItemResponse,
     CRMQuoteMutationResponse,
     CRMQuotesResponse,
     CRMQuoteUpdateRequest,
@@ -21,47 +21,7 @@ router = APIRouter(prefix="/tenant/crm/quotes", tags=["Tenant CRM"])
 service = CRMQuoteService()
 
 
-def _build_item(
-    item,
-    *,
-    client_display_name: str | None = None,
-    opportunity_title: str | None = None,
-    lines_map: dict | None = None,
-    product_name_map: dict | None = None,
-) -> CRMQuoteItemResponse:
-    lines = []
-    for line in (lines_map or {}).get(item.id, []):
-        lines.append(
-            {
-                **line.__dict__,
-                "product_name": None if product_name_map is None else product_name_map.get(line.product_id),
-            }
-        )
-    return CRMQuoteItemResponse(
-        id=item.id,
-        client_id=item.client_id,
-        client_display_name=client_display_name,
-        opportunity_id=item.opportunity_id,
-        opportunity_title=opportunity_title,
-        quote_number=item.quote_number,
-        title=item.title,
-        quote_status=item.quote_status,
-        valid_until=item.valid_until,
-        subtotal_amount=item.subtotal_amount,
-        discount_amount=item.discount_amount,
-        tax_amount=item.tax_amount,
-        total_amount=item.total_amount,
-        summary=item.summary,
-        notes=item.notes,
-        is_active=item.is_active,
-        sort_order=item.sort_order,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
-        lines=lines,
-    )
-
-
-def _build_context(tenant_db: Session, rows) -> tuple[dict[int, str], dict[int, str], dict[int, list], dict[int, str]]:
+def _serialize_quotes(tenant_db, rows):
     client_display_map = service.get_client_display_map(
         tenant_db,
         [item.client_id for item in rows if item.client_id],
@@ -70,17 +30,43 @@ def _build_context(tenant_db: Session, rows) -> tuple[dict[int, str], dict[int, 
         tenant_db,
         [item.opportunity_id for item in rows if item.opportunity_id],
     )
-    lines_map = service.get_quote_lines(tenant_db, [item.id for item in rows])
-    product_name_map = service.get_product_name_map(
+    template_name_map = service.get_template_name_map(
         tenant_db,
-        [
-            line.product_id
-            for lines in lines_map.values()
-            for line in lines
-            if line.product_id
-        ],
+        [item.template_id for item in rows if item.template_id],
     )
-    return client_display_map, opportunity_title_map, lines_map, product_name_map
+    line_map = service.get_quote_lines(tenant_db, [item.id for item in rows])
+    section_map = service.get_quote_sections(tenant_db, [item.id for item in rows])
+    section_ids = [
+        section.id
+        for sections in section_map.values()
+        for section in sections
+    ]
+    section_line_map = service.get_section_lines(tenant_db, section_ids)
+    product_ids = [
+        line.product_id
+        for lines in line_map.values()
+        for line in lines
+        if line.product_id
+    ] + [
+        line.product_id
+        for lines in section_line_map.values()
+        for line in lines
+        if line.product_id
+    ]
+    product_name_map = service.get_product_name_map(tenant_db, product_ids)
+    return [
+        build_quote_item(
+            item,
+            client_display_name=client_display_map.get(item.client_id),
+            opportunity_title=opportunity_title_map.get(item.opportunity_id),
+            template_name=template_name_map.get(item.template_id),
+            lines=line_map.get(item.id, []),
+            sections=section_map.get(item.id, []),
+            section_lines_map=section_line_map,
+            product_name_map=product_name_map,
+        )
+        for item in rows
+    ]
 
 
 @router.get("", response_model=CRMQuotesResponse)
@@ -99,26 +85,13 @@ def list_crm_quotes(
         client_id=client_id,
         q=q,
     )
-    client_display_map, opportunity_title_map, lines_map, product_name_map = _build_context(
-        tenant_db,
-        rows,
-    )
     return CRMQuotesResponse(
         success=True,
         message="Cotizaciones recuperadas correctamente",
         requested_by=build_crm_requested_by(current_user),
         total=len(rows),
         quoted_amount=round(sum(float(item.total_amount or 0) for item in rows if item.is_active), 2),
-        data=[
-            _build_item(
-                item,
-                client_display_name=client_display_map.get(item.client_id),
-                opportunity_title=opportunity_title_map.get(item.opportunity_id),
-                lines_map=lines_map,
-                product_name_map=product_name_map,
-            )
-            for item in rows
-        ],
+        data=_serialize_quotes(tenant_db, rows),
     )
 
 
@@ -132,21 +105,12 @@ def create_crm_quote(
         item = service.create_quote(tenant_db, payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    client_display_map, opportunity_title_map, lines_map, product_name_map = _build_context(
-        tenant_db,
-        [item],
-    )
+    serialized = _serialize_quotes(tenant_db, [item])[0]
     return CRMQuoteMutationResponse(
         success=True,
         message="Cotizacion creada correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(
-            item,
-            client_display_name=client_display_map.get(item.client_id),
-            opportunity_title=opportunity_title_map.get(item.opportunity_id),
-            lines_map=lines_map,
-            product_name_map=product_name_map,
-        ),
+        data=serialized,
     )
 
 
@@ -160,21 +124,12 @@ def get_crm_quote(
         item = service.get_quote(tenant_db, quote_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    client_display_map, opportunity_title_map, lines_map, product_name_map = _build_context(
-        tenant_db,
-        [item],
-    )
+    serialized = _serialize_quotes(tenant_db, [item])[0]
     return CRMQuoteMutationResponse(
         success=True,
         message="Cotizacion recuperada correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(
-            item,
-            client_display_name=client_display_map.get(item.client_id),
-            opportunity_title=opportunity_title_map.get(item.opportunity_id),
-            lines_map=lines_map,
-            product_name_map=product_name_map,
-        ),
+        data=serialized,
     )
 
 
@@ -189,21 +144,12 @@ def update_crm_quote(
         item = service.update_quote(tenant_db, quote_id, payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    client_display_map, opportunity_title_map, lines_map, product_name_map = _build_context(
-        tenant_db,
-        [item],
-    )
+    serialized = _serialize_quotes(tenant_db, [item])[0]
     return CRMQuoteMutationResponse(
         success=True,
         message="Cotizacion actualizada correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(
-            item,
-            client_display_name=client_display_map.get(item.client_id),
-            opportunity_title=opportunity_title_map.get(item.opportunity_id),
-            lines_map=lines_map,
-            product_name_map=product_name_map,
-        ),
+        data=serialized,
     )
 
 
@@ -218,21 +164,12 @@ def update_crm_quote_status(
         item = service.set_quote_active(tenant_db, quote_id, payload.is_active)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    client_display_map, opportunity_title_map, lines_map, product_name_map = _build_context(
-        tenant_db,
-        [item],
-    )
+    serialized = _serialize_quotes(tenant_db, [item])[0]
     return CRMQuoteMutationResponse(
         success=True,
-        message="Estado de la cotizacion actualizado correctamente",
+        message="Estado de cotizacion actualizado correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(
-            item,
-            client_display_name=client_display_map.get(item.client_id),
-            opportunity_title=opportunity_title_map.get(item.opportunity_id),
-            lines_map=lines_map,
-            product_name_map=product_name_map,
-        ),
+        data=serialized,
     )
 
 
@@ -250,5 +187,5 @@ def delete_crm_quote(
         success=True,
         message="Cotizacion eliminada correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(item),
+        data=build_quote_item(item),
     )

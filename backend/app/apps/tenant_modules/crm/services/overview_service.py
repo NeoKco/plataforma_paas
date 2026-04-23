@@ -1,6 +1,11 @@
 from sqlalchemy import func
 
-from app.apps.tenant_modules.crm.models import CRMOpportunity, CRMProduct, CRMQuote
+from app.apps.tenant_modules.crm.models import (
+    CRMOpportunity,
+    CRMProduct,
+    CRMQuote,
+    CRMQuoteTemplate,
+)
 
 
 class CRMOverviewService:
@@ -13,9 +18,21 @@ class CRMOverviewService:
             or 0
         )
         opportunity_total = tenant_db.query(func.count(CRMOpportunity.id)).scalar() or 0
+        opportunity_open = (
+            tenant_db.query(func.count(CRMOpportunity.id))
+            .filter(~CRMOpportunity.stage.in_(("won", "lost")))
+            .scalar()
+            or 0
+        )
+        opportunity_historical = (
+            tenant_db.query(func.count(CRMOpportunity.id))
+            .filter(CRMOpportunity.stage.in_(("won", "lost")))
+            .scalar()
+            or 0
+        )
         pipeline_value = (
             tenant_db.query(func.coalesce(func.sum(CRMOpportunity.expected_value), 0))
-            .filter(CRMOpportunity.is_active.is_(True))
+            .filter(CRMOpportunity.is_active.is_(True), ~CRMOpportunity.stage.in_(("won", "lost")))
             .scalar()
             or 0
         )
@@ -26,11 +43,15 @@ class CRMOverviewService:
             .scalar()
             or 0
         )
+        template_total = tenant_db.query(func.count(CRMQuoteTemplate.id)).scalar() or 0
         return {
             "products_total": int(product_total),
             "products_active": int(product_active),
             "opportunities_total": int(opportunity_total),
+            "opportunities_open": int(opportunity_open),
+            "opportunities_historical": int(opportunity_historical),
             "pipeline_value": float(pipeline_value),
             "quotes_total": int(quote_total),
             "quoted_amount": float(quote_amount),
+            "templates_total": int(template_total),
         }

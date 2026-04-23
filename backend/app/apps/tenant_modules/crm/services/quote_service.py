@@ -1,7 +1,12 @@
-from sqlalchemy import func
-
 from app.apps.tenant_modules.business_core.models import BusinessClient, BusinessOrganization
-from app.apps.tenant_modules.crm.models import CRMOpportunity, CRMProduct, CRMQuote, CRMQuoteLine
+from app.apps.tenant_modules.crm.models import (
+    CRMOpportunity,
+    CRMProduct,
+    CRMQuote,
+    CRMQuoteLine,
+    CRMQuoteSection,
+    CRMQuoteTemplate,
+)
 
 
 class CRMQuoteService:
@@ -26,8 +31,8 @@ class CRMQuoteService:
         if q and q.strip():
             token = f"%{q.strip().lower()}%"
             query = query.filter(
-                func.lower(CRMQuote.title).like(token)
-                | func.lower(func.coalesce(CRMQuote.quote_number, "")).like(token)
+                (CRMQuote.title.ilike(token))
+                | (CRMQuote.quote_number.ilike(token))
             )
         return (
             query.order_by(
@@ -47,8 +52,9 @@ class CRMQuoteService:
         item = CRMQuote(
             client_id=self._validate_client(tenant_db, payload.client_id),
             opportunity_id=self._validate_opportunity(tenant_db, payload.opportunity_id),
+            template_id=self._validate_template(tenant_db, payload.template_id),
             quote_number=self._normalize_quote_number(tenant_db, payload.quote_number),
-            title=payload.title.strip(),
+            title=self._normalize_required(payload.title, field_name="titulo"),
             quote_status=self._validate_status(payload.quote_status),
             valid_until=payload.valid_until,
             discount_amount=max(float(payload.discount_amount or 0), 0),
@@ -60,8 +66,8 @@ class CRMQuoteService:
         )
         tenant_db.add(item)
         tenant_db.flush()
-        self._replace_lines(tenant_db, item, payload.lines)
-        self._recalculate_totals(item, payload.lines)
+        self._replace_lines_and_sections(tenant_db, item, payload.lines, payload.sections)
+        self._recalculate_totals(item, payload.lines, payload.sections)
         tenant_db.add(item)
         tenant_db.commit()
         tenant_db.refresh(item)
@@ -69,15 +75,15 @@ class CRMQuoteService:
 
     def update_quote(self, tenant_db, quote_id: int, payload) -> CRMQuote:
         item = self.get_quote(tenant_db, quote_id)
-        normalized_quote_number = self._normalize_quote_number(
+        item.client_id = self._validate_client(tenant_db, payload.client_id)
+        item.opportunity_id = self._validate_opportunity(tenant_db, payload.opportunity_id)
+        item.template_id = self._validate_template(tenant_db, payload.template_id)
+        item.quote_number = self._normalize_quote_number(
             tenant_db,
             payload.quote_number,
             exclude_id=item.id,
         )
-        item.client_id = self._validate_client(tenant_db, payload.client_id)
-        item.opportunity_id = self._validate_opportunity(tenant_db, payload.opportunity_id)
-        item.quote_number = normalized_quote_number
-        item.title = payload.title.strip()
+        item.title = self._normalize_required(payload.title, field_name="titulo")
         item.quote_status = self._validate_status(payload.quote_status)
         item.valid_until = payload.valid_until
         item.discount_amount = max(float(payload.discount_amount or 0), 0)
@@ -86,8 +92,8 @@ class CRMQuoteService:
         item.notes = self._normalize_optional(payload.notes)
         item.is_active = bool(payload.is_active)
         item.sort_order = int(payload.sort_order)
-        self._replace_lines(tenant_db, item, payload.lines)
-        self._recalculate_totals(item, payload.lines)
+        self._replace_lines_and_sections(tenant_db, item, payload.lines, payload.sections)
+        self._recalculate_totals(item, payload.lines, payload.sections)
         tenant_db.add(item)
         tenant_db.commit()
         tenant_db.refresh(item)
@@ -103,7 +109,22 @@ class CRMQuoteService:
 
     def delete_quote(self, tenant_db, quote_id: int) -> CRMQuote:
         item = self.get_quote(tenant_db, quote_id)
-        tenant_db.query(CRMQuoteLine).filter(CRMQuoteLine.quote_id == item.id).delete()
+        section_ids = [
+            row.id
+            for row in tenant_db.query(CRMQuoteSection.id).filter(
+                CRMQuoteSection.quote_id == item.id
+            ).all()
+        ]
+        if section_ids:
+            tenant_db.query(CRMQuoteLine).filter(
+                CRMQuoteLine.section_id.in_(section_ids)
+            ).delete(synchronize_session=False)
+        tenant_db.query(CRMQuoteLine).filter(CRMQuoteLine.quote_id == item.id).delete(
+            synchronize_session=False
+        )
+        tenant_db.query(CRMQuoteSection).filter(
+            CRMQuoteSection.quote_id == item.id
+        ).delete(synchronize_session=False)
         tenant_db.delete(item)
         tenant_db.commit()
         return item
@@ -124,10 +145,23 @@ class CRMQuoteService:
         normalized_ids = [item for item in opportunity_ids if item]
         if not normalized_ids:
             return {}
-        rows = tenant_db.query(CRMOpportunity.id, CRMOpportunity.title).filter(
-            CRMOpportunity.id.in_(normalized_ids)
-        ).all()
+        rows = (
+            tenant_db.query(CRMOpportunity.id, CRMOpportunity.title)
+            .filter(CRMOpportunity.id.in_(normalized_ids))
+            .all()
+        )
         return {item_id: title for item_id, title in rows}
+
+    def get_template_name_map(self, tenant_db, template_ids: list[int]) -> dict[int, str]:
+        normalized_ids = [item for item in template_ids if item]
+        if not normalized_ids:
+            return {}
+        rows = (
+            tenant_db.query(CRMQuoteTemplate.id, CRMQuoteTemplate.name)
+            .filter(CRMQuoteTemplate.id.in_(normalized_ids))
+            .all()
+        )
+        return {item_id: name for item_id, name in rows}
 
     def get_quote_lines(self, tenant_db, quote_ids: list[int]) -> dict[int, list[CRMQuoteLine]]:
         normalized_ids = [item for item in quote_ids if item]
@@ -135,7 +169,7 @@ class CRMQuoteService:
             return {}
         rows = (
             tenant_db.query(CRMQuoteLine)
-            .filter(CRMQuoteLine.quote_id.in_(normalized_ids))
+            .filter(CRMQuoteLine.quote_id.in_(normalized_ids), CRMQuoteLine.section_id.is_(None))
             .order_by(CRMQuoteLine.quote_id.asc(), CRMQuoteLine.sort_order.asc(), CRMQuoteLine.id.asc())
             .all()
         )
@@ -144,37 +178,133 @@ class CRMQuoteService:
             grouped.setdefault(row.quote_id, []).append(row)
         return grouped
 
+    def get_quote_sections(self, tenant_db, quote_ids: list[int]) -> dict[int, list[CRMQuoteSection]]:
+        normalized_ids = [item for item in quote_ids if item]
+        if not normalized_ids:
+            return {}
+        rows = (
+            tenant_db.query(CRMQuoteSection)
+            .filter(CRMQuoteSection.quote_id.in_(normalized_ids))
+            .order_by(CRMQuoteSection.quote_id.asc(), CRMQuoteSection.sort_order.asc(), CRMQuoteSection.id.asc())
+            .all()
+        )
+        grouped: dict[int, list[CRMQuoteSection]] = {}
+        for row in rows:
+            grouped.setdefault(row.quote_id, []).append(row)
+        return grouped
+
+    def get_section_lines(self, tenant_db, section_ids: list[int]) -> dict[int, list[CRMQuoteLine]]:
+        normalized_ids = [item for item in section_ids if item]
+        if not normalized_ids:
+            return {}
+        rows = (
+            tenant_db.query(CRMQuoteLine)
+            .filter(CRMQuoteLine.section_id.in_(normalized_ids))
+            .order_by(CRMQuoteLine.section_id.asc(), CRMQuoteLine.sort_order.asc(), CRMQuoteLine.id.asc())
+            .all()
+        )
+        grouped: dict[int, list[CRMQuoteLine]] = {}
+        for row in rows:
+            grouped.setdefault(row.section_id, []).append(row)
+        return grouped
+
     def get_product_name_map(self, tenant_db, product_ids: list[int]) -> dict[int, str]:
         normalized_ids = [item for item in product_ids if item]
         if not normalized_ids:
             return {}
-        rows = tenant_db.query(CRMProduct.id, CRMProduct.name).filter(CRMProduct.id.in_(normalized_ids)).all()
+        rows = (
+            tenant_db.query(CRMProduct.id, CRMProduct.name)
+            .filter(CRMProduct.id.in_(normalized_ids))
+            .all()
+        )
         return {item_id: name for item_id, name in rows}
 
-    def _replace_lines(self, tenant_db, quote: CRMQuote, lines_payload: list) -> None:
-        tenant_db.query(CRMQuoteLine).filter(CRMQuoteLine.quote_id == quote.id).delete()
+    def _replace_lines_and_sections(self, tenant_db, quote: CRMQuote, lines_payload: list, sections_payload: list) -> None:
+        existing_sections = (
+            tenant_db.query(CRMQuoteSection)
+            .filter(CRMQuoteSection.quote_id == quote.id)
+            .all()
+        )
+        existing_section_ids = [item.id for item in existing_sections]
+        if existing_section_ids:
+            tenant_db.query(CRMQuoteLine).filter(
+                CRMQuoteLine.section_id.in_(existing_section_ids)
+            ).delete(synchronize_session=False)
+        tenant_db.query(CRMQuoteLine).filter(CRMQuoteLine.quote_id == quote.id).delete(
+            synchronize_session=False
+        )
+        tenant_db.query(CRMQuoteSection).filter(CRMQuoteSection.quote_id == quote.id).delete(
+            synchronize_session=False
+        )
+        tenant_db.flush()
+
         for index, line in enumerate(lines_payload or []):
-            product_id = self._validate_product(tenant_db, line.product_id)
-            quantity = max(float(line.quantity or 0), 0)
-            unit_price = max(float(line.unit_price or 0), 0)
-            row = CRMQuoteLine(
+            self._add_quote_line(
+                tenant_db,
                 quote_id=quote.id,
+                section_id=None,
+                line=line,
+                fallback_sort_order=(index + 1) * 10,
+            )
+        for section_index, section in enumerate(sections_payload or []):
+            row = CRMQuoteSection(
+                quote_id=quote.id,
+                title=self._normalize_required(getattr(section, "title", None), field_name="seccion"),
+                description=self._normalize_optional(getattr(section, "description", None)),
+                sort_order=int(
+                    getattr(section, "sort_order", None)
+                    if getattr(section, "sort_order", None) is not None
+                    else (section_index + 1) * 10
+                ),
+            )
+            tenant_db.add(row)
+            tenant_db.flush()
+            for line_index, line in enumerate(getattr(section, "lines", []) or []):
+                self._add_quote_line(
+                    tenant_db,
+                    quote_id=quote.id,
+                    section_id=row.id,
+                    line=line,
+                    fallback_sort_order=(line_index + 1) * 10,
+                )
+        tenant_db.flush()
+
+    def _add_quote_line(self, tenant_db, *, quote_id: int, section_id: int | None, line, fallback_sort_order: int) -> None:
+        product_id = self._validate_product(tenant_db, getattr(line, "product_id", None))
+        quantity = max(float(getattr(line, "quantity", None) or 0), 0)
+        unit_price = max(float(getattr(line, "unit_price", None) or 0), 0)
+        tenant_db.add(
+            CRMQuoteLine(
+                quote_id=quote_id,
+                section_id=section_id,
                 product_id=product_id,
-                line_type=(line.line_type or "catalog_item").strip().lower() or "catalog_item",
-                name=line.name.strip(),
-                description=self._normalize_optional(line.description),
+                line_type=(getattr(line, "line_type", None) or "catalog_item").strip().lower() or "catalog_item",
+                name=self._normalize_required(getattr(line, "name", None), field_name="item"),
+                description=self._normalize_optional(getattr(line, "description", None)),
                 quantity=quantity,
                 unit_price=unit_price,
                 line_total=round(quantity * unit_price, 2),
-                sort_order=int(line.sort_order if line.sort_order is not None else (index + 1) * 10),
+                sort_order=int(
+                    getattr(line, "sort_order", None)
+                    if getattr(line, "sort_order", None) is not None
+                    else fallback_sort_order
+                ),
             )
-            tenant_db.add(row)
-        tenant_db.flush()
+        )
 
-    def _recalculate_totals(self, quote: CRMQuote, lines_payload: list) -> None:
+    def _recalculate_totals(self, quote: CRMQuote, lines_payload: list, sections_payload: list) -> None:
         subtotal = 0.0
         for line in lines_payload or []:
-            subtotal += max(float(line.quantity or 0), 0) * max(float(line.unit_price or 0), 0)
+            subtotal += max(float(getattr(line, "quantity", None) or 0), 0) * max(
+                float(getattr(line, "unit_price", None) or 0),
+                0,
+            )
+        for section in sections_payload or []:
+            for line in getattr(section, "lines", []) or []:
+                subtotal += max(float(getattr(line, "quantity", None) or 0), 0) * max(
+                    float(getattr(line, "unit_price", None) or 0),
+                    0,
+                )
         quote.subtotal_amount = round(subtotal, 2)
         quote.total_amount = round(
             quote.subtotal_amount - float(quote.discount_amount or 0) + float(quote.tax_amount or 0),
@@ -197,6 +327,14 @@ class CRMQuoteService:
             raise ValueError("Oportunidad no encontrada")
         return item.id
 
+    def _validate_template(self, tenant_db, template_id: int | None) -> int | None:
+        if template_id is None:
+            return None
+        item = tenant_db.get(CRMQuoteTemplate, template_id)
+        if item is None:
+            raise ValueError("Plantilla comercial no encontrada")
+        return item.id
+
     def _validate_product(self, tenant_db, product_id: int | None) -> int | None:
         if product_id is None:
             return None
@@ -211,13 +349,7 @@ class CRMQuoteService:
             raise ValueError("Estado de cotizacion invalido")
         return normalized
 
-    def _normalize_quote_number(
-        self,
-        tenant_db,
-        quote_number: str | None,
-        *,
-        exclude_id: int | None = None,
-    ) -> str | None:
+    def _normalize_quote_number(self, tenant_db, quote_number: str | None, *, exclude_id: int | None = None) -> str | None:
         normalized = self._normalize_optional(quote_number)
         if normalized is None:
             return None
@@ -228,6 +360,13 @@ class CRMQuoteService:
             if ((item.quote_number or "").strip().lower()) == normalized.lower():
                 raise ValueError("Ya existe una cotizacion con ese numero")
         return normalized
+
+    @staticmethod
+    def _normalize_required(value: str | None, *, field_name: str) -> str:
+        text = " ".join((value or "").strip().split())
+        if not text:
+            raise ValueError(f"El campo {field_name} es obligatorio")
+        return text
 
     @staticmethod
     def _normalize_optional(value: str | None) -> str | None:

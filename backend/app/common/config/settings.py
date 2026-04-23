@@ -141,6 +141,9 @@ class Settings(BaseSettings):
     FINANCE_ATTACHMENTS_DIR: str = str(
         BASE_DIR / "storage" / "finance_attachments"
     )
+    CRM_ATTACHMENTS_DIR: str = str(
+        BASE_DIR / "storage" / "crm_attachments"
+    )
     MAINTENANCE_EVIDENCE_DIR: str = str(
         BASE_DIR / "storage" / "maintenance_evidence"
     )

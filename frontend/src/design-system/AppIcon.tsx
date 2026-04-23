@@ -10,6 +10,7 @@ export type AppIconName =
   | "pipeline"
   | "quotes"
   | "products"
+  | "templates"
   | "dashboard"
   | "tenants"
   | "tenant-history"
@@ -163,6 +164,16 @@ function renderIconPath(name: AppIconName) {
           <path d="M4 8 12 4l8 4-8 4-8-4Z" />
           <path d="M4 8v8l8 4 8-4V8" />
           <path d="M12 12v8" />
+        </>
+      );
+    case "templates":
+      return (
+        <>
+          <path d="M6 4h9l3 3v13H6z" />
+          <path d="M15 4v3h3" />
+          <path d="M9 11h6" />
+          <path d="M9 15h6" />
+          <path d="M9 19h4" />
         </>
       );
     case "tenants":

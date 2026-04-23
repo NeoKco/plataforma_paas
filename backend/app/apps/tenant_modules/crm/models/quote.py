@@ -20,6 +20,7 @@ class CRMQuote(TenantBase):
         nullable=True,
         index=True,
     )
+    template_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     quote_number: Mapped[str | None] = mapped_column(
         String(80),
         nullable=True,

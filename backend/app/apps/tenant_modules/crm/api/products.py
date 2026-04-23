@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.apps.tenant_modules.crm.api.serializers import build_product_item
 from app.apps.tenant_modules.crm.dependencies import (
     build_crm_requested_by,
     require_crm_manage,
@@ -8,7 +9,6 @@ from app.apps.tenant_modules.crm.dependencies import (
 )
 from app.apps.tenant_modules.crm.schemas import (
     CRMProductCreateRequest,
-    CRMProductItemResponse,
     CRMProductMutationResponse,
     CRMProductsResponse,
     CRMProductUpdateRequest,
@@ -19,10 +19,6 @@ from app.common.db.session_manager import get_tenant_db
 
 router = APIRouter(prefix="/tenant/crm/products", tags=["Tenant CRM"])
 service = CRMProductService()
-
-
-def _build_item(item) -> CRMProductItemResponse:
-    return CRMProductItemResponse.model_validate(item)
 
 
 @router.get("", response_model=CRMProductsResponse)
@@ -39,12 +35,16 @@ def list_crm_products(
         product_type=product_type,
         q=q,
     )
+    characteristic_map = service.get_characteristics_map(tenant_db, [item.id for item in rows])
     return CRMProductsResponse(
         success=True,
         message="Productos recuperados correctamente",
         requested_by=build_crm_requested_by(current_user),
         total=len(rows),
-        data=[_build_item(item) for item in rows],
+        data=[
+            build_product_item(item, characteristics=characteristic_map.get(item.id, []))
+            for item in rows
+        ],
     )
 
 
@@ -58,11 +58,12 @@ def create_crm_product(
         item = service.create_product(tenant_db, payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
     return CRMProductMutationResponse(
         success=True,
         message="Producto creado correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(item),
+        data=build_product_item(item, characteristics=characteristic_map.get(item.id, [])),
     )
 
 
@@ -76,11 +77,12 @@ def get_crm_product(
         item = service.get_product(tenant_db, product_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
     return CRMProductMutationResponse(
         success=True,
         message="Producto recuperado correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(item),
+        data=build_product_item(item, characteristics=characteristic_map.get(item.id, [])),
     )
 
 
@@ -95,11 +97,12 @@ def update_crm_product(
         item = service.update_product(tenant_db, product_id, payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
     return CRMProductMutationResponse(
         success=True,
         message="Producto actualizado correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(item),
+        data=build_product_item(item, characteristics=characteristic_map.get(item.id, [])),
     )
 
 
@@ -114,11 +117,12 @@ def update_crm_product_status(
         item = service.set_product_active(tenant_db, product_id, payload.is_active)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
     return CRMProductMutationResponse(
         success=True,
         message="Estado del producto actualizado correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(item),
+        data=build_product_item(item, characteristics=characteristic_map.get(item.id, [])),
     )
 
 
@@ -136,5 +140,5 @@ def delete_crm_product(
         success=True,
         message="Producto eliminado correctamente",
         requested_by=build_crm_requested_by(current_user),
-        data=_build_item(item),
+        data=build_product_item(item, characteristics=[]),
     )

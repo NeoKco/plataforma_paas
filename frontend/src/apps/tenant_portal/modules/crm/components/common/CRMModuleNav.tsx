@@ -16,9 +16,19 @@ export function CRMModuleNav() {
       icon: "pipeline" as const,
     },
     {
+      to: "/tenant-portal/crm/history",
+      label: language === "es" ? "Histórico" : "History",
+      icon: "tenant-history" as const,
+    },
+    {
       to: "/tenant-portal/crm/quotes",
       label: language === "es" ? "Cotizaciones" : "Quotes",
       icon: "quotes" as const,
+    },
+    {
+      to: "/tenant-portal/crm/templates",
+      label: language === "es" ? "Plantillas" : "Templates",
+      icon: "templates" as const,
     },
     {
       to: "/tenant-portal/crm/products",

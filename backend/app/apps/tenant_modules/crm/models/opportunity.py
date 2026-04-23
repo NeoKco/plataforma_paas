@@ -23,6 +23,9 @@ class CRMOpportunity(TenantBase):
     source_channel: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     next_step: Mapped[str | None] = mapped_column(Text, nullable=True)
+    closed_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    close_reason: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    close_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=100, index=True)
     created_at: Mapped[DateTime] = mapped_column(

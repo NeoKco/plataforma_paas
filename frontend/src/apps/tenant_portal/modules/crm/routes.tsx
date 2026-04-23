@@ -17,10 +17,24 @@ export const crmTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "history",
+    lazy: async () => {
+      const module = await import("./pages/CRMHistoryPage");
+      return { Component: module.CRMHistoryPage };
+    },
+  },
+  {
     path: "quotes",
     lazy: async () => {
       const module = await import("./pages/CRMQuotesPage");
       return { Component: module.CRMQuotesPage };
+    },
+  },
+  {
+    path: "templates",
+    lazy: async () => {
+      const module = await import("./pages/CRMTemplatesPage");
+      return { Component: module.CRMTemplatesPage };
     },
   },
   {
