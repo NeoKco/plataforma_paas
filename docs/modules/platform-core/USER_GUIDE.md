@@ -99,6 +99,25 @@ Y solo suma broker-only cuando el entorno publicado realmente usa `broker`.
 
 El equivalente repo/CI mantiene la misma capa visible mínima y solo suma broker-only cuando el backend activo se ejecuta en modo `broker`.
 
+### Operar billing
+
+Desde `Billing`, la operación normal ya permite:
+
+1. leer primero `Señales abiertas` para separar ruido puntual de desalineación real
+2. revisar `Resumen global billing`, `Alertas billing` e `Historial alertas billing` sin entrar todavía a un tenant
+3. usar la `Ruta de revalidación del carril` para saber:
+   - qué validar aquí mismo
+   - cuándo bajar al `Workspace billing tenant`
+   - cuál es el smoke repo/CI equivalente
+4. seleccionar un tenant foco cuando ya necesitas inspección o reconcile sobre historial persistido
+5. ejecutar `Reconciliar` sobre un evento puntual o `Reconciliar eventos filtrados` cuando la corrección debe reaplicar el stream visible completo sobre ese tenant
+6. exportar `CSV tenant` o `billing-workspace.json` cuando soporte necesita evidencia del estado actual sin copiar filas manualmente
+
+Referencia repo/CI actual:
+
+- [platform-admin-billing-reconcile.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-billing-reconcile.smoke.spec.ts)
+- [platform-admin-billing-batch-reconcile.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-billing-batch-reconcile.smoke.spec.ts)
+
 ### Export portable por tenant desde platform admin
 
 Desde `Tenants`, el bloque `Portabilidad tenant` ya permite:

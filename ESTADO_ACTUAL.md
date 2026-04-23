@@ -10,6 +10,26 @@
   - [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh)
   - [.github/workflows/frontend-provisioning-baseline-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-provisioning-baseline-e2e.yml)
   - el workflow manual permite escoger `dispatch_backend=database|broker`, `include_broker_only=true|false` y `broker_target` sin volver a cablear los specs a mano
+  Y el siguiente hardening visible de `platform_admin` ya quedó publicado en runtime:
+  - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) ahora deja una `Ruta de revalidación del carril` dentro de `Capacidad activa`
+  - la consola ya traduce el backend activo a una decisión visible:
+    - baseline mínimo siempre aquí
+    - broker-only aplicable o no
+    - workflow manual/CI equivalente disponible
+  - republicado en:
+    - `staging` con `ProvisioningPage-CKaZEDxJ.js`, `DashboardPage-Dn-_JV4P.js`, `TenantsPage-DIO98q8f.js`, `index-BVPmVTeJ.js`
+    - `production` con `ProvisioningPage-dxpdzrUO.js`, `DashboardPage-DcZ71t40.js`, `TenantsPage-DvJ8dQBI.js`, `index-DaeXYrs-.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  Y un corte visible adicional ya quedó también publicado en runtime:
+  - [BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx) ahora deja una `Ruta de revalidación del carril`
+  - la consola ya traduce el workspace billing a tres decisiones rápidas:
+    - baseline visible global
+    - cuándo bajar al workspace tenant para reconcile
+    - qué smokes repo/CI equivalen a esa validación
+  - republicado en:
+    - `staging` con `BillingPage-B-JWhG2M.js`, `DashboardPage-m5NmB7WL.js`, `ProvisioningPage-CBKmrXkm.js`, `TenantsPage-Cj4NOmS6.js`, `index-2nvXCADO.js`
+    - `production` con `BillingPage-DA8Py0cH.js`, `DashboardPage-dEq0eooe.js`, `ProvisioningPage-DoLDDVVr.js`, `TenantsPage-Bydkpj6D.js`, `index-CkSGZQbN.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - estado general: el nuevo modelo ya queda activo en runtime por ambiente. `staging` y `production` ya terminaron con `4/4` tenants sincronizados en `v0039_social_community_groups`; `maintenance` vuelve a dejar explícita la separación correcta de conceptos: `Cliente` sigue leyendo `organization.name`, `Organización / Razón social` sigue leyendo `organization.legal_name`, y `Grupo social común` ya se lee desde `social_community_groups.name` donde corresponde. Dentro de `business-core`, `Clients` ya resume grupos sociales comunes desde la nueva FK y ahora también puede filtrarlos operativamente por grupo o por estado de asignación, `Organizations` ya cerró además una tercera ola visible de dirección propia/cobertura social, `Grupos sociales` queda como flujo principal del catálogo social con CRUD propio visible y cobertura real de uso, `Clientes` ya puede asignar ese grupo directamente desde `Nuevo cliente` y `Editar cliente`, `Sugerencias` queda como limpieza legacy, y `Duplicados` sigue estable sin reabrirse. Con este corte, `business-core` ya se considera suficientemente estable y deja de ser el frente activo principal del roadmap maestro. El frente nuevo ya quedó además republicado en runtime con el UX final del catálogo social:
   - `staging`: `BusinessCoreSocialCommunityGroupsPage-CwR9lsTe.js`, `BusinessCoreClientsPage-CkRMRy_7.js`, `BusinessCoreCommonOrganizationNamePage-BFhOSpRi.js`, `BusinessCoreModuleNav-DrFVooZf.js`, `socialCommunityGroupsService-CFX7KgUa.js`, `index-DmBKNpH2.js`
   - `production`: `BusinessCoreSocialCommunityGroupsPage-CL-Fl870.js`, `BusinessCoreClientsPage-ChQYL3FG.js`, `BusinessCoreCommonOrganizationNamePage-ChgcLnx2.js`, `BusinessCoreModuleNav-BEQA41Jl.js`, `socialCommunityGroupsService-B9_SS5Fr.js`, `index-TQpjvjhD.js`
@@ -18,7 +38,7 @@
     - `staging`: `BusinessCoreOrganizationsPage-SZNAjj4x.js`, `BusinessCoreClientsPage-Czb61GHx.js`, `BusinessCoreSocialCommunityGroupsPage-CygPwtD4.js`, `BusinessCoreCommonOrganizationNamePage-Duc9C7Vl.js`, `index-DK2lLH_9.js`
     - `production`: `BusinessCoreOrganizationsPage-CLlis1R1.js`, `BusinessCoreClientsPage-CGOF_S12.js`, `BusinessCoreSocialCommunityGroupsPage-D6XFyHWl.js`, `BusinessCoreCommonOrganizationNamePage-BKYh6HeR.js`, `index-BfxowxkW.js`
     - este corte deja cerrada la tercera ola visible de dirección propia y filtros/detalle por grupo social común
-  El resto del frente transversal sigue igual de alineado: snapshots JSON de convergencia, `secret_posture`, deploy backend repo -> runtime, rollback desde `SOURCE_REPO_ROOT`, smoke base institucionalizado y ambos ambientes críticos 4/4 en verde. El siguiente frente formal recomendado vuelve ahora a `platform-core hardening + E2E sobre Provisioning y DLQ`.
+  El resto del frente transversal sigue igual de alineado: snapshots JSON de convergencia, `secret_posture`, deploy backend repo -> runtime, rollback desde `SOURCE_REPO_ROOT`, smoke base institucionalizado y ambos ambientes críticos 4/4 en verde. Con este corte adicional, `Provisioning/DLQ` y el hardening visible inmediato de `platform_admin` ya quedan suficientemente institucionalizados para salir del foco activo; el siguiente frente formal recomendado pasa ahora a la `Etapa 15. Registro y Activación de Módulos`.
   Subcorte nuevo ya cerrado en repo dentro de ese frente:
   - [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh) centraliza el dispatch broker-only `target -> specs`
   - [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh) ya deja de quedarse solo en `all|batch|row|filters`
@@ -33,6 +53,9 @@
       - `bash -n scripts/dev/run_repo_provisioning_baseline.sh` -> `OK`
       - `scripts/dev/run_repo_provisioning_baseline.sh --dispatch-backend database --list` -> `OK`
       - `scripts/dev/run_repo_provisioning_baseline.sh --dispatch-backend broker --list --broker-target matrix` -> `OK`
+  - subcorte visible adicional ya cerrado en runtime:
+    - `Provisioning` ya convierte la `Capacidad activa` en una guía operativa explícita de revalidación por carril
+    - el operador ya ve si este entorno debe cerrar solo la capa visible mínima o si también puede ejecutar broker-only aquí
 ## Resumen ejecutivo en 30 segundos
 
 - un cambio en `/home/felipe/platform_paas` no existe por sí solo en `staging` ni en `production`

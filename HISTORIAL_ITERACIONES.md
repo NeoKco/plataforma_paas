@@ -1,5 +1,58 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - `platform_admin > Billing` ya deja visible la ruta correcta de revalidación por carril
+
+- objetivo:
+  - cerrar un último hardening visible corto de `platform_admin` para que `Billing` no deje la lectura correcta repartida entre alertas, historial y reconcile sin una secuencia operativa explícita
+- cambios y acciones ejecutadas:
+  - [BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx):
+    - agrega `Ruta de revalidación del carril`
+    - traduce el workspace a tres lecturas visibles:
+      - baseline visible global
+      - cuándo bajar al workspace tenant
+      - referencia repo/CI equivalente con los smokes de reconcile individual y batch
+  - documentación y memoria viva alineadas en:
+    - [docs/modules/platform-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
+    - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+    - [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
+    - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+    - [ESTADO_ACTUAL.md](/home/felipe/platform_paas/ESTADO_ACTUAL.md)
+    - [SIGUIENTE_PASO.md](/home/felipe/platform_paas/SIGUIENTE_PASO.md)
+    - [HANDOFF_STATE.json](/home/felipe/platform_paas/HANDOFF_STATE.json)
+- validaciones:
+  - `npm run build` -> `OK`
+  - `staging` publicado con `BillingPage-B-JWhG2M.js`, `DashboardPage-m5NmB7WL.js`, `ProvisioningPage-CBKmrXkm.js`, `TenantsPage-Cj4NOmS6.js`, `index-2nvXCADO.js`
+  - `production` publicado con `BillingPage-DA8Py0cH.js`, `DashboardPage-dEq0eooe.js`, `ProvisioningPage-DoLDDVVr.js`, `TenantsPage-Bydkpj6D.js`, `index-CkSGZQbN.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - `bash deploy/check_release_governance.sh` -> `OK`
+- resultado:
+  - `Provisioning/DLQ` ya no queda como único workspace con ruta visible de revalidación
+  - `platform-core hardening + E2E` puede salir del foco activo sin dejar `Billing` como excepción operativa
+  - el siguiente frente formal pasa a `Etapa 15. Registro y Activación de Módulos`
+
+## 2026-04-22 - `platform_admin > Provisioning` vuelve visible la ruta correcta de revalidación por carril
+
+- objetivo:
+  - cerrar un hardening visible corto de `platform_admin` para que `Provisioning` no deje el `dispatch backend` solo como dato técnico, sino como guía operativa del siguiente paso correcto en ese carril
+- cambios y acciones ejecutadas:
+  - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx):
+    - agrega `Ruta de revalidación del carril` dentro de `Capacidad activa`
+    - convierte el backend activo en tres lecturas visibles:
+      - baseline visible mínimo siempre aquí
+      - broker-only aplicable o no según el carril
+      - workflow manual/CI equivalente disponible
+  - [platform-admin.css](/home/felipe/platform_paas/frontend/src/styles/platform-admin.css):
+    - agrega `tenant-help-box` para encajar la guía nueva en la misma tarjeta sin abrir otra pantalla
+- validaciones:
+  - `npm run build` -> `OK`
+  - `staging` republicado con `ProvisioningPage-CKaZEDxJ.js`, `DashboardPage-Dn-_JV4P.js`, `TenantsPage-DIO98q8f.js`, `index-BVPmVTeJ.js`
+  - `production` republicado con `ProvisioningPage-dxpdzrUO.js`, `DashboardPage-DcZ71t40.js`, `TenantsPage-DvJ8dQBI.js`, `index-DaeXYrs-.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - `bash deploy/check_release_governance.sh` -> `OK`
+- resultado:
+  - `Provisioning` ya no obliga al operador a traducir por su cuenta si este carril solo cierra la capa visible mínima o si también puede validar broker-only
+  - el frente `Provisioning/DLQ` queda más cerca de salir del foco activo sin dejar ambigüedad visible en `platform_admin`
+
 ## 2026-04-22 - `platform-core` institucionaliza el equivalente repo/CI del baseline curado de Provisioning/DLQ
 
 - objetivo:

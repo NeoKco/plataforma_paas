@@ -1,5 +1,19 @@
 # Platform Core Changelog
 
+## 2026-04-22
+
+- `platform_admin > Billing` ya explicita también la revalidación del carril:
+  - [BillingPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/billing/BillingPage.tsx) agrega una `Ruta de revalidación del carril`
+  - la guía visible deja tres decisiones rápidas:
+    - baseline visible global
+    - cuándo bajar al workspace tenant para reconcile
+    - qué smokes repo/CI equivalen a esta validación (`platform-admin-billing-reconcile` y `platform-admin-billing-batch-reconcile`)
+  - validación:
+    - `npm run build` -> `OK`
+    - `staging` publicado con `BillingPage-CW6V_T1Q.js`, `DashboardPage-BH4Hk4hL.js`, `ProvisioningPage-Cy55tjaI.js`, `TenantsPage-Dk0cQj8N.js`, `index-BhN7eIhR.js`
+    - `production` publicado con `BillingPage-C9auz9vR.js`, `DashboardPage-Ct8J0I0Y.js`, `ProvisioningPage-B6OHQvwu.js`, `TenantsPage-CWP4SLyp.js`, `index-D9v8l0xh.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 ## 2026-04-20
 
 - se cierra la decisión estructural de franja operativa compartida en `platform_admin`:
@@ -1028,6 +1042,18 @@ Resumen curado del bloque central.
 - `Tenants` deja visible también en copy que `Mantenciones` ya no viaja implícito dentro de `Core negocio`
 ## 2026-04-22
 
+- `platform_admin > Provisioning` suma una guía visible de revalidación del carril dentro de la tarjeta `Capacidad activa`:
+  - [ProvisioningPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/provisioning/ProvisioningPage.tsx) ahora traduce el `dispatch backend` activo a una ruta operativa visible:
+    - baseline visible mínimo siempre aquí
+    - broker-only aplicable o no según el carril
+    - workflow manual/CI equivalente disponible
+  - el bloque nuevo deja explícito cuándo este entorno puede cerrar la revalidación completa y cuándo debe derivar broker-only a otro carril
+  - [platform-admin.css](/home/felipe/platform_paas/frontend/src/styles/platform-admin.css) suma `tenant-help-box` para contener esa guía sin abrir otra pantalla
+- validación:
+  - `npm run build` -> `OK`
+  - `staging` republicado con `ProvisioningPage-CKaZEDxJ.js`, `DashboardPage-Dn-_JV4P.js`, `TenantsPage-DIO98q8f.js`, `index-BVPmVTeJ.js`
+  - `production` republicado con `ProvisioningPage-dxpdzrUO.js`, `DashboardPage-DcZ71t40.js`, `TenantsPage-DvJ8dQBI.js`, `index-DaeXYrs-.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - se agrega el equivalente repo/CI del baseline curado de `Provisioning/DLQ`:
   - [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh)
   - corre siempre:

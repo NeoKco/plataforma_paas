@@ -223,6 +223,12 @@ Cobertura actual:
 - enforcement visible por rol en `platform_admin` para `admin` y `support`
 - workspace de `Billing` con reconcile individual sobre evento tenant persistido
 - workspace de `Billing` con reconcile batch sobre eventos filtrados
+- `platform_admin > Billing` ya expone además una `Ruta de revalidación del carril`:
+  - primero valida señales abiertas + resumen global + historial
+  - luego baja al workspace tenant solo cuando ya hay tenant foco o reconcile que ejecutar
+  - la referencia repo/CI equivalente sigue siendo:
+    - [platform-admin-billing-reconcile.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-billing-reconcile.smoke.spec.ts)
+    - [platform-admin-billing-batch-reconcile.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-billing-batch-reconcile.smoke.spec.ts)
 - `Histórico tenants` con filtros, exportaciones y lectura del detalle archivado
 - visibilidad de jobs de provisioning recién disparados desde `Tenants`
 - ejecución manual de jobs `pending` desde `Provisioning`

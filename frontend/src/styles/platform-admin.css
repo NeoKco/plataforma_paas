@@ -802,6 +802,15 @@ code {
   margin-bottom: 0;
 }
 
+.tenant-help-box {
+  background: rgba(248, 251, 255, 0.8);
+  border: 1px solid rgba(23, 32, 47, 0.08);
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
 .tenant-context-actions {
   align-items: center;
   display: flex;

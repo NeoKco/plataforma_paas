@@ -137,6 +137,11 @@ type ProvisioningFrontlineGuide = {
   secondaryActionHref: string | null;
 };
 
+type ProvisioningValidationGuide = {
+  intro: string;
+  cards: OperationalSummaryCard[];
+};
+
 type DlqFamilyRecommendation = {
   tone: "neutral" | "info" | "warning" | "success";
   title: string;
@@ -1224,6 +1229,14 @@ export function ProvisioningPage() {
     ]
   );
 
+  const provisioningValidationGuide = useMemo<ProvisioningValidationGuide>(() => {
+    return getProvisioningValidationGuide({
+      language,
+      isBrokerDispatchActive,
+      currentDispatchBackend,
+    });
+  }, [currentDispatchBackend, isBrokerDispatchActive, language]);
+
   async function loadProvisioningWorkspace(overrides?: Partial<DlqFormFilters>) {
     if (!session?.accessToken) {
       return;
@@ -2102,6 +2115,15 @@ export function ProvisioningPage() {
                   ? "Aquí no corre dispatch broker; valida DLQ completa en un carril broker."
                   : "This environment is not running the broker dispatch; validate full DLQ flows in a broker-enabled environment."}
             </p>
+            <div className="tenant-help-box">
+              <strong>
+                {language === "es"
+                  ? "Ruta de revalidación del carril"
+                  : "Environment revalidation route"}
+              </strong>
+              <p className="mb-0">{provisioningValidationGuide.intro}</p>
+              <OperationalSummaryStrip cards={provisioningValidationGuide.cards} />
+            </div>
           </div>
         </PanelCard>
       ) : null}
@@ -4614,6 +4636,76 @@ function getProvisioningFrontlineGuide({
     secondaryActionLabel:
       language === "es" ? "Abrir jobs con acción" : "Open action jobs",
     secondaryActionHref: "#provisioning-jobs-action",
+  };
+}
+
+function getProvisioningValidationGuide({
+  language,
+  isBrokerDispatchActive,
+  currentDispatchBackend,
+}: {
+  language: "es" | "en";
+  isBrokerDispatchActive: boolean;
+  currentDispatchBackend: string | null;
+}): ProvisioningValidationGuide {
+  const normalizedBackend = currentDispatchBackend || "n/a";
+  const intro = isBrokerDispatchActive
+    ? language === "es"
+      ? "Este carril ya puede cerrar la revalidación visible completa y además sumar broker-only sin cambiar de entorno."
+      : "This environment can close the full visible revalidation and also add broker-only without switching environments."
+    : language === "es"
+      ? "Este carril debe cerrar siempre la capa visible mínima; la validación broker-only completa sigue reservada a un entorno broker."
+      : "This environment should always close the minimum visible layer; full broker-only validation still belongs in a broker-enabled environment.";
+
+  return {
+    intro,
+    cards: [
+      {
+        key: "visible-baseline",
+        eyebrow: language === "es" ? "Siempre aquí" : "Always here",
+        tone: "info",
+        title:
+          language === "es"
+            ? "Baseline visible mínimo"
+            : "Minimum visible baseline",
+        detail:
+          language === "es"
+            ? "Revalida dispatch-capability, surface-gating y observability-visible antes de profundizar."
+            : "Revalidate dispatch capability, surface gating and visible observability before going deeper.",
+      },
+      {
+        key: "broker-scope",
+        eyebrow: language === "es" ? "Broker-only" : "Broker-only",
+        tone: isBrokerDispatchActive ? "success" : "warning",
+        title: isBrokerDispatchActive
+          ? language === "es"
+            ? `Activo en ${normalizedBackend}`
+            : `Active on ${normalizedBackend}`
+          : language === "es"
+            ? `No aplica en ${normalizedBackend}`
+            : `Not applicable on ${normalizedBackend}`,
+        detail: isBrokerDispatchActive
+          ? language === "es"
+            ? "Aquí sí corresponde validar row, batch, guided, families, tenant-focus y matrix."
+            : "This is the right place to validate row, batch, guided, families, tenant focus and matrix."
+          : language === "es"
+            ? "No fuerces DLQ broker-only aquí; deriva esa revisión a staging u otro carril con dispatch broker."
+            : "Do not force broker-only DLQ here; move that review to staging or another broker-backed environment.",
+      },
+      {
+        key: "manual-ci",
+        eyebrow: language === "es" ? "Manual / CI" : "Manual / CI",
+        tone: "neutral",
+        title:
+          language === "es"
+            ? "Workflow equivalente disponible"
+            : "Equivalent workflow available",
+        detail:
+          language === "es"
+            ? `Usa frontend-provisioning-baseline-e2e con dispatch_backend=${normalizedBackend} si quieres repetir esta lectura fuera del carril publicado.`
+            : `Use frontend-provisioning-baseline-e2e with dispatch_backend=${normalizedBackend} if you need to repeat this read outside the published environment.`,
+      },
+    ],
   };
 }
 

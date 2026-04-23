@@ -85,9 +85,18 @@
     - el equivalente repo/CI ya queda disponible en:
       - [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh)
       - [.github/workflows/frontend-provisioning-baseline-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-provisioning-baseline-e2e.yml)
-    - siguiente paso recomendado dentro de este frente:
-      - decidir si se endurece ahora otro hardening visible de `platform_admin`
-      - o si el bloque `Provisioning/DLQ` ya queda suficientemente institucionalizado para salir del foco activo
+    - además `platform_admin > Provisioning` ya deja visible la `Ruta de revalidación del carril` dentro de `Capacidad activa`
+    - además `platform_admin > Billing` ya deja visible su propia `Ruta de revalidación del carril`, separando baseline global, workspace tenant y smokes equivalentes
+    - decisión ya cerrada dentro de este frente:
+      - `Provisioning/DLQ` y el hardening visible inmediato de `platform_admin` ya quedan suficientemente institucionalizados para salir del foco activo
+      - no conviene seguir limando `platform-core hardening + E2E` por inercia
+    - siguiente frente formal del roadmap:
+      - abrir `Etapa 15. Registro y Activación de Módulos`
+      - foco recomendado:
+        - catálogo explícito de módulos
+        - activación/desactivación por tenant
+        - dependencias entre módulos
+        - relación operativa con planes y límites
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la asignación del `Grupo social común`

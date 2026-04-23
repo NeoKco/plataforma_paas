@@ -65,6 +65,11 @@ type PendingConfirmation = {
   action: () => Promise<{ message?: string }>;
 };
 
+type BillingValidationGuide = {
+  cards: OperationalSummaryCard[];
+  footnote: string;
+};
+
 export function BillingPage() {
   const { session } = useAuth();
   const { language } = useLanguage();
@@ -259,6 +264,22 @@ export function BillingPage() {
     platformAlerts?.total_alerts,
     selectedTenant,
     tenantEvents?.total_events,
+  ]);
+
+  const validationGuide = useMemo<BillingValidationGuide>(() => {
+    return getBillingValidationGuide({
+      language,
+      selectedTenantSlug: selectedTenant?.slug || null,
+      activeAlerts: platformAlerts?.total_alerts || 0,
+      tenantEventsCount: tenantEvents?.total_events || 0,
+      tenantSummaryRows: tenantSummary?.total_rows || 0,
+    });
+  }, [
+    language,
+    platformAlerts?.total_alerts,
+    selectedTenant?.slug,
+    tenantEvents?.total_events,
+    tenantSummary?.total_rows,
   ]);
 
   async function loadStaticContext() {
@@ -712,6 +733,24 @@ export function BillingPage() {
             ))}
           </div>
         )}
+      </PanelCard>
+
+      <PanelCard
+        title={
+          language === "es"
+            ? "Ruta de revalidación del carril"
+            : "Environment revalidation route"
+        }
+        subtitle={
+          language === "es"
+            ? "Aclara qué validar aquí, cuándo bajar al workspace tenant y cuál es la referencia repo/CI equivalente."
+            : "Clarifies what to validate here, when to move into the tenant workspace and which repo/CI routine matches this environment."
+        }
+      >
+        <div className="tenant-help-box">
+          <OperationalSummaryStrip cards={validationGuide.cards} />
+          <p className="tenant-help-text">{validationGuide.footnote}</p>
+        </div>
       </PanelCard>
 
       <PanelCard
@@ -1332,4 +1371,89 @@ function downloadTextFile(content: string, filename: string, mimeType: string) {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+function getBillingValidationGuide({
+  language,
+  selectedTenantSlug,
+  activeAlerts,
+  tenantEventsCount,
+  tenantSummaryRows,
+}: {
+  language: "es" | "en";
+  selectedTenantSlug: string | null;
+  activeAlerts: number;
+  tenantEventsCount: number;
+  tenantSummaryRows: number;
+}): BillingValidationGuide {
+  const cards: OperationalSummaryCard[] = [
+    {
+      key: "visible-baseline",
+      eyebrow: language === "es" ? "Baseline visible" : "Visible baseline",
+      tone: activeAlerts > 0 ? "warning" : "success",
+      title:
+        activeAlerts > 0
+          ? language === "es"
+            ? `${activeAlerts} alertas abiertas aquí`
+            : `${activeAlerts} open alerts here`
+          : language === "es"
+            ? "Billing visible estable aquí"
+            : "Visible billing looks stable here",
+      detail:
+        language === "es"
+          ? "Primero valida señales abiertas, resumen global e historial antes de asumir drift del proveedor o tocar un tenant."
+          : "Validate open signals, global summary and alert history first before assuming provider drift or touching a tenant.",
+    },
+    {
+      key: "tenant-workspace",
+      eyebrow: language === "es" ? "Workspace tenant" : "Tenant workspace",
+      tone:
+        selectedTenantSlug && tenantEventsCount > 0
+          ? "info"
+          : selectedTenantSlug
+            ? "neutral"
+            : "neutral",
+      title:
+        selectedTenantSlug && tenantEventsCount > 0
+          ? language === "es"
+            ? `${selectedTenantSlug} listo para reconcile`
+            : `${selectedTenantSlug} ready for reconcile`
+          : selectedTenantSlug
+            ? language === "es"
+              ? `${selectedTenantSlug} sin eventos visibles`
+              : `${selectedTenantSlug} without visible events`
+            : language === "es"
+              ? "Selecciona un tenant foco"
+              : "Select a tenant focus",
+      detail:
+        selectedTenantSlug && tenantSummaryRows > 0
+          ? language === "es"
+            ? "Aquí mismo revisas el historial persistido y decides reconcile individual o batch sobre el tenant seleccionado."
+            : "Review the persisted history here and decide between individual or batch reconcile on the selected tenant."
+          : language === "es"
+            ? "Si no hay tenant foco o no hay filas visibles, primero ajusta filtros antes de intentar reconcile."
+            : "If there is no tenant focus or no visible rows, adjust filters first before attempting reconcile.",
+    },
+    {
+      key: "repo-ci",
+      eyebrow: language === "es" ? "Repo / CI" : "Repo / CI",
+      tone: "info",
+      title:
+        language === "es"
+          ? "Smokes equivalentes ya disponibles"
+          : "Equivalent smokes already available",
+      detail:
+        language === "es"
+          ? "Toma como referencia platform-admin-billing-reconcile y platform-admin-billing-batch-reconcile cuando necesites fijar este carril fuera de la consola."
+          : "Use platform-admin-billing-reconcile and platform-admin-billing-batch-reconcile as the matching reference when you need to lock this environment outside the console.",
+    },
+  ];
+
+  return {
+    cards,
+    footnote:
+      language === "es"
+        ? "Esta guía no cambia datos por sí sola: solo traduce el carril actual a una secuencia visible para leer alertas, bajar al tenant correcto y revalidar el flujo equivalente en repo/CI."
+        : "This guide does not change data by itself: it only translates the current environment into a visible sequence to read alerts, move into the right tenant and revalidate the equivalent repo/CI flow.",
+  };
 }

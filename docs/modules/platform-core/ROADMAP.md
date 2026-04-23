@@ -96,6 +96,12 @@ Estado práctico de cierre:
   - `scripts/dev/run_repo_provisioning_baseline.sh`
   - `.github/workflows/frontend-provisioning-baseline-e2e.yml`
   - el workflow manual permite escoger `dispatch_backend=database|broker` y sumar broker-only solo cuando corresponde
+- hardening visible adicional ya publicado en `platform_admin > Billing`:
+  - la consola ahora deja una `Ruta de revalidación del carril`
+  - traduce el workspace a una secuencia visible:
+    - baseline visible global
+    - bajada al workspace tenant cuando ya toca reconcile
+    - referencia repo/CI equivalente con los smokes de reconcile individual y batch
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`
