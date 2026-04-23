@@ -10,6 +10,7 @@ import type {
   PlatformTenantAccessPolicy,
   PlatformTenantBillingResponse,
   PlatformTenantDbCredentialsRotateResponse,
+  PlatformTenantRuntimeSecretSyncResponse,
   PlatformTenantPortalUsersResponse,
   PlatformTenantRetirementArchiveListResponse,
   PlatformTenantRetirementArchiveDetailResponse,
@@ -409,6 +410,19 @@ export function rotatePlatformTenantDbCredentials(
 ) {
   return apiRequest<PlatformTenantDbCredentialsRotateResponse>(
     `/platform/tenants/${tenantId}/rotate-db-credentials`,
+    {
+      method: "POST",
+      token: accessToken,
+    }
+  );
+}
+
+export function syncPlatformTenantRuntimeSecret(
+  accessToken: string,
+  tenantId: number
+) {
+  return apiRequest<PlatformTenantRuntimeSecretSyncResponse>(
+    `/platform/tenants/${tenantId}/sync-db-runtime-secret`,
     {
       method: "POST",
       token: accessToken,

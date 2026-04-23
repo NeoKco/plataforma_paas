@@ -41,6 +41,7 @@ export function getPlatformActionFeedbackLabel(
       "requeue-dlq-family-batch": "Reencolado DLQ por familias",
       "reprovision-tenant": "Reprovisionado de tenant",
       "rotate-tenant-db-credentials": "Credenciales técnicas tenant",
+      "sync-tenant-runtime-secret": "Secreto runtime tenant",
       "reset-tenant-portal-password": "Contraseña portal tenant",
       "reconcile-batch": "Reconcile en lote",
       "Reencolado DLQ": "Reencolado DLQ",
@@ -73,6 +74,7 @@ export function getPlatformActionFeedbackLabel(
       "requeue-dlq-family-batch": "DLQ family requeue",
       "reprovision-tenant": "Reprovision tenant",
       "rotate-tenant-db-credentials": "Tenant technical credentials",
+      "sync-tenant-runtime-secret": "Tenant runtime secret",
       "reset-tenant-portal-password": "Tenant portal password",
       "reconcile-batch": "Batch reconcile",
       "Reencolado DLQ": "Requeue DLQ",
@@ -136,6 +138,8 @@ export function getPlatformActionSuccessMessage(
         "Se creó un nuevo job de provisioning para recomponer la base tenant.",
       "rotate-tenant-db-credentials":
         "Las credenciales técnicas tenant fueron rotadas correctamente.",
+      "sync-tenant-runtime-secret":
+        "El secreto técnico tenant fue sincronizado correctamente al carril runtime.",
       "reset-tenant-portal-password":
         "La contraseña del usuario del portal tenant fue actualizada correctamente.",
       "reconcile-batch": "Los eventos filtrados fueron reconciliados correctamente.",
@@ -176,6 +180,8 @@ export function getPlatformActionSuccessMessage(
         "A new provisioning job was created to rebuild the tenant database.",
       "rotate-tenant-db-credentials":
         "The tenant technical credentials were rotated successfully.",
+      "sync-tenant-runtime-secret":
+        "The tenant technical secret was synced successfully to the runtime lane.",
       "reset-tenant-portal-password":
         "The tenant portal user password was updated successfully.",
       "reconcile-batch": "The filtered events were reconciled successfully.",

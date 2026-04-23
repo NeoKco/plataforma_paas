@@ -13,6 +13,14 @@ class TenantRepository:
     def list_all(self, db: Session) -> list[Tenant]:
         return self._base_query(db).order_by(Tenant.id.asc()).all()
 
+    def list_active(self, db: Session) -> list[Tenant]:
+        return (
+            self._base_query(db)
+            .filter(Tenant.status == "active")
+            .order_by(Tenant.id.asc())
+            .all()
+        )
+
     def get_by_slug(self, db: Session, slug: str) -> Tenant | None:
         return self._base_query(db).filter(Tenant.slug == slug).first()
 

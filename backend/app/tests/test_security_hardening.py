@@ -131,6 +131,52 @@ class RuntimeSecurityServiceTestCase(unittest.TestCase):
             posture["tenant_secrets_runtime"]["classification"],
             "runtime_secrets_file",
         )
+        self.assertEqual(
+            posture["tenant_secret_distribution_summary"]["audited_tenants"],
+            0,
+        )
+
+    def test_describe_security_posture_summarizes_runtime_secret_distribution(self) -> None:
+        service = RuntimeSecurityService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            runtime_path = base_dir / ".tenant-secrets.env"
+            legacy_path = base_dir / ".env"
+            runtime_path.write_text(
+                "TENANT_DB_PASSWORD__CONDOMINIO_DEMO=runtime-secret\n",
+                encoding="utf-8",
+            )
+            legacy_path.write_text(
+                "TENANT_DB_PASSWORD__EMPRESA_BOOTSTRAP=legacy-secret\n",
+                encoding="utf-8",
+            )
+            fake_settings = SimpleNamespace(
+                APP_ENV="development",
+                BASE_DIR=base_dir,
+                TENANT_SECRETS_FILE=str(runtime_path),
+                JWT_SECRET_KEY="safe-jwt-secret-123456",
+                CONTROL_DB_PASSWORD="safe-control-password-123456",
+                POSTGRES_ADMIN_PASSWORD="safe-postgres-password-123456",
+                JWT_ISSUER="platform_paas",
+                JWT_PLATFORM_AUDIENCE="platform-api",
+                JWT_TENANT_AUDIENCE="tenant-api",
+                TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP="",
+                TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO="",
+            )
+
+            posture = service.describe_security_posture(
+                fake_settings,
+                tenant_slugs=["condominio-demo", "empresa-bootstrap"],
+            )
+
+        summary = posture["tenant_secret_distribution_summary"]
+        self.assertEqual(summary["audited_tenants"], 2)
+        self.assertEqual(summary["runtime_ready_tenants"], 1)
+        self.assertEqual(summary["missing_runtime_secret_tenants"], 1)
+        self.assertEqual(summary["legacy_rescue_available_tenants"], 1)
+        self.assertEqual(summary["missing_runtime_secret_slugs"], ["empresa-bootstrap"])
+        self.assertEqual(summary["legacy_rescue_available_slugs"], ["empresa-bootstrap"])
 
 
 class JWTSecurityServiceTestCase(unittest.TestCase):
@@ -327,6 +373,54 @@ class TenantSecretServiceTestCase(unittest.TestCase):
             )
 
         self.assertEqual(resolved, "legacy-secret")
+
+    def test_resolve_tenant_db_password_details_reports_source(self) -> None:
+        service = TenantSecretService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            runtime_path = base_dir / ".tenant-secrets.env"
+            runtime_path.write_text(
+                "TENANT_DB_PASSWORD__EMPRESA_DEMO=runtime-secret\n",
+                encoding="utf-8",
+            )
+
+            resolved = service.resolve_tenant_db_password_details(
+                "empresa-demo",
+                SimpleNamespace(
+                    BASE_DIR=base_dir,
+                    TENANT_SECRETS_FILE=str(runtime_path),
+                ),
+            )
+
+        self.assertEqual(resolved["password"], "runtime-secret")
+        self.assertEqual(resolved["env_var_name"], "TENANT_DB_PASSWORD__EMPRESA_DEMO")
+        self.assertEqual(resolved["source"], "runtime_secrets_file")
+
+    def test_describe_tenant_db_secret_distribution_detects_legacy_rescue(self) -> None:
+        service = TenantSecretService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            runtime_path = base_dir / ".tenant-secrets.env"
+            legacy_path = base_dir / ".env"
+            runtime_path.write_text("", encoding="utf-8")
+            legacy_path.write_text(
+                "TENANT_DB_PASSWORD__EMPRESA_DEMO=legacy-secret\n",
+                encoding="utf-8",
+            )
+
+            distribution = service.describe_tenant_db_secret_distribution(
+                "empresa-demo",
+                SimpleNamespace(
+                    BASE_DIR=base_dir,
+                    TENANT_SECRETS_FILE=str(runtime_path),
+                ),
+            )
+
+        self.assertFalse(distribution["runtime_secret_present"])
+        self.assertTrue(distribution["legacy_secret_present"])
+        self.assertTrue(distribution["legacy_rescue_available"])
 
     def test_mask_secret_keeps_last_characters_only(self) -> None:
         service = TenantSecretService()

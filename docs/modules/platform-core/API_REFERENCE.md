@@ -89,6 +89,17 @@ Payload operativo actual de `GET /platform/security-posture`:
 - `tenant_secrets_runtime`
 - `tenant_secrets_legacy`
 - `tenant_secrets_isolated_from_legacy`
+- `tenant_secret_distribution_summary`
+
+`tenant_secret_distribution_summary` hoy resume:
+
+- `audited_tenants`
+- `runtime_ready_count`
+- `missing_runtime_secret_count`
+- `legacy_rescue_available_count`
+- `runtime_ready_slugs`
+- `missing_runtime_secret_slugs`
+- `legacy_rescue_available_slugs`
 
 Regla operativa vigente del carril tenant secrets:
 
@@ -98,6 +109,24 @@ Regla operativa vigente del carril tenant secrets:
   - settings
 - `/.env` legacy ya no debe contar como candidato normal si el runtime ya quedó separado
 - el fallback legacy queda solo como rescate explícito
+
+Mutación operativa nueva para el carril tenant secrets:
+
+- `POST /platform/tenants/{tenant_id}/sync-db-runtime-secret`
+
+Esta mutación:
+
+- replica el secreto DB tenant al `TENANT_SECRETS_FILE` runtime
+- reutiliza el valor ya runtime-managed si el tenant ya estaba bien sincronizado
+- permite rescate legacy explícito solo dentro de esta acción cuando el tenant todavía existe en `/.env`
+- devuelve:
+  - `tenant`
+  - `env_var_name`
+  - `managed_secret_path`
+  - `source`
+  - `source_path`
+  - `already_runtime_managed`
+  - `synced_at`
 
 ## Notas
 
@@ -149,6 +178,10 @@ Regla operativa vigente del carril tenant secrets:
     - `base_plan_code`
     - `billing_cycle`
     - `addon_items[]`
+  - `POST /platform/tenants/{tenant_id}/sync-db-runtime-secret`:
+    - sincroniza el secreto DB tenant al archivo runtime dedicado
+    - no rota la credencial PostgreSQL
+    - sirve para corregir drift de distribución cuando el valor válido ya existe
   - `POST /platform/tenants` hoy acepta:
     - `base_plan_code`
   - para tenants nuevos:

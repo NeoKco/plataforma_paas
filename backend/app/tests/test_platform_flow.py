@@ -100,6 +100,7 @@ from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     reprovision_tenant,
     reset_tenant_portal_user_password,
     rotate_tenant_db_credentials,
+    sync_tenant_runtime_secret,
     sync_tenant_billing_event,
     restore_tenant,
     update_tenant_identity,
@@ -1421,6 +1422,45 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(
             tenant_secret_service.clear_tenant_bootstrap_db_password.call_count, 2
         )
+
+    def test_tenant_service_syncs_runtime_secret_from_legacy_rescue(self) -> None:
+        tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+
+        tenant_secret_service = MagicMock()
+        tenant_secret_service.resolve_tenant_db_password_details.return_value = {
+            "password": "legacy-secret",
+            "env_var_name": "TENANT_DB_PASSWORD__EMPRESA_DEMO",
+            "source": "legacy_env_file",
+            "source_path": "/opt/platform_paas/.env",
+        }
+        tenant_secret_service.store_tenant_db_password.return_value = (
+            "TENANT_DB_PASSWORD__EMPRESA_DEMO"
+        )
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant),
+            tenant_secret_service=tenant_secret_service,
+        )
+
+        with patch.object(service, "_validate_tenant_db_connection") as validate_mock:
+            result = service.sync_tenant_runtime_secret(db=object(), tenant_id=1)
+
+        self.assertIs(result["tenant"], tenant)
+        self.assertEqual(result["source"], "legacy_env_file")
+        self.assertFalse(result["already_runtime_managed"])
+        validate_mock.assert_called_once_with(
+            host="127.0.0.1",
+            port=5432,
+            database="tenant_empresa_demo",
+            username="user_empresa_demo",
+            password="legacy-secret",
+        )
+        tenant_secret_service.store_tenant_db_password.assert_called_once()
+        tenant_secret_service.clear_tenant_bootstrap_db_password.assert_called_once()
 
     def test_tenant_service_restores_previous_password_when_rotation_validation_fails(self) -> None:
         tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
@@ -4483,11 +4523,31 @@ class PlatformRoutesTestCase(unittest.TestCase):
                 "writable": True,
             },
             "tenant_secrets_isolated_from_legacy": True,
+            "tenant_secret_distribution_summary": {
+                "audited_tenants": 2,
+                "runtime_ready_tenants": 1,
+                "missing_runtime_secret_tenants": 1,
+                "legacy_rescue_available_tenants": 1,
+                "distribution_ready": False,
+                "missing_runtime_secret_slugs": ["empresa-bootstrap"],
+                "legacy_rescue_available_slugs": ["empresa-bootstrap"],
+            },
         }
 
-        response = get_platform_security_posture(
-            _token=self._token_payload(),
-        )
+        active_configured = build_tenant_record_stub(tenant_slug="empresa-bootstrap")
+        active_configured.db_name = "tenant_empresa_bootstrap"
+        active_configured.db_user = "user_empresa_bootstrap"
+        active_configured.db_host = "127.0.0.1"
+        active_configured.db_port = 5432
+
+        with patch(
+            "app.apps.platform_control.api.routes.tenant_repository.list_active",
+            return_value=[active_configured],
+        ):
+            response = get_platform_security_posture(
+                db=object(),
+                _token=self._token_payload(),
+            )
 
         self.assertTrue(response.success)
         self.assertEqual(response.app_env, "development")
@@ -4495,6 +4555,64 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.findings_count, 2)
         self.assertEqual(len(response.findings), 2)
         self.assertTrue(response.tenant_secrets_isolated_from_legacy)
+        self.assertEqual(
+            response.tenant_secret_distribution_summary["missing_runtime_secret_tenants"],
+            1,
+        )
+
+    def test_get_platform_security_posture_uses_only_active_configured_tenant_slugs(self) -> None:
+        active_configured = build_tenant_record_stub(tenant_slug="empresa-bootstrap")
+        active_configured.db_name = "tenant_empresa_bootstrap"
+        active_configured.db_user = "user_empresa_bootstrap"
+        active_configured.db_host = "127.0.0.1"
+        active_configured.db_port = 5432
+        active_unconfigured = build_tenant_record_stub(tenant_slug="empresa-pending")
+        active_unconfigured.db_name = None
+
+        with patch(
+            "app.apps.platform_control.api.routes.tenant_repository.list_active",
+            return_value=[active_configured, active_unconfigured],
+        ), patch(
+            "app.apps.platform_control.api.routes.runtime_security_service.describe_security_posture",
+            return_value={
+                "findings": [],
+                "production_ready": True,
+                "tenant_secrets_runtime": {
+                    "path": "/tmp/.tenant-secrets.env",
+                    "classification": "runtime_secrets_file",
+                    "exists": True,
+                    "readable": True,
+                    "writable": True,
+                },
+                "tenant_secrets_legacy": {
+                    "path": "/tmp/.env",
+                    "classification": "legacy_env_file",
+                    "exists": True,
+                    "readable": True,
+                    "writable": True,
+                },
+                "tenant_secrets_isolated_from_legacy": True,
+                "tenant_secret_distribution_summary": {
+                    "audited_tenants": 1,
+                    "runtime_ready_tenants": 1,
+                    "missing_runtime_secret_tenants": 0,
+                    "legacy_rescue_available_tenants": 0,
+                    "distribution_ready": True,
+                    "missing_runtime_secret_slugs": [],
+                    "legacy_rescue_available_slugs": [],
+                },
+            },
+        ) as describe_mock:
+            response = get_platform_security_posture(
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(
+            describe_mock.call_args.kwargs["tenant_slugs"],
+            ["empresa-bootstrap"],
+        )
 
     def test_list_platform_users_returns_catalog(self) -> None:
         users = [
@@ -7045,6 +7163,70 @@ class PlatformRoutesTestCase(unittest.TestCase):
             exc.exception.detail,
             "The rotated tenant credentials could not be validated and the previous password was restored. Verify PostgreSQL admin access and tenant database reachability before retrying.",
         )
+
+    def test_sync_tenant_runtime_secret_returns_schema(self) -> None:
+        synced_at = datetime.now(timezone.utc)
+        tenant = build_tenant_record_stub(
+            tenant_name="Empresa Demo",
+            tenant_slug="empresa-demo",
+            status="active",
+        )
+        tenant.id = 5
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
+            return_value={"status": "active"},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.sync_tenant_runtime_secret",
+            return_value={
+                "tenant": tenant,
+                "env_var_name": "TENANT_DB_PASSWORD__EMPRESA_DEMO",
+                "managed_secret_path": "/opt/platform_paas/.tenant-secrets.env",
+                "source": "legacy_env_file",
+                "source_path": "/opt/platform_paas/.env",
+                "already_runtime_managed": False,
+                "synced_at": synced_at,
+            },
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes._record_tenant_policy_event",
+        ) as record_mock, patch(
+            "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
+        ) as audit_mock:
+            response = sync_tenant_runtime_secret(
+                tenant_id=5,
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.tenant_id, 5)
+        self.assertEqual(response.tenant_slug, "empresa-demo")
+        self.assertEqual(response.env_var_name, "TENANT_DB_PASSWORD__EMPRESA_DEMO")
+        self.assertEqual(
+            response.managed_secret_path, "/opt/platform_paas/.tenant-secrets.env"
+        )
+        self.assertEqual(response.source, "legacy_env_file")
+        self.assertEqual(response.source_path, "/opt/platform_paas/.env")
+        self.assertEqual(response.synced_at, synced_at)
+        record_mock.assert_called_once()
+        audit_mock.assert_called_once()
+
+    def test_sync_tenant_runtime_secret_translates_missing_tenant_error(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
+            return_value={"status": "active"},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.sync_tenant_runtime_secret",
+            side_effect=ValueError("Tenant not found"),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                sync_tenant_runtime_secret(
+                    tenant_id=5,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 404)
 
     def test_deprovision_tenant_returns_schema(self) -> None:
         job = SimpleNamespace(

@@ -41,7 +41,12 @@ class RuntimeSecurityService:
 
         return findings
 
-    def describe_security_posture(self, current_settings) -> dict:
+    def describe_security_posture(
+        self,
+        current_settings,
+        *,
+        tenant_slugs: list[str] | None = None,
+    ) -> dict:
         findings = self.validate_settings(current_settings)
         secret_posture = self.tenant_secret_service.build_secret_posture(current_settings)
         runtime_secret = secret_posture["runtime"]
@@ -50,12 +55,17 @@ class RuntimeSecurityService:
             runtime_secret["path"] != legacy_secret["path"]
             and runtime_secret["classification"] != "legacy_env_file"
         )
+        distribution_summary = self.tenant_secret_service.build_tenant_secret_distribution_summary(
+            current_settings,
+            tenant_slugs or [],
+        )
         return {
             "findings": findings,
             "production_ready": len(findings) == 0,
             "tenant_secrets_runtime": runtime_secret,
             "tenant_secrets_legacy": legacy_secret,
             "tenant_secrets_isolated_from_legacy": runtime_isolated_from_legacy,
+            "tenant_secret_distribution_summary": distribution_summary,
         }
 
     def validate_settings(self, current_settings) -> list[str]:

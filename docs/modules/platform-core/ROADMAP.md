@@ -204,6 +204,11 @@ Estado práctico de cierre:
     - la resolución normal de secretos tenant ya no usa `/.env` como candidato cuando el runtime ya trabaja con `TENANT_SECRETS_FILE` separado
     - `/.env` legacy queda solo como rescate explícito
     - cobertura nueva en `test_security_hardening` para modo normal sin `.env` y para rescate legacy bajo flag
+  - tercer slice repo ya cerrado:
+    - `GET /platform/security-posture` ya resume cobertura tenant del carril runtime con `tenant_secret_distribution_summary`
+    - `Tenants` ya expone `Sincronizar secreto runtime` además de `Rotar credenciales técnicas`
+    - la distribución mínima centralizada ya existe sin obligar rotación
+    - el rescate legacy queda más acotado dentro de una mutación explícita
 
 ## Cierre operativo del bloque central
 

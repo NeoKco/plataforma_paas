@@ -63,6 +63,7 @@ from app.apps.platform_control.schemas import (
     TenantSchemaAutoSyncResponse,
     TenantSchemaAutoSyncJobResponse,
     TenantDbCredentialsRotateResponse,
+    TenantRuntimeSecretSyncResponse,
     TenantPortalUserPasswordResetRequest,
     TenantPortalUserPasswordResetResponse,
     TenantPortalUsersItemResponse,
@@ -1267,7 +1268,57 @@ def rotate_tenant_db_credentials(
         tenant_slug=tenant.slug,
         tenant_status=tenant.status,
         env_var_name=result["env_var_name"],
+        managed_secret_path=result.get("managed_secret_path"),
         rotated_at=result["rotated_at"],
+    )
+
+
+@router.post(
+    "/{tenant_id}/sync-db-runtime-secret",
+    response_model=TenantRuntimeSecretSyncResponse,
+)
+def sync_tenant_runtime_secret(
+    tenant_id: int,
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> TenantRuntimeSecretSyncResponse:
+    previous_state = _capture_tenant_snapshot(db, tenant_id)
+    try:
+        result = tenant_service.sync_tenant_runtime_secret(db=db, tenant_id=tenant_id)
+    except ValueError as exc:
+        _raise_tenant_db_credentials_rotation_http_error(exc)
+
+    tenant = result["tenant"]
+    _record_tenant_policy_event(
+        db,
+        tenant=tenant,
+        event_type="technical_secret_distribution",
+        previous_state=previous_state,
+        actor_context=_token,
+    )
+    auth_audit_service.log_event(
+        db,
+        event_type="platform.tenant_db_runtime_secret_synced",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=int(_token.get("sub")) if _token.get("sub") else None,
+        tenant_slug=tenant.slug,
+        email=_token.get("email"),
+        detail="Secreto tecnico tenant sincronizado al carril runtime desde plataforma",
+    )
+
+    return TenantRuntimeSecretSyncResponse(
+        success=True,
+        message="El secreto técnico tenant fue sincronizado al carril runtime correctamente",
+        tenant_id=tenant.id,
+        tenant_slug=tenant.slug,
+        tenant_status=tenant.status,
+        env_var_name=result["env_var_name"],
+        managed_secret_path=result["managed_secret_path"],
+        source=result["source"],
+        source_path=result.get("source_path"),
+        already_runtime_managed=result["already_runtime_managed"],
+        synced_at=result["synced_at"],
     )
 
 

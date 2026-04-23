@@ -545,7 +545,55 @@ class TenantService:
         return {
             "tenant": tenant,
             "env_var_name": env_var_name,
+            "managed_secret_path": str(runtime_env_path.expanduser().resolve()),
             "rotated_at": tenant.tenant_db_credentials_rotated_at,
+        }
+
+    def sync_tenant_runtime_secret(self, db: Session, tenant_id: int) -> dict:
+        tenant = self.tenant_repository.get_by_id(db, tenant_id)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        if tenant.status == "archived":
+            raise ValueError("Archived tenants cannot sync runtime technical secrets")
+
+        if not tenant.db_name or not tenant.db_user or not tenant.db_host or not tenant.db_port:
+            raise ValueError("Tenant database configuration is incomplete")
+
+        resolution = self.tenant_secret_service.resolve_tenant_db_password_details(
+            tenant.slug,
+            settings,
+            allow_legacy_env_fallback=True,
+        )
+        password = resolution["password"]
+
+        self._validate_tenant_db_connection(
+            host=tenant.db_host,
+            port=tenant.db_port,
+            database=tenant.db_name,
+            username=tenant.db_user,
+            password=password,
+        )
+
+        runtime_env_path = Path(settings.TENANT_SECRETS_FILE)
+        env_var_name = self.tenant_secret_service.store_tenant_db_password(
+            tenant_slug=tenant.slug,
+            password=password,
+            env_path=runtime_env_path,
+        )
+        self.tenant_secret_service.clear_tenant_bootstrap_db_password(
+            tenant_slug=tenant.slug,
+            env_path=runtime_env_path,
+        )
+
+        return {
+            "tenant": tenant,
+            "env_var_name": env_var_name,
+            "managed_secret_path": str(runtime_env_path.expanduser().resolve()),
+            "source": resolution["source"],
+            "source_path": resolution["source_path"],
+            "already_runtime_managed": resolution["source"] == "runtime_secrets_file",
+            "synced_at": datetime.now(timezone.utc),
         }
 
     def deprovision_tenant(self, db: Session, tenant_id: int) -> dict:

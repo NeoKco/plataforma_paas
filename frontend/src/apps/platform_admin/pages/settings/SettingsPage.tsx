@@ -516,6 +516,22 @@ export function SettingsPage() {
                   : "n/d"
               }
             />
+            <DetailField
+              label={language === "es" ? "Tenants auditados" : "Audited tenants"}
+              value={securityPosture?.tenant_secret_distribution_summary?.audited_tenants ?? "n/d"}
+            />
+            <DetailField
+              label={language === "es" ? "Runtime listo" : "Runtime ready"}
+              value={securityPosture?.tenant_secret_distribution_summary?.runtime_ready_tenants ?? "n/d"}
+            />
+            <DetailField
+              label={language === "es" ? "Falta sincronizar" : "Missing runtime sync"}
+              value={securityPosture?.tenant_secret_distribution_summary?.missing_runtime_secret_tenants ?? "n/d"}
+            />
+            <DetailField
+              label={language === "es" ? "Rescate legacy posible" : "Legacy rescue available"}
+              value={securityPosture?.tenant_secret_distribution_summary?.legacy_rescue_available_tenants ?? "n/d"}
+            />
           </div>
           {securityPostureError ? (
             <div className="alert alert-warning mt-3 mb-0">
@@ -547,6 +563,22 @@ export function SettingsPage() {
                 ? "Esta lectura no muestra secretos; solo resume si el runtime tiene hallazgos pendientes."
                 : "This read does not expose secrets; it only summarizes whether the runtime still has pending findings."}
             </div>
+            {securityPosture?.tenant_secret_distribution_summary?.missing_runtime_secret_slugs
+              ?.length ? (
+              <div>
+                {language === "es"
+                  ? `Tenants con secreto runtime faltante: ${securityPosture.tenant_secret_distribution_summary.missing_runtime_secret_slugs.join(", ")}`
+                  : `Tenants missing runtime secret: ${securityPosture.tenant_secret_distribution_summary.missing_runtime_secret_slugs.join(", ")}`}
+              </div>
+            ) : null}
+            {securityPosture?.tenant_secret_distribution_summary?.legacy_rescue_available_slugs
+              ?.length ? (
+              <div>
+                {language === "es"
+                  ? `Rescate legacy disponible para: ${securityPosture.tenant_secret_distribution_summary.legacy_rescue_available_slugs.join(", ")}`
+                  : `Legacy rescue available for: ${securityPosture.tenant_secret_distribution_summary.legacy_rescue_available_slugs.join(", ")}`}
+              </div>
+            ) : null}
           </div>
         </PanelCard>
 

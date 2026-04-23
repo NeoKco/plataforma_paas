@@ -94,6 +94,23 @@ Politica actual:
 
 Esto permite endurecer operacion sin tocar credenciales del portal tenant ni depender de cambios manuales sobre PostgreSQL.
 
+### Sincronizacion formal del secreto runtime tenant
+
+Desde `Tenants` ya existe tambien una accion separada para `Sincronizar secreto runtime`.
+
+Politica actual:
+
+- no cambia la password PostgreSQL
+- solo asegura que el secreto DB tenant quede presente en `TENANT_SECRETS_FILE`
+- reutiliza el valor runtime si ya estaba bien gestionado
+- si todavia faltaba en runtime pero seguia disponible en `/.env`, el rescate legacy ocurre solo aqui y de forma explícita
+- deja trazabilidad operativa y de policy como `technical_secret_distribution`
+
+Uso recomendado:
+
+- usar `Rotar credenciales tecnicas` cuando sospechas exposición o quieres renovar la credencial
+- usar `Sincronizar secreto runtime` cuando el valor ya es válido pero el carril runtime quedó incompleto o desalineado
+
 ### Postura operativa de secretos por carril
 
 El script canónico [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya expone tambien una lectura rápida de postura de secretos:
@@ -120,6 +137,15 @@ Objetivo:
 - el archivo runtime de secretos tenant no es escribible
 
 En `production`, esa mezcla con `.env` principal ya deja `production_ready=false`.
+
+Ademas, la postura visible ya resume cobertura tenant del carril runtime:
+
+- tenants auditados
+- tenants ya runtime-managed
+- tenants con secreto runtime faltante
+- tenants donde todavía existe rescate legacy disponible
+
+Eso permite detectar drift de distribución sin revisar tenant por tenant a ciegas.
 
 ### Regla nueva para sincronización cross-env
 

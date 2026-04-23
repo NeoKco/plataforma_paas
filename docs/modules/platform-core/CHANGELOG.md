@@ -2,6 +2,24 @@
 
 ## 2026-04-23
 
+- `Etapa 11` ya abre distribución centralizada mínima del secreto runtime tenant:
+  - [tenant_secret_service.py](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ahora expone detalle de origen y resumen de distribución por tenant
+  - [runtime_security_service.py](/home/felipe/platform_paas/backend/app/common/security/runtime_security_service.py) ya publica `tenant_secret_distribution_summary`
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya agrega `sync_tenant_runtime_secret(...)`
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ya expone `POST /platform/tenants/{tenant_id}/sync-db-runtime-secret`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ya separa:
+    - `Rotar credenciales técnicas`
+    - `Sincronizar secreto runtime`
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya muestra:
+    - tenants auditados
+    - runtime ready
+    - runtime secret faltante
+    - rescate legacy disponible
+  - validación repo:
+    - `backend.app.tests.test_security_hardening` -> `17 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `224 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - `Etapa 11` ya recorta el fallback legacy de secretos tenant en el carril normal:
   - [tenant_secret_service.py](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ya resuelve passwords tenant en modo normal desde:
     - `TENANT_SECRETS_FILE`

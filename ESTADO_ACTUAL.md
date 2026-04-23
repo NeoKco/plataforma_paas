@@ -22,6 +22,17 @@
   - validación runtime:
     - `staging` backend redeployado con `557 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
     - `production` backend redeployado con `557 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - tercer corte ya cerrado en repo:
+    - `security-posture` ya resume la cobertura runtime por tenant mediante `tenant_secret_distribution_summary`
+    - `Tenants` ya separa:
+      - `Rotar credenciales técnicas`
+      - `Sincronizar secreto runtime`
+    - la sincronización runtime ya permite distribuir el secreto DB tenant al carril runtime sin rotar la credencial
+    - el rescate legacy desde `/.env` queda más acotado dentro de una mutación explícita y no vuelve al path normal
+  - validación repo de este tercer corte:
+    - `backend.app.tests.test_security_hardening` -> `17 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `224 tests OK`
+    - `cd frontend && npm run build` -> `OK`
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 15`: `platform_control` ya no solo tiene el corte técnico persistente del modelo `Plan Base + módulos arrendables por suscripción`, promovido y validado en `staging` y `production`; además `Configuración` y `Tenants > Plan y módulos` ya quedaron adaptados y publicados al lenguaje visible `Plan Base + add-ons`, la activación efectiva visible ya consume `tenant_subscriptions`, `billing/grace/suspensión` ya se evalúan primero desde la suscripción cuando existe, el baseline técnico de cuotas/límites para tenants gestionados ya sale del `Plan Base` en vez de `plan_code`, y los 4 tenants activos de ambos ambientes ya quedaron migrados al contrato nuevo sin `plan_code` activo
 - subcorte adicional ya cerrado en repo y runtime dentro de la misma `Etapa 15`:
   - `POST /platform/tenants` ya crea tenants nuevos desde `base_plan_code`

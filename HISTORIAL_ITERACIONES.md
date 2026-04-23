@@ -1,5 +1,43 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya abre distribución centralizada mínima de secretos tenant
+
+Contexto:
+
+- el primer slice visible ya mostraba el carril runtime real de secretos tenant
+- el segundo slice ya había sacado `/.env` del path normal de resolución
+- faltaba una mutación formal para sincronizar el secreto runtime sin forzar rotación
+
+Cambios:
+
+- [tenant_secret_service.py](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py):
+  - ahora expone detalle del origen real del secreto tenant
+  - agrega resumen de distribución por tenant para el runtime
+- [runtime_security_service.py](/home/felipe/platform_paas/backend/app/common/security/runtime_security_service.py):
+  - ahora publica `tenant_secret_distribution_summary`
+- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+  - agrega `sync_tenant_runtime_secret(...)`
+- [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py):
+  - agrega `POST /platform/tenants/{tenant_id}/sync-db-runtime-secret`
+- [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+  - separa `Sincronizar secreto runtime` de `Rotar credenciales técnicas`
+- [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+  - ya muestra:
+    - tenants auditados
+    - runtime ready
+    - runtime secret faltante
+    - rescate legacy disponible
+
+Resultado:
+
+- la Etapa 11 ya deja un carril mínimo formal de distribución centralizada
+- la operación puede corregir drift de runtime sin rotar la password DB tenant
+- el rescate legacy queda mejor contenido dentro de una acción explícita
+- validación repo:
+  - `backend.app.tests.test_security_hardening` -> `17 tests OK`
+  - `backend.app.tests.test_platform_flow` -> `224 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-23 - `Etapa 11` ya retira `.env` del carril normal de resolución tenant
 
 Contexto:

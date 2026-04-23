@@ -57,6 +57,7 @@ Nota operativa:
   - si marca provisioning, revisar `Provisioning`
   - si marca schema drift, usar `Sincronizar esquema tenant`
   - si marca drift de credenciales, usar `Rotar credenciales técnicas`
+  - si marca drift de secreto runtime, usar `Sincronizar secreto runtime`
 
 Referencia:
 
@@ -149,6 +150,30 @@ Regla operativa:
 - el siguiente corte ya no es migrarlos, sino retirar luego superficies residuales de compatibilidad `plan_code`
 - referencia formal:
   - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
+
+### Operar secretos tenant en runtime
+
+Desde `Configuración -> Postura de secretos y runtime`, la lectura visible ahora ya permite ver:
+
+1. archivo runtime efectivo
+2. si está aislado del `.env` legacy
+3. si el carril runtime es legible y escribible
+4. cobertura tenant del secreto runtime:
+   - tenants auditados
+   - cuántos ya están runtime-managed
+   - cuántos siguen con secreto runtime faltante
+   - cuántos todavía podrían rescatarse desde legacy
+
+Desde `Tenants`, la operación correcta queda así:
+
+1. usar `Rotar credenciales técnicas` si quieres cambiar la password DB tenant
+2. usar `Sincronizar secreto runtime` si la password actual sigue siendo válida pero falta replicarla al archivo runtime
+
+Regla operativa:
+
+- la resolución normal ya no usa `/.env` como carril normal si `TENANT_SECRETS_FILE` está separado
+- el rescate legacy sigue existiendo solo dentro de acciones explícitas de operación
+- no corresponde volver a tratar `/.env` como target normal de sincronización tenant
 
 ### Operar provisioning
 

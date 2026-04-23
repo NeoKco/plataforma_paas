@@ -67,10 +67,14 @@
       - segundo slice ya cerrado en repo y runtime:
         - la resolución normal ya no trata el `.env` legacy como candidato cuando el runtime tiene `TENANT_SECRETS_FILE`
         - el redeploy real además corrigió un drift operativo sobre `empresa-bootstrap` en ambos carriles al replicar su secreto DB al archivo runtime de secretos tenant
+      - tercer slice ya cerrado en repo:
+        - `security-posture` ya resume cobertura tenant del carril runtime
+        - `Tenants` ya agrega `Sincronizar secreto runtime` como acción formal separada de la rotación
+        - la distribución mínima centralizada ya existe sin obligar cambio de credencial
       - siguiente corte recomendado:
-        - fortalecer política de distribución/rotación centralizada de secretos fuera de `.env`
-        - decidir si el rescate legacy explícito sigue viviendo en código normal o se aísla en tooling operativo
-        - cerrar mejor política de reactivación, acceso y evidencia operativa ligada a credenciales
+        - promover este tercer slice a runtime published
+        - decidir si el rescate legacy explícito queda todavía dentro de la mutación operativa o si ya se aísla en tooling/ruta aún más controlada
+        - cerrar mejor política de distribución/rotación centralizada de secretos fuera de `.env`
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual

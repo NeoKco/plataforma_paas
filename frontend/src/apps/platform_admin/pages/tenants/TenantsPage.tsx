@@ -54,6 +54,7 @@ import {
   reprovisionPlatformTenant,
   resetPlatformTenantUserPassword,
   rotatePlatformTenantDbCredentials,
+  syncPlatformTenantRuntimeSecret,
   requeueProvisioningJob,
   runProvisioningJob,
   listPlatformTenants,
@@ -1841,10 +1842,58 @@ export function TenantsPage() {
               : "The tenant database technical credential was rotated and validated successfully.",
           details: [
             `${language === "es" ? "Variable actualizada" : "Updated variable"}: ${response.env_var_name}`,
-            `${language === "es" ? "Archivo gestionado" : "Managed file"}: /home/felipe/platform_paas/.env`,
+            `${language === "es" ? "Archivo runtime gestionado" : "Managed runtime file"}: ${response.managed_secret_path || "n/a"}`,
             language === "es"
               ? "Esta credencial es técnica para la base tenant. No corresponde a la contraseña del portal tenant."
               : "This credential is technical for the tenant database. It is not the tenant portal password.",
+          ],
+        };
+      },
+    });
+  }
+
+  function handleSyncTenantRuntimeSecret() {
+    if (!session?.accessToken || selectedTenantId === null || !selectedTenantSummary) {
+      return;
+    }
+
+    requestConfirmation({
+      scope: "sync-tenant-runtime-secret",
+      title:
+        language === "es"
+          ? "Confirmar sincronización del secreto runtime"
+          : "Confirm runtime secret sync",
+      description:
+        language === "es"
+          ? "Esta acción valida la credencial técnica actual de la base tenant y la replica al carril runtime de secretos sin rotar la contraseña."
+          : "This action validates the current tenant database technical credential and replicates it to the runtime secret lane without rotating the password.",
+      details: [
+        `Tenant: ${selectedTenantSummary.name}`,
+        `Slug: ${selectedTenantSummary.slug}`,
+        `${language === "es" ? "DB tenant configurada" : "Tenant DB configured"}: ${selectedTenantSummary.db_configured ? (language === "es" ? "sí" : "yes") : "no"}`,
+        language === "es"
+          ? "Úsalo cuando sospeches drift del archivo runtime o cuando falte replicar el secreto técnico en `TENANT_SECRETS_FILE`."
+          : "Use it when you suspect runtime file drift or when the technical secret is missing from `TENANT_SECRETS_FILE`.",
+      ],
+      confirmLabel:
+        language === "es" ? "Sincronizar secreto runtime" : "Sync runtime secret",
+      action: async () => {
+        const response = await syncPlatformTenantRuntimeSecret(
+          session.accessToken,
+          selectedTenantId
+        );
+        return {
+          message:
+            language === "es"
+              ? "El secreto técnico actual quedó validado y replicado al carril runtime."
+              : "The current technical secret was validated and replicated to the runtime lane.",
+          details: [
+            `${language === "es" ? "Variable actualizada" : "Updated variable"}: ${response.env_var_name}`,
+            `${language === "es" ? "Archivo runtime gestionado" : "Managed runtime file"}: ${response.managed_secret_path}`,
+            `${language === "es" ? "Fuente usada" : "Source used"}: ${response.source}`,
+            response.source_path
+              ? `${language === "es" ? "Origen efectivo" : "Effective origin"}: ${response.source_path}`
+              : `${language === "es" ? "Origen efectivo" : "Effective origin"}: ${response.source}`,
           ],
         };
       },
@@ -3793,7 +3842,10 @@ export function TenantsPage() {
                 ) : null}
                 {selectedTenantSummary.db_configured ? (
                   <>
-                    {actionFeedback?.scope === "rotate-tenant-db-credentials" ? (
+                    {actionFeedback &&
+                    ["rotate-tenant-db-credentials", "sync-tenant-runtime-secret"].includes(
+                      actionFeedback.scope
+                    ) ? (
                       <div
                         className={`tenant-action-feedback tenant-action-feedback--${actionFeedback.type}`}
                       >
@@ -3825,8 +3877,8 @@ export function TenantsPage() {
                     <div className="tenant-context-actions tenant-context-actions--compact">
                       <div className="tenant-help-text">
                         {language === "es"
-                          ? "Rota la contraseña DB tenant si sospechas exposición técnica. No cambia la contraseña del portal."
-                          : "If you need to harden operations or suspect technical secret exposure, you can rotate the tenant DB password without affecting tenant portal access. This is not the tenant portal user password; that access credential is managed separately."}
+                          ? "Puedes rotar la contraseña DB tenant si sospechas exposición técnica, o solo sincronizar el secreto actual al carril runtime si detectas drift en `TENANT_SECRETS_FILE`. Ninguna acción cambia la contraseña del portal."
+                          : "You can rotate the tenant DB password if you suspect technical exposure, or only sync the current secret to the runtime lane if `TENANT_SECRETS_FILE` drift is detected. Neither action changes the tenant portal password."}
                       </div>
                       <div className="tenant-context-actions__buttons">
                         <button
@@ -3836,6 +3888,14 @@ export function TenantsPage() {
                           disabled={isActionSubmitting}
                         >
                           {language === "es" ? "Rotar credenciales técnicas" : "Rotate technical credentials"}
+                        </button>
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          type="button"
+                          onClick={handleSyncTenantRuntimeSecret}
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es" ? "Sincronizar secreto runtime" : "Sync runtime secret"}
                         </button>
                       </div>
                     </div>

@@ -5,6 +5,13 @@ from app.common.config.settings import BASE_DIR
 
 
 class TenantSecretService:
+    def build_tenant_db_password_candidate_names(self, tenant_slug: str) -> list[str]:
+        normalized_slug = tenant_slug.upper().replace("-", "_")
+        return [
+            self.build_tenant_db_password_env_var_name(tenant_slug),
+            f"TENANT_BOOTSTRAP_DB_PASSWORD_{normalized_slug}",
+        ]
+
     def get_runtime_env_path(self, current_settings) -> Path:
         return Path(
             getattr(
@@ -81,18 +88,14 @@ class TenantSecretService:
         normalized_slug = tenant_slug.upper().replace("-", "_")
         return f"TENANT_DB_PASSWORD__{normalized_slug}"
 
-    def resolve_tenant_db_password(
+    def resolve_tenant_db_password_details(
         self,
         tenant_slug: str,
         current_settings,
         *,
         allow_legacy_env_fallback: bool = False,
-    ) -> str:
-        normalized_slug = tenant_slug.upper().replace("-", "_")
-        candidates = [
-            self.build_tenant_db_password_env_var_name(tenant_slug),
-            f"TENANT_BOOTSTRAP_DB_PASSWORD_{normalized_slug}",
-        ]
+    ) -> dict:
+        candidates = self.build_tenant_db_password_candidate_names(tenant_slug)
 
         resolution_paths = list(self.get_runtime_resolution_env_paths(current_settings))
         if allow_legacy_env_fallback:
@@ -102,17 +105,105 @@ class TenantSecretService:
             for env_path in resolution_paths:
                 env_file_value = self._read_env_var_from_file(env_path, env_var)
                 if env_file_value:
-                    return env_file_value
+                    return {
+                        "password": env_file_value,
+                        "env_var_name": env_var,
+                        "source": self.classify_env_path(env_path, current_settings),
+                        "source_path": str(env_path.expanduser().resolve()),
+                    }
 
             env_value = os.getenv(env_var)
             if env_value:
-                return env_value
+                return {
+                    "password": env_value,
+                    "env_var_name": env_var,
+                    "source": "process_env",
+                    "source_path": None,
+                }
 
             setting_value = getattr(current_settings, env_var, None)
             if setting_value:
-                return setting_value
+                return {
+                    "password": setting_value,
+                    "env_var_name": env_var,
+                    "source": "settings",
+                    "source_path": None,
+                }
 
         raise ValueError("Tenant DB password not configured for this tenant")
+
+    def resolve_tenant_db_password(
+        self,
+        tenant_slug: str,
+        current_settings,
+        *,
+        allow_legacy_env_fallback: bool = False,
+    ) -> str:
+        return self.resolve_tenant_db_password_details(
+            tenant_slug,
+            current_settings,
+            allow_legacy_env_fallback=allow_legacy_env_fallback,
+        )["password"]
+
+    def describe_tenant_db_secret_distribution(
+        self,
+        tenant_slug: str,
+        current_settings,
+    ) -> dict:
+        runtime_path = self.get_runtime_env_path(current_settings)
+        legacy_path = self.get_legacy_env_path(current_settings)
+        candidates = self.build_tenant_db_password_candidate_names(tenant_slug)
+
+        runtime_secret_present = any(
+            self._read_env_var_from_file(runtime_path, env_var) for env_var in candidates
+        )
+        legacy_secret_present = any(
+            self._read_env_var_from_file(legacy_path, env_var) for env_var in candidates
+        )
+
+        return {
+            "tenant_slug": tenant_slug,
+            "runtime_secret_present": bool(runtime_secret_present),
+            "legacy_secret_present": bool(legacy_secret_present),
+            "legacy_rescue_available": bool(
+                not runtime_secret_present and legacy_secret_present
+            ),
+        }
+
+    def build_tenant_secret_distribution_summary(
+        self,
+        current_settings,
+        tenant_slugs: list[str],
+    ) -> dict:
+        normalized_slugs = list(dict.fromkeys(tenant_slugs))
+        distribution_items = [
+            self.describe_tenant_db_secret_distribution(slug, current_settings)
+            for slug in normalized_slugs
+        ]
+        missing_runtime_secret_slugs = [
+            item["tenant_slug"]
+            for item in distribution_items
+            if not item["runtime_secret_present"]
+        ]
+        legacy_rescue_available_slugs = [
+            item["tenant_slug"]
+            for item in distribution_items
+            if item["legacy_rescue_available"]
+        ]
+        runtime_ready_tenants = [
+            item["tenant_slug"]
+            for item in distribution_items
+            if item["runtime_secret_present"]
+        ]
+        return {
+            "audited_tenants": len(distribution_items),
+            "runtime_ready_tenants": len(runtime_ready_tenants),
+            "missing_runtime_secret_tenants": len(missing_runtime_secret_slugs),
+            "legacy_rescue_available_tenants": len(legacy_rescue_available_slugs),
+            "distribution_ready": len(missing_runtime_secret_slugs) == 0,
+            "missing_runtime_secret_slugs": missing_runtime_secret_slugs,
+            "legacy_rescue_available_slugs": legacy_rescue_available_slugs,
+        }
 
     def store_tenant_db_password(
         self,

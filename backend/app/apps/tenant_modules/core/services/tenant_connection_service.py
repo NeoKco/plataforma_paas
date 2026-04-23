@@ -28,7 +28,12 @@ class TenantConnectionService:
         credentials = self.get_tenant_database_credentials(tenant)
         return get_tenant_session_factory(**credentials)
 
-    def get_tenant_database_credentials(self, tenant: Tenant) -> dict:
+    def get_tenant_database_credentials(
+        self,
+        tenant: Tenant,
+        *,
+        allow_legacy_env_fallback: bool = False,
+    ) -> dict:
         if not tenant.db_name or not tenant.db_user or not tenant.db_host or not tenant.db_port:
             raise ValueError("Tenant database configuration is incomplete")
 
@@ -40,11 +45,20 @@ class TenantConnectionService:
             "port": tenant.db_port,
             "database": tenant.db_name,
             "username": tenant.db_user,
-            "password": self._resolve_tenant_db_password(tenant.slug),
+            "password": self._resolve_tenant_db_password(
+                tenant.slug,
+                allow_legacy_env_fallback=allow_legacy_env_fallback,
+            ),
         }
 
-    def _resolve_tenant_db_password(self, tenant_slug: str) -> str:
+    def _resolve_tenant_db_password(
+        self,
+        tenant_slug: str,
+        *,
+        allow_legacy_env_fallback: bool = False,
+    ) -> str:
         return self.tenant_secret_service.resolve_tenant_db_password(
             tenant_slug,
             settings,
+            allow_legacy_env_fallback=allow_legacy_env_fallback,
         )

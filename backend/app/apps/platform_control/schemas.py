@@ -214,6 +214,7 @@ class PlatformRuntimeSecurityPostureResponse(BaseModel):
     tenant_secrets_runtime: dict
     tenant_secrets_legacy: dict
     tenant_secrets_isolated_from_legacy: bool
+    tenant_secret_distribution_summary: dict | None = None
 
 
 class TenantCreateRequest(BaseModel):
@@ -806,7 +807,22 @@ class TenantDbCredentialsRotateResponse(BaseModel):
     tenant_slug: str
     tenant_status: str
     env_var_name: str
+    managed_secret_path: str | None = None
     rotated_at: datetime | None = None
+
+
+class TenantRuntimeSecretSyncResponse(BaseModel):
+    success: bool
+    message: str
+    tenant_id: int
+    tenant_slug: str
+    tenant_status: str
+    env_var_name: str
+    managed_secret_path: str
+    source: str
+    source_path: str | None = None
+    already_runtime_managed: bool = False
+    synced_at: datetime | None = None
 
 
 class TenantDeprovisionResponse(BaseModel):

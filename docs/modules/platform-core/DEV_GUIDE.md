@@ -55,6 +55,9 @@ Documentación base:
   - la resolución normal de secretos tenant ya no debe leer `/.env` cuando `TENANT_SECRETS_FILE` está separado
   - cualquier fallback hacia `/.env` debe quedar explícito como rescate legacy
   - cualquier evolución nueva debe fortalecer ese carril, no reintroducir escritura normal sobre `.env`
+  - `GET /platform/security-posture` ya debe resumir cobertura tenant del carril runtime con `tenant_secret_distribution_summary`
+  - la acción explícita `POST /platform/tenants/{tenant_id}/sync-db-runtime-secret` ya debe existir para distribución mínima centralizada sin rotación
+  - el rescate legacy permitido por diseño debe quedar encapsulado en mutaciones explícitas y no reingresar al path normal de resolución
 - la apertura formal de `Etapa 15` también queda backend-driven:
   - `base_plan_catalog`, `module_subscription_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo comercial vigente
   - `module_dependency_catalog` de ese mismo endpoint es la fuente de verdad de las dependencias explícitas entre módulos

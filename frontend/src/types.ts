@@ -197,6 +197,15 @@ export type PlatformRuntimeSecurityPostureResponse = {
     writable: boolean;
   };
   tenant_secrets_isolated_from_legacy: boolean;
+  tenant_secret_distribution_summary: {
+    audited_tenants: number;
+    runtime_ready_tenants: number;
+    missing_runtime_secret_tenants: number;
+    legacy_rescue_available_tenants: number;
+    distribution_ready: boolean;
+    missing_runtime_secret_slugs: string[];
+    legacy_rescue_available_slugs: string[];
+  } | null;
 };
 
 export type PlatformLoginResponse = {
@@ -734,7 +743,22 @@ export type PlatformTenantDbCredentialsRotateResponse = {
   tenant_slug: string;
   tenant_status: string;
   env_var_name: string;
+  managed_secret_path: string | null;
   rotated_at: string | null;
+};
+
+export type PlatformTenantRuntimeSecretSyncResponse = {
+  success: boolean;
+  message: string;
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_status: string;
+  env_var_name: string;
+  managed_secret_path: string;
+  source: string;
+  source_path: string | null;
+  already_runtime_managed: boolean;
+  synced_at: string | null;
 };
 
 export type PlatformTenantUserPasswordResetRequest = {
