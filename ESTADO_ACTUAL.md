@@ -3,6 +3,33 @@
 ## Última actualización
 
 - fecha: 2026-04-23
+- foco operativo nuevo ya cerrado en repo y handoff dentro de las `Etapas 16` y `17`:
+  - el roadmap base ya queda formalmente cerrado para el alcance actual
+  - `Etapa 16. Infraestructura y Operación Real` ya queda cerrada con:
+    - deploy reproducible por ambiente
+    - rollback por ref git del repo fuente
+    - backups y restore drills
+    - evidencia operativa estructurada
+    - staging/production aislados operativamente
+    - publicación frontend reproducible por carril
+  - `Etapa 17. Escalado y Hardening Final` ya queda cerrada con:
+    - worker con perfiles, prioridades, cuotas y backpressure
+    - snapshots, trazas y alertas persistidas
+    - Prometheus textfile
+    - backend `broker` con DLQ y requeue operativo
+    - rate limiting tenant y billing state efectivos
+  - salida formal:
+    - el roadmap maestro base ya no queda con etapas abiertas de cierre estructural
+    - lo siguiente pasa a ser expansión de producto o hardening adicional, no deuda del roadmap base
+- foco operativo nuevo ya cerrado en repo dentro de la `Etapa 9`:
+  - `backend-tests.yml` ya queda fijado como check obligatorio de backend para ramas protegidas
+  - `backend/app/tests/fixtures.py` ya incorpora builders reutilizables más ricos para:
+    - `subscription_items`
+    - `subscription`
+    - `social_community_groups`
+  - [test_fixtures.py](/home/felipe/platform_paas/backend/app/tests/test_fixtures.py) ya deja esa base cubierta con regresión explícita
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_fixtures backend.app.tests.test_platform_flow -v` -> `241 tests OK`
 - foco operativo nuevo ya cerrado en repo, runtime y handoff dentro de la `Etapa 15`:
   - `Tenants > Plan y módulos` ya deja lectura contractual visible de:
     - `Estado contractual`
@@ -25,9 +52,12 @@
     - `production` publicado con `SettingsPage-Mg6_WJLF.js`, `TenantsPage-CxmO2kV5.js`, `PlatformActivityPage-CmWARtK_.js`, `TenantOverviewPage-DDcwQ33v.js`, `index-DyuXAuos.js`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - salida formal de este cierre:
+  - la `Etapa 9` ya puede considerarse cerrada para el alcance actual
   - la `Etapa 15` ya puede considerarse cerrada para el alcance actual
   - la `Etapa 10` ya también queda cerrada para el alcance actual con política formal de migraciones, upgrade por cadena global y recovery `forward-only`
-  - el siguiente frente formal recomendado del roadmap pasa a `Etapa 9. Calidad Técnica Base`
+  - la `Etapa 14` ya también queda cerrada para el alcance actual con `finance`, `business-core` y `maintenance` operando como dominios reales
+  - las `Etapas 16` y `17` ya también quedan cerradas para el alcance actual
+  - el siguiente frente formal del proyecto deja de ser “cerrar base” y pasa a decidir expansión o endurecimiento extra
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 13`:
   - `GET /platform/capabilities` y `GET /tenant/info` ya exponen `ui_label_catalog`
   - backend ya publica labels visibles reutilizables para:

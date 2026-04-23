@@ -1,5 +1,28 @@
 # Platform Core Changelog
 
+- `Etapa 16` ya queda formalmente cerrada para el alcance actual:
+  - el carril de operación real ya cuenta con:
+    - deploy reproducible por ambiente
+    - rollback por ref git del repo fuente
+    - backups y restore drills
+    - evidencia operativa estructurada
+    - staging/production aislados operativamente
+    - publicación frontend reproducible por carril
+
+- `Etapa 17` ya queda formalmente cerrada para el alcance actual:
+  - el hardening final ya cuenta con:
+    - worker con perfiles, cuotas, prioridades y backpressure
+    - snapshots, trazas y alertas persistidas
+    - textfile Prometheus
+    - backend `broker` con DLQ y requeue operativo
+    - rate limiting tenant
+    - billing state y degradación operativa visible
+
+- `Etapa 9` ya queda formalmente cerrada para el alcance actual:
+  - `backend-tests.yml` ya queda fijado como check obligatorio de backend para ramas protegidas
+  - `fixtures.py` ya incorpora builders más ricos para contratos tenant y `social_community_groups`
+  - [test_fixtures.py](/home/felipe/platform_paas/backend/app/tests/test_fixtures.py) deja cubierta esa base reusable de datos de prueba
+
 - `Etapa 15` ya queda formalmente cerrada para el alcance actual:
   - `Tenants > Plan y módulos` ya deja lectura contractual visible de `estado`, `ciclo vigente`, `gracia contractual`, `co-terminación`, próxima renovación y prorrateo por item
   - `ui_label_catalog` ya expone `subscription_statuses` y `subscription_item_kinds` para no depender de códigos crudos en esa lectura

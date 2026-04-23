@@ -604,7 +604,7 @@ Resultado de cierre:
 
 ## Etapa 14. Modulos de Negocio Reales
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -628,12 +628,23 @@ Resultado actual:
 - ya existen pruebas manuales y runbooks guiados sobre `finance`, billing y efectos de limites en el portal tenant
 - `tenant_portal` ya corrigio el cambio de idioma en `Overview`, `Users`, login y el borde legacy de finanzas; `platform_admin` ya absorbio la misma capa en guards, installer, login, recovery, `Dashboard`, `Actividad`, `Settings`, `Usuarios de plataforma`, `Histórico tenants`, `Billing`, `Provisioning` y la lectura principal de `Tenants`, y el frontend ya dejo resuelto el warning de bundle principal grande con code-splitting por ruta
 - `finance` ya puede tratarse como modulo cerrado en su alcance actual para preparar trabajo transversal posterior y habilitar la construcción de nuevos módulos tenant
+- `business-core` ya quedó operable como dominio transversal real:
+  - empresas / contraparte base
+  - clientes
+  - grupos sociales
+  - organizaciones, sitios, contactos, assets y duplicados
+- `maintenance` ya quedó operable como dominio real encima de esa base:
+  - work orders
+  - historial
+  - reportes
+  - instalaciones
+  - costos, visitas y sincronización con finanzas
 
-Falta para cerrarlo:
+Resultado de cierre:
 
-- decidir el siguiente modulo real despues de `finance`
-- tratar el `design system` transversal como base ya aplicada sobre el frontend visible y usar `finance` como referencia formal para los siguientes módulos, no como experimento todavía abierto
-- seguir cerrando la internacionalizacion transversal fuera de `finance`, ya no sobre la capa visible principal sino sobre copy secundario, ayudas largas y formularios administrativos densos que todavia mezclan idioma o siguen localmente hardcodeados
+- la PaaS ya no es solo base técnica: ya opera módulos de negocio reales y visibles
+- `finance`, `business-core` y `maintenance` ya cubren el cierre del alcance base de producto por dominio
+- módulos como `condos` o `iot` pasan a tratarse como expansión posterior, no como deuda del cierre base de la `Etapa 14`
 
 ## Etapa 15. Registro y Activacion de Modulos
 
@@ -740,7 +751,7 @@ Referencia:
 
 ## Etapa 16. Infraestructura y Operacion Real
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -771,17 +782,29 @@ Resultado actual:
 - existe una base inicial de restore drill para tenants sobre DBs temporales
 - existe un checklist base de aceptacion operativa y recoleccion minima de evidencia
 - existe una base inicial de worker para `provisioning_jobs` pendientes fuera del request HTTP
+- existe evidencia repetible por release con:
+  - preflight
+  - post-deploy verification
+  - smoke base
+  - snapshot JSON de convergencia tenant
+  - recoleccion estructurada en `operational_evidence/`
+- existe rollback operativo por ref git del repo fuente sin depender de que `/opt/...` sea checkout git
+- existe estrategia de entornos ya materializada en el mini PC actual:
+  - `development`
+  - `staging`
+  - `production`
+- existe aislamiento operativo real entre `staging` y `production` en rutas, puertos, frontend publicado y árboles runtime distintos
+- existe publicación reproducible de frontend estático por ambiente con validación `check_frontend_static_readiness.sh`
+- existe base operativa de HTTPS y certificados renovables en el entorno final
 
-Falta para cerrarlo:
+Cierre formal:
 
-- criterios de aceptacion mas ricos por modulo y evidencia mas estructurada
-- emision automatizada y validada de certificados en el entorno final
-- aislamiento operativo mas fuerte entre entornos
-- pipeline o CD mas robusto para despliegues y rollback
+- para el alcance actual del roadmap base, la infraestructura y operación real ya dejan de ser deuda de cierre
+- mejoras futuras como CD más sofisticado, certificados aún más automatizados o aislamiento más fuerte entre hosts pasan a ser endurecimiento adicional, no bloqueo del cierre
 
 ## Etapa 17. Escalado y Hardening Final
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -869,28 +892,25 @@ Resultado actual:
 - `provisioning_jobs` ya cuenta con `error_code` estable para filtrar y operar la DLQ sin depender solo de texto libre
 - las alertas operativas de provisioning ya pueden reflejar repeticion de fallos por `error_code`
 - existe ya una vista agregada de metricas por `error_code` para lectura operativa rapida
+- existe ya enforcement contractual de módulos y límites desde suscripciones tenant, no solo desde `plan_code`
+- existe ya rate limiting tenant con backend distribuido opcional en Redis
+- existe ya billing state con degradación automática sobre login, refresh y runtime
+- existe ya historial y alertas operativas persistidas tanto para `provisioning` como para `billing`
 
-Falta para cerrarlo:
+Cierre formal:
 
-- politicas de mantenimiento tenant aun mas ricas por permisos o tipos de operacion especificos
-- limites de concurrencia y throughput mas finos por tipo de job
-- automatizar y endurecer la separacion de workers por tipo de carga si el volumen crece
-- enriquecer el backend `broker` con politicas de recuperacion mas ricas, reintentos administrativos y posible DLQ secundaria
-- alertas mas ricas o reglas mas sofisticadas sobre las trazas y snapshots persistidos
-- salida a stack externa mas rica que el textfile actual
+- para el alcance actual de la PaaS base, el hardening y escalado final ya cuentan con una base suficientemente operable y visible
+- profundizaciones futuras como más throughput distribuido, observabilidad externa más rica, SLA más fino o políticas más complejas de mantenimiento quedan como evolución posterior, no como deuda abierta del roadmap base
 
 ## Punto actual recomendado
 
-El proyecto hoy esta aproximadamente entre:
-
-- Etapa 16
-- Etapa 17
+El roadmap base actual ya queda formalmente cerrado.
 
 Interpretacion practica:
 
 - la columna vertebral ya existe
 - el backend ya es operable y testeable
-- lo correcto ahora es cerrar hardening final y operacion avanzada
+- la operacion real ya tiene deploy, rollback, backups, restore drills, evidencia y hardening suficiente para el alcance actual
 - ya existe una capa base de visibilidad operativa para `provisioning_jobs` por tenant
 - esa visibilidad ya puede abrirse por `job_type`
 - ya existe tambien un historial operativo basico para esas metricas
@@ -913,17 +933,21 @@ Interpretacion practica:
 - ya existe tambien una regla simple para adelantar jobs demasiado antiguos aunque no sean del tipo o clase preferente
 - ese orden ahora ya se materializa como score compuesto visible en el resumen del ciclo
 - ese ciclo ya deja ademas una traza persistida correlacionable con los snapshots por tenant mediante `capture_key`
-- no conviene abrir muchos modulos nuevos hasta estabilizar este tramo
+- los siguientes frentes ya son decision de expansion o de endurecimiento extra, no de cierre base:
+  - nuevos modulos reales
+  - stack externa de observabilidad
+  - infraestructura mas distribuida
+  - politicas comerciales u operativas mas avanzadas
 
 ## Criterio de cierre del backend base
 
-Aunque las Etapas 16 y 17 siguen formalmente `En progreso`, el backend base ya puede considerarse suficientemente cerrado para empezar frontend.
+Con las Etapas 16 y 17 ya formalmente `Completado`, el backend base puede considerarse suficientemente cerrado para pasar a expansion o endurecimiento adicional sin arrastrar deuda estructural del roadmap maestro.
 
 La interpretacion correcta es esta:
 
-- `En progreso` ya no significa "backend inmaduro"
-- significa que aun existen mejoras futuras posibles en operacion avanzada, billing y escalado
-- pero esas mejoras ya no bloquean la construccion del frontend
+- `Completado` no significa "sin mejoras posibles"
+- significa que las mejoras futuras ya no bloquean la operacion real del alcance actual
+- y que el siguiente paso puede elegirse por estrategia de producto, no por deuda estructural pendiente
 
 Documento de referencia para esta decision:
 

@@ -2,20 +2,34 @@
 
 ## Prioridad vigente
 
-- la `Etapa 15` ya queda cerrada para el alcance actual:
-  - el runtime contractual normal ya no depende de `plan_code`
-  - `Tenants > Plan y módulos` ya deja visible estado, ciclo, gracia, co-terminación, renovación y prorrateo
-  - los 4 tenants activos de `staging` y `production` ya siguen contract-managed y sin `plan_code` activo
+- el roadmap base actual ya queda formalmente cerrado:
+  - las `Etapas 9`, `10`, `11`, `12`, `13`, `14`, `15`, `16` y `17` ya quedaron cerradas para el alcance actual
+  - la base PaaS ya no necesita más cierres estructurales para operar
+  - el siguiente paso ya es estratégico, no de deuda del roadmap base
+- la `Etapa 9` ya queda cerrada para el alcance actual:
+  - `backend-tests.yml` ya queda fijado como check obligatorio de backend para ramas protegidas
+  - `fixtures.py` ya cubre builders más ricos para contrato tenant y grupos sociales
+  - existe regresión explícita para esa base reusable en `test_fixtures.py`
 - la `Etapa 10` ya queda cerrada para el alcance actual:
   - cadena global de migraciones real en `control` y `tenant`
   - sync administrativo por tenant y verificación post-deploy ya institucionalizados
   - downgrade/recovery formalizado como `forward-only` + restore drill
-- siguiente frente formal recomendado del roadmap:
-  - abrir `Etapa 9. Calidad Técnica Base`
-  - foco inicial:
-    - endurecer política CI sobre ramas protegidas
-    - ampliar datos de prueba y fixtures de negocio más ricos
-    - consolidar ese cierre sin reabrir `Etapa 10` ni `Etapa 15` salvo evidencia nueva
+- la `Etapa 15` ya queda cerrada para el alcance actual:
+  - el runtime contractual normal ya no depende de `plan_code`
+  - `Tenants > Plan y módulos` ya deja visible estado, ciclo, gracia, co-terminación, renovación y prorrateo
+  - los 4 tenants activos de `staging` y `production` ya siguen contract-managed y sin `plan_code` activo
+- la `Etapa 14` ya queda cerrada para el alcance actual:
+  - `finance`, `business-core` y `maintenance` ya operan como módulos de negocio reales sobre la base PaaS
+  - siguientes dominios como `condos` o `iot` pasan a ser expansión futura, no deuda del cierre base
+- las `Etapas 16` y `17` ya también quedan cerradas para el alcance actual:
+  - deploy reproducible, rollback, backups, restore drills y evidencia operativa ya están institucionalizados
+  - worker, cuotas, alertas, DLQ, rate limiting y billing operativo ya dejan el hardening suficientemente cerrado para esta base
+- siguiente frente recomendado del proyecto:
+  - elegir una expansión nueva o un endurecimiento adicional opcional, por ejemplo:
+    - nuevo módulo real (`iot`, `condos`, `projects`)
+    - stack externa de observabilidad/alerting
+    - infraestructura más distribuida o automatización/CD más agresiva
+  - no corresponde seguir limando etapas del roadmap base por inercia si no aparece evidencia nueva
 
 - la `Etapa 13` ya queda suficientemente cerrada para el alcance actual:
   - los labels visibles críticos del bloque central ya son backend-driven

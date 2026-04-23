@@ -20,6 +20,8 @@ Estado práctico de cierre:
 - cierre funcional base: `Completado`
 - cierre operativo técnico: `Completado en mini PC Debian con HTTPS`
 - cierre operativo definitivo: `Completado`
+- cierre de infraestructura y operación real del roadmap maestro: `Completado`
+- cierre de escalado y hardening final del roadmap maestro para el alcance actual: `Completado`
 - entorno staging/test separado en el mismo mini PC: `Completado`
 - reset controlado de `staging` para volver al instalador inicial: `Completado`
 - validación visual del instalador sobre `staging bootstrap`: `Completado`
@@ -310,14 +312,19 @@ Referencia operativa:
 
 ## Próximo nivel recomendado
 
-Una vez resuelto el deploy real, el siguiente nivel recomendado pasa a ser:
+El roadmap base de `platform-core` ya queda suficientemente cerrado para el alcance actual.
+
+El siguiente nivel recomendado ya no es de cierre estructural, sino de expansión o endurecimiento adicional:
 
 - si se quiere seguir sobre portabilidad tenant, primero validar y desplegar la superficie tenant-side del corte dual actual y luego abrir una Fase 3 de endurecimiento:
   - download del reporte de import
   - compatibilidad más amplia con paquetes externos
   - opciones explícitas de estrategia de merge
-- o, si se prefiere retomar el roadmap central más visible, abrir `platform-core hardening + E2E` sobre:
-  - `Provisioning`
+- o abrir un frente nuevo como:
+  - nuevo módulo real
+  - observabilidad externa más rica
+  - automatización/CD más agresiva
+  - infraestructura más distribuida
   - DLQ
   - filtros y recuperación fina dentro de `Provisioning`
 - backlog transversal de mejoras sugeridas en [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)

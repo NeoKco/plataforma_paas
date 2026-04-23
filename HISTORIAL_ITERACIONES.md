@@ -1,5 +1,47 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 14` ya queda cerrada para módulos de negocio reales
+
+Contexto:
+
+- el roadmap todavía dejaba `Etapa 14` como si solo `finance` contara como módulo real ya cerrado
+- el estado real del producto ya supera eso: `business-core` y `maintenance` también quedaron operables como dominios reales sobre la base PaaS
+
+Cambios:
+
+- [development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md):
+  - marca `Etapa 14` como `Completado`
+  - deja explícito que `finance`, `business-core` y `maintenance` ya cubren el cierre base por dominios
+
+Resultado:
+
+- la `Etapa 14` ya queda suficientemente cerrada para el alcance actual
+- `condos`, `iot` y módulos futuros dejan de tratarse como deuda de cierre y pasan a expansión posterior
+
+## 2026-04-23 - `Etapa 9` ya queda cerrada para calidad técnica base
+
+Contexto:
+
+- el repo ya tenía runner unificado, workflow CI y fixtures reutilizables
+- faltaba dejar cerrada la política operativa de ramas protegidas y enriquecer la base reusable de datos de prueba
+
+Cambios:
+
+- [backend-tests.yml](/home/felipe/platform_paas/.github/workflows/backend-tests.yml) y [backend-ci.md](/home/felipe/platform_paas/docs/runbooks/backend-ci.md):
+  - fijan `Backend Tests / backend-tests` como check obligatorio del backend para ramas protegidas
+- [fixtures.py](/home/felipe/platform_paas/backend/app/tests/fixtures.py):
+  - agrega builders más ricos para `subscription_items`, `subscription` y `social_community_groups`
+- [test_fixtures.py](/home/felipe/platform_paas/backend/app/tests/test_fixtures.py):
+  - deja esa base reusable cubierta con regresión explícita
+
+Resultado:
+
+- la `Etapa 9` ya queda suficientemente cerrada para el alcance actual
+- la política CI del backend deja de quedar como “mejora natural” y pasa a norma de operación
+- la estrategia de datos de prueba ya cubre mejor slices contractuales y sociales recientes
+- validación repo:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_fixtures backend.app.tests.test_platform_flow -v` -> `241 tests OK`
+
 ## 2026-04-23 - `Etapa 15` ya queda cerrada para activación modular contractual visible
 
 Contexto:
