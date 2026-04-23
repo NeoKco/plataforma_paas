@@ -109,6 +109,7 @@ Documentación base:
 - Helper published broker-only staging: [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh)
 - Runner compartido broker-only: [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh)
 - Baseline published curado de Provisioning/DLQ: [run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh)
+- Equivalente repo/CI del baseline curado: [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh)
 - Wrappers published por ambiente:
   - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
   - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
@@ -168,6 +169,11 @@ Hardening operativo vigente del bloque broker-only:
   - ya tiene wrappers operativos por ambiente:
     - `staging`: [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
     - `production`: [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
+- baseline repo/CI equivalente:
+  - [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh)
+  - corre la misma capa visible mínima y acepta `--dispatch-backend broker|database`
+  - workflow manual dedicado:
+    - [.github/workflows/frontend-provisioning-baseline-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-provisioning-baseline-e2e.yml)
 - targets hoy institucionalizados:
   - `all`
   - `batch`

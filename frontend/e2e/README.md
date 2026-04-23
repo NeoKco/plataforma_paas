@@ -291,8 +291,15 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target matrix
   - `platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts`
   - `platform-admin-provisioning-observability-visible.smoke.spec.ts`
 - y suma broker-only solo si el entorno publicado realmente usa `broker`
+- para el equivalente repo/CI de esa misma capa curada existe además [run_repo_provisioning_baseline.sh](../../scripts/dev/run_repo_provisioning_baseline.sh)
+- ese runner acepta `--dispatch-backend broker|database`, corre siempre la misma capa visible mínima y suma broker-only solo si el backend activo es `broker`
 - para CI manual de esos casos broker-only existe además [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), pensado para lanzarse con `workflow_dispatch`
 - ese workflow manual ya quedó alineado al mismo runner compartido y acepta `target=all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix`
+- para CI manual del baseline curado completo existe además [.github/workflows/frontend-provisioning-baseline-e2e.yml](../../.github/workflows/frontend-provisioning-baseline-e2e.yml)
+- ese workflow permite escoger:
+  - `dispatch_backend=database|broker`
+  - `include_broker_only=true|false`
+  - `broker_target=all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix`
 
 Notas:
 

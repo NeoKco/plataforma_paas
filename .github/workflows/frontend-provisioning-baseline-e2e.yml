@@ -1,0 +1,305 @@
+name: Frontend Provisioning Baseline E2E
+
+concurrency:
+  group: frontend-provisioning-baseline-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      dispatch_backend:
+        description: "Backend activo de provisioning para la corrida"
+        required: true
+        default: database
+        type: choice
+        options:
+          - database
+          - broker
+      include_broker_only:
+        description: "Incluir pack broker-only cuando el backend activo sea broker"
+        required: true
+        default: true
+        type: boolean
+      broker_target:
+        description: "Subset broker-only a ejecutar si aplica"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - batch
+          - row
+          - filters
+          - guided
+          - family
+          - family-requeue
+          - family-batch
+          - family-recommendation
+          - tenant-focus
+          - technical
+          - matrix
+
+jobs:
+  frontend-provisioning-baseline-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      APP_ENV: development
+      DEBUG: "true"
+      PLATFORM_INSTALLED: "true"
+      CONTROL_DB_HOST: 127.0.0.1
+      CONTROL_DB_PORT: "5432"
+      CONTROL_DB_NAME: platform_control
+      CONTROL_DB_USER: platform_owner
+      CONTROL_DB_PASSWORD: platform_owner
+      POSTGRES_ADMIN_PASSWORD: postgres
+      JWT_SECRET_KEY: ci-provisioning-baseline-secret-key-change-on-real-envs
+      JWT_ISSUER: platform_paas
+      JWT_PLATFORM_AUDIENCE: platform-api
+      JWT_TENANT_AUDIENCE: tenant-api
+      ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      REFRESH_TOKEN_EXPIRE_MINUTES: "10080"
+      TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_BOOTSTRAP: BrowserCiEmpresaBootstrap123!
+      TENANT_BOOTSTRAP_DB_PASSWORD_CONDOMINIO_DEMO: BrowserCiCondominioDemo123!
+      E2E_PLATFORM_EMAIL: admin@platform.local
+      E2E_PLATFORM_PASSWORD: AdminTemporal123!
+      E2E_BACKEND_PYTHON: python
+      E2E_BASE_URL: http://127.0.0.1:4273
+      E2E_USE_EXISTING_FRONTEND: "1"
+      PROVISIONING_DISPATCH_BACKEND: ${{ github.event.inputs.dispatch_backend || 'database' }}
+      PROVISIONING_BROKER_URL: redis://127.0.0.1:6379/0
+      REDIS_URL: redis://127.0.0.1:6379/0
+      CI: "true"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements/base.txt
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Wait for PostgreSQL and Redis
+        run: |
+          python - <<'PY'
+          import socket
+          import time
+
+          targets = [("127.0.0.1", 5432, "PostgreSQL"), ("127.0.0.1", 6379, "Redis")]
+          deadline = time.time() + 30
+          pending = {label: (host, port) for host, port, label in targets}
+
+          while time.time() < deadline and pending:
+              for label, (host, port) in list(pending.items()):
+                  try:
+                      with socket.create_connection((host, port), timeout=2):
+                          print(f"{label} is ready.")
+                          pending.pop(label)
+                  except OSError:
+                      pass
+              if pending:
+                  time.sleep(1)
+
+          if pending:
+              raise SystemExit(f"Services did not become ready in time: {pending}")
+          PY
+
+      - name: Prepare control database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+              IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'platform_owner') THEN
+                  CREATE ROLE platform_owner LOGIN PASSWORD 'platform_owner';
+              ELSE
+                  ALTER ROLE platform_owner WITH LOGIN PASSWORD 'platform_owner';
+              END IF;
+          END
+          $$;
+          SELECT 'CREATE DATABASE platform_control OWNER platform_owner'
+          WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'platform_control')
+          \gexec
+          GRANT ALL PRIVILEGES ON DATABASE platform_control TO platform_owner;
+          SQL
+
+      - name: Run control migrations
+        working-directory: backend
+        run: |
+          PYTHONPATH=$PWD python -m app.scripts.run_control_migrations
+
+      - name: Seed frontend baseline
+        working-directory: backend
+        run: |
+          PYTHONPATH=$PWD python -m app.scripts.seed_frontend_demo_baseline
+
+      - name: Start backend
+        working-directory: backend
+        env:
+          BACKEND_CORS_ALLOW_ORIGINS: http://127.0.0.1:4273,http://localhost:4273
+        run: |
+          nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8001 > /tmp/platform-provisioning-baseline-backend.log 2>&1 &
+          echo $! > /tmp/platform-provisioning-baseline-backend.pid
+
+      - name: Wait for backend health
+        run: |
+          python - <<'PY'
+          import time
+          import urllib.request
+
+          deadline = time.time() + 60
+          last_error = None
+          url = 'http://127.0.0.1:8001/health'
+
+          while time.time() < deadline:
+              try:
+                  with urllib.request.urlopen(url, timeout=5) as response:
+                      payload = response.read().decode('utf-8')
+                      print(payload)
+                      raise SystemExit(0)
+              except Exception as exc:
+                  last_error = exc
+                  time.sleep(1)
+
+          raise SystemExit(f'Backend health check failed: {last_error}')
+          PY
+
+      - name: Start frontend
+        working-directory: frontend
+        run: |
+          nohup env VITE_API_BASE_URL=http://127.0.0.1:8001 npm run dev -- --host 127.0.0.1 --port 4273 > /tmp/platform-provisioning-baseline-frontend.log 2>&1 &
+          echo $! > /tmp/platform-provisioning-baseline-frontend.pid
+
+      - name: Wait for frontend
+        run: |
+          python - <<'PY'
+          import time
+          import urllib.request
+
+          deadline = time.time() + 60
+          last_error = None
+          url = 'http://127.0.0.1:4273'
+
+          while time.time() < deadline:
+              try:
+                  with urllib.request.urlopen(url, timeout=5) as response:
+                      print(response.status)
+                      raise SystemExit(0)
+              except Exception as exc:
+                  last_error = exc
+                  time.sleep(1)
+
+          raise SystemExit(f'Frontend check failed: {last_error}')
+          PY
+
+      - name: Run provisioning baseline equivalent
+        env:
+          DISPATCH_BACKEND: ${{ github.event.inputs.dispatch_backend || 'database' }}
+          INCLUDE_BROKER_ONLY: ${{ github.event.inputs.include_broker_only == 'true' && 'auto' || 'never' }}
+          BROKER_TARGET: ${{ github.event.inputs.broker_target || 'all' }}
+        run: |
+          FRONTEND_DIR="$GITHUB_WORKSPACE/frontend" \
+            "$GITHUB_WORKSPACE/scripts/dev/run_repo_provisioning_baseline.sh"
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provisioning-baseline-playwright-report
+          path: frontend/e2e/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provisioning-baseline-playwright-test-results
+          path: frontend/e2e/test-results
+          if-no-files-found: ignore
+
+      - name: Upload backend log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provisioning-baseline-backend-log
+          path: /tmp/platform-provisioning-baseline-backend.log
+          if-no-files-found: ignore
+
+      - name: Upload frontend log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provisioning-baseline-frontend-log
+          path: /tmp/platform-provisioning-baseline-frontend.log
+          if-no-files-found: ignore
+
+      - name: Print backend log on failure
+        if: failure()
+        run: |
+          echo "===== backend log ====="
+          cat /tmp/platform-provisioning-baseline-backend.log || true
+
+      - name: Print frontend log on failure
+        if: failure()
+        run: |
+          echo "===== frontend log ====="
+          cat /tmp/platform-provisioning-baseline-frontend.log || true
+
+      - name: Stop services
+        if: always()
+        run: |
+          if [ -f /tmp/platform-provisioning-baseline-frontend.pid ]; then
+            kill "$(cat /tmp/platform-provisioning-baseline-frontend.pid)" || true
+          fi
+          if [ -f /tmp/platform-provisioning-baseline-backend.pid ]; then
+            kill "$(cat /tmp/platform-provisioning-baseline-backend.pid)" || true
+          fi

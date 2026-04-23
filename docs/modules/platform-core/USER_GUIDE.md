@@ -87,6 +87,7 @@ Rutina operativa publicada recomendada cuando el release toca `Provisioning` o `
 
 - `staging`: [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
 - `production`: [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
+- `repo/CI`: [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh)
 
 Ese baseline corre siempre:
 
@@ -95,6 +96,8 @@ Ese baseline corre siempre:
 3. `Observabilidad visible`
 
 Y solo suma broker-only cuando el entorno publicado realmente usa `broker`.
+
+El equivalente repo/CI mantiene la misma capa visible mínima y solo suma broker-only cuando el backend activo se ejecuta en modo `broker`.
 
 ### Export portable por tenant desde platform admin
 

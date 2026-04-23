@@ -283,6 +283,10 @@ scripts/dev/run_staging_published_broker_dlq_smoke.sh --target matrix
   - wrappers por ambiente ya disponibles:
     - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
     - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
+- para el equivalente repo/CI de esa misma capa curada existe además [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh):
+  - corre siempre `dispatch-capability`, `surface-gating` y `observability-visible`
+  - acepta `--dispatch-backend broker|database`
+  - suma broker-only solo si el backend activo es `broker`
 
 Baseline recomendado para desarrollo local:
 
@@ -519,6 +523,12 @@ Institucionalización del baseline:
 - para la validación complementaria broker-only existe además [scripts/dev/run_local_broker_dlq_baseline.sh](../../scripts/dev/run_local_broker_dlq_baseline.sh), pensado para reproducir los smokes DLQ sin rearmar manualmente el stack paralelo
 - para una pasada CI manual del bloque broker-only existe [.github/workflows/frontend-broker-dlq-e2e.yml](../../.github/workflows/frontend-broker-dlq-e2e.yml), que prepara PostgreSQL + Redis y ejecuta únicamente ese pack DLQ/Provisioning
 - el `workflow_dispatch` de ese job ya permite escoger `target=all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix` para revalidar solo el subset afectado cuando el cambio no toca todo el bloque
+- para una pasada CI manual del baseline curado completo existe además [.github/workflows/frontend-provisioning-baseline-e2e.yml](../../.github/workflows/frontend-provisioning-baseline-e2e.yml)
+- ese workflow prepara PostgreSQL + Redis, siembra `seed_frontend_demo_baseline`, levanta backend/frontend locales y ejecuta [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh)
+- el `workflow_dispatch` permite escoger:
+  - `dispatch_backend=database|broker`
+  - `include_broker_only=true|false`
+  - `broker_target=all|batch|row|filters|guided|family|family-requeue|family-batch|family-recommendation|tenant-focus|technical|matrix`
 
 Notas del flujo `finance` que conviene recordar:
 

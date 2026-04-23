@@ -1028,6 +1028,26 @@ Resumen curado del bloque central.
 - `Tenants` deja visible también en copy que `Mantenciones` ya no viaja implícito dentro de `Core negocio`
 ## 2026-04-22
 
+- se agrega el equivalente repo/CI del baseline curado de `Provisioning/DLQ`:
+  - [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh)
+  - corre siempre:
+    - [platform-admin-provisioning-dispatch-capability.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dispatch-capability.smoke.spec.ts)
+    - [platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-dlq-surface-gating.smoke.spec.ts)
+    - [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts)
+  - acepta `--dispatch-backend broker|database`
+  - suma broker-only solo cuando el backend activo es `broker`
+- se agrega además el workflow manual:
+  - [.github/workflows/frontend-provisioning-baseline-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-provisioning-baseline-e2e.yml)
+  - prepara PostgreSQL + Redis, corre migraciones, siembra `seed_frontend_demo_baseline`, levanta backend/frontend y ejecuta el baseline repo/CI equivalente
+  - expone `workflow_dispatch` con:
+    - `dispatch_backend`
+    - `include_broker_only`
+    - `broker_target`
+- validación:
+  - `bash -n scripts/dev/run_repo_provisioning_baseline.sh` -> `OK`
+  - `scripts/dev/run_repo_provisioning_baseline.sh --dispatch-backend database --list` -> `OK`
+  - `scripts/dev/run_repo_provisioning_baseline.sh --dispatch-backend broker --list --broker-target matrix` -> `OK`
+  - `bash deploy/check_release_governance.sh` -> `OK`
 - se institucionaliza además un baseline published curado de `Provisioning/DLQ`:
   - [run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh)
   - corre siempre:

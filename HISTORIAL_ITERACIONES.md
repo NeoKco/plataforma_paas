@@ -1,5 +1,45 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - `platform-core` institucionaliza el equivalente repo/CI del baseline curado de Provisioning/DLQ
+
+- objetivo:
+  - cerrar la decisión pendiente del frente `platform-core hardening + E2E` dejando una pasada manual/CI equivalente al baseline published curado de `Provisioning/DLQ`, sin reintroducir wiring duplicado de specs
+- cambios y acciones ejecutadas:
+  - [scripts/dev/run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh):
+    - runner nuevo para repo/CI
+    - corre siempre:
+      - `dispatch-capability`
+      - `surface-gating`
+      - `observability-visible`
+    - acepta `--dispatch-backend broker|database`
+    - suma broker-only solo si el backend activo es `broker`
+  - [.github/workflows/frontend-provisioning-baseline-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-provisioning-baseline-e2e.yml):
+    - workflow manual nuevo en GitHub Actions
+    - prepara PostgreSQL + Redis
+    - corre migraciones
+    - siembra `seed_frontend_demo_baseline`
+    - levanta backend/frontend locales
+    - ejecuta el runner repo/CI equivalente
+    - expone `dispatch_backend`, `include_broker_only` y `broker_target`
+  - documentación y memoria viva alineadas en:
+    - [frontend/e2e/README.md](/home/felipe/platform_paas/frontend/e2e/README.md)
+    - [frontend-e2e-browser.md](/home/felipe/platform_paas/docs/runbooks/frontend-e2e-browser.md)
+    - [docs/modules/platform-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
+    - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+    - [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
+    - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+    - [ESTADO_ACTUAL.md](/home/felipe/platform_paas/ESTADO_ACTUAL.md)
+    - [SIGUIENTE_PASO.md](/home/felipe/platform_paas/SIGUIENTE_PASO.md)
+    - [HANDOFF_STATE.json](/home/felipe/platform_paas/HANDOFF_STATE.json)
+- validaciones:
+  - `bash -n scripts/dev/run_repo_provisioning_baseline.sh` -> `OK`
+  - `scripts/dev/run_repo_provisioning_baseline.sh --dispatch-backend database --list` -> `OK`
+  - `scripts/dev/run_repo_provisioning_baseline.sh --dispatch-backend broker --list --broker-target matrix` -> `OK`
+  - `bash deploy/check_release_governance.sh` -> `OK`
+- resultado:
+  - `Provisioning/DLQ` ya no depende solo de wrappers published por ambiente para su baseline curado
+  - GitHub Actions manual ya puede revalidar la misma capa visible mínima y sumar broker-only solo cuando el backend activo lo justifica
+
 ## 2026-04-22 - `platform-core` institucionaliza baseline published curado de Provisioning/DLQ
 
 - objetivo:

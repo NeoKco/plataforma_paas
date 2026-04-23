@@ -92,6 +92,10 @@ Estado práctico de cierre:
 - wrappers por ambiente ya disponibles para volver ese baseline rutina explícita:
   - `staging`: `scripts/dev/run_staging_published_provisioning_baseline.sh`
   - `production`: `scripts/dev/run_production_published_provisioning_baseline.sh`
+- equivalente repo/CI ya institucionalizado:
+  - `scripts/dev/run_repo_provisioning_baseline.sh`
+  - `.github/workflows/frontend-provisioning-baseline-e2e.yml`
+  - el workflow manual permite escoger `dispatch_backend=database|broker` y sumar broker-only solo cuando corresponde
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`

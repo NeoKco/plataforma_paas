@@ -82,9 +82,12 @@
     - la rutina explícita por ambiente ya queda disponible en:
       - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)
       - [run_production_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_production_published_provisioning_baseline.sh)
+    - el equivalente repo/CI ya queda disponible en:
+      - [run_repo_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_repo_provisioning_baseline.sh)
+      - [.github/workflows/frontend-provisioning-baseline-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-provisioning-baseline-e2e.yml)
     - siguiente paso recomendado dentro de este frente:
       - decidir si se endurece ahora otro hardening visible de `platform_admin`
-      - o si se publica también una rutina manual equivalente para CI/workflow published
+      - o si el bloque `Provisioning/DLQ` ya queda suficientemente institucionalizado para salir del foco activo
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:
   - [BusinessCoreCommonOrganizationNamePage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/business_core/pages/BusinessCoreCommonOrganizationNamePage.tsx) ya concentra la asignación del `Grupo social común`
