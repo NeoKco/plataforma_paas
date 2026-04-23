@@ -1,0 +1,418 @@
+import json
+
+from sqlalchemy import inspect, text
+
+
+MIGRATION_ID = "0027_tenant_module_subscription_model"
+DESCRIPTION = "Create tenant module subscription model tables"
+
+
+def _infer_billing_cycle(plan_code: str | None) -> str:
+    if not plan_code:
+        return "monthly"
+    normalized = plan_code.strip().lower()
+    mapping = {
+        "mensual": "monthly",
+        "monthly": "monthly",
+        "trimestral": "quarterly",
+        "quarterly": "quarterly",
+        "semestral": "semiannual",
+        "semiannual": "semiannual",
+        "anual": "annual",
+        "annual": "annual",
+    }
+    return mapping.get(normalized, "monthly")
+
+
+def _infer_subscription_status(tenant_status: str | None, billing_status: str | None) -> str:
+    normalized_tenant_status = (tenant_status or "").strip().lower()
+    normalized_billing_status = (billing_status or "").strip().lower()
+
+    if normalized_tenant_status == "archived":
+        return "cancelled"
+    if normalized_billing_status == "suspended":
+        return "suspended"
+    if normalized_billing_status == "canceled":
+        return "cancelled"
+    if normalized_billing_status == "past_due":
+        return "grace_period"
+    return "active"
+
+
+def upgrade(connection) -> None:
+    inspector = inspect(connection)
+    existing_tables = set(inspector.get_table_names())
+
+    if "tenant_base_plan_catalog" not in existing_tables:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE tenant_base_plan_catalog (
+                    id INTEGER PRIMARY KEY,
+                    plan_code VARCHAR(100) NOT NULL UNIQUE,
+                    display_name VARCHAR(150) NOT NULL,
+                    description TEXT,
+                    included_modules_json TEXT,
+                    default_billing_cycle VARCHAR(30) NOT NULL,
+                    allowed_billing_cycles_json TEXT,
+                    is_default BOOLEAN NOT NULL DEFAULT TRUE,
+                    is_active BOOLEAN NOT NULL DEFAULT TRUE
+                )
+                """
+            )
+        )
+
+    if "tenant_module_catalog" not in existing_tables:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE tenant_module_catalog (
+                    id INTEGER PRIMARY KEY,
+                    module_key VARCHAR(100) NOT NULL UNIQUE,
+                    display_name VARCHAR(150) NOT NULL,
+                    description TEXT,
+                    activation_kind VARCHAR(30) NOT NULL,
+                    is_active BOOLEAN NOT NULL DEFAULT TRUE
+                )
+                """
+            )
+        )
+
+    if "tenant_module_price_catalog" not in existing_tables:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE tenant_module_price_catalog (
+                    id INTEGER PRIMARY KEY,
+                    module_catalog_id INTEGER NOT NULL REFERENCES tenant_module_catalog(id),
+                    billing_cycle VARCHAR(30) NOT NULL,
+                    price_reference_cents INTEGER,
+                    commitment_discount_percent INTEGER,
+                    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                    CONSTRAINT uq_module_cycle UNIQUE (module_catalog_id, billing_cycle)
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX ix_tenant_module_price_catalog_module_catalog_id
+                ON tenant_module_price_catalog(module_catalog_id)
+                """
+            )
+        )
+
+    if "tenant_subscriptions" not in existing_tables:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE tenant_subscriptions (
+                    id INTEGER PRIMARY KEY,
+                    tenant_id INTEGER NOT NULL UNIQUE REFERENCES tenants(id),
+                    base_plan_code VARCHAR(100) NOT NULL,
+                    status VARCHAR(50) NOT NULL DEFAULT 'active',
+                    billing_cycle VARCHAR(30) NOT NULL DEFAULT 'monthly',
+                    current_period_starts_at TIMESTAMP WITH TIME ZONE,
+                    current_period_ends_at TIMESTAMP WITH TIME ZONE,
+                    next_renewal_at TIMESTAMP WITH TIME ZONE,
+                    grace_until TIMESTAMP WITH TIME ZONE,
+                    is_co_termed BOOLEAN NOT NULL DEFAULT TRUE,
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX ix_tenant_subscriptions_tenant_id
+                ON tenant_subscriptions(tenant_id)
+                """
+            )
+        )
+
+    if "tenant_subscription_items" not in existing_tables:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE tenant_subscription_items (
+                    id INTEGER PRIMARY KEY,
+                    tenant_subscription_id INTEGER NOT NULL REFERENCES tenant_subscriptions(id),
+                    module_key VARCHAR(100) NOT NULL,
+                    item_kind VARCHAR(30) NOT NULL,
+                    billing_cycle VARCHAR(30),
+                    status VARCHAR(50) NOT NULL DEFAULT 'active',
+                    starts_at TIMESTAMP WITH TIME ZONE,
+                    renews_at TIMESTAMP WITH TIME ZONE,
+                    ends_at TIMESTAMP WITH TIME ZONE,
+                    is_prorated BOOLEAN NOT NULL DEFAULT FALSE,
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    CONSTRAINT uq_tenant_subscription_module UNIQUE (tenant_subscription_id, module_key)
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX ix_tenant_subscription_items_subscription_id
+                ON tenant_subscription_items(tenant_subscription_id)
+                """
+            )
+        )
+
+    base_plan_exists = connection.execute(
+        text("SELECT 1 FROM tenant_base_plan_catalog WHERE plan_code = :plan_code"),
+        {"plan_code": "base_finance"},
+    ).first()
+    if not base_plan_exists:
+        connection.execute(
+            text(
+                """
+                INSERT INTO tenant_base_plan_catalog (
+                    plan_code,
+                    display_name,
+                    description,
+                    included_modules_json,
+                    default_billing_cycle,
+                    allowed_billing_cycles_json,
+                    is_default,
+                    is_active
+                ) VALUES (
+                    :plan_code,
+                    :display_name,
+                    :description,
+                    :included_modules_json,
+                    :default_billing_cycle,
+                    :allowed_billing_cycles_json,
+                    TRUE,
+                    TRUE
+                )
+                """
+            ),
+            {
+                "plan_code": "base_finance",
+                "display_name": "Plan Base",
+                "description": "Incluye tenant activo, finanzas y operación base.",
+                "included_modules_json": json.dumps(["finance"]),
+                "default_billing_cycle": "monthly",
+                "allowed_billing_cycles_json": json.dumps(
+                    ["monthly", "quarterly", "semiannual", "annual"]
+                ),
+            },
+        )
+
+    module_rows = [
+        (
+            "finance",
+            "Finanzas",
+            "Módulo base incluido siempre en el Plan Base.",
+            "included",
+        ),
+        (
+            "core",
+            "Core de negocio",
+            "Dependencia técnica/base compartida por otros módulos.",
+            "dependency",
+        ),
+        (
+            "users",
+            "Usuarios",
+            "Capacidad base de acceso y operación tenant.",
+            "dependency",
+        ),
+        (
+            "maintenance",
+            "Mantenciones",
+            "Módulo arrendable adicional sobre el Plan Base.",
+            "addon",
+        ),
+    ]
+    for module_key, display_name, description, activation_kind in module_rows:
+        exists = connection.execute(
+            text("SELECT 1 FROM tenant_module_catalog WHERE module_key = :module_key"),
+            {"module_key": module_key},
+        ).first()
+        if exists:
+            continue
+        connection.execute(
+            text(
+                """
+                INSERT INTO tenant_module_catalog (
+                    module_key,
+                    display_name,
+                    description,
+                    activation_kind,
+                    is_active
+                ) VALUES (
+                    :module_key,
+                    :display_name,
+                    :description,
+                    :activation_kind,
+                    TRUE
+                )
+                """
+            ),
+            {
+                "module_key": module_key,
+                "display_name": display_name,
+                "description": description,
+                "activation_kind": activation_kind,
+            },
+        )
+
+    maintenance_row = connection.execute(
+        text("SELECT id FROM tenant_module_catalog WHERE module_key = :module_key"),
+        {"module_key": "maintenance"},
+    ).mappings().first()
+    if maintenance_row:
+        for billing_cycle, discount in (
+            ("monthly", None),
+            ("quarterly", 5),
+            ("semiannual", 10),
+            ("annual", 15),
+        ):
+            exists = connection.execute(
+                text(
+                    """
+                    SELECT 1
+                    FROM tenant_module_price_catalog
+                    WHERE module_catalog_id = :module_catalog_id
+                    AND billing_cycle = :billing_cycle
+                    """
+                ),
+                {
+                    "module_catalog_id": maintenance_row["id"],
+                    "billing_cycle": billing_cycle,
+                },
+            ).first()
+            if exists:
+                continue
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO tenant_module_price_catalog (
+                        module_catalog_id,
+                        billing_cycle,
+                        price_reference_cents,
+                        commitment_discount_percent,
+                        is_active
+                    ) VALUES (
+                        :module_catalog_id,
+                        :billing_cycle,
+                        NULL,
+                        :commitment_discount_percent,
+                        TRUE
+                    )
+                    """
+                ),
+                {
+                    "module_catalog_id": maintenance_row["id"],
+                    "billing_cycle": billing_cycle,
+                    "commitment_discount_percent": discount,
+                },
+            )
+
+    tenant_rows = connection.execute(
+        text(
+            """
+            SELECT
+                id,
+                plan_code,
+                status,
+                billing_status,
+                billing_current_period_ends_at,
+                billing_grace_until
+            FROM tenants
+            """
+        )
+    ).mappings().all()
+    for row in tenant_rows:
+        subscription_exists = connection.execute(
+            text(
+                """
+                SELECT 1
+                FROM tenant_subscriptions
+                WHERE tenant_id = :tenant_id
+                """
+            ),
+            {"tenant_id": row["id"]},
+        ).first()
+        if subscription_exists:
+            continue
+
+        billing_cycle = _infer_billing_cycle(row["plan_code"])
+        status = _infer_subscription_status(row["status"], row["billing_status"])
+        inserted = connection.execute(
+            text(
+                """
+                INSERT INTO tenant_subscriptions (
+                    tenant_id,
+                    base_plan_code,
+                    status,
+                    billing_cycle,
+                    current_period_ends_at,
+                    next_renewal_at,
+                    grace_until,
+                    is_co_termed
+                ) VALUES (
+                    :tenant_id,
+                    :base_plan_code,
+                    :status,
+                    :billing_cycle,
+                    :current_period_ends_at,
+                    :next_renewal_at,
+                    :grace_until,
+                    TRUE
+                )
+                RETURNING id
+                """
+            ),
+            {
+                "tenant_id": row["id"],
+                "base_plan_code": "base_finance",
+                "status": status,
+                "billing_cycle": billing_cycle,
+                "current_period_ends_at": row["billing_current_period_ends_at"],
+                "next_renewal_at": row["billing_current_period_ends_at"],
+                "grace_until": row["billing_grace_until"],
+            },
+        ).mappings().first()
+
+        connection.execute(
+            text(
+                """
+                INSERT INTO tenant_subscription_items (
+                    tenant_subscription_id,
+                    module_key,
+                    item_kind,
+                    billing_cycle,
+                    status,
+                    renews_at,
+                    ends_at,
+                    is_prorated
+                ) VALUES (
+                    :tenant_subscription_id,
+                    :module_key,
+                    :item_kind,
+                    :billing_cycle,
+                    :status,
+                    :renews_at,
+                    :ends_at,
+                    FALSE
+                )
+                """
+            ),
+            {
+                "tenant_subscription_id": inserted["id"],
+                "module_key": "finance",
+                "item_kind": "included_module",
+                "billing_cycle": billing_cycle,
+                "status": status,
+                "renews_at": row["billing_current_period_ends_at"],
+                "ends_at": row["billing_current_period_ends_at"]
+                if status in {"cancelled", "expired"}
+                else None,
+            },
+        )

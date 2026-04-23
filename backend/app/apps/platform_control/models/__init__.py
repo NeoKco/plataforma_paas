@@ -19,6 +19,17 @@ from app.apps.platform_control.models.tenant_policy_change_event import (
 from app.apps.platform_control.models.tenant_billing_sync_event import (
     TenantBillingSyncEvent,
 )
+from app.apps.platform_control.models.tenant_base_plan_catalog import (
+    TenantBasePlanCatalog,
+)
+from app.apps.platform_control.models.tenant_module_catalog import TenantModuleCatalog
+from app.apps.platform_control.models.tenant_module_price_catalog import (
+    TenantModulePriceCatalog,
+)
 from app.apps.platform_control.models.tenant_retirement_archive import (
     TenantRetirementArchive,
+)
+from app.apps.platform_control.models.tenant_subscription import TenantSubscription
+from app.apps.platform_control.models.tenant_subscription_item import (
+    TenantSubscriptionItem,
 )

@@ -132,3 +132,8 @@ class Tenant(Base):
         "ProvisioningJob",
         back_populates="tenant",
     )
+    subscription = relationship(
+        "TenantSubscription",
+        back_populates="tenant",
+        uselist=False,
+    )

@@ -1,5 +1,8 @@
 from app.apps.platform_control.services.tenant_service import TenantService
 from app.common.policies.module_limit_catalog import list_module_limit_capabilities
+from app.common.policies.tenant_module_subscription_policy_service import (
+    TenantModuleSubscriptionPolicyService,
+)
 from app.common.policies.tenant_plan_policy_service import TenantPlanPolicyService
 from app.common.config.settings import settings
 
@@ -18,10 +21,16 @@ class PlatformCapabilityService:
         self,
         tenant_service: TenantService | None = None,
         tenant_plan_policy_service: TenantPlanPolicyService | None = None,
+        tenant_module_subscription_policy_service: TenantModuleSubscriptionPolicyService
+        | None = None,
     ):
         self.tenant_service = tenant_service or TenantService()
         self.tenant_plan_policy_service = (
             tenant_plan_policy_service or TenantPlanPolicyService()
+        )
+        self.tenant_module_subscription_policy_service = (
+            tenant_module_subscription_policy_service
+            or TenantModuleSubscriptionPolicyService()
         )
 
     def get_catalog(self) -> dict:
@@ -57,6 +66,14 @@ class PlatformCapabilityService:
             "available_plan_codes": self.tenant_plan_policy_service.list_plan_codes(),
             "plan_modules": sorted(self.tenant_plan_policy_service.VALID_MODULES),
             "module_dependency_catalog": self.tenant_plan_policy_service.list_module_dependency_catalog(),
+            "subscription_activation_model": (
+                self.tenant_module_subscription_policy_service.SUBSCRIPTION_ACTIVATION_MODEL
+            ),
+            "subscription_billing_cycles": (
+                self.tenant_module_subscription_policy_service.list_subscription_billing_cycles()
+            ),
+            "base_plan_catalog": self.tenant_module_subscription_policy_service.list_base_plan_catalog(),
+            "module_subscription_catalog": self.tenant_module_subscription_policy_service.list_module_subscription_catalog(),
             "plan_catalog": plan_catalog,
             "supported_module_limit_keys": sorted(
                 self.tenant_plan_policy_service.VALID_MODULE_LIMIT_KEYS

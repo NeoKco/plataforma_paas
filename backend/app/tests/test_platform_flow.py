@@ -192,6 +192,9 @@ from app.common.auth.role_dependencies import require_role  # noqa: E402
 from app.common.policies.tenant_plan_policy_service import (  # noqa: E402
     TenantPlanPolicyService,
 )
+from app.common.policies.tenant_module_subscription_policy_service import (  # noqa: E402
+    TenantModuleSubscriptionPolicyService,
+)
 from app.tests.db_test_utils import build_sqlite_session  # noqa: E402
 
 
@@ -2872,6 +2875,38 @@ class PlatformServicesTestCase(unittest.TestCase):
             ],
         )
 
+    def test_tenant_module_subscription_policy_service_exposes_catalog(self) -> None:
+        service = TenantModuleSubscriptionPolicyService()
+
+        self.assertEqual(
+            service.list_subscription_billing_cycles(),
+            ["monthly", "quarterly", "semiannual", "annual"],
+        )
+        self.assertEqual(
+            service.list_base_plan_catalog()[0]["plan_code"],
+            "base_finance",
+        )
+        self.assertEqual(
+            service.list_base_plan_catalog()[0]["included_modules"],
+            ["finance"],
+        )
+        self.assertEqual(
+            service.list_module_subscription_catalog()[0]["module_key"],
+            "finance",
+        )
+        self.assertEqual(
+            service.list_module_subscription_catalog()[-1]["module_key"],
+            "maintenance",
+        )
+        self.assertEqual(
+            service.list_module_subscription_catalog()[-1]["billing_cycles"],
+            ["monthly", "quarterly", "semiannual", "annual"],
+        )
+        self.assertEqual(
+            service.infer_billing_cycle_from_legacy_plan_code("anual"),
+            "annual",
+        )
+
     def test_platform_capability_service_returns_supported_catalog(self) -> None:
         service = PlatformCapabilityService(
             tenant_service=TenantService(tenant_repository=SimpleNamespace()),
@@ -2890,6 +2925,22 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(
             catalog["module_dependency_catalog"][0]["requires_modules"],
             ["core"],
+        )
+        self.assertEqual(
+            catalog["subscription_activation_model"],
+            "base_plan_plus_module_subscriptions",
+        )
+        self.assertEqual(
+            catalog["subscription_billing_cycles"],
+            ["monthly", "quarterly", "semiannual", "annual"],
+        )
+        self.assertEqual(
+            catalog["base_plan_catalog"][0]["plan_code"],
+            "base_finance",
+        )
+        self.assertEqual(
+            catalog["module_subscription_catalog"][-1]["module_key"],
+            "maintenance",
         )
         self.assertIn("maintenance", catalog["maintenance_scopes"])
         self.assertIn("full_block", catalog["maintenance_access_modes"])
@@ -3991,6 +4042,19 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(
             response.module_dependency_catalog[0].requires_modules,
             ["core"],
+        )
+        self.assertEqual(
+            response.subscription_activation_model,
+            "base_plan_plus_module_subscriptions",
+        )
+        self.assertEqual(
+            response.subscription_billing_cycles,
+            ["monthly", "quarterly", "semiannual", "annual"],
+        )
+        self.assertEqual(response.base_plan_catalog[0].plan_code, "base_finance")
+        self.assertEqual(
+            response.module_subscription_catalog[-1].module_key,
+            "maintenance",
         )
         self.assertIsInstance(response.plan_catalog, list)
 

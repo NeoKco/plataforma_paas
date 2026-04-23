@@ -158,6 +158,25 @@ class PlatformModuleDependencyResponse(BaseModel):
     reason: str | None = None
 
 
+class PlatformBasePlanCatalogEntryResponse(BaseModel):
+    plan_code: str
+    display_name: str
+    description: str | None = None
+    included_modules: list[str]
+    default_billing_cycle: str
+    allowed_billing_cycles: list[str]
+    is_default: bool = False
+
+
+class PlatformModuleSubscriptionCatalogEntryResponse(BaseModel):
+    module_key: str
+    display_name: str
+    description: str | None = None
+    activation_kind: str
+    billing_cycles: list[str]
+    is_active: bool = True
+
+
 class PlatformCapabilityCatalogResponse(BaseModel):
     success: bool
     message: str
@@ -168,6 +187,10 @@ class PlatformCapabilityCatalogResponse(BaseModel):
     available_plan_codes: list[str]
     plan_modules: list[str]
     module_dependency_catalog: list[PlatformModuleDependencyResponse]
+    subscription_activation_model: str
+    subscription_billing_cycles: list[str]
+    base_plan_catalog: list[PlatformBasePlanCatalogEntryResponse]
+    module_subscription_catalog: list[PlatformModuleSubscriptionCatalogEntryResponse]
     plan_catalog: list[PlatformPlanCatalogEntryResponse]
     supported_module_limit_keys: list[str]
     module_limit_capabilities: list[PlatformModuleLimitCapabilityResponse]
