@@ -276,7 +276,7 @@ export function TenantsPage() {
   const [createTenantSlug, setCreateTenantSlug] = useState("");
   const [createTenantSlugTouched, setCreateTenantSlugTouched] = useState(false);
   const [createTenantType, setCreateTenantType] = useState("empresa");
-  const [createTenantPlanCode, setCreateTenantPlanCode] = useState("");
+  const [createTenantBasePlanCode, setCreateTenantBasePlanCode] = useState("");
   const [createTenantAdminFullName, setCreateTenantAdminFullName] = useState("");
   const [createTenantAdminEmail, setCreateTenantAdminEmail] = useState("");
   const [createTenantAdminPassword, setCreateTenantAdminPassword] = useState("");
@@ -392,10 +392,6 @@ export function TenantsPage() {
     [capabilities?.module_dependency_catalog]
   );
 
-  const selectedCreatePlanCatalog = createTenantPlanCode
-    ? planCatalogByCode.get(createTenantPlanCode) || null
-    : null;
-
   const selectedTenantPlanCatalog =
     selectedTenantSummary?.plan_code
       ? planCatalogByCode.get(selectedTenantSummary.plan_code) || null
@@ -417,6 +413,13 @@ export function TenantsPage() {
     [capabilities?.base_plan_catalog]
   );
 
+  const selectedCreateBasePlanCatalog =
+    (createTenantBasePlanCode
+      ? capabilities?.base_plan_catalog.find(
+          (entry) => entry.plan_code === createTenantBasePlanCode
+        ) || null
+      : null) || defaultBasePlanCatalog;
+
   const rentableModuleCatalog = useMemo(
     () =>
       (capabilities?.module_subscription_catalog || []).filter(
@@ -424,6 +427,12 @@ export function TenantsPage() {
       ),
     [capabilities?.module_subscription_catalog]
   );
+
+  useEffect(() => {
+    if (!createTenantBasePlanCode && defaultBasePlanCatalog?.plan_code) {
+      setCreateTenantBasePlanCode(defaultBasePlanCatalog.plan_code);
+    }
+  }, [createTenantBasePlanCode, defaultBasePlanCatalog?.plan_code]);
 
   const selectedTenantContractItems = useMemo(
     () =>
@@ -439,10 +448,10 @@ export function TenantsPage() {
   const selectedCreatePlanDependencyStatus = useMemo(
     () =>
       buildTenantPlanDependencyStatus(
-        selectedCreatePlanCatalog?.enabled_modules || null,
+        selectedCreateBasePlanCatalog?.included_modules || null,
         capabilities?.module_dependency_catalog || []
       ),
-    [capabilities?.module_dependency_catalog, selectedCreatePlanCatalog?.enabled_modules]
+    [capabilities?.module_dependency_catalog, selectedCreateBasePlanCatalog?.included_modules]
   );
 
   const selectedTenantPlanDependencyStatus = useMemo(
@@ -1128,7 +1137,8 @@ export function TenantsPage() {
         name: createTenantName.trim(),
         slug: createTenantSlug.trim(),
         tenant_type: createTenantType,
-        plan_code: normalizeNullableString(createTenantPlanCode),
+        base_plan_code: normalizeNullableString(createTenantBasePlanCode),
+        plan_code: null,
         admin_full_name: createTenantAdminFullName.trim(),
         admin_email: createTenantAdminEmail.trim().toLowerCase(),
         admin_password: createTenantAdminPassword,
@@ -1140,7 +1150,7 @@ export function TenantsPage() {
       setCreateTenantSlug("");
       setCreateTenantSlugTouched(false);
       setCreateTenantType("empresa");
-      setCreateTenantPlanCode("");
+      setCreateTenantBasePlanCode(defaultBasePlanCatalog?.plan_code || "");
       setCreateTenantAdminFullName("");
       setCreateTenantAdminEmail("");
       setCreateTenantAdminPassword("");
@@ -1172,7 +1182,7 @@ export function TenantsPage() {
     setCreateTenantSlug("");
     setCreateTenantSlugTouched(false);
     setCreateTenantType("empresa");
-    setCreateTenantPlanCode("");
+    setCreateTenantBasePlanCode(defaultBasePlanCatalog?.plan_code || "");
     setCreateTenantAdminFullName("");
     setCreateTenantAdminEmail("");
     setCreateTenantAdminPassword("");
@@ -2210,26 +2220,21 @@ export function TenantsPage() {
               </AppFormField>
               <AppFormField>
                 <FieldHelpLabel
-                  label={
-                    language === "es"
-                      ? "Plan operativo actual"
-                      : "Current operational plan"
-                  }
+                  label={language === "es" ? "Plan Base inicial" : "Initial Base plan"}
                   help={
                     language === "es"
-                      ? "Este campo sigue escribiendo `plan_code` solo como baseline de compatibilidad legacy. Los tenants recontratados ya toman activación y límites base desde `tenant_subscriptions`."
-                      : "This field still writes `plan_code` only as the legacy compatibility baseline. Recontracted tenants already take activation and base limits from `tenant_subscriptions`."
+                      ? "Todo tenant nuevo nace ya con contrato formal. Aquí eliges el `Plan Base` inicial; el alta ya no depende de `plan_code`."
+                      : "Every new tenant now starts with the formal contract. Choose the initial `Base plan` here; tenant creation no longer depends on `plan_code`."
                   }
                 />
                 <select
                   className="form-select"
-                  value={createTenantPlanCode}
-                  onChange={(event) => setCreateTenantPlanCode(event.target.value)}
+                  value={createTenantBasePlanCode}
+                  onChange={(event) => setCreateTenantBasePlanCode(event.target.value)}
                 >
-                  <option value="">{language === "es" ? "Sin plan" : "No plan"}</option>
-                  {planOptions.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
+                  {capabilities?.base_plan_catalog.map((entry) => (
+                    <option key={entry.plan_code} value={entry.plan_code}>
+                      {entry.display_name}
                     </option>
                   ))}
                 </select>
@@ -2353,15 +2358,15 @@ export function TenantsPage() {
                 />
               </AppFormField>
               <div className="app-form-field app-form-field--full">
-                {selectedCreatePlanCatalog ? (
+                {selectedCreateBasePlanCatalog ? (
                   <>
                     <p className="tenant-help-text mt-2 mb-2">
                       {language === "es"
-                        ? "Módulos habilitados por el plan seleccionado:"
-                        : "Modules enabled by the selected plan:"}
+                        ? "Módulos incluidos por el Plan Base seleccionado:"
+                        : "Modules included by the selected Base plan:"}
                     </p>
                     <div className="tenant-list__chips">
-                      {(selectedCreatePlanCatalog.enabled_modules || []).map((moduleKey) => (
+                      {selectedCreateBasePlanCatalog.included_modules.map((moduleKey) => (
                         <span key={moduleKey} className="tenant-chip">
                           {getTenantPlanModuleLabel(moduleKey)}
                         </span>
@@ -2371,8 +2376,8 @@ export function TenantsPage() {
                       <>
                         <p className="tenant-help-text mt-3 mb-2">
                           {language === "es"
-                            ? "Dependencias cubiertas por este plan:"
-                            : "Dependencies covered by this plan:"}
+                            ? "Dependencias cubiertas por este Plan Base:"
+                            : "Dependencies covered by this Base plan:"}
                         </p>
                         <div className="tenant-help-box">
                           {selectedCreatePlanDependencyStatus.covered.map((entry) => (
@@ -4593,12 +4598,13 @@ export function TenantsPage() {
                     </AppFormActions>
                   </AppForm>
 
-                  <AppForm className="tenant-action-form" onSubmit={handlePlanSubmit}>
-                    <h3 className="tenant-action-form__title">
-                      {language === "es"
-                        ? "Baseline legacy por plan_code"
-                        : "Legacy plan_code baseline"}
-                    </h3>
+                  {selectedTenantSummary.legacy_plan_fallback_active ? (
+                    <AppForm className="tenant-action-form" onSubmit={handlePlanSubmit}>
+                      <h3 className="tenant-action-form__title">
+                        {language === "es"
+                          ? "Baseline legacy por plan_code"
+                          : "Legacy plan_code baseline"}
+                      </h3>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
                         label={
@@ -4744,16 +4750,23 @@ export function TenantsPage() {
                           : "This block only adjusts legacy `plan_code` compatibility. Real commercial contracting and the technical baseline for managed tenants already live in the tenant subscription above."}
                       </p>
                     </div>
-                    <AppFormActions>
-                      <button
-                        className="btn btn-primary"
-                        type="submit"
-                        disabled={isActionSubmitting}
-                      >
-                        {language === "es" ? "Actualizar plan" : "Update plan"}
-                      </button>
-                    </AppFormActions>
-                  </AppForm>
+                      <AppFormActions>
+                        <button
+                          className="btn btn-primary"
+                          type="submit"
+                          disabled={isActionSubmitting}
+                        >
+                          {language === "es" ? "Actualizar plan" : "Update plan"}
+                        </button>
+                      </AppFormActions>
+                    </AppForm>
+                  ) : (
+                    <div className="tenant-inline-note">
+                      {language === "es"
+                        ? "No hay baseline legacy activo para este tenant. La gestión contractual vigente ya vive por completo en `tenant_subscriptions`."
+                        : "There is no active legacy baseline for this tenant. Current contract management already lives entirely in `tenant_subscriptions`."}
+                    </div>
+                  )}
 
                   <AppForm className="tenant-action-form" onSubmit={handleRateLimitSubmit}>
                     <h3 className="tenant-action-form__title">

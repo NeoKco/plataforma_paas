@@ -788,6 +788,7 @@ def create_tenant(
             admin_full_name=payload.admin_full_name,
             admin_email=payload.admin_email,
             admin_password=payload.admin_password,
+            base_plan_code=payload.base_plan_code,
             plan_code=payload.plan_code,
         )
         auth_audit_service.log_event(

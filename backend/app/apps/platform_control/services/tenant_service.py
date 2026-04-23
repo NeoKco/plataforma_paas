@@ -174,6 +174,7 @@ class TenantService:
         admin_full_name: str,
         admin_email: str,
         admin_password: str,
+        base_plan_code: str | None = None,
         plan_code: str | None = None,
     ) -> Tenant:
         normalized_name = name.strip()
@@ -202,16 +203,42 @@ class TenantService:
         if len(normalized_admin_password) < 10:
             raise ValueError("Tenant admin password must be at least 10 characters")
 
-        normalized_plan_code = self._normalize_plan_code(plan_code)
+        normalized_legacy_plan_code = self._normalize_plan_code(plan_code)
+        resolved_base_plan_code = self._normalize_base_plan_code(
+            base_plan_code
+            or self._resolve_base_plan_code_from_legacy_plan(normalized_legacy_plan_code)
+            or self.tenant_module_subscription_policy_service.DEFAULT_BASE_PLAN_CODE
+        )
+        base_plan_entry = (
+            self.tenant_module_subscription_policy_service.get_base_plan_catalog_entry(
+                resolved_base_plan_code
+            )
+        )
+        if base_plan_entry is None:
+            raise ValueError("Invalid tenant base plan")
+        current_time = datetime.now(timezone.utc)
+        current_period_ends_at = self._advance_billing_cycle(
+            current_time,
+            base_plan_entry.default_billing_cycle,
+        )
         tenant = Tenant(
             name=normalized_name,
             slug=normalized_slug,
             tenant_type=normalized_tenant_type,
-            plan_code=normalized_plan_code,
+            plan_code=None,
             bootstrap_admin_full_name=normalized_admin_full_name,
             bootstrap_admin_email=normalized_admin_email,
             bootstrap_admin_password_hash=hash_password(normalized_admin_password),
             status="pending",
+        )
+        tenant.subscription = TenantSubscription(
+            base_plan_code=resolved_base_plan_code,
+            status="active",
+            billing_cycle=base_plan_entry.default_billing_cycle,
+            current_period_starts_at=current_time,
+            current_period_ends_at=current_period_ends_at,
+            next_renewal_at=current_period_ends_at,
+            is_co_termed=True,
         )
 
         tenant = self.tenant_repository.save(db, tenant)
@@ -2104,7 +2131,7 @@ class TenantService:
     def _normalize_base_plan_code(self, base_plan_code: str | None) -> str:
         normalized = (base_plan_code or "").strip().lower()
         if not normalized:
-            raise ValueError("Tenant base plan is required")
+            normalized = self.tenant_module_subscription_policy_service.DEFAULT_BASE_PLAN_CODE
         if (
             self.tenant_module_subscription_policy_service.get_base_plan_catalog_entry(
                 normalized
@@ -2113,6 +2140,18 @@ class TenantService:
         ):
             raise ValueError("Invalid tenant base plan")
         return normalized
+
+    def _resolve_base_plan_code_from_legacy_plan(
+        self,
+        legacy_plan_code: str | None,
+    ) -> str | None:
+        entry = self.tenant_module_subscription_policy_service.resolve_base_plan_catalog_entry(
+            legacy_plan_code,
+            tenant_plan_policy_service=self.tenant_plan_policy_service,
+        )
+        if entry is None:
+            return None
+        return entry.plan_code
 
     def _normalize_subscription_billing_cycle(
         self,

@@ -344,9 +344,7 @@ class ProvisioningService:
 
             current_stage = "bootstrap_tenant_schema"
             tenant_bootstrap = TenantDatabaseBootstrapService()
-            enabled_modules = self.tenant_service.tenant_plan_policy_service.get_enabled_modules(
-                getattr(tenant, "plan_code", None)
-            )
+            enabled_modules = self.tenant_service.get_effective_enabled_modules(tenant)
             tenant_bootstrap.bootstrap(
                 host=settings.CONTROL_DB_HOST,
                 port=settings.CONTROL_DB_PORT,

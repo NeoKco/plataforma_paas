@@ -136,4 +136,6 @@ class Tenant(Base):
         "TenantSubscription",
         back_populates="tenant",
         uselist=False,
+        cascade="all, delete-orphan",
+        single_parent=True,
     )
