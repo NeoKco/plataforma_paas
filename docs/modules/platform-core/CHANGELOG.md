@@ -2,6 +2,22 @@
 
 ## 2026-04-23
 
+- `Etapa 11` ya persiste y relee campañas centralizadas de secretos runtime:
+  - [tenant_runtime_secret_campaign.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_runtime_secret_campaign.py) y [tenant_runtime_secret_campaign_item.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_runtime_secret_campaign_item.py) agregan persistencia formal de campañas y resultados por tenant
+  - [tenant_runtime_secret_campaign_repository.py](/home/felipe/platform_paas/backend/app/apps/platform_control/repositories/tenant_runtime_secret_campaign_repository.py) y [tenant_runtime_secret_campaign_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_runtime_secret_campaign_service.py) encapsulan escritura y lectura del historial
+  - [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py) ya expone:
+    - `GET /platform/security-posture/runtime-secret-campaigns`
+    - `campaign_id` en `sync-runtime-secrets` y `rotate-db-credentials`
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya muestra campañas recientes con actor, alcance y detalle por tenant
+  - validación repo:
+    - `backend.app.tests.test_migration_flow` -> `16 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend redeployado con `578 tests OK`
+    - `production` backend redeployado con `578 tests OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - `Etapa 11` ya agrega exclusión explícita por tenant para campañas batch de secretos runtime:
   - [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py) ya deja trazabilidad de `selected` y `excluded` en la auditoría de `sync batch` y `rotate batch`
   - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya permite alternar entre:

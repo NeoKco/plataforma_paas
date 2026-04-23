@@ -64,6 +64,7 @@ from app.apps.platform_control.api.provisioning_job_routes import (  # noqa: E40
 from app.apps.platform_control.api.routes import (  # noqa: E402
     admin_only_route,
     get_platform_capabilities,
+    get_platform_runtime_secret_campaigns,
     get_platform_security_posture,
     get_platform_runtime_secret_plan,
     ping_control_db,
@@ -178,6 +179,9 @@ from app.apps.provisioning.services.provisioning_dispatch_service import (  # no
 from app.apps.platform_control.services.tenant_service import TenantService  # noqa: E402
 from app.apps.platform_control.services.tenant_policy_event_service import (  # noqa: E402
     TenantPolicyEventService,
+)
+from app.apps.platform_control.services.tenant_runtime_secret_campaign_service import (  # noqa: E402
+    TenantRuntimeSecretCampaignService,
 )
 from app.apps.platform_control.services.tenant_billing_sync_service import (  # noqa: E402
     TenantBillingSyncService,
@@ -2529,6 +2533,59 @@ class PlatformServicesTestCase(unittest.TestCase):
 
         self.assertNotIn("plan_code", calls[0]["changed_fields_json"])
         self.assertIn("billing_status", calls[0]["changed_fields_json"])
+
+    def test_tenant_runtime_secret_campaign_service_serializes_recent_history(self) -> None:
+        recorded_at = datetime.now(timezone.utc)
+        campaign = SimpleNamespace(
+            id=21,
+            campaign_type="rotate_db_credentials",
+            scope_mode="exclude",
+            tenant_slugs_json=None,
+            excluded_tenant_slugs_json='["empresa-legacy"]',
+            processed=3,
+            success_count=2,
+            already_runtime_managed=0,
+            skipped_not_configured=0,
+            skipped_legacy_rescue_required=1,
+            failed=0,
+            actor_user_id=1,
+            actor_email="admin@platform.local",
+            actor_role="superadmin",
+            recorded_at=recorded_at,
+        )
+        item = SimpleNamespace(
+            id=31,
+            campaign_id=21,
+            tenant_id=7,
+            tenant_slug="empresa-demo",
+            outcome="rotated",
+            detail="ok",
+            source=None,
+            env_var_name="TENANT_DB_PASSWORD__EMPRESA_DEMO",
+            managed_secret_path="/opt/platform_paas/.tenant-secrets.env",
+            already_runtime_managed=False,
+            rotated_at=recorded_at,
+            recorded_at=recorded_at,
+        )
+
+        class FakeRepository:
+            def list_recent(self, db, *, limit=10):
+                return [campaign]
+
+            def list_items_for_campaign_ids(self, db, *, campaign_ids):
+                return [item]
+
+        service = TenantRuntimeSecretCampaignService(
+            tenant_runtime_secret_campaign_repository=FakeRepository()
+        )
+
+        rows = service.list_recent_campaigns(object(), limit=10)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["campaign_type"], "rotate_db_credentials")
+        self.assertEqual(rows[0]["scope_mode"], "exclude")
+        self.assertEqual(rows[0]["excluded_tenant_slugs"], ["empresa-legacy"])
+        self.assertEqual(rows[0]["items"][0]["tenant_slug"], "empresa-demo")
 
     def test_tenant_billing_sync_service_applies_event_idempotently(self) -> None:
         tenant = build_tenant_record_stub(
@@ -5081,6 +5138,9 @@ class PlatformRoutesTestCase(unittest.TestCase):
                 ],
             },
         ) as sync_mock, patch(
+            "app.apps.platform_control.api.routes.tenant_runtime_secret_campaign_service.record_campaign",
+            return_value={"id": 7},
+        ) as campaign_mock, patch(
             "app.apps.platform_control.api.routes.auth_audit_service.log_event",
         ) as audit_mock:
             response = sync_platform_runtime_secrets(
@@ -5095,11 +5155,15 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.processed, 2)
         self.assertEqual(response.synced, 1)
         self.assertEqual(response.already_runtime_managed, 1)
+        self.assertEqual(response.campaign_id, 7)
         self.assertEqual(
             sync_mock.call_args.kwargs["tenant_slugs"],
             ["empresa-demo"],
         )
         self.assertIsNone(sync_mock.call_args.kwargs["excluded_tenant_slugs"])
+        self.assertEqual(
+            campaign_mock.call_args.kwargs["campaign_type"], "sync_runtime_secret"
+        )
 
     def test_rotate_platform_tenant_db_credentials_returns_batch_schema(self) -> None:
         rotated_at = datetime.now(timezone.utc)
@@ -5125,6 +5189,9 @@ class PlatformRoutesTestCase(unittest.TestCase):
                 ],
             },
         ) as rotate_mock, patch(
+            "app.apps.platform_control.api.routes.tenant_runtime_secret_campaign_service.record_campaign",
+            return_value={"id": 8},
+        ) as campaign_mock, patch(
             "app.apps.platform_control.api.routes.auth_audit_service.log_event",
         ) as audit_mock:
             response = rotate_platform_tenant_db_credentials(
@@ -5138,12 +5205,16 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertEqual(response.processed, 2)
         self.assertEqual(response.rotated, 1)
+        self.assertEqual(response.campaign_id, 8)
         self.assertEqual(response.skipped_legacy_rescue_required, 1)
         self.assertEqual(
             rotate_mock.call_args.kwargs["tenant_slugs"],
             ["empresa-demo"],
         )
         self.assertIsNone(rotate_mock.call_args.kwargs["excluded_tenant_slugs"])
+        self.assertEqual(
+            campaign_mock.call_args.kwargs["campaign_type"], "rotate_db_credentials"
+        )
         audit_mock.assert_called_once()
 
     def test_sync_platform_runtime_secrets_forwards_excluded_tenants(self) -> None:
@@ -5160,6 +5231,9 @@ class PlatformRoutesTestCase(unittest.TestCase):
                 "data": [],
             },
         ) as sync_mock, patch(
+            "app.apps.platform_control.api.routes.tenant_runtime_secret_campaign_service.record_campaign",
+            return_value={"id": 9},
+        ), patch(
             "app.apps.platform_control.api.routes.auth_audit_service.log_event",
         ):
             sync_platform_runtime_secrets(
@@ -5213,6 +5287,56 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.sync_recommended, 1)
         plan_mock.assert_called_once()
         self.assertEqual(response.data[0].tenant_slug, "empresa-demo")
+
+    def test_get_platform_runtime_secret_campaigns_returns_schema(self) -> None:
+        recorded_at = datetime.now(timezone.utc)
+        with patch(
+            "app.apps.platform_control.api.routes.tenant_runtime_secret_campaign_service.list_recent_campaigns",
+            return_value=[
+                {
+                    "id": 11,
+                    "campaign_type": "sync_runtime_secret",
+                    "scope_mode": "include",
+                    "tenant_slugs": ["empresa-demo"],
+                    "excluded_tenant_slugs": [],
+                    "processed": 1,
+                    "success_count": 1,
+                    "already_runtime_managed": 0,
+                    "skipped_not_configured": 0,
+                    "skipped_legacy_rescue_required": 0,
+                    "failed": 0,
+                    "actor_user_id": 1,
+                    "actor_email": "admin@platform.local",
+                    "actor_role": "superadmin",
+                    "recorded_at": recorded_at,
+                    "items": [
+                        {
+                            "id": 101,
+                            "tenant_id": 1,
+                            "tenant_slug": "empresa-demo",
+                            "outcome": "synced",
+                            "detail": "ok",
+                            "source": "process_env",
+                            "env_var_name": None,
+                            "managed_secret_path": None,
+                            "already_runtime_managed": False,
+                            "rotated_at": None,
+                            "recorded_at": recorded_at,
+                        }
+                    ],
+                }
+            ],
+        ) as campaigns_mock:
+            response = get_platform_runtime_secret_campaigns(
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.total_campaigns, 1)
+        self.assertEqual(response.data[0].campaign_type, "sync_runtime_secret")
+        self.assertEqual(response.data[0].items[0].tenant_slug, "empresa-demo")
+        campaigns_mock.assert_called_once()
 
     def test_list_platform_users_returns_catalog(self) -> None:
         users = [

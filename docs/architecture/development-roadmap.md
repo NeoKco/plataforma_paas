@@ -405,7 +405,7 @@ Falta para cerrarlo:
 
 ## Etapa 11. Secretos y Seguridad Operativa
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -437,12 +437,27 @@ Resultado actual:
   - si ese carril queda separado del `.env` legacy
   - si el backend puede leerlo y escribirlo
 - `production_ready` ya cae si `TENANT_SECRETS_FILE` sigue mezclado con el `.env` principal
+- ya existe sincronizacion formal por tenant y por lote sobre el carril runtime-only:
+  - `POST /platform/tenants/{tenant_id}/sync-db-runtime-secret`
+  - `POST /platform/security-posture/sync-runtime-secrets`
+- ya existe rotacion formal por tenant y por lote sobre el carril runtime-only:
+  - `POST /platform/tenants/{tenant_id}/rotate-db-credentials`
+  - `POST /platform/security-posture/rotate-db-credentials`
+- ya existe una lectura previa formal del plan operativo:
+  - `GET /platform/security-posture/runtime-secret-plan`
+- la consola ya puede gobernar campañas batch por:
+  - inclusion explicita
+  - exclusion explicita
+- el rescate legacy desde `/.env` ya queda aislado en tooling controlado y no vuelve al camino normal de consola
+- ya existe persistencia y auditoria formal de campañas centralizadas:
+  - `tenant_runtime_secret_campaigns`
+  - `tenant_runtime_secret_campaign_items`
+  - `GET /platform/security-posture/runtime-secret-campaigns`
 
-Falta para cerrarlo:
+Backlog opcional posterior:
 
 - secret manager real
-- rotacion centralizada de secretos fuera de `.env`
-- politicas de distribucion de credenciales
+- politicas mas ricas de distribucion de credenciales
 - sesion multi-dispositivo mas rica y auditoriable
 
 ## Punto actual recomendado

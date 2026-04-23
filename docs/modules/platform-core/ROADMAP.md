@@ -243,13 +243,25 @@ Estado práctico de cierre:
       - solo sobre los tenants seleccionados
       - o sobre todos los tenants auditados excepto los excluidos
     - la auditoría batch ya deja visible el alcance por `selected` y `excluded`
-  - el octavo slice ya queda también publicado en runtime:
-    - `staging` backend redeployado con `575 tests OK`
-    - `production` backend redeployado con `575 tests OK`
+  - décimo slice repo y runtime ya cerrado:
+    - `platform_control` ya persiste campañas centralizadas en:
+      - `tenant_runtime_secret_campaigns`
+      - `tenant_runtime_secret_campaign_items`
+    - `POST /platform/security-posture/sync-runtime-secrets` y `POST /platform/security-posture/rotate-db-credentials` ya devuelven `campaign_id`
+    - `GET /platform/security-posture/runtime-secret-campaigns` ya permite releer historial reciente con:
+      - actor
+      - alcance real
+      - resumen por outcomes
+      - detalle por tenant
+    - `Configuración -> Plan central de secretos runtime` ya muestra campañas recientes sin depender solo del resultado inmediato del batch
+  - el décimo slice ya queda publicado en runtime:
+    - `staging` backend redeployado con `578 tests OK`
+    - `production` backend redeployado con `578 tests OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
-  - siguiente corte recomendado:
-    - publicar el noveno slice y luego abrir persistencia/auditoría más formal de campañas batch
-    - mantener el rescate legacy solo como tooling excepcional
+  - cierre operativo del frente:
+    - la `Etapa 11` ya queda suficientemente cerrada para el alcance actual
+    - el rescate legacy sigue aislado solo en tooling excepcional
+    - el siguiente frente formal recomendado del roadmap pasa a `Etapa 12. Auditoría y Observabilidad`
 
 ## Cierre operativo del bloque central
 

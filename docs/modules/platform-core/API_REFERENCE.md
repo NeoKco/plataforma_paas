@@ -68,6 +68,7 @@ Capabilities:
 - `GET /platform/capabilities`
 - `GET /platform/security-posture`
 - `GET /platform/security-posture/runtime-secret-plan`
+- `GET /platform/security-posture/runtime-secret-campaigns`
 
 Payload operativo actual de `GET /platform/capabilities`:
 
@@ -185,6 +186,36 @@ Regla actual:
 - si se envían ambos, primero se acota por `tenant_slugs` y luego se excluyen los `excluded_tenant_slugs`
 - la consola ya usa esta capacidad para campañas manuales cortas desde `Plan central de secretos runtime`, tanto en modo incluir como en modo excluir
 
+Persistencia formal de campañas:
+
+- `GET /platform/security-posture/runtime-secret-campaigns`
+
+Esta lectura devuelve campañas recientes con:
+
+- `campaign_id`
+- `campaign_type`
+- `scope_mode`
+- `tenant_slugs`
+- `excluded_tenant_slugs`
+- `processed`
+- `success_count`
+- `already_runtime_managed`
+- `skipped_not_configured`
+- `skipped_legacy_rescue_required`
+- `failed`
+- `actor`
+- `recorded_at`
+- `items[]` por tenant con:
+  - `tenant_id`
+  - `tenant_slug`
+  - `outcome`
+  - `detail`
+  - `source`
+  - `env_var_name`
+  - `managed_secret_path`
+  - `already_runtime_managed`
+  - `rotated_at`
+
 Esta mutación:
 
 - recorre tenants activos
@@ -199,6 +230,7 @@ Esta mutación:
   - `skipped_legacy_rescue_required`
   - `failed`
   - `synced_at`
+  - `campaign_id`
   - `data[]` por tenant con:
     - `tenant_id`
     - `tenant_slug`
@@ -225,6 +257,7 @@ Esta mutación:
   - `skipped_legacy_rescue_required`
   - `failed`
   - `rotated_at`
+  - `campaign_id`
   - `data[]` por tenant con:
     - `tenant_id`
     - `tenant_slug`

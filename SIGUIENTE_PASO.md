@@ -43,7 +43,7 @@
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - siguiente paso correcto del roadmap:
-  - `business-core`, el hardening inmediato de `Provisioning/DLQ` y el cleanup residual de `plan_code` ya quedan suficientemente institucionalizados; no corresponde seguir limándolos por inercia
+  - `business-core`, el hardening inmediato de `Provisioning/DLQ`, el cleanup residual de `plan_code` y la `Etapa 11` ya quedan suficientemente institucionalizados; no corresponde seguir limándolos por inercia
   - la `Etapa 15` ya puede considerarse cerrada para el alcance actual:
     - el runtime contractual normal ya no depende de `plan_code`
     - la compatibilidad legacy queda acotada solo a superficies explícitas de rescate
@@ -58,49 +58,22 @@
     - los seeds demo y la auditoría multi-tenant ya no deben tratar `plan_code` como baseline normal
     - `tenant_service` ya no debe consultar módulos ni baseline legacy para tenants contract-managed solo porque el registro aún arrastre un `plan_code` histórico
     - los snapshots de `tenant_policy_event_service` ya no deben exponer ni marcar cambios de `plan_code` para tenants contract-managed
+  - la `Etapa 11` ya puede considerarse cerrada para el alcance actual:
+    - enforcement visible del carril runtime real
+    - resolución runtime-only sin usar `/.env` como candidato normal
+    - sync tenant y batch
+    - rotate tenant y batch
+    - plan previo por tenant
+    - targeting `include/exclude`
+    - persistencia y auditoría formal de campañas centralizadas
+    - rescate legacy aislado solo en tooling controlado
   - siguiente frente formal recomendado del roadmap:
-    - abrir `Etapa 11. Secretos y Seguridad Operativa`
+    - abrir `Etapa 12. Auditoría y Observabilidad`
     - foco inicial:
-      - primer corte ya abierto:
-        - enforcement visible de `TENANT_SECRETS_FILE` separado del `.env` legacy
-        - lectura operativa explícita del carril runtime de secretos tenant en `Settings`
-      - segundo slice ya cerrado en repo y runtime:
-        - la resolución normal ya no trata el `.env` legacy como candidato cuando el runtime tiene `TENANT_SECRETS_FILE`
-        - el redeploy real además corrigió un drift operativo sobre `empresa-bootstrap` en ambos carriles al replicar su secreto DB al archivo runtime de secretos tenant
-      - tercer slice ya cerrado en repo:
-        - `security-posture` ya resume cobertura tenant del carril runtime
-        - `Tenants` ya agrega `Sincronizar secreto runtime` como acción formal separada de la rotación
-        - la distribución mínima centralizada ya existe sin obligar cambio de credencial
-      - cuarto slice ya cerrado en repo y runtime:
-        - `Sincronizar secreto runtime` queda limitado a fuentes runtime-managed
-        - el rescate desde `/.env` ya no vive en la acción normal de consola
-        - el rescate legacy explícito queda aislado en tooling controlado
-      - quinto slice ya cerrado en repo:
-        - `Settings -> Postura de secretos y runtime` ya agrega `Sincronizar runtime central`
-        - `POST /platform/security-posture/sync-runtime-secrets` ya procesa tenants activos por lote
-        - el batch solo sincroniza desde fuentes runtime-managed
-        - los tenants que todavía dependen de `/.env` quedan marcados como `skipped_legacy_rescue_required`
-      - sexto slice ya cerrado en repo:
-        - `Settings -> Postura de secretos y runtime` ya agrega `Rotar credenciales central`
-        - `POST /platform/security-posture/rotate-db-credentials` ya rota credenciales DB tenant por lote sobre tenants runtime-ready
-        - la rotación batch no rescata desde `/.env` y deja los tenants legacy como `skipped_legacy_rescue_required`
-      - séptimo slice ya cerrado en repo:
-        - `GET /platform/security-posture/runtime-secret-plan` ya clasifica tenants activos antes del batch
-        - `Settings -> Postura de secretos y runtime` ya muestra por tenant:
-          - estado operativo
-          - acción recomendada
-          - elegibilidad para `sync batch` y `rotate batch`
-        - el operador ya no necesita inferir si conviene sincronizar, rotar o derivar a tooling legacy controlado
-      - octavo slice ya cerrado en repo:
-        - `Settings -> Plan central de secretos runtime` ya permite seleccionar tenants desde consola antes de `sync batch` o `rotate batch`
-        - el backend ya acepta `tenant_slugs` opcionales para acotar campañas batch sin reabrir rescate desde `/.env`
-      - noveno slice ya cerrado en repo:
-        - la misma consola ya permite `Modo excluir` además del `Modo incluir`
-        - el backend ya acepta campañas sobre todos los tenants auditados excepto `excluded_tenant_slugs`
-        - el alcance batch ya queda visible antes de ejecutar
-      - siguiente corte recomendado:
-        - persistencia/auditoría más formal de campañas centralizadas
-        - mantener el rescate legacy solo como tooling excepcional
+      - cubrir operaciones administrativas relevantes fuera de auth
+      - mejorar correlación y consultas útiles para soporte
+      - ampliar observabilidad técnica más allá de auth, HTTP y provisioning
+      - no reabrir `Etapa 11` salvo evidencia nueva o necesidad explícita
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual

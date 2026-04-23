@@ -1,0 +1,89 @@
+from sqlalchemy import inspect, text
+
+
+MIGRATION_ID = "0028_tenant_runtime_secret_campaigns"
+DESCRIPTION = "Create tenant runtime secret campaign audit tables"
+
+
+def upgrade(connection) -> None:
+    inspector = inspect(connection)
+    existing_tables = set(inspector.get_table_names())
+
+    if "tenant_runtime_secret_campaigns" not in existing_tables:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE tenant_runtime_secret_campaigns (
+                    id INTEGER PRIMARY KEY,
+                    campaign_type VARCHAR(60) NOT NULL,
+                    scope_mode VARCHAR(20) NOT NULL,
+                    tenant_slugs_json TEXT,
+                    excluded_tenant_slugs_json TEXT,
+                    processed INTEGER NOT NULL DEFAULT 0,
+                    success_count INTEGER NOT NULL DEFAULT 0,
+                    already_runtime_managed INTEGER NOT NULL DEFAULT 0,
+                    skipped_not_configured INTEGER NOT NULL DEFAULT 0,
+                    skipped_legacy_rescue_required INTEGER NOT NULL DEFAULT 0,
+                    failed INTEGER NOT NULL DEFAULT 0,
+                    actor_user_id INTEGER,
+                    actor_email VARCHAR(255),
+                    actor_role VARCHAR(100),
+                    recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX ix_tenant_runtime_secret_campaigns_type
+                ON tenant_runtime_secret_campaigns(campaign_type)
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX ix_tenant_runtime_secret_campaigns_scope_mode
+                ON tenant_runtime_secret_campaigns(scope_mode)
+                """
+            )
+        )
+
+    if "tenant_runtime_secret_campaign_items" not in existing_tables:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE tenant_runtime_secret_campaign_items (
+                    id INTEGER PRIMARY KEY,
+                    campaign_id INTEGER NOT NULL REFERENCES tenant_runtime_secret_campaigns(id),
+                    tenant_id INTEGER,
+                    tenant_slug VARCHAR(100) NOT NULL,
+                    outcome VARCHAR(60) NOT NULL,
+                    detail TEXT,
+                    source VARCHAR(60),
+                    env_var_name VARCHAR(255),
+                    managed_secret_path VARCHAR(500),
+                    already_runtime_managed BOOLEAN NOT NULL DEFAULT FALSE,
+                    rotated_at TIMESTAMP,
+                    recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX ix_tenant_runtime_secret_campaign_items_campaign_id
+                ON tenant_runtime_secret_campaign_items(campaign_id)
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX ix_tenant_runtime_secret_campaign_items_tenant_slug
+                ON tenant_runtime_secret_campaign_items(tenant_slug)
+                """
+            )
+        )

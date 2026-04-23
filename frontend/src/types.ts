@@ -220,6 +220,7 @@ export type PlatformTenantRuntimeSecretBatchSyncItem = {
 export type PlatformTenantRuntimeSecretBatchSyncResponse = {
   success: boolean;
   message: string;
+  campaign_id: number | null;
   processed: number;
   synced: number;
   already_runtime_managed: number;
@@ -248,6 +249,7 @@ export type PlatformTenantDbCredentialsRotateBatchItem = {
 export type PlatformTenantDbCredentialsRotateBatchResponse = {
   success: boolean;
   message: string;
+  campaign_id: number | null;
   processed: number;
   rotated: number;
   skipped_not_configured: number;
@@ -279,6 +281,46 @@ export type PlatformTenantRuntimeSecretPlanResponse = {
   missing_secret: number;
   planned_at: string | null;
   data: PlatformTenantRuntimeSecretPlanItem[];
+};
+
+export type PlatformTenantRuntimeSecretCampaignItem = {
+  id: number;
+  tenant_id: number | null;
+  tenant_slug: string;
+  outcome: string;
+  detail: string | null;
+  source: string | null;
+  env_var_name: string | null;
+  managed_secret_path: string | null;
+  already_runtime_managed: boolean;
+  rotated_at: string | null;
+  recorded_at: string | null;
+};
+
+export type PlatformTenantRuntimeSecretCampaign = {
+  id: number;
+  campaign_type: string;
+  scope_mode: string;
+  tenant_slugs: string[];
+  excluded_tenant_slugs: string[];
+  processed: number;
+  success_count: number;
+  already_runtime_managed: number;
+  skipped_not_configured: number;
+  skipped_legacy_rescue_required: number;
+  failed: number;
+  actor_user_id: number | null;
+  actor_email: string | null;
+  actor_role: string | null;
+  recorded_at: string | null;
+  items: PlatformTenantRuntimeSecretCampaignItem[];
+};
+
+export type PlatformTenantRuntimeSecretCampaignListResponse = {
+  success: boolean;
+  message: string;
+  total_campaigns: number;
+  data: PlatformTenantRuntimeSecretCampaign[];
 };
 
 export type PlatformLoginResponse = {

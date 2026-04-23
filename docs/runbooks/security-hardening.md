@@ -192,8 +192,35 @@ Regla operativa:
 
 Objetivo:
 
-- permitir campañas cortas y controladas tanto por inclusión como por exclusión sin abrir todavía persistencia formal de campañas
+- permitir campañas cortas y controladas tanto por inclusión como por exclusión dentro del carril runtime-only
 - no volver a mezclar rescate legacy dentro del carril batch normal
+
+### Persistencia formal de campañas centralizadas
+
+La consola y la API ya dejan también historial persistente de campañas batch.
+
+Backend:
+
+- `tenant_runtime_secret_campaigns`
+- `tenant_runtime_secret_campaign_items`
+- `GET /platform/security-posture/runtime-secret-campaigns`
+
+Regla operativa:
+
+- `sync-runtime-secrets` y `rotate-db-credentials` ya devuelven `campaign_id`
+- cada campaña guarda:
+  - tipo
+  - alcance real (`all`, `include`, `exclude`)
+  - actor
+  - resumen de outcomes
+  - detalle por tenant
+- el historial visible no reemplaza logs ni tooling profundo, pero ya deja evidencia operativa suficiente para soporte y seguridad
+
+Objetivo:
+
+- no depender solo del resultado inmediato en pantalla
+- poder releer campañas recientes sin ir a logs crudos
+- dejar trazabilidad operativa centralizada del carril runtime-only
 
 ### Postura operativa de secretos por carril
 

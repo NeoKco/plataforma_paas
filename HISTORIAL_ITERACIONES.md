@@ -1,5 +1,41 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya persiste y relee campañas centralizadas de secretos runtime
+
+Contexto:
+
+- el noveno slice ya permitía gobernar campañas batch por inclusión o exclusión desde consola
+- faltaba dejar auditoría persistente real de esas campañas para no depender solo del resultado inmediato en pantalla
+
+Cambios:
+
+- [tenant_runtime_secret_campaign.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_runtime_secret_campaign.py) y [tenant_runtime_secret_campaign_item.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_runtime_secret_campaign_item.py):
+  - agregan persistencia formal de campañas y resultados por tenant
+- [tenant_runtime_secret_campaign_repository.py](/home/felipe/platform_paas/backend/app/apps/platform_control/repositories/tenant_runtime_secret_campaign_repository.py) y [tenant_runtime_secret_campaign_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_runtime_secret_campaign_service.py):
+  - encapsulan escritura y lectura del historial reciente
+- [v0028_tenant_runtime_secret_campaigns.py](/home/felipe/platform_paas/backend/migrations/control/v0028_tenant_runtime_secret_campaigns.py):
+  - agrega las tablas nuevas en `platform_control`
+- [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py):
+  - agrega `GET /platform/security-posture/runtime-secret-campaigns`
+  - `sync-runtime-secrets` y `rotate-db-credentials` ya devuelven `campaign_id`
+- [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+  - deja visible historial reciente con actor, alcance, resumen y detalle por tenant
+
+Resultado:
+
+- la `Etapa 11` ya deja evidencia persistente de campañas centralizadas, no solo batch gobernado
+- el operador ya puede releer campañas recientes desde consola sin depender de logs crudos
+- con este corte, la `Etapa 11` queda suficientemente cerrada para el alcance actual
+- validación repo:
+  - `backend.app.tests.test_migration_flow` -> `16 tests OK`
+  - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+  - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/schemas.py backend/app/apps/platform_control/services/tenant_runtime_secret_campaign_service.py backend/app/apps/platform_control/repositories/tenant_runtime_secret_campaign_repository.py backend/app/apps/platform_control/models/tenant_runtime_secret_campaign.py backend/app/apps/platform_control/models/tenant_runtime_secret_campaign_item.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+- validación runtime:
+  - `staging` backend redeployado con `578 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `production` backend redeployado con `578 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 ## 2026-04-23 - `Etapa 11` ya deja campañas batch por inclusión o exclusión explícita de tenants
 
 Contexto:

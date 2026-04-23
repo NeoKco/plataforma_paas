@@ -131,12 +131,20 @@ En `Configuración -> Postura de secretos y runtime`:
 4. usar:
    - `Sincronizar runtime central` si el tenant aún requiere llevar el secreto al carril runtime
    - `Rotar credenciales central` si ya está `runtime_ready`
+5. revisar después `Campañas recientes de secretos runtime` para confirmar:
+   - alcance real ejecutado
+   - actor
+   - resumen de outcomes
+   - detalle por tenant
 
 Regla operativa:
 
 - si no seleccionas tenants, la campaña batch sigue usando todos los tenants activos evaluados
 - si seleccionas tenants en `Modo incluir`, el batch queda acotado a ese subconjunto
 - si seleccionas tenants en `Modo excluir`, el batch corre sobre todos los tenants auditados excepto ese subconjunto
+- cada batch ya deja campaña persistida y visible en consola:
+  - `sync-runtime-secrets`
+  - `rotate-db-credentials`
 - el rescate legacy sigue fuera de la consola normal; si el plan marca `legacy_rescue_required`, debes usar tooling controlado
   - crea la suscripción desde `base_plan_code`
   - no debe tratar `plan_code` como entrada contractual normal
@@ -190,6 +198,7 @@ Desde `Configuración -> Postura de secretos y runtime`, la lectura visible ahor
    - quién quedó bloqueado a tooling legacy controlado
 6. lanzar `Sincronizar runtime central` cuando quieras empujar la distribución runtime sobre todos los tenants activos sin ir uno por uno
 7. lanzar `Rotar credenciales central` cuando necesites renovar en lote las passwords técnicas DB de todos los tenants runtime-ready
+8. releer `Campañas recientes de secretos runtime` cuando soporte o seguridad necesite evidencia sin ir a logs o tooling extra
 
 Desde `Tenants`, la operación correcta queda así:
 

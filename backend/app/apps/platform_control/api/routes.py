@@ -5,6 +5,7 @@ from app.apps.platform_control.schemas import (
     PlatformCapabilityCatalogResponse,
     PlatformTenantDbCredentialsRotateBatchResponse,
     PlatformRuntimeSecurityPostureResponse,
+    PlatformTenantRuntimeSecretCampaignListResponse,
     PlatformTenantRuntimeSecretBatchRequest,
     PlatformTenantRuntimeSecretPlanResponse,
     PlatformTenantRuntimeSecretBatchSyncResponse,
@@ -18,6 +19,9 @@ from app.apps.platform_control.services.platform_runtime_service import (
     PlatformRuntimeService,
 )
 from app.apps.platform_control.services.tenant_service import TenantService
+from app.apps.platform_control.services.tenant_runtime_secret_campaign_service import (
+    TenantRuntimeSecretCampaignService,
+)
 from app.common.auth.dependencies import get_current_token_payload
 from app.common.auth.role_dependencies import require_role
 from app.common.config.settings import settings
@@ -31,6 +35,7 @@ runtime_security_service = RuntimeSecurityService()
 tenant_repository = TenantRepository()
 tenant_service = TenantService()
 auth_audit_service = AuthAuditService()
+tenant_runtime_secret_campaign_service = TenantRuntimeSecretCampaignService()
 
 
 @router.get("/ping-db")
@@ -146,6 +151,23 @@ def get_platform_runtime_secret_plan(
     )
 
 
+@router.get(
+    "/security-posture/runtime-secret-campaigns",
+    response_model=PlatformTenantRuntimeSecretCampaignListResponse,
+)
+def get_platform_runtime_secret_campaigns(
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> PlatformTenantRuntimeSecretCampaignListResponse:
+    rows = tenant_runtime_secret_campaign_service.list_recent_campaigns(db=db)
+    return PlatformTenantRuntimeSecretCampaignListResponse(
+        success=True,
+        message="Historial reciente de campañas de secretos runtime recuperado correctamente",
+        total_campaigns=len(rows),
+        data=rows,
+    )
+
+
 @router.post(
     "/security-posture/sync-runtime-secrets",
     response_model=PlatformTenantRuntimeSecretBatchSyncResponse,
@@ -161,6 +183,14 @@ def sync_platform_runtime_secrets(
         db=db,
         tenant_slugs=payload.tenant_slugs if payload else None,
         excluded_tenant_slugs=payload.excluded_tenant_slugs if payload else None,
+    )
+    campaign = tenant_runtime_secret_campaign_service.record_campaign(
+        db=db,
+        campaign_type="sync_runtime_secret",
+        tenant_slugs=payload.tenant_slugs if payload else None,
+        excluded_tenant_slugs=payload.excluded_tenant_slugs if payload else None,
+        actor_context=token,
+        result=result,
     )
     auth_audit_service.log_event(
         db=db,
@@ -181,6 +211,7 @@ def sync_platform_runtime_secrets(
     return PlatformTenantRuntimeSecretBatchSyncResponse(
         success=True,
         message="Sincronización centralizada de secretos runtime completada",
+        campaign_id=campaign["id"],
         processed=result["processed"],
         synced=result["synced"],
         already_runtime_managed=result["already_runtime_managed"],
@@ -208,6 +239,14 @@ def rotate_platform_tenant_db_credentials(
         tenant_slugs=payload.tenant_slugs if payload else None,
         excluded_tenant_slugs=payload.excluded_tenant_slugs if payload else None,
     )
+    campaign = tenant_runtime_secret_campaign_service.record_campaign(
+        db=db,
+        campaign_type="rotate_db_credentials",
+        tenant_slugs=payload.tenant_slugs if payload else None,
+        excluded_tenant_slugs=payload.excluded_tenant_slugs if payload else None,
+        actor_context=token,
+        result=result,
+    )
     auth_audit_service.log_event(
         db=db,
         event_type="platform.tenant_db_credentials_rotate_batch",
@@ -226,6 +265,7 @@ def rotate_platform_tenant_db_credentials(
     return PlatformTenantDbCredentialsRotateBatchResponse(
         success=True,
         message="Rotación centralizada de credenciales técnicas completada",
+        campaign_id=campaign["id"],
         processed=result["processed"],
         rotated=result["rotated"],
         skipped_not_configured=result["skipped_not_configured"],

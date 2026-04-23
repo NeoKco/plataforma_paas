@@ -10,6 +10,7 @@ import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
   getPlatformCapabilities,
   getPlatformRootRecoveryStatus,
+  getPlatformRuntimeSecretCampaigns,
   getPlatformRuntimeSecretPlan,
   getPlatformSecurityPosture,
   listPlatformUsers,
@@ -20,11 +21,13 @@ import { API_BASE_URL, getDefaultApiBaseUrl } from "../../../../services/api";
 import { useAuth } from "../../../../store/auth-context";
 import { useLanguage } from "../../../../store/language-context";
 import { displayPlatformCode } from "../../../../utils/platform-labels";
+import { formatDateTimeInTimeZone } from "../../../../utils/dateTimeLocal";
 import type {
   ApiError,
   PlatformCapabilities,
   PlatformRootRecoveryStatusResponse,
   PlatformTenantDbCredentialsRotateBatchResponse,
+  PlatformTenantRuntimeSecretCampaign,
   PlatformTenantRuntimeSecretBatchRequest,
   PlatformRuntimeSecurityPostureResponse,
   PlatformTenantRuntimeSecretPlanResponse,
@@ -43,6 +46,9 @@ export function SettingsPage() {
     useState<PlatformRuntimeSecurityPostureResponse | null>(null);
   const [runtimeSecretPlan, setRuntimeSecretPlan] =
     useState<PlatformTenantRuntimeSecretPlanResponse | null>(null);
+  const [runtimeSecretCampaigns, setRuntimeSecretCampaigns] = useState<
+    PlatformTenantRuntimeSecretCampaign[]
+  >([]);
   const [rootRecoveryStatusError, setRootRecoveryStatusError] = useState<ApiError | null>(
     null
   );
@@ -52,6 +58,8 @@ export function SettingsPage() {
   const [runtimeSecretPlanError, setRuntimeSecretPlanError] = useState<ApiError | null>(
     null
   );
+  const [runtimeSecretCampaignsError, setRuntimeSecretCampaignsError] =
+    useState<ApiError | null>(null);
   const [runtimeSyncFeedback, setRuntimeSyncFeedback] = useState<string | null>(null);
   const [runtimeRotateFeedback, setRuntimeRotateFeedback] = useState<string | null>(null);
   const [selectedRuntimePlanTenants, setSelectedRuntimePlanTenants] = useState<string[]>([]);
@@ -139,6 +147,7 @@ export function SettingsPage() {
     setRootRecoveryStatusError(null);
     setSecurityPostureError(null);
     setRuntimeSecretPlanError(null);
+    setRuntimeSecretCampaignsError(null);
 
     try {
       const [
@@ -147,6 +156,7 @@ export function SettingsPage() {
         platformUsersResult,
         securityPostureResult,
         runtimeSecretPlanResult,
+        runtimeSecretCampaignsResult,
       ] =
         await Promise.allSettled([
           getPlatformCapabilities(session.accessToken),
@@ -154,6 +164,7 @@ export function SettingsPage() {
           listPlatformUsers(session.accessToken),
           getPlatformSecurityPosture(session.accessToken),
           getPlatformRuntimeSecretPlan(session.accessToken),
+          getPlatformRuntimeSecretCampaigns(session.accessToken),
         ]);
 
       if (capabilitiesResult.status === "fulfilled") {
@@ -189,11 +200,19 @@ export function SettingsPage() {
         setRuntimeSecretPlanError(runtimeSecretPlanResult.reason as ApiError);
       }
 
+      if (runtimeSecretCampaignsResult.status === "fulfilled") {
+        setRuntimeSecretCampaigns(runtimeSecretCampaignsResult.value.data);
+      } else {
+        setRuntimeSecretCampaigns([]);
+        setRuntimeSecretCampaignsError(runtimeSecretCampaignsResult.reason as ApiError);
+      }
+
       if (
         capabilitiesResult.status === "rejected" &&
         platformUsersResult.status === "rejected" &&
         securityPostureResult.status === "rejected" &&
-        runtimeSecretPlanResult.status === "rejected"
+        runtimeSecretPlanResult.status === "rejected" &&
+        runtimeSecretCampaignsResult.status === "rejected"
       ) {
         throw capabilitiesResult.reason;
       }
@@ -203,10 +222,12 @@ export function SettingsPage() {
       setRootRecoveryStatus(null);
       setSecurityPosture(null);
       setRuntimeSecretPlan(null);
+      setRuntimeSecretCampaigns([]);
       setPlatformUsers([]);
       setRootRecoveryStatusError(null);
       setSecurityPostureError(null);
       setRuntimeSecretPlanError(null);
+      setRuntimeSecretCampaignsError(null);
     } finally {
       setIsLoading(false);
     }
@@ -1053,6 +1074,135 @@ export function SettingsPage() {
         />
       ) : null}
 
+      {runtimeSecretCampaigns.length ? (
+        <DataTableCard
+          title={
+            language === "es"
+              ? "Campañas recientes de secretos runtime"
+              : "Recent runtime secret campaigns"
+          }
+          subtitle={
+            language === "es"
+              ? "Historial persistido de campañas batch para distribución y rotación centralizada, con alcance, actor y resultados por tenant."
+              : "Persisted history of batch campaigns for centralized distribution and rotation, including scope, actor and per-tenant results."
+          }
+          rows={runtimeSecretCampaigns}
+          columns={[
+            {
+              key: "campaign_type",
+              header: language === "es" ? "Campaña" : "Campaign",
+              render: (row) => (
+                <div>
+                  <div className="fw-semibold">
+                    {getRuntimeSecretCampaignTypeLabel(row.campaign_type, language)}
+                  </div>
+                  <div className="text-muted small">
+                    #{row.id} · {getRuntimeSecretCampaignScopeLabel(row.scope_mode, language)}
+                  </div>
+                </div>
+              ),
+            },
+            {
+              key: "scope",
+              header: language === "es" ? "Alcance" : "Scope",
+              render: (row) =>
+                row.scope_mode === "include" && row.tenant_slugs.length ? (
+                  <div className="settings-token-chips">
+                    {row.tenant_slugs.map((tenantSlug) => (
+                      <span key={`${row.id}-include-${tenantSlug}`} className="tenant-chip">
+                        {tenantSlug}
+                      </span>
+                    ))}
+                  </div>
+                ) : row.scope_mode === "exclude" && row.excluded_tenant_slugs.length ? (
+                  <div className="settings-token-chips">
+                    {row.excluded_tenant_slugs.map((tenantSlug) => (
+                      <span key={`${row.id}-exclude-${tenantSlug}`} className="tenant-chip">
+                        {tenantSlug}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  getRuntimeSecretCampaignScopeLabel(row.scope_mode, language)
+                ),
+            },
+            {
+              key: "actor_email",
+              header: language === "es" ? "Actor" : "Actor",
+              render: (row) =>
+                row.actor_email ? (
+                  <div>
+                    <div>{row.actor_email}</div>
+                    <div className="text-muted small">
+                      {displayPlatformCode(row.actor_role || "unknown", language)}
+                    </div>
+                  </div>
+                ) : (
+                  "—"
+                ),
+            },
+            {
+              key: "summary",
+              header: language === "es" ? "Resumen" : "Summary",
+              render: (row) => (
+                <div className="settings-token-chips">
+                  <span className="tenant-chip">
+                    {language === "es" ? "procesados" : "processed"}: {row.processed}
+                  </span>
+                  <span className="tenant-chip">
+                    {language === "es" ? "exitosos" : "successful"}: {row.success_count}
+                  </span>
+                  {row.already_runtime_managed ? (
+                    <span className="tenant-chip">
+                      {language === "es" ? "ya runtime" : "already runtime"}:{" "}
+                      {row.already_runtime_managed}
+                    </span>
+                  ) : null}
+                  {row.skipped_legacy_rescue_required ? (
+                    <span className="tenant-chip">
+                      {language === "es" ? "legacy" : "legacy"}:{" "}
+                      {row.skipped_legacy_rescue_required}
+                    </span>
+                  ) : null}
+                  {row.failed ? (
+                    <span className="tenant-chip">
+                      {language === "es" ? "fallidos" : "failed"}: {row.failed}
+                    </span>
+                  ) : null}
+                </div>
+              ),
+            },
+            {
+              key: "items",
+              header: language === "es" ? "Tenants" : "Tenants",
+              render: (row) =>
+                row.items.length ? (
+                  <div className="settings-token-chips">
+                    {row.items.map((item) => (
+                      <span key={`${row.id}-item-${item.id}`} className="tenant-chip">
+                        {item.tenant_slug}: {getRuntimeSecretCampaignItemOutcomeLabel(item.outcome, language)}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  "—"
+                ),
+            },
+            {
+              key: "recorded_at",
+              header: language === "es" ? "Registrada" : "Recorded",
+              render: (row) => formatDateTimeInTimeZone(row.recorded_at, language),
+            },
+          ]}
+        />
+      ) : runtimeSecretCampaignsError ? (
+        <div className="alert alert-warning mb-0">
+          {language === "es"
+            ? "No fue posible leer ahora el historial de campañas de secretos runtime."
+            : "The runtime secret campaign history could not be read right now."}
+        </div>
+      ) : null}
+
       {capabilities ? (
         <>
           <DataTableCard
@@ -1526,6 +1676,49 @@ function getRuntimeSecretPlanActionLabel(
     configure_database: language === "es" ? "configurar DB" : "configure DB",
   };
   return labels[action] || displayPlatformCode(action, language);
+}
+
+function getRuntimeSecretCampaignTypeLabel(
+  campaignType: string,
+  language: "es" | "en"
+): string {
+  const labels: Record<string, string> = {
+    sync_runtime_secret:
+      language === "es" ? "sincronización central" : "central sync",
+    rotate_db_credentials:
+      language === "es" ? "rotación central" : "central rotation",
+  };
+  return labels[campaignType] || displayPlatformCode(campaignType, language);
+}
+
+function getRuntimeSecretCampaignScopeLabel(
+  scopeMode: string,
+  language: "es" | "en"
+): string {
+  const labels: Record<string, string> = {
+    all: language === "es" ? "todos los auditados" : "all audited",
+    include: language === "es" ? "solo incluidos" : "included only",
+    exclude: language === "es" ? "todos menos excluidos" : "all except excluded",
+  };
+  return labels[scopeMode] || displayPlatformCode(scopeMode, language);
+}
+
+function getRuntimeSecretCampaignItemOutcomeLabel(
+  outcome: string,
+  language: "es" | "en"
+): string {
+  const labels: Record<string, string> = {
+    synced: language === "es" ? "sincronizado" : "synced",
+    already_runtime_managed:
+      language === "es" ? "ya runtime" : "already runtime",
+    rotated: language === "es" ? "rotado" : "rotated",
+    skipped_not_configured:
+      language === "es" ? "db incompleta" : "db incomplete",
+    skipped_legacy_rescue_required:
+      language === "es" ? "legacy requerido" : "legacy required",
+    failed: language === "es" ? "falló" : "failed",
+  };
+  return labels[outcome] || displayPlatformCode(outcome, language);
 }
 
 function getPlanModuleLabel(

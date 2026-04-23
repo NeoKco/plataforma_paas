@@ -33,3 +33,9 @@ from app.apps.platform_control.models.tenant_subscription import TenantSubscript
 from app.apps.platform_control.models.tenant_subscription_item import (
     TenantSubscriptionItem,
 )
+from app.apps.platform_control.models.tenant_runtime_secret_campaign import (
+    TenantRuntimeSecretCampaign,
+)
+from app.apps.platform_control.models.tenant_runtime_secret_campaign_item import (
+    TenantRuntimeSecretCampaignItem,
+)

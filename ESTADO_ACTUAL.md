@@ -4,6 +4,31 @@
 
 - fecha: 2026-04-23
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 11`:
+  - décimo corte ya cerrado en repo y runtime:
+    - `Settings -> Plan central de secretos runtime` ya muestra historial persistente de campañas centralizadas
+    - backend ya persiste campañas y resultados por tenant en:
+      - `tenant_runtime_secret_campaigns`
+      - `tenant_runtime_secret_campaign_items`
+    - `POST /platform/security-posture/sync-runtime-secrets` y `POST /platform/security-posture/rotate-db-credentials` ya devuelven `campaign_id`
+    - `GET /platform/security-posture/runtime-secret-campaigns` ya permite releer:
+      - tipo de campaña
+      - alcance real
+      - actor
+      - resumen por outcomes
+      - detalle por tenant
+    - la consola ya no solo gobierna el batch antes de ejecutar; ahora también deja evidencia persistente después de ejecutarlo
+    - con este corte, la `Etapa 11` queda suficientemente cerrada para el alcance actual
+  - validación repo de este décimo corte:
+    - `backend.app.tests.test_migration_flow` -> `16 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/schemas.py backend/app/apps/platform_control/services/tenant_runtime_secret_campaign_service.py backend/app/apps/platform_control/repositories/tenant_runtime_secret_campaign_repository.py backend/app/apps/platform_control/models/tenant_runtime_secret_campaign.py backend/app/apps/platform_control/models/tenant_runtime_secret_campaign_item.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime de este décimo corte:
+    - `staging` backend redeployado con `578 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend redeployado con `578 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `staging` publicado con `SettingsPage-K54WHqVA.js`, `TenantsPage-BM4FAvWj.js`, `DashboardPage-Bgcu2Fss.js`, `ProvisioningPage-BrgmEZZB.js`, `BillingPage-CXDeePgM.js`, `TenantOverviewPage-jPgEDQ49.js`, `index-hOkUANP9.js`
+    - `production` publicado con `SettingsPage-CRO23RQx.js`, `TenantsPage-CefevMUS.js`, `DashboardPage-pIXpU3VF.js`, `ProvisioningPage-CUtzVsmd.js`, `BillingPage-CyNM-F-9.js`, `TenantOverviewPage-DPfDPXMR.js`, `index-Bzibvzj1.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - noveno corte ya cerrado en repo:
     - `Settings -> Plan central de secretos runtime` ya permite campañas batch por inclusión o exclusión explícita
     - la consola ya deja alternar:

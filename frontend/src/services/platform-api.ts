@@ -6,6 +6,7 @@ import type {
   PlatformRootRecoveryResponse,
   PlatformRootRecoveryStatusResponse,
   PlatformRuntimeSecurityPostureResponse,
+  PlatformTenantRuntimeSecretCampaignListResponse,
   PlatformTenantRuntimeSecretBatchRequest,
   PlatformTenantDbCredentialsRotateBatchResponse,
   PlatformTenantRuntimeSecretPlanResponse,
@@ -156,6 +157,15 @@ export function rotatePlatformRuntimeDbCredentials(
 export function getPlatformRuntimeSecretPlan(accessToken: string) {
   return apiRequest<PlatformTenantRuntimeSecretPlanResponse>(
     "/platform/security-posture/runtime-secret-plan",
+    {
+      token: accessToken,
+    }
+  );
+}
+
+export function getPlatformRuntimeSecretCampaigns(accessToken: string) {
+  return apiRequest<PlatformTenantRuntimeSecretCampaignListResponse>(
+    "/platform/security-posture/runtime-secret-campaigns",
     {
       token: accessToken,
     }

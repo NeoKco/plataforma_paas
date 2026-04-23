@@ -234,6 +234,7 @@ class PlatformTenantRuntimeSecretBatchRequest(BaseModel):
 class PlatformTenantRuntimeSecretBatchSyncResponse(BaseModel):
     success: bool
     message: str
+    campaign_id: int | None = None
     processed: int
     synced: int
     already_runtime_managed: int
@@ -257,6 +258,7 @@ class PlatformTenantDbCredentialsRotateBatchItemResponse(BaseModel):
 class PlatformTenantDbCredentialsRotateBatchResponse(BaseModel):
     success: bool
     message: str
+    campaign_id: int | None = None
     processed: int
     rotated: int
     skipped_not_configured: int
@@ -288,6 +290,46 @@ class PlatformTenantRuntimeSecretPlanResponse(BaseModel):
     missing_secret: int
     planned_at: datetime | None = None
     data: list[PlatformTenantRuntimeSecretPlanItemResponse]
+
+
+class PlatformTenantRuntimeSecretCampaignItemResponse(BaseModel):
+    id: int
+    tenant_id: int | None = None
+    tenant_slug: str
+    outcome: str
+    detail: str | None = None
+    source: str | None = None
+    env_var_name: str | None = None
+    managed_secret_path: str | None = None
+    already_runtime_managed: bool = False
+    rotated_at: datetime | None = None
+    recorded_at: datetime | None = None
+
+
+class PlatformTenantRuntimeSecretCampaignResponse(BaseModel):
+    id: int
+    campaign_type: str
+    scope_mode: str
+    tenant_slugs: list[str]
+    excluded_tenant_slugs: list[str]
+    processed: int
+    success_count: int
+    already_runtime_managed: int
+    skipped_not_configured: int
+    skipped_legacy_rescue_required: int
+    failed: int
+    actor_user_id: int | None = None
+    actor_email: str | None = None
+    actor_role: str | None = None
+    recorded_at: datetime | None = None
+    items: list[PlatformTenantRuntimeSecretCampaignItemResponse]
+
+
+class PlatformTenantRuntimeSecretCampaignListResponse(BaseModel):
+    success: bool
+    message: str
+    total_campaigns: int
+    data: list[PlatformTenantRuntimeSecretCampaignResponse]
 
 
 class TenantCreateRequest(BaseModel):
