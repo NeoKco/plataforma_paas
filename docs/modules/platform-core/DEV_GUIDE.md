@@ -48,6 +48,7 @@ Documentación base:
 - `delete` físico de tenants sigue fuera del alcance normal de operación
 - frontend y backend deben consumir el catálogo de capacidades como fuente de verdad cuando aplique
 - si `Provisioning` muestra o condiciona recorridos broker-only, la fuente de verdad visible del entorno debe salir del catálogo de capacidades y no de inferencias locales; hoy eso se expone como `current_provisioning_dispatch_backend`
+- el bootstrap tenant-side tampoco debe volver a inferir módulos desde `tenant.plan_code`; debe consumir `effective_enabled_modules`
 - la apertura formal de `Etapa 15` también queda backend-driven:
   - `plan_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo de módulos y planes
   - `module_dependency_catalog` de ese mismo endpoint es la fuente de verdad de las dependencias explícitas entre módulos
@@ -72,6 +73,10 @@ Documentación base:
     - `subscription_billing_cycles`
     - `base_plan_catalog`
     - `module_subscription_catalog`
+  - `POST /platform/tenants` ya debe tratarse como contrato nuevo:
+    - usar `base_plan_code`
+    - dejar `plan_code` solo como compatibilidad de entrada
+    - no abrir caminos nuevos que dependan de `tenant.plan_code`
   - el estado visible actual debe respetar esta secuencia:
     - catálogo comercial aprobado visible en consola
     - activación técnica efectiva visible desde `tenant_subscriptions`
@@ -80,7 +85,7 @@ Documentación base:
     - contratación formal de add-ons desde consola sobre `tenant_subscriptions`
     - `billing`, `grace` y `suspensión` ya se evalúan primero desde la suscripción cuando existe
     - migración de tenants legacy ya disponible por API y script batch
-    - siguiente corte: retiro posterior del fallback residual total por `plan_code`
+    - siguiente corte: retiro posterior de superficies residuales de compatibilidad `plan_code`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
   - mutación nueva de migración:

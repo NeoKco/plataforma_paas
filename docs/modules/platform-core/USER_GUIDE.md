@@ -47,7 +47,7 @@ Nota operativa:
   - correo del admin inicial
   - contraseña del admin inicial
 - para tenants nuevos ya no corresponde asumir un bootstrap fijo tipo `admin@<slug>.local / TenantAdmin123!`
-- los módulos del tenant no se habilitan con toggles manuales en el alta; se habilitan por el `plan`
+- los módulos del tenant no se habilitan con toggles manuales en el alta; se habilitan por el `Plan Base inicial`
 - la misma pantalla ya debe mostrar qué módulos activa el plan seleccionado
 - en tenants existentes, el bloque correcto para revisar o cambiar eso es `Plan y módulos`
 - `Configuración` ya deja además un `Catálogo de planes y módulos` para ver qué declara backend hoy por plan antes de tocar un tenant puntual
@@ -112,6 +112,11 @@ Regla operativa:
   - `subscription_billing_cycles`
   - `base_plan_catalog`
   - `module_subscription_catalog`
+- el alta nueva ya no deja tenants operando con `plan_code`:
+  - crea la suscripción desde `base_plan_code`
+  - deja `plan_code` solo como compatibilidad heredada
+- el bloque `Baseline legacy por plan_code` ya no es camino normal:
+  - solo debe aparecer cuando el tenant realmente sigue legacy
 - `base_plan_catalog` ya expone además la resolución visible de:
   - `compatibility_policy_code`
   - `read_requests_per_minute`
@@ -131,7 +136,8 @@ Regla operativa:
   - `finance` siempre incluido
   - módulos adicionales arrendables por suscripción
 - `billing`, `grace` y `suspensión` ya quedan conectados al modelo nuevo de suscripción
-- los 4 tenants activos actuales de `staging` y `production` ya fueron migrados al contrato nuevo; el siguiente corte ya no es migrarlos, sino retirar luego el fallback residual total por `plan_code`
+- los 4 tenants activos actuales de `staging` y `production` ya fueron migrados al contrato nuevo
+- el siguiente corte ya no es migrarlos, sino retirar luego superficies residuales de compatibilidad `plan_code`
 - referencia formal:
   - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 

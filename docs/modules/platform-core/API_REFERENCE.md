@@ -127,6 +127,12 @@ Payload operativo actual de `GET /platform/capabilities`:
     - `base_plan_code`
     - `billing_cycle`
     - `addon_items[]`
+  - `POST /platform/tenants` hoy acepta:
+    - `base_plan_code`
+    - `plan_code` solo como compatibilidad heredada de entrada
+  - para tenants nuevos:
+    - crea `tenant_subscriptions` desde el alta
+    - persiste `plan_code = null`
   - y devuelve además:
     - `current_period_starts_at`
     - `current_period_ends_at`
@@ -142,6 +148,7 @@ Payload operativo actual de `GET /platform/capabilities`:
     - la activación efectiva del tenant ya se resuelve desde `tenant_subscriptions` con fallback legacy por `plan_code`
     - para tenants gestionados por contrato, el baseline de cuotas/límites ya también sale del `Plan Base`
     - en los 4 tenants activos actuales de `staging` y `production`, esa migración legacy ya quedó completada
+    - el bootstrap de provisioning para tenants nuevos ya resuelve módulos desde `effective_enabled_modules`, no desde `tenant.plan_code`
 - el payload `export_scope` hoy soporta:
   - `portable_full`
   - `functional_data_only`

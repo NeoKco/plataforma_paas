@@ -43,14 +43,14 @@
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - siguiente paso correcto del roadmap:
-  - el corte recomendado de tercera ola visible de `organization addresses` + filtros/detalle por grupo social común ya queda cerrado en runtime
-  - decisión ya cerrada:
-    - `business-core` ya quedó suficientemente estable para salir del frente activo sin seguirlo limando por inercia
-    - el siguiente frente formal del roadmap maestro pasa a `platform-core hardening + E2E sobre Provisioning y DLQ`
-  - alcance recomendado del siguiente frente:
-    - endurecer smoke/E2E publicados sobre Provisioning y DLQ
-    - reforzar operación visible de `platform_admin`
-    - no reabrir `business-core` salvo evidencia nueva o necesidad explícita
+  - `business-core` y el hardening inmediato de `Provisioning/DLQ` ya quedan suficientemente institucionalizados; no corresponde seguir limándolos por inercia
+  - la prioridad vigente dentro de la `Etapa 15` pasa a ser:
+    - retirar superficies residuales de compatibilidad `plan_code` donde ya no aportan
+    - dejar visibilidad explícita de legacy solo si reaparece un tenant realmente heredado
+  - lo ya cerrado y que no debe reabrirse:
+    - tenants nuevos ya nacen contract-managed desde `base_plan_code`
+    - `Provisioning` ya bootstrappea por `effective_enabled_modules`
+    - los 4 tenants activos de `staging` y `production` ya están gestionados por contrato y sin `plan_code` activo
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual

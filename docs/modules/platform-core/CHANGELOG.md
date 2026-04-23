@@ -2,6 +2,26 @@
 
 ## 2026-04-23
 
+- la `Etapa 15` ya saca `plan_code` del carril normal de alta y bootstrap:
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) agrega `base_plan_code` en `TenantCreateRequest` y deja `plan_code` solo como compatibilidad
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ya crea tenants nuevos pasando `base_plan_code`
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+    - resuelve `base_plan_code` desde la entrada nueva o compatibilidad legacy
+    - crea `tenant_subscriptions` desde el alta
+    - persiste `plan_code=null` para tenants nuevos
+  - [provisioning_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/provisioning_service.py) ya bootstrappea módulos desde `effective_enabled_modules`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) cambia a `Plan Base inicial` y ya no muestra baseline legacy en tenants contract-managed
+  - corrección adicional:
+    - [tenant.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant.py) y [tenant_subscription.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_subscription.py) fijan `cascade=\"all, delete-orphan\"` para lifecycle/delete de tenants y suscripción
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `216 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `backend.app.tests.test_tenant_lifecycle_integration_flow` -> `1 test OK`
+  - validación runtime:
+    - `staging` backend deploy -> `549 tests OK`, auditoría `processed=4, warnings=0, failed=0`
+    - `production` backend deploy -> `549 tests OK`, auditoría `processed=4, warnings=0, failed=0`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - la `Etapa 15` ya migra el baseline legacy restante al contrato nuevo y deja `plan_code` fuera del set activo:
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) agrega migración explícita desde `plan_code` a contrato y retira `plan_code` al persistir la suscripción
   - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) agrega `POST /platform/tenants/{tenant_id}/subscription/migrate-legacy`

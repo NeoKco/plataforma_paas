@@ -8,6 +8,7 @@ Estado actual:
 - implementación repo/control model: `Contratación formal desde consola completada`
 - implementación runtime: `Contratación formal promovida en staging y production`
 - política vigente de activación efectiva: `tenant_subscriptions` como fuente principal, con fallback legacy por `plan_code` solo como compatibilidad residual cuando todavía aparezca un tenant legacy fuera del set activo ya migrado
+- alta nueva de tenant: `Contract-managed desde creación`
 
 ## Objetivo
 
@@ -256,6 +257,24 @@ Estado actual validado:
 - `production`: `processed=4, migrated=0, skipped=4, failed=0, mode=audit`
 
 Esto deja a los 4 tenants activos de ambos ambientes ya gestionados por contrato y sin `plan_code`.
+
+## Estado del corte de alta nueva contractual
+
+La creación de tenants nuevos ya no debe depender del baseline legacy:
+
+- `POST /platform/tenants` acepta `base_plan_code`
+- `plan_code` queda solo como compatibilidad heredada de entrada
+- el tenant nuevo nace con:
+  - `plan_code = null`
+  - `tenant_subscriptions`
+  - `tenant_subscription_items`
+- `Tenants > Nuevo tenant` ya pide `Plan Base inicial`
+- el bootstrap de provisioning ya resuelve módulos desde `effective_enabled_modules`
+
+Resultado operativo actual:
+
+- los tenants activos de `staging` y `production` no necesitan fallback legacy para operar
+- el fallback `plan_code` queda acotado a compatibilidad histórica y a un eventual tenant legacy futuro
   - `production`: `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
 - expansión de `GET /platform/capabilities` con:
   - `subscription_activation_model`

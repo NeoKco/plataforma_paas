@@ -151,8 +151,15 @@ Estado práctico de cierre:
     - tenants gestionados por contrato ya resuelven el baseline de cuotas/límites desde `tenant_subscriptions` + `base_plan_catalog`
     - `tenant_plan_api_read_requests_per_minute`, `tenant_plan_api_write_requests_per_minute`, `tenant_plan_enabled_modules` y `tenant_plan_module_limits` ya no salen de `plan_code` para esos tenants
     - `GET /platform/capabilities` ya expone el `base_plan_catalog` resuelto con compatibilidad, cuotas y límites base
-  - el siguiente corte ya no es modelar ni contratar add-ons, sino:
-    - retirar el fallback residual por `plan_code` del código y de la consola
+  - subcorte nuevo ya cerrado en repo y runtime:
+    - `POST /platform/tenants` ya crea tenants nuevos con `base_plan_code`
+    - el alta nueva ya nace contract-managed con `tenant_subscriptions` y `tenant_subscription_items`
+    - el carril normal de creación ya deja `plan_code=null`
+    - `Tenants > Nuevo tenant` ya usa `Plan Base inicial`
+    - `Tenants > Plan y módulos` ya solo muestra baseline legacy cuando el tenant realmente sigue legacy
+    - `Provisioning` ya bootstrappea desde `effective_enabled_modules`, no desde `tenant.plan_code`
+  - el siguiente corte ya no es migrar tenants activos ni adaptar el alta, sino:
+    - retirar superficies residuales de compatibilidad `plan_code` del código y de la consola
     - dejar explícito si en el futuro reaparece algún tenant realmente legacy fuera del set activo actual
     - seguir separando en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:

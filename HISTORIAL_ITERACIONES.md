@@ -1,5 +1,43 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - la `Etapa 15` ya saca `plan_code` del camino normal de alta y bootstrap
+
+- objetivo:
+  - dejar que el alta nueva de tenants nazca contractual desde `base_plan_code`
+  - quitar a `plan_code` del flujo normal de creación y del bootstrap de provisioning
+- cambios y acciones ejecutadas:
+  - [backend/app/apps/platform_control/schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py):
+    - `TenantCreateRequest` agrega `base_plan_code`
+    - mantiene `plan_code` solo como compatibilidad
+  - [backend/app/apps/platform_control/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py):
+    - `POST /platform/tenants` ya pasa `base_plan_code`
+  - [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+    - resuelve `base_plan_code` desde la entrada nueva o compatibilidad legacy
+    - crea `tenant_subscriptions` desde el alta
+    - deja `plan_code=null` para tenants nuevos
+  - [backend/app/apps/provisioning/services/provisioning_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/provisioning_service.py):
+    - ya bootstrappea usando `effective_enabled_modules`
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - cambia a `Plan Base inicial`
+    - envía `base_plan_code`
+    - oculta baseline legacy si el tenant no sigue legacy
+  - corrección asociada:
+    - [backend/app/apps/platform_control/models/tenant.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant.py)
+    - [backend/app/apps/platform_control/models/tenant_subscription.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_subscription.py)
+    - fijan `cascade="all, delete-orphan"` para lifecycle/delete
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `216 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_flow -v` -> `96 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_lifecycle_integration_flow -v` -> `1 test OK`
+  - `staging` backend deploy -> `549 tests OK`
+  - `production` backend deploy -> `549 tests OK`
+  - auditoría activa -> `processed=4, warnings=0, failed=0` en ambos carriles
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- resultado:
+  - el alta nueva ya no depende de `plan_code`
+  - el bootstrap ya no depende de `tenant.plan_code`
+  - el fallback legacy queda residual para compatibilidad histórica y no para el carril normal
+
 ## 2026-04-23 - la `Etapa 15` ya migra los tenants legacy activos al contrato nuevo
 
 - objetivo:
