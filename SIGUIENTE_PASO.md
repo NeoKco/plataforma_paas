@@ -2,6 +2,19 @@
 
 ## Prioridad vigente
 
+- la `Etapa 12` ya queda suficientemente cerrada para el alcance actual:
+  - la auditoría visible ya mezcla auth, rechazos relevantes y cambios administrativos
+  - `auth_audit_events` ya persiste correlación por `request_id`, ruta y método
+  - soporte ya puede buscar por `request_id`, `tenant_slug` y `event_type` sin salir de consola
+  - staging y production ya quedaron redeployados/publicados con este cierre y `580 tests OK` por carril backend
+- siguiente frente formal recomendado del roadmap:
+  - abrir `Etapa 13. Frontend de Plataforma y Tenant`
+  - foco inicial:
+    - refinamiento final de UX y labels
+    - catálogos backend más ricos para reducir códigos visibles
+    - automatización/cobertura final de bordes operativos visibles
+    - no reabrir `Etapa 12` salvo evidencia nueva
+
 - memoria viva y documentación ya rearmonizadas al estado real actual:
   - `business-core` ya documenta `Duplicados` con su naming vigente
   - `Grupos sociales` ya queda descrito como flujo principal del catálogo social y CRUD visible principal
@@ -68,13 +81,10 @@
     - persistencia y auditoría formal de campañas centralizadas
     - rescate legacy aislado solo en tooling controlado
     - staging y production ya quedaron redeployados con el décimo slice y `578 tests OK` por carril
-  - siguiente frente formal recomendado del roadmap:
+  - siguiente frente formal recomendado del roadmap en ese momento:
     - abrir `Etapa 12. Auditoría y Observabilidad`
-    - foco inicial:
-      - cubrir operaciones administrativas relevantes fuera de auth
-      - mejorar correlación y consultas útiles para soporte
-      - ampliar observabilidad técnica más allá de auth, HTTP y provisioning
-      - no reabrir `Etapa 11` salvo evidencia nueva o necesidad explícita
+  - estado posterior ya cerrado:
+    - ese frente ya quedó completado y el salto vigente ahora pasa a `Etapa 13. Frontend de Plataforma y Tenant`
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual

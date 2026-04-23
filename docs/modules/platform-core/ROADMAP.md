@@ -261,7 +261,12 @@ Estado práctico de cierre:
   - cierre operativo del frente:
     - la `Etapa 11` ya queda suficientemente cerrada para el alcance actual
     - el rescate legacy sigue aislado solo en tooling excepcional
-    - el siguiente frente formal recomendado del roadmap pasa a `Etapa 12. Auditoría y Observabilidad`
+    - la `Etapa 12` ya queda suficientemente cerrada para el alcance actual:
+      - `Actividad` ya correlaciona auth, rechazos `401/403` relevantes y cambios administrativos
+      - `auth_audit_events` ya persiste `request_id`, `request_path` y `request_method`
+      - soporte ya puede buscar por `event_type`, `tenant_slug` y `request_id` sin salir de consola
+      - staging y production ya quedaron redeployados con `580 tests OK` por carril y frontend publicado con static readiness verde
+    - el siguiente frente formal recomendado del roadmap pasa a `Etapa 13. Frontend de Plataforma y Tenant`
 
 ## Cierre operativo del bloque central
 

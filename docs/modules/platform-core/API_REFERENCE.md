@@ -61,7 +61,8 @@ Billing:
 
 Activity:
 
-- endpoints `platform/activity/*`
+- `GET /platform/auth-audit/`
+- `GET /platform/tenants/policy-history/recent`
 
 Capabilities:
 
@@ -92,6 +93,31 @@ Payload operativo actual de `GET /platform/security-posture`:
 - `tenant_secrets_legacy`
 - `tenant_secrets_isolated_from_legacy`
 - `tenant_secret_distribution_summary`
+
+Lectura operativa actual de `GET /platform/auth-audit/`:
+
+- filtros:
+  - `limit`
+  - `subject_scope`
+  - `outcome`
+  - `event_type`
+  - `tenant_slug`
+  - `request_id`
+  - `search`
+- campos por evento:
+  - `id`
+  - `event_type`
+  - `subject_scope`
+  - `outcome`
+  - `subject_user_id`
+  - `tenant_slug`
+  - `email`
+  - `token_jti`
+  - `request_id`
+  - `request_path`
+  - `request_method`
+  - `detail`
+  - `created_at`
 
 `tenant_secret_distribution_summary` hoy resume:
 

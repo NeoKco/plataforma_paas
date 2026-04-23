@@ -178,6 +178,9 @@ export function getPlatformAuthAudit(
     limit?: number;
     subject_scope?: string;
     outcome?: string;
+    event_type?: string;
+    tenant_slug?: string;
+    request_id?: string;
     search?: string;
   }
 ) {
@@ -190,6 +193,15 @@ export function getPlatformAuthAudit(
   }
   if (params?.outcome) {
     query.set("outcome", params.outcome);
+  }
+  if (params?.event_type) {
+    query.set("event_type", params.event_type);
+  }
+  if (params?.tenant_slug) {
+    query.set("tenant_slug", params.tenant_slug);
+  }
+  if (params?.request_id) {
+    query.set("request_id", params.request_id);
   }
   if (params?.search) {
     query.set("search", params.search);

@@ -2,6 +2,29 @@
 
 ## 2026-04-23
 
+- `Etapa 12` ya queda cerrada para el alcance actual de auditoría y observabilidad:
+  - [auth_audit_event.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/auth_audit_event.py) ya persiste:
+    - `request_id`
+    - `request_path`
+    - `request_method`
+  - [handlers.py](/home/felipe/platform_paas/backend/app/common/exceptions/handlers.py) ya audita rechazos `401/403` relevantes fuera de `/platform/auth/*` y `/tenant/auth/*`
+  - [auth_audit_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/auth_audit_routes.py) ya soporta filtros por:
+    - `event_type`
+    - `tenant_slug`
+    - `request_id`
+  - [PlatformActivityPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/activity/PlatformActivityPage.tsx) ya mezcla auth, rechazos y cambios administrativos con correlación visible por request
+  - validación repo:
+    - `backend.app.tests.test_migration_flow` -> `16 tests OK`
+    - `backend.app.tests.test_observability` -> `10 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend redeployado con `580 tests OK`
+    - `production` backend redeployado con `580 tests OK`
+    - `staging` publicado con `SettingsPage-DGvb8VdE.js`, `TenantsPage-C4Uq7Efm.js`, `PlatformActivityPage-B4-Gfl71.js`, `index-BS95Y8pt.js`
+    - `production` publicado con `SettingsPage-C_xDXmdy.js`, `TenantsPage-DqLaKbs_.js`, `PlatformActivityPage-AK_ajvU5.js`, `index-B6maS3YS.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - `Etapa 11` ya persiste y relee campañas centralizadas de secretos runtime:
   - [tenant_runtime_secret_campaign.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_runtime_secret_campaign.py) y [tenant_runtime_secret_campaign_item.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/tenant_runtime_secret_campaign_item.py) agregan persistencia formal de campañas y resultados por tenant
   - [tenant_runtime_secret_campaign_repository.py](/home/felipe/platform_paas/backend/app/apps/platform_control/repositories/tenant_runtime_secret_campaign_repository.py) y [tenant_runtime_secret_campaign_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_runtime_secret_campaign_service.py) encapsulan escritura y lectura del historial

@@ -3,6 +3,35 @@
 ## Última actualización
 
 - fecha: 2026-04-23
+- foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 12`:
+  - `auth_audit_events` ya persiste:
+    - `request_id`
+    - `request_path`
+    - `request_method`
+  - `handlers.py` ya audita rechazos `401/403` relevantes sobre `/platform/*` y `/tenant/*` fuera de `/auth`
+  - `GET /platform/auth-audit/` ya soporta filtros por:
+    - `event_type`
+    - `tenant_slug`
+    - `request_id`
+  - `platform_admin -> Actividad` ya cruza en la misma vista:
+    - autenticación
+    - rechazos relevantes
+    - cambios administrativos recientes sobre tenants
+    - correlación visible por `request_id`, método y ruta
+  - validación repo:
+    - `backend.app.tests.test_migration_flow` -> `16 tests OK`
+    - `backend.app.tests.test_observability` -> `10 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `staging` publicado con `SettingsPage-DGvb8VdE.js`, `TenantsPage-C4Uq7Efm.js`, `PlatformActivityPage-B4-Gfl71.js`, `index-BS95Y8pt.js`
+    - `production` publicado con `SettingsPage-C_xDXmdy.js`, `TenantsPage-DqLaKbs_.js`, `PlatformActivityPage-AK_ajvU5.js`, `index-B6maS3YS.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- salida formal de este frente:
+  - la `Etapa 12` ya puede considerarse cerrada para el alcance actual
+  - el siguiente frente formal del roadmap pasa a `Etapa 13. Frontend de Plataforma y Tenant`
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 11`:
   - décimo corte ya cerrado en repo y runtime:
     - `Settings -> Plan central de secretos runtime` ya muestra historial persistente de campañas centralizadas
@@ -31,7 +60,7 @@
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - salida formal de este frente:
     - la `Etapa 11` deja de ser foco activo principal
-    - el siguiente frente formal del roadmap pasa a `Etapa 12. Auditoría y Observabilidad`
+    - el frente `Etapa 12. Auditoría y Observabilidad` ya también quedó cerrado después de ese hito
   - noveno corte ya cerrado en repo:
     - `Settings -> Plan central de secretos runtime` ya permite campañas batch por inclusión o exclusión explícita
     - la consola ya deja alternar:

@@ -3,10 +3,11 @@ import os
 import unittest
 from datetime import datetime, timezone
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
@@ -14,6 +15,7 @@ os.environ["APP_ENV"] = "test"
 from app.common.middleware.request_observability_middleware import (  # noqa: E402
     RequestObservabilityMiddleware,
 )
+from app.common.exceptions.handlers import _log_relevant_http_exception  # noqa: E402
 from app.common.observability.logging_service import LoggingService  # noqa: E402
 
 
@@ -220,6 +222,73 @@ class LoggingServiceTestCase(unittest.TestCase):
         self.assertIn('"event": "provisioning_alert_summary"', payload)
         self.assertIn('"capture_key": "capture-1"', payload)
         self.assertIn('"total_alerts": 2', payload)
+
+
+class HttpExceptionAuditLoggingTestCase(unittest.TestCase):
+    def _request(self, path: str, method: str = "GET") -> Request:
+        request = Request(
+            {
+                "type": "http",
+                "method": method,
+                "path": path,
+                "headers": [],
+                "query_string": b"",
+                "scheme": "http",
+                "server": ("testserver", 80),
+                "client": ("127.0.0.1", 1234),
+            }
+        )
+        request.state.request_id = "req-123"
+        request.state.token_scope = "platform" if path.startswith("/platform") else "tenant"
+        request.state.platform_user_id = 7
+        request.state.platform_email = "admin@platform.local"
+        request.state.tenant_user_id = 9
+        request.state.tenant_email = "user@tenant.local"
+        request.state.tenant_slug = "empresa-bootstrap"
+        request.state.jwt_payload = {"jti": "token-123"}
+        return request
+
+    def test_logs_platform_denied_request_with_request_correlation(self) -> None:
+        request = self._request("/platform/users", method="POST")
+
+        with patch(
+            "app.common.exceptions.handlers.ControlSessionLocal",
+            return_value=MagicMock(close=MagicMock()),
+        ) as control_session_local, patch(
+            "app.common.exceptions.handlers.auth_audit_service.log_event"
+        ) as log_event:
+            _log_relevant_http_exception(
+                request=request,
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Forbidden",
+            )
+
+        control_session_local.assert_called_once()
+        log_event.assert_called_once()
+        kwargs = log_event.call_args.kwargs
+        self.assertEqual(kwargs["event_type"], "platform.request.denied")
+        self.assertEqual(kwargs["outcome"], "denied")
+        self.assertEqual(kwargs["request_id"], "req-123")
+        self.assertEqual(kwargs["request_path"], "/platform/users")
+        self.assertEqual(kwargs["request_method"], "POST")
+
+    def test_skips_auth_routes_to_avoid_duplicate_auth_logging(self) -> None:
+        request = self._request("/platform/auth/login", method="POST")
+
+        with patch(
+            "app.common.exceptions.handlers.ControlSessionLocal",
+            return_value=MagicMock(close=MagicMock()),
+        ) as control_session_local, patch(
+            "app.common.exceptions.handlers.auth_audit_service.log_event"
+        ) as log_event:
+            _log_relevant_http_exception(
+                request=request,
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Unauthorized",
+            )
+
+        control_session_local.assert_not_called()
+        log_event.assert_not_called()
 
     def test_log_provisioning_alert_persistence_error_writes_json_payload(self) -> None:
         service = LoggingService("platform_paas.test.observability")

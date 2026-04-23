@@ -94,6 +94,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0026_tenant_data_transfer_jobs",
                 "0027_tenant_module_subscription_model",
                 "0028_tenant_runtime_secret_campaigns",
+                "0029_auth_audit_observability_fields",
             ],
         )
         self.assertIn("platform_installation", tables)
@@ -146,6 +147,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("error_code", provisioning_job_columns)
         self.assertIn("auth_tokens", tables)
         self.assertIn("auth_audit_events", tables)
+        auth_audit_columns = {
+            column["name"] for column in inspect(engine).get_columns("auth_audit_events")
+        }
+        self.assertIn("request_id", auth_audit_columns)
+        self.assertIn("request_path", auth_audit_columns)
+        self.assertIn("request_method", auth_audit_columns)
         self.assertIn("provisioning_job_metric_snapshots", tables)
         self.assertIn("provisioning_worker_cycle_traces", tables)
         self.assertIn("provisioning_operational_alerts", tables)

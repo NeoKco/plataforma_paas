@@ -15,6 +15,9 @@ class AuthAuditEvent(Base):
     tenant_slug: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     email: Mapped[str | None] = mapped_column(String(150), nullable=True, index=True)
     token_jti: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    request_id: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    request_path: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    request_method: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
     detail: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),

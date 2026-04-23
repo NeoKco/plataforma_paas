@@ -475,13 +475,13 @@ La lectura practica actual es esta:
   - billing operativo
   - actividad
   - settings
-- `business-core`, `maintenance`, `finance`, `Provisioning/DLQ`, `Etapa 15` y `Etapa 11` ya quedaron suficientemente institucionalizados para el alcance actual
-- el siguiente frente formal recomendado pasa a ser `Etapa 12. Auditoria y Observabilidad`
+- `business-core`, `maintenance`, `finance`, `Provisioning/DLQ`, `Etapa 15`, `Etapa 11` y `Etapa 12` ya quedaron suficientemente institucionalizados para el alcance actual
+- el siguiente frente formal recomendado pasa a ser `Etapa 13. Frontend de Plataforma y Tenant`
 - los huecos mas probables ya no son de ausencia de feature, sino de endurecimiento, trazabilidad y consistencia operativa
 
 ## Etapa 12. Auditoria y Observabilidad
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -500,20 +500,45 @@ Resultado actual:
 - los eventos viven en `platform_control.auth_audit_events`
 - existe `request_id` por request y logging estructurado basico de requests HTTP
 - existe manejo centralizado de errores con payload uniforme y `request_id`
+- `auth_audit_events` ya expone tambien:
+  - `request_id`
+  - `request_path`
+  - `request_method`
+- `platform_admin > Actividad` ya permite filtrar por:
+  - `scope`
+  - `outcome`
+  - `event_type`
+  - `tenant_slug`
+  - `request_id`
+  - `actor_email` y `event_type` de cambios tenant
+- la tabla visible ya mezcla:
+  - autenticacion
+  - rechazos `401/403` relevantes fuera de `/auth`
+  - operaciones administrativas relevantes
+  - cambios tenant recientes
+- los rechazos `401/403` sobre `/platform/*` y `/tenant/*` fuera de auth ya quedan auditados con:
+  - correlacion por `request_id`
+  - path
+  - method
+  - scope
+  - tenant si aplica
 - existe historial operativo de snapshots, trazas de ciclo y alertas para `provisioning`
 - existe una salida externa minima via textfile Prometheus para estado y alertas de `provisioning`
 
-Falta para cerrarlo:
+Resultado de cierre:
 
-- cubrir rechazos del middleware y eventos sospechosos
-- cubrir operaciones administrativas relevantes
-- agregar correlacion y consultas utiles para soporte
-- ampliar observabilidad tecnica mas alla de auth y errores HTTP
+- soporte ya puede correlacionar accesos, rechazos y cambios administrativos usando la misma vista corta
+- la auditoria visible ya no depende solo de logins/logout; cubre tambien denegaciones operativas relevantes
+- la observabilidad tecnica minima queda cerrada para el alcance actual con:
+  - `request_id` transversal
+  - errores HTTP uniformes
+  - auditoria persistente enriquecida
+  - trazabilidad de `provisioning`
+  - healthchecks y evidencia operativa ya institucionalizados
 
-- auditoria de acciones criticas
-- logging estructurado
-- metricas y health checks mas completos
-- trazabilidad de provisioning y operaciones tenant
+Pendiente deliberado fuera de esta etapa:
+
+- exportaciones avanzadas, rangos de fecha ricos y analitica mas profunda quedan como evolucion posterior, no como deuda de cierre de `Etapa 12`
 
 ## Etapa 13. Frontend de Plataforma y Tenant
 

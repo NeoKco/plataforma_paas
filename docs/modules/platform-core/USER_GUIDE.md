@@ -139,6 +139,30 @@ En `Configuración -> Postura de secretos y runtime`:
 
 Regla operativa:
 
+### Revisar actividad operativa
+
+En `platform_admin -> Actividad` ya puedes cruzar en la misma vista:
+
+- autenticación reciente de `platform` y `tenant`
+- rechazos `401/403` relevantes fuera de `/auth`
+- cambios administrativos recientes sobre tenants
+
+La lectura mínima recomendada ya queda así:
+
+1. revisar `Qué revisar ahora`
+2. filtrar por `scope` y `outcome` si quieres separar auth de rechazos
+3. usar `event_type`, `tenant_slug` o `request_id` cuando soporte ya trae un caso concreto
+4. revisar abajo el historial corto de cambios tenant para correlacionar si el problema apareció después de una mutación administrativa
+
+Regla operativa:
+
+- `Actividad` ya no sirve solo para logins
+- si una pantalla devuelve error con `request_id`, ese mismo `request_id` ya puede buscarse en la actividad visible
+- la tabla principal ya muestra:
+  - `request_id`
+  - `request_method`
+  - `request_path`
+
 - si no seleccionas tenants, la campaña batch sigue usando todos los tenants activos evaluados
 - si seleccionas tenants en `Modo incluir`, el batch queda acotado a ese subconjunto
 - si seleccionas tenants en `Modo excluir`, el batch corre sobre todos los tenants auditados excepto ese subconjunto

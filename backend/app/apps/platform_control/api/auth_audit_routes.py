@@ -18,6 +18,9 @@ def list_platform_auth_audit(
     limit: int = Query(default=50, ge=1, le=100),
     subject_scope: str | None = Query(default=None),
     outcome: str | None = Query(default=None),
+    event_type: str | None = Query(default=None),
+    tenant_slug: str | None = Query(default=None),
+    request_id: str | None = Query(default=None),
     search: str | None = Query(default=None),
     db: Session = Depends(get_control_db),
     _token: dict = Depends(require_role("superadmin", "admin")),
@@ -27,6 +30,9 @@ def list_platform_auth_audit(
         limit=limit,
         subject_scope=subject_scope,
         outcome=outcome,
+        event_type=event_type,
+        tenant_slug=tenant_slug,
+        request_id=request_id,
         search=search,
     )
     return AuthAuditEventListResponse(

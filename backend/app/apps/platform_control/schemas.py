@@ -120,6 +120,9 @@ class AuthAuditEventResponse(BaseModel):
     tenant_slug: str | None = None
     email: str | None = None
     token_jti: str | None = None
+    request_id: str | None = None
+    request_path: str | None = None
+    request_method: str | None = None
     detail: str | None = None
     created_at: datetime | None = None
 

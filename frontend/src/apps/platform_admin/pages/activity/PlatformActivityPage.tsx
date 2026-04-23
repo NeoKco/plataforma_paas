@@ -61,6 +61,9 @@ export function PlatformActivityPage() {
   const [search, setSearch] = useState("");
   const [scopeFilter, setScopeFilter] = useState("");
   const [outcomeFilter, setOutcomeFilter] = useState("");
+  const [eventTypeFilter, setEventTypeFilter] = useState("");
+  const [tenantSlugFilter, setTenantSlugFilter] = useState("");
+  const [requestIdFilter, setRequestIdFilter] = useState("");
   const [tenantChangeTypeFilter, setTenantChangeTypeFilter] = useState("");
   const [actorEmailFilter, setActorEmailFilter] = useState("");
   const [limit, setLimit] = useState(25);
@@ -175,10 +178,14 @@ export function PlatformActivityPage() {
           limit,
           subject_scope: scopeFilter || undefined,
           outcome: outcomeFilter || undefined,
+          event_type: eventTypeFilter.trim() || undefined,
+          tenant_slug: tenantSlugFilter.trim() || undefined,
+          request_id: requestIdFilter.trim() || undefined,
           search: search.trim() || undefined,
         }),
         getPlatformTenantPolicyActivity(session.accessToken, {
           eventType: tenantChangeTypeFilter || undefined,
+          tenantSlug: tenantSlugFilter.trim() || undefined,
           actorEmail: actorEmailFilter.trim() || undefined,
           search: search.trim() || undefined,
           limit,
@@ -203,7 +210,7 @@ export function PlatformActivityPage() {
         description={
           language === "es"
             ? "Auditoría breve de accesos y rechazos recientes para no depender solo de logs o memoria operativa."
-            : "Compact audit view of recent accesses and denials so operations does not depend only on logs or memory."
+            : "Compact audit of recent accesses, denials and administrative requests so operations does not depend only on logs or memory."
         }
         icon="activity"
         actions={
@@ -321,8 +328,8 @@ export function PlatformActivityPage() {
             title={language === "es" ? "Filtros de actividad" : "Activity filters"}
             subtitle={
               language === "es"
-                ? "Mira accesos recientes, rechazos y eventos tenant o platform con el mismo set de filtros."
-                : "Review recent accesses, denials and tenant or platform events with the same filter set."
+                ? "Cruza accesos, rechazos, request IDs y cambios tenant sin salir de la misma vista."
+                : "Cross-check accesses, denials, request IDs and tenant changes without leaving the same view."
             }
           >
             <AppFilterGrid className="tenant-catalog-filters">
@@ -334,6 +341,16 @@ export function PlatformActivityPage() {
                   language === "es"
                     ? "Buscar por email, detalle, tenant o tipo de evento"
                     : "Search by email, detail, tenant or event type"
+                }
+              />
+              <input
+                className="form-control"
+                value={eventTypeFilter}
+                onChange={(event) => setEventTypeFilter(event.target.value)}
+                placeholder={
+                  language === "es"
+                    ? "Tipo de evento auth/audit"
+                    : "Auth/audit event type"
                 }
               />
               <select
@@ -355,6 +372,18 @@ export function PlatformActivityPage() {
                 <option value="failed">{language === "es" ? "fallidos" : "failed"}</option>
                 <option value="denied">{language === "es" ? "denegados" : "denied"}</option>
               </select>
+              <input
+                className="form-control"
+                value={tenantSlugFilter}
+                onChange={(event) => setTenantSlugFilter(event.target.value)}
+                placeholder={language === "es" ? "Tenant slug" : "Tenant slug"}
+              />
+              <input
+                className="form-control"
+                value={requestIdFilter}
+                onChange={(event) => setRequestIdFilter(event.target.value)}
+                placeholder={language === "es" ? "Request ID" : "Request ID"}
+              />
               <input
                 className="form-control"
                 value={tenantChangeTypeFilter}
@@ -387,8 +416,8 @@ export function PlatformActivityPage() {
             title={language === "es" ? "Actividad reciente" : "Recent activity"}
             subtitle={
               language === "es"
-                ? "Eventos más recientes de autenticación para platform y tenant."
-                : "Most recent authentication events for platform and tenant."
+                ? "Eventos recientes de autenticación, rechazos y requests administrativas para platform y tenant."
+                : "Recent authentication, denial and administrative request events for platform and tenant."
             }
           >
             {events.length === 0 ? (
@@ -408,6 +437,7 @@ export function PlatformActivityPage() {
                       <th>{language === "es" ? "Resultado" : "Outcome"}</th>
                       <th>Email</th>
                       <th>Tenant</th>
+                      <th>{language === "es" ? "Request" : "Request"}</th>
                       <th>{language === "es" ? "Detalle" : "Detail"}</th>
                     </tr>
                   </thead>
@@ -424,6 +454,14 @@ export function PlatformActivityPage() {
                         </td>
                         <td>{item.email || "n/a"}</td>
                         <td>{item.tenant_slug || "n/a"}</td>
+                        <td>
+                          <div className="small">
+                            <div>{item.request_id || "n/a"}</div>
+                            <div className="text-secondary">
+                              {item.request_method || "?"} {item.request_path || "n/a"}
+                            </div>
+                          </div>
+                        </td>
                         <td>{item.detail || "n/a"}</td>
                       </tr>
                     ))}

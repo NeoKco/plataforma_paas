@@ -399,6 +399,9 @@ export type PlatformAuthAuditEvent = {
   tenant_slug: string | null;
   email: string | null;
   token_jti: string | null;
+  request_id: string | null;
+  request_path: string | null;
+  request_method: string | null;
   detail: string | null;
   created_at: string | null;
 };

@@ -690,6 +690,9 @@ class PlatformServicesTestCase(unittest.TestCase):
             limit=500,
             subject_scope=" PLATFORM ",
             outcome=" SUCCESS ",
+            event_type=" platform.request.denied ",
+            tenant_slug=" empresa-bootstrap ",
+            request_id=" req-123 ",
             search="  admin@platform.local  ",
         )
 
@@ -697,6 +700,9 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(captured["limit"], 100)
         self.assertEqual(captured["subject_scope"], "platform")
         self.assertEqual(captured["outcome"], "success")
+        self.assertEqual(captured["event_type"], "platform.request.denied")
+        self.assertEqual(captured["tenant_slug"], "empresa-bootstrap")
+        self.assertEqual(captured["request_id"], "req-123")
         self.assertEqual(captured["search"], "admin@platform.local")
 
     def test_tenant_service_creates_tenant_and_provisioning_job(self) -> None:
@@ -5395,24 +5401,48 @@ class PlatformRoutesTestCase(unittest.TestCase):
                 tenant_slug=None,
                 email="admin@platform.local",
                 token_jti="abc",
+                request_id="req-123",
+                request_path="/platform/auth/login",
+                request_method="POST",
                 detail="Platform login successful",
                 created_at=datetime.now(timezone.utc),
             )
         ]
+        db = object()
 
         with patch(
             "app.apps.platform_control.api.auth_audit_routes."
             "auth_audit_service.list_recent_events",
             return_value=events,
-        ):
+        ) as list_recent_events:
             response = list_platform_auth_audit(
-                db=object(),
+                limit=20,
+                subject_scope="platform",
+                outcome="success",
+                event_type="platform.login",
+                tenant_slug=None,
+                request_id="req-123",
+                search="admin@platform.local",
+                db=db,
                 _token=self._token_payload(role="admin"),
             )
 
         self.assertTrue(response.success)
         self.assertEqual(response.total_events, 1)
         self.assertEqual(response.data[0].event_type, "platform.login")
+        self.assertEqual(response.data[0].request_id, "req-123")
+        self.assertEqual(response.data[0].request_path, "/platform/auth/login")
+        self.assertEqual(response.data[0].request_method, "POST")
+        list_recent_events.assert_called_once_with(
+            db,
+            limit=20,
+            subject_scope="platform",
+            outcome="success",
+            event_type="platform.login",
+            tenant_slug=None,
+            request_id="req-123",
+            search="admin@platform.local",
+        )
 
     def test_get_platform_root_recovery_status_returns_schema(self) -> None:
         with patch(

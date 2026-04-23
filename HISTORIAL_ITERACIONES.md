@@ -1,5 +1,42 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 12` ya queda cerrada para auditoría y observabilidad visibles
+
+Contexto:
+
+- la `Etapa 11` ya había dejado resuelto el carril runtime-only de secretos tenant
+- faltaba cerrar la capa visible de auditoría/observabilidad para soporte y operación diaria sin depender de logs crudos
+
+Cambios:
+
+- [auth_audit_event.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/auth_audit_event.py):
+  - agrega persistencia de `request_id`, `request_path` y `request_method`
+- [v0029_auth_audit_observability_fields.py](/home/felipe/platform_paas/backend/migrations/control/v0029_auth_audit_observability_fields.py):
+  - agrega el corte migratorio compatible con `SQLite` y `PostgreSQL`
+- [auth_audit_event_repository.py](/home/felipe/platform_paas/backend/app/apps/platform_control/repositories/auth_audit_event_repository.py) y [auth_audit_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/auth_audit_service.py):
+  - agregan filtros por `event_type`, `tenant_slug` y `request_id`
+- [handlers.py](/home/felipe/platform_paas/backend/app/common/exceptions/handlers.py):
+  - audita rechazos `401/403` relevantes fuera de `/platform/auth/*` y `/tenant/auth/*`
+- [PlatformActivityPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/activity/PlatformActivityPage.tsx):
+  - agrega filtros visibles por `event_type`, `tenant_slug` y `request_id`
+  - muestra correlación visible por request, método y ruta
+  - deja de leerse solo como “logins”
+
+Resultado:
+
+- soporte ya puede correlacionar auth, rechazos y mutaciones administrativas desde la misma vista
+- la `Etapa 12` ya queda suficientemente cerrada para el alcance actual
+- el siguiente frente formal del roadmap pasa a `Etapa 13. Frontend de Plataforma y Tenant`
+- validación repo:
+  - `backend.app.tests.test_migration_flow` -> `16 tests OK`
+  - `backend.app.tests.test_observability` -> `10 tests OK`
+  - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- validación runtime:
+  - `staging` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `production` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 ## 2026-04-23 - `Etapa 11` ya persiste y relee campañas centralizadas de secretos runtime
 
 Contexto:

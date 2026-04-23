@@ -49,6 +49,18 @@ Documentación base:
 - frontend y backend deben consumir el catálogo de capacidades como fuente de verdad cuando aplique
 - si `Provisioning` muestra o condiciona recorridos broker-only, la fuente de verdad visible del entorno debe salir del catálogo de capacidades y no de inferencias locales; hoy eso se expone como `current_provisioning_dispatch_backend`
 - el bootstrap tenant-side tampoco debe volver a inferir módulos desde `tenant.plan_code`; debe consumir `effective_enabled_modules`
+- en `Etapa 12`, la auditoría visible ya no debe quedarse solo en auth:
+  - `auth_audit_events` ya es la base persistente visible también para rechazos relevantes y correlación de soporte
+  - si un `401/403` ocurre en `/platform/*` o `/tenant/*` fuera de auth, debe auditarse con:
+    - `request_id`
+    - `request_path`
+    - `request_method`
+  - `/platform/auth/*` y `/tenant/auth/*` se excluyen de ese camino para no duplicar la propia auditoría de login/refresh/logout
+  - `PlatformActivityPage` ya debe poder filtrar por:
+    - `event_type`
+    - `tenant_slug`
+    - `request_id`
+  - cualquier ampliación nueva de auditoría visible debe reforzar esa lectura de soporte y no repartirla en vistas paralelas sin una razón fuerte
 - en `Etapa 11`, el runtime ya debe tratar `TENANT_SECRETS_FILE` como carril normal de secretos tenant:
   - si apunta al mismo `.env` legacy, `security-posture` ya debe marcar hallazgo
   - si no es legible o escribible, `security-posture` ya debe marcar hallazgo

@@ -2,18 +2,22 @@
 
 Este documento deja el alcance actual del bloque `Actividad` dentro de `platform_admin`.
 
-La idea es dar una vista corta y util de auditoria de accesos recientes sin depender de revisar logs crudos o recordar que paso en cada prueba.
+La idea es dar una vista corta y util de auditoria para soporte y operacion sin depender de revisar logs crudos o recordar que paso en cada prueba.
 
 ## 1. Alcance actual
 
 Desde `platform_admin` ya se puede:
 
 - listar eventos recientes de autenticacion
+- listar rechazos `401/403` relevantes fuera de `/auth`
 - listar cambios administrativos recientes sobre tenants
 - listar acciones criticas recientes de operadores de plataforma
 - leer una seccion `Que revisar ahora` con senales operativas breves
 - filtrar por `scope`
 - filtrar por resultado
+- filtrar por `event_type`
+- filtrar por `tenant_slug`
+- filtrar por `request_id`
 - buscar por email, tenant, detalle o tipo de evento
 - filtrar cambios tenant por `event_type`
 - filtrar cambios tenant por `actor_email`
@@ -40,6 +44,9 @@ Ahora tambien ayuda a responder:
 - que campos fueron tocados recientemente
 - quien creo, actualizo, activo, desactivo, reseteo contraseña o elimino un usuario de plataforma
 - quien creo, reprovisiono, restauro o elimino un tenant
+- que request concreto devolvio un `401` o `403`
+- si un rechazo vino de `platform` o de `tenant`
+- sobre que ruta y con que metodo ocurrio el rechazo
 
 ## 3. Politica vigente
 
@@ -77,11 +84,15 @@ Cada fila muestra:
 - resultado
 - email
 - tenant relacionado si aplica
+- `request_id`
+- `request_method`
+- `request_path`
 - detalle resumido
 
 En la practica, la tabla principal ya mezcla:
 
 - autenticacion
+- rechazos operativos relevantes
 - mutaciones criticas de `Usuarios de plataforma`
 - acciones duras del ciclo tenant que no siempre aparecen en el historial de politica
 
@@ -98,6 +109,10 @@ Eventos visibles relevantes hoy:
 - `platform.refresh`
 - `platform.logout`
 - `platform.root_recovery`
+- `platform.request.denied`
+- `platform.request.rejected`
+- `tenant.request.denied`
+- `tenant.request.rejected`
 - `platform.user.create`
 - `platform.user.update`
 - `platform.user.status`
@@ -114,6 +129,9 @@ Filtros soportados hoy:
 - `limit`
 - `subject_scope`
 - `outcome`
+- `event_type`
+- `tenant_slug`
+- `request_id`
 - `search`
 - `event_type` para cambios tenant
 - `actor_email` para cambios tenant
@@ -128,11 +146,13 @@ La validacion minima recomendada del bloque es esta:
 4. filtrar por `platform`
 5. filtrar por `tenant`
 6. filtrar por `correctos`, `fallidos` o `denegados`
-7. buscar por un correo o slug tenant conocido
-8. confirmar que un usuario `support` no ve el item en el menu y no queda navegando a este bloque
-9. confirmar que tambien aparecen cambios administrativos recientes sobre tenants
-10. filtrar cambios tenant por tipo de evento como `billing`, `restore` o `delete`
-11. filtrar cambios tenant por correo del actor
+7. filtrar por `event_type` cuando necesites separar auth vs denials vs eventos administrativos
+8. filtrar por `request_id` si soporte ya trae un error con correlacion desde otra pantalla
+9. buscar por un correo o slug tenant conocido
+10. confirmar que un usuario `support` no ve el item en el menu y no queda navegando a este bloque
+11. confirmar que tambien aparecen cambios administrativos recientes sobre tenants
+12. filtrar cambios tenant por tipo de evento como `billing`, `restore` o `delete`
+13. filtrar cambios tenant por correo del actor
 
 ## 7. Cobertura automatizada actual
 
@@ -146,6 +166,8 @@ Casos ya cubiertos:
 - clamp seguro de `limit`
 - respuesta base de la ruta `GET /platform/auth-audit/`
 - acceso correcto a la ruta con rol `admin`
+- persistencia de `request_id`, `request_path` y `request_method` en la auditoria enriquecida
+- log de rechazos `401/403` relevantes fuera de auth y exclusión explícita de `/platform/auth/*`
 
 ## 8. Pendientes deliberados
 
@@ -154,6 +176,6 @@ Este bloque aun no abre:
 - exportacion CSV
 - filtros por rango de fechas
 - detalle extendido por evento
-- correlacion mas rica entre autenticacion, usuarios de plataforma y cambios tenant dentro de una sola linea temporal
+- analitica histórica más profunda por campañas o ventanas temporales
 
 Eso queda para una auditoria operativa mas rica. Por ahora el objetivo es dejar una consola basica, visible y util.
