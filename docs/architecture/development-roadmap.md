@@ -464,18 +464,7 @@ Backlog opcional posterior:
 
 Hoy el proyecto ya no esta parado en el backend temprano.
 
-El punto actual real esta entre:
-
-- `Etapa 16`: operacion backend bastante avanzada
-- `Etapa 17`: hardening final y politicas de escalado en progreso claro
-
-La lectura practica es esta:
-
-- la base backend ya no necesita mas refactor estructural inmediato
-- el equipo ya tiene testing, migraciones, operacion base y observabilidad minima
-- lo que queda mas claro ahora es cerrar backend avanzado antes de abrir fuerte frontend o mas modulos
-
-Lectura de producto a este punto:
+La lectura practica actual es esta:
 
 - el bloque basico de plataforma ya quedo mayormente cerrado:
   - instalador
@@ -486,7 +475,9 @@ Lectura de producto a este punto:
   - billing operativo
   - actividad
   - settings
-- los huecos mas probables ya no son de ausencia de feature, sino de endurecimiento, politicas finas y consistencia operativa
+- `business-core`, `maintenance`, `finance`, `Provisioning/DLQ`, `Etapa 15` y `Etapa 11` ya quedaron suficientemente institucionalizados para el alcance actual
+- el siguiente frente formal recomendado pasa a ser `Etapa 12. Auditoria y Observabilidad`
+- los huecos mas probables ya no son de ausencia de feature, sino de endurecimiento, trazabilidad y consistencia operativa
 
 ## Etapa 12. Auditoria y Observabilidad
 

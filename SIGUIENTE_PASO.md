@@ -67,6 +67,7 @@
     - targeting `include/exclude`
     - persistencia y auditoría formal de campañas centralizadas
     - rescate legacy aislado solo en tooling controlado
+    - staging y production ya quedaron redeployados con el décimo slice y `578 tests OK` por carril
   - siguiente frente formal recomendado del roadmap:
     - abrir `Etapa 12. Auditoría y Observabilidad`
     - foco inicial:

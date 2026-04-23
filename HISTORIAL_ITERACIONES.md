@@ -26,6 +26,7 @@ Resultado:
 - la `Etapa 11` ya deja evidencia persistente de campañas centralizadas, no solo batch gobernado
 - el operador ya puede releer campañas recientes desde consola sin depender de logs crudos
 - con este corte, la `Etapa 11` queda suficientemente cerrada para el alcance actual
+- el siguiente frente formal del roadmap pasa a `Etapa 12. Auditoría y Observabilidad`
 - validación repo:
   - `backend.app.tests.test_migration_flow` -> `16 tests OK`
   - `backend.app.tests.test_platform_flow` -> `238 tests OK`

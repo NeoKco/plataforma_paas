@@ -29,6 +29,9 @@
     - `staging` publicado con `SettingsPage-K54WHqVA.js`, `TenantsPage-BM4FAvWj.js`, `DashboardPage-Bgcu2Fss.js`, `ProvisioningPage-BrgmEZZB.js`, `BillingPage-CXDeePgM.js`, `TenantOverviewPage-jPgEDQ49.js`, `index-hOkUANP9.js`
     - `production` publicado con `SettingsPage-CRO23RQx.js`, `TenantsPage-CefevMUS.js`, `DashboardPage-pIXpU3VF.js`, `ProvisioningPage-CUtzVsmd.js`, `BillingPage-CyNM-F-9.js`, `TenantOverviewPage-DPfDPXMR.js`, `index-Bzibvzj1.js`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - salida formal de este frente:
+    - la `Etapa 11` deja de ser foco activo principal
+    - el siguiente frente formal del roadmap pasa a `Etapa 12. Auditoría y Observabilidad`
   - noveno corte ya cerrado en repo:
     - `Settings -> Plan central de secretos runtime` ya permite campañas batch por inclusión o exclusión explícita
     - la consola ya deja alternar:
