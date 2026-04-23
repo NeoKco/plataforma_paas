@@ -1,5 +1,41 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya agrega un plan central previo para secretos runtime tenant
+
+Contexto:
+
+- el sexto slice ya había dejado `Rotar credenciales central` como batch runtime-only
+- faltaba una capa previa formal que explicara por tenant si convenía rotar, sincronizar o derivar a tooling legacy controlado
+
+Cambios:
+
+- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+  - agrega `plan_active_tenant_runtime_secret_operations(...)`
+  - clasifica tenants activos como:
+    - `runtime_ready`
+    - `sync_recommended`
+    - `legacy_rescue_required`
+    - `missing_secret`
+    - `skipped_not_configured`
+- [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py):
+  - agrega `GET /platform/security-posture/runtime-secret-plan`
+- [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py):
+  - agrega el contrato tipado del plan central
+- [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts):
+  - agregan el cliente tipado de la lectura central
+- [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+  - incorpora el `Plan central de secretos runtime`
+  - muestra estado, acción recomendada y elegibilidad batch por tenant
+
+Resultado:
+
+- el operador ya no necesita inferir manualmente si conviene sync, rotate o tooling legacy
+- la distribución/rotación centralizada queda más formal sin reintroducir rescate normal desde `/.env`
+- validación repo:
+  - `backend.app.tests.test_platform_flow` -> `234 tests OK`
+  - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-23 - `Etapa 11` ya agrega rotación centralizada por lote sobre el carril runtime-only
 
 Contexto:

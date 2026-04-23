@@ -837,6 +837,128 @@ class TenantService:
             "rotated_at": datetime.now(timezone.utc),
         }
 
+    def plan_active_tenant_runtime_secret_operations(
+        self,
+        db: Session,
+        *,
+        limit: int | None = None,
+    ) -> dict:
+        active_tenants = self.tenant_repository.list_active(db)
+        if limit is not None:
+            active_tenants = active_tenants[: max(limit, 0)]
+
+        rows: list[dict] = []
+        runtime_ready = 0
+        sync_recommended = 0
+        skipped_not_configured = 0
+        legacy_rescue_required = 0
+        missing_secret = 0
+
+        for tenant in active_tenants:
+            if not tenant.db_name or not tenant.db_user or not tenant.db_host or not tenant.db_port:
+                skipped_not_configured += 1
+                rows.append(
+                    {
+                        "tenant_id": tenant.id,
+                        "tenant_slug": tenant.slug,
+                        "outcome": "skipped_not_configured",
+                        "recommended_action": "configure_database",
+                        "detail": "Tenant database configuration is incomplete",
+                        "source": None,
+                        "eligible_for_sync_batch": False,
+                        "eligible_for_rotation_batch": False,
+                    }
+                )
+                continue
+
+            distribution = self.tenant_secret_service.describe_tenant_db_secret_distribution(
+                tenant.slug,
+                settings,
+            )
+
+            try:
+                resolution = self.tenant_secret_service.resolve_tenant_db_password_details(
+                    tenant.slug,
+                    settings,
+                    allow_legacy_env_fallback=False,
+                )
+            except ValueError:
+                if distribution.get("legacy_rescue_available"):
+                    legacy_rescue_required += 1
+                    rows.append(
+                        {
+                            "tenant_id": tenant.id,
+                            "tenant_slug": tenant.slug,
+                            "outcome": "legacy_rescue_required",
+                            "recommended_action": "legacy_rescue",
+                            "detail": (
+                                "Tenant runtime secret is missing from runtime-managed sources. "
+                                "Use controlled legacy rescue tooling before sync or rotation."
+                            ),
+                            "source": None,
+                            "eligible_for_sync_batch": False,
+                            "eligible_for_rotation_batch": False,
+                        }
+                    )
+                    continue
+
+                missing_secret += 1
+                rows.append(
+                    {
+                        "tenant_id": tenant.id,
+                        "tenant_slug": tenant.slug,
+                        "outcome": "missing_secret",
+                        "recommended_action": "investigate_secret_source",
+                        "detail": "Tenant DB password is not configured in runtime-managed sources",
+                        "source": None,
+                        "eligible_for_sync_batch": False,
+                        "eligible_for_rotation_batch": False,
+                    }
+                )
+                continue
+
+            source = resolution["source"]
+            if source == "runtime_secrets_file":
+                runtime_ready += 1
+                rows.append(
+                    {
+                        "tenant_id": tenant.id,
+                        "tenant_slug": tenant.slug,
+                        "outcome": "runtime_ready",
+                        "recommended_action": "rotate_db_credentials",
+                        "detail": "Tenant runtime secret is already managed from isolated runtime sources",
+                        "source": source,
+                        "eligible_for_sync_batch": False,
+                        "eligible_for_rotation_batch": True,
+                    }
+                )
+                continue
+
+            sync_recommended += 1
+            rows.append(
+                {
+                    "tenant_id": tenant.id,
+                    "tenant_slug": tenant.slug,
+                    "outcome": "sync_recommended",
+                    "recommended_action": "sync_runtime_secret",
+                    "detail": "Tenant secret is resolvable but still not isolated in the runtime secrets file",
+                    "source": source,
+                    "eligible_for_sync_batch": True,
+                    "eligible_for_rotation_batch": True,
+                }
+            )
+
+        return {
+            "processed": len(active_tenants),
+            "runtime_ready": runtime_ready,
+            "sync_recommended": sync_recommended,
+            "skipped_not_configured": skipped_not_configured,
+            "legacy_rescue_required": legacy_rescue_required,
+            "missing_secret": missing_secret,
+            "data": rows,
+            "planned_at": datetime.now(timezone.utc),
+        }
+
     def deprovision_tenant(self, db: Session, tenant_id: int) -> dict:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:

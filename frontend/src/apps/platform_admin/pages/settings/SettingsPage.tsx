@@ -10,6 +10,7 @@ import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
   getPlatformCapabilities,
   getPlatformRootRecoveryStatus,
+  getPlatformRuntimeSecretPlan,
   getPlatformSecurityPosture,
   listPlatformUsers,
   rotatePlatformRuntimeDbCredentials,
@@ -25,6 +26,7 @@ import type {
   PlatformRootRecoveryStatusResponse,
   PlatformTenantDbCredentialsRotateBatchResponse,
   PlatformRuntimeSecurityPostureResponse,
+  PlatformTenantRuntimeSecretPlanResponse,
   PlatformTenantRuntimeSecretBatchSyncResponse,
   PlatformUser,
 } from "../../../../types";
@@ -38,10 +40,15 @@ export function SettingsPage() {
     useState<PlatformRootRecoveryStatusResponse | null>(null);
   const [securityPosture, setSecurityPosture] =
     useState<PlatformRuntimeSecurityPostureResponse | null>(null);
+  const [runtimeSecretPlan, setRuntimeSecretPlan] =
+    useState<PlatformTenantRuntimeSecretPlanResponse | null>(null);
   const [rootRecoveryStatusError, setRootRecoveryStatusError] = useState<ApiError | null>(
     null
   );
   const [securityPostureError, setSecurityPostureError] = useState<ApiError | null>(
+    null
+  );
+  const [runtimeSecretPlanError, setRuntimeSecretPlanError] = useState<ApiError | null>(
     null
   );
   const [runtimeSyncFeedback, setRuntimeSyncFeedback] = useState<string | null>(null);
@@ -81,6 +88,16 @@ export function SettingsPage() {
     return getDefaultApiBaseUrl();
   }, []);
 
+  const runtimeSecretPlanOverview = useMemo(() => {
+    return {
+      runtimeReady: runtimeSecretPlan?.runtime_ready || 0,
+      syncRecommended: runtimeSecretPlan?.sync_recommended || 0,
+      legacyRescueRequired: runtimeSecretPlan?.legacy_rescue_required || 0,
+      missingSecret: runtimeSecretPlan?.missing_secret || 0,
+      skippedNotConfigured: runtimeSecretPlan?.skipped_not_configured || 0,
+    };
+  }, [runtimeSecretPlan]);
+
   async function loadSettings() {
     if (!session?.accessToken) {
       return;
@@ -90,6 +107,7 @@ export function SettingsPage() {
     setError(null);
     setRootRecoveryStatusError(null);
     setSecurityPostureError(null);
+    setRuntimeSecretPlanError(null);
 
     try {
       const [
@@ -97,12 +115,14 @@ export function SettingsPage() {
         rootRecoveryResult,
         platformUsersResult,
         securityPostureResult,
+        runtimeSecretPlanResult,
       ] =
         await Promise.allSettled([
           getPlatformCapabilities(session.accessToken),
           getPlatformRootRecoveryStatus(session.accessToken),
           listPlatformUsers(session.accessToken),
           getPlatformSecurityPosture(session.accessToken),
+          getPlatformRuntimeSecretPlan(session.accessToken),
         ]);
 
       if (capabilitiesResult.status === "fulfilled") {
@@ -131,10 +151,18 @@ export function SettingsPage() {
         setSecurityPostureError(securityPostureResult.reason as ApiError);
       }
 
+      if (runtimeSecretPlanResult.status === "fulfilled") {
+        setRuntimeSecretPlan(runtimeSecretPlanResult.value);
+      } else {
+        setRuntimeSecretPlan(null);
+        setRuntimeSecretPlanError(runtimeSecretPlanResult.reason as ApiError);
+      }
+
       if (
         capabilitiesResult.status === "rejected" &&
         platformUsersResult.status === "rejected" &&
-        securityPostureResult.status === "rejected"
+        securityPostureResult.status === "rejected" &&
+        runtimeSecretPlanResult.status === "rejected"
       ) {
         throw capabilitiesResult.reason;
       }
@@ -143,9 +171,11 @@ export function SettingsPage() {
       setCapabilities(null);
       setRootRecoveryStatus(null);
       setSecurityPosture(null);
+      setRuntimeSecretPlan(null);
       setPlatformUsers([]);
       setRootRecoveryStatusError(null);
       setSecurityPostureError(null);
+      setRuntimeSecretPlanError(null);
     } finally {
       setIsLoading(false);
     }
@@ -651,6 +681,35 @@ export function SettingsPage() {
           {runtimeRotateFeedback ? (
             <div className="alert alert-info mt-3 mb-0">{runtimeRotateFeedback}</div>
           ) : null}
+          <div className="tenant-detail-grid mt-3">
+            <DetailField
+              label={language === "es" ? "Plan central listo para rotar" : "Central plan ready to rotate"}
+              value={runtimeSecretPlanOverview.runtimeReady}
+            />
+            <DetailField
+              label={language === "es" ? "Primero sincronizar" : "Sync first"}
+              value={runtimeSecretPlanOverview.syncRecommended}
+            />
+            <DetailField
+              label={language === "es" ? "Rescate legacy requerido" : "Legacy rescue required"}
+              value={runtimeSecretPlanOverview.legacyRescueRequired}
+            />
+            <DetailField
+              label={language === "es" ? "Secreto faltante" : "Missing secret"}
+              value={runtimeSecretPlanOverview.missingSecret}
+            />
+            <DetailField
+              label={language === "es" ? "DB sin configurar" : "DB not configured"}
+              value={runtimeSecretPlanOverview.skippedNotConfigured}
+            />
+          </div>
+          {runtimeSecretPlanError ? (
+            <div className="alert alert-warning mt-3 mb-0">
+              {language === "es"
+                ? "No fue posible leer ahora el plan central de secretos runtime. La postura general sigue visible."
+                : "The central runtime secret plan could not be read right now. The overall posture is still visible."}
+            </div>
+          ) : null}
           <div className="dashboard-quick-hints mt-3">
             <div>
               {language === "es"
@@ -757,6 +816,72 @@ export function SettingsPage() {
           </div>
         </PanelCard>
       </div>
+
+      {runtimeSecretPlan ? (
+        <DataTableCard
+          title={
+            language === "es"
+              ? "Plan central de secretos runtime"
+              : "Central runtime secret plan"
+          }
+          subtitle={
+            language === "es"
+              ? "Lectura previa para decidir si cada tenant entra directo a rotación, si primero requiere sincronización runtime-only o si quedó restringido al tooling legacy controlado."
+              : "Pre-read to decide whether each tenant can go straight to rotation, needs runtime-only sync first, or remains restricted to controlled legacy tooling."
+          }
+          rows={runtimeSecretPlan.data}
+          columns={[
+            {
+              key: "tenant_slug",
+              header: language === "es" ? "Tenant" : "Tenant",
+              render: (row) => <code>{row.tenant_slug}</code>,
+            },
+            {
+              key: "outcome",
+              header: language === "es" ? "Estado" : "State",
+              render: (row) => getRuntimeSecretPlanOutcomeLabel(row.outcome, language),
+            },
+            {
+              key: "recommended_action",
+              header: language === "es" ? "Acción recomendada" : "Recommended action",
+              render: (row) =>
+                getRuntimeSecretPlanActionLabel(row.recommended_action, language),
+            },
+            {
+              key: "source",
+              header: language === "es" ? "Origen visible" : "Visible source",
+              render: (row) =>
+                row.source ? displayPlatformCode(row.source, language) : "—",
+            },
+            {
+              key: "eligibility",
+              header: language === "es" ? "Elegibilidad" : "Eligibility",
+              render: (row) => (
+                <div className="settings-token-chips">
+                  {row.eligible_for_sync_batch ? (
+                    <span className="tenant-chip">
+                      {language === "es" ? "sync batch" : "sync batch"}
+                    </span>
+                  ) : null}
+                  {row.eligible_for_rotation_batch ? (
+                    <span className="tenant-chip">
+                      {language === "es" ? "rotate batch" : "rotate batch"}
+                    </span>
+                  ) : null}
+                  {!row.eligible_for_sync_batch && !row.eligible_for_rotation_batch
+                    ? "—"
+                    : null}
+                </div>
+              ),
+            },
+            {
+              key: "detail",
+              header: language === "es" ? "Detalle" : "Detail",
+              render: (row) => row.detail || "—",
+            },
+          ]}
+        />
+      ) : null}
 
       {capabilities ? (
         <>
@@ -1201,6 +1326,36 @@ function SettingsTokenGroup({
       </div>
     </div>
   );
+}
+
+function getRuntimeSecretPlanOutcomeLabel(
+  outcome: string,
+  language: "es" | "en"
+): string {
+  const labels: Record<string, string> = {
+    runtime_ready: language === "es" ? "runtime listo" : "runtime ready",
+    sync_recommended: language === "es" ? "sincronizar primero" : "sync first",
+    legacy_rescue_required: language === "es" ? "rescate legacy" : "legacy rescue",
+    missing_secret: language === "es" ? "secreto faltante" : "missing secret",
+    skipped_not_configured: language === "es" ? "DB incompleta" : "DB incomplete",
+  };
+  return labels[outcome] || displayPlatformCode(outcome, language);
+}
+
+function getRuntimeSecretPlanActionLabel(
+  action: string,
+  language: "es" | "en"
+): string {
+  const labels: Record<string, string> = {
+    rotate_db_credentials:
+      language === "es" ? "rotar credenciales" : "rotate credentials",
+    sync_runtime_secret: language === "es" ? "sincronizar runtime" : "sync runtime",
+    legacy_rescue: language === "es" ? "usar tooling legacy" : "use legacy tooling",
+    investigate_secret_source:
+      language === "es" ? "investigar origen" : "investigate source",
+    configure_database: language === "es" ? "configurar DB" : "configure DB",
+  };
+  return labels[action] || displayPlatformCode(action, language);
 }
 
 function getPlanModuleLabel(

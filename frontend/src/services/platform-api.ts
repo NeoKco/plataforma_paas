@@ -7,6 +7,7 @@ import type {
   PlatformRootRecoveryStatusResponse,
   PlatformRuntimeSecurityPostureResponse,
   PlatformTenantDbCredentialsRotateBatchResponse,
+  PlatformTenantRuntimeSecretPlanResponse,
   PlatformTenantRuntimeSecretBatchSyncResponse,
   PlatformTenant,
   PlatformTenantAccessPolicy,
@@ -138,6 +139,15 @@ export function rotatePlatformRuntimeDbCredentials(accessToken: string) {
     "/platform/security-posture/rotate-db-credentials",
     {
       method: "POST",
+      token: accessToken,
+    }
+  );
+}
+
+export function getPlatformRuntimeSecretPlan(accessToken: string) {
+  return apiRequest<PlatformTenantRuntimeSecretPlanResponse>(
+    "/platform/security-posture/runtime-secret-plan",
+    {
       token: accessToken,
     }
   );

@@ -252,6 +252,30 @@ export type PlatformTenantDbCredentialsRotateBatchResponse = {
   data: PlatformTenantDbCredentialsRotateBatchItem[];
 };
 
+export type PlatformTenantRuntimeSecretPlanItem = {
+  tenant_id: number;
+  tenant_slug: string;
+  outcome: string;
+  recommended_action: string;
+  detail: string | null;
+  source: string | null;
+  eligible_for_sync_batch: boolean;
+  eligible_for_rotation_batch: boolean;
+};
+
+export type PlatformTenantRuntimeSecretPlanResponse = {
+  success: boolean;
+  message: string;
+  processed: number;
+  runtime_ready: number;
+  sync_recommended: number;
+  skipped_not_configured: number;
+  legacy_rescue_required: number;
+  missing_secret: number;
+  planned_at: string | null;
+  data: PlatformTenantRuntimeSecretPlanItem[];
+};
+
 export type PlatformLoginResponse = {
   success: boolean;
   message: string;

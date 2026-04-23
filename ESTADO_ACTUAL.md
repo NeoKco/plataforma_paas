@@ -4,6 +4,25 @@
 
 - fecha: 2026-04-23
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 11`:
+  - séptimo corte ya cerrado en repo:
+    - `Settings -> Postura de secretos y runtime` ya agrega un `Plan central de secretos runtime`
+    - la lectura nueva ya clasifica tenants activos por:
+      - `runtime_ready`
+      - `sync_recommended`
+      - `legacy_rescue_required`
+      - `missing_secret`
+      - `skipped_not_configured`
+    - el nuevo endpoint `GET /platform/security-posture/runtime-secret-plan` ya deja explícita la acción recomendada por tenant antes de correr sync o rotate
+    - la tabla visible ya indica también elegibilidad por lote:
+      - `sync batch`
+      - `rotate batch`
+    - este corte formaliza la capa previa de distribución/rotación centralizada:
+      - primero leer el plan central
+      - luego decidir si corresponde `Sincronizar runtime central`, `Rotar credenciales central` o tooling legacy controlado
+  - validación repo de este séptimo corte:
+    - `backend.app.tests.test_platform_flow` -> `234 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
   - sexto corte ya cerrado en repo:
     - `Settings -> Postura de secretos y runtime` ya expone `Rotar credenciales central`
     - la mutación nueva `POST /platform/security-posture/rotate-db-credentials` ya recorre tenants activos y rota solo credenciales DB tenant runtime-ready

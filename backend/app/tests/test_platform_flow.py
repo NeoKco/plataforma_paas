@@ -65,6 +65,7 @@ from app.apps.platform_control.api.routes import (  # noqa: E402
     admin_only_route,
     get_platform_capabilities,
     get_platform_security_posture,
+    get_platform_runtime_secret_plan,
     ping_control_db,
     rotate_platform_tenant_db_credentials,
     sync_platform_runtime_secrets,
@@ -1601,6 +1602,104 @@ class PlatformServicesTestCase(unittest.TestCase):
             "Use controlled legacy rescue tooling before retrying this action.",
         ):
             service.rotate_tenant_db_credentials(db=object(), tenant_id=1)
+
+    def test_tenant_service_builds_runtime_secret_operation_plan(self) -> None:
+        tenant_runtime = build_tenant_record_stub(status="active", tenant_slug="empresa-runtime")
+        tenant_runtime.id = 1
+        tenant_runtime.db_name = "tenant_empresa_runtime"
+        tenant_runtime.db_user = "user_empresa_runtime"
+        tenant_runtime.db_host = "127.0.0.1"
+        tenant_runtime.db_port = 5432
+
+        tenant_sync = build_tenant_record_stub(status="active", tenant_slug="empresa-sync")
+        tenant_sync.id = 2
+        tenant_sync.db_name = "tenant_empresa_sync"
+        tenant_sync.db_user = "user_empresa_sync"
+        tenant_sync.db_host = "127.0.0.1"
+        tenant_sync.db_port = 5432
+
+        tenant_legacy = build_tenant_record_stub(status="active", tenant_slug="empresa-legacy")
+        tenant_legacy.id = 3
+        tenant_legacy.db_name = "tenant_empresa_legacy"
+        tenant_legacy.db_user = "user_empresa_legacy"
+        tenant_legacy.db_host = "127.0.0.1"
+        tenant_legacy.db_port = 5432
+
+        tenant_missing = build_tenant_record_stub(status="active", tenant_slug="empresa-missing")
+        tenant_missing.id = 4
+        tenant_missing.db_name = "tenant_empresa_missing"
+        tenant_missing.db_user = "user_empresa_missing"
+        tenant_missing.db_host = "127.0.0.1"
+        tenant_missing.db_port = 5432
+
+        tenant_unconfigured = build_tenant_record_stub(status="active", tenant_slug="empresa-pending")
+        tenant_unconfigured.id = 5
+        tenant_unconfigured.db_name = None
+        tenant_unconfigured.db_user = None
+        tenant_unconfigured.db_host = None
+        tenant_unconfigured.db_port = None
+
+        tenant_repository = MagicMock()
+        tenant_repository.list_active.return_value = [
+            tenant_runtime,
+            tenant_sync,
+            tenant_legacy,
+            tenant_missing,
+            tenant_unconfigured,
+        ]
+        tenant_secret_service = MagicMock()
+        tenant_secret_service.describe_tenant_db_secret_distribution.side_effect = (
+            lambda slug, _settings: {
+                "tenant_slug": slug,
+                "runtime_secret_present": slug == "empresa-runtime",
+                "legacy_secret_present": slug == "empresa-legacy",
+                "legacy_rescue_available": slug == "empresa-legacy",
+            }
+        )
+
+        def _resolve(slug, _settings, allow_legacy_env_fallback=False):
+            self.assertFalse(allow_legacy_env_fallback)
+            if slug == "empresa-runtime":
+                return {
+                    "password": "secret",
+                    "env_var_name": "TENANT_DB_PASSWORD__EMPRESA_RUNTIME",
+                    "source": "runtime_secrets_file",
+                    "source_path": "/opt/platform_paas/.tenant-secrets.env",
+                }
+            if slug == "empresa-sync":
+                return {
+                    "password": "secret",
+                    "env_var_name": "TENANT_DB_PASSWORD__EMPRESA_SYNC",
+                    "source": "process_env",
+                    "source_path": None,
+                }
+            raise ValueError("Tenant DB password not configured for this tenant")
+
+        tenant_secret_service.resolve_tenant_db_password_details.side_effect = _resolve
+
+        service = TenantService(
+            tenant_repository=tenant_repository,
+            tenant_secret_service=tenant_secret_service,
+        )
+
+        result = service.plan_active_tenant_runtime_secret_operations(db=object())
+
+        self.assertEqual(result["processed"], 5)
+        self.assertEqual(result["runtime_ready"], 1)
+        self.assertEqual(result["sync_recommended"], 1)
+        self.assertEqual(result["legacy_rescue_required"], 1)
+        self.assertEqual(result["missing_secret"], 1)
+        self.assertEqual(result["skipped_not_configured"], 1)
+        self.assertEqual(
+            [row["outcome"] for row in result["data"]],
+            [
+                "runtime_ready",
+                "sync_recommended",
+                "legacy_rescue_required",
+                "missing_secret",
+                "skipped_not_configured",
+            ],
+        )
 
     def test_tenant_service_rotates_active_db_credentials_in_batch(self) -> None:
         tenant_runtime = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
@@ -5013,6 +5112,43 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.skipped_legacy_rescue_required, 1)
         rotate_mock.assert_called_once()
         audit_mock.assert_called_once()
+
+    def test_get_platform_runtime_secret_plan_returns_schema(self) -> None:
+        planned_at = datetime.now(timezone.utc)
+        with patch(
+            "app.apps.platform_control.api.routes.tenant_service.plan_active_tenant_runtime_secret_operations",
+            return_value={
+                "processed": 2,
+                "runtime_ready": 1,
+                "sync_recommended": 1,
+                "skipped_not_configured": 0,
+                "legacy_rescue_required": 0,
+                "missing_secret": 0,
+                "planned_at": planned_at,
+                "data": [
+                    {
+                        "tenant_id": 1,
+                        "tenant_slug": "empresa-demo",
+                        "outcome": "runtime_ready",
+                        "recommended_action": "rotate_db_credentials",
+                        "detail": "ok",
+                        "source": "runtime_secrets_file",
+                        "eligible_for_sync_batch": False,
+                        "eligible_for_rotation_batch": True,
+                    }
+                ],
+            },
+        ) as plan_mock:
+            response = get_platform_runtime_secret_plan(
+                db=object(),
+                _token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.processed, 2)
+        self.assertEqual(response.runtime_ready, 1)
+        self.assertEqual(response.sync_recommended, 1)
+        plan_mock.assert_called_once()
         self.assertEqual(response.data[0].tenant_slug, "empresa-demo")
 
     def test_list_platform_users_returns_catalog(self) -> None:

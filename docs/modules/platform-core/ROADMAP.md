@@ -224,12 +224,21 @@ Estado práctico de cierre:
       - no rescata desde `/.env`
       - valida la credencial nueva antes de confirmar
       - deja los tenants legacy como `skipped_legacy_rescue_required`
+  - séptimo slice repo ya cerrado:
+    - `GET /platform/security-posture/runtime-secret-plan` ya clasifica tenants activos antes de mutar
+    - `Configuración -> Postura de secretos y runtime` ya muestra un `Plan central de secretos runtime`
+    - por tenant deja visible:
+      - `outcome`
+      - `recommended_action`
+      - `eligible_for_sync_batch`
+      - `eligible_for_rotation_batch`
+    - la distribución/rotación centralizada ya deja de depender de inferencia manual
   - ese sexto slice ya queda también publicado en runtime:
     - `staging` backend redeployado con `572 tests OK`
     - `production` backend redeployado con `572 tests OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - siguiente corte recomendado:
-    - abrir distribución/rotación centralizada más formal de secretos tenant
+    - publicar el séptimo slice y luego abrir un corte más gobernado de campañas/exclusiones batch
     - mantener el rescate legacy solo como tooling excepcional
 
 ## Cierre operativo del bloque central

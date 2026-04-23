@@ -5,6 +5,7 @@ from app.apps.platform_control.schemas import (
     PlatformCapabilityCatalogResponse,
     PlatformTenantDbCredentialsRotateBatchResponse,
     PlatformRuntimeSecurityPostureResponse,
+    PlatformTenantRuntimeSecretPlanResponse,
     PlatformTenantRuntimeSecretBatchSyncResponse,
 )
 from app.apps.platform_control.repositories.tenant_repository import TenantRepository
@@ -118,6 +119,29 @@ def get_platform_security_posture(
         tenant_secret_distribution_summary=posture[
             "tenant_secret_distribution_summary"
         ],
+    )
+
+
+@router.get(
+    "/security-posture/runtime-secret-plan",
+    response_model=PlatformTenantRuntimeSecretPlanResponse,
+)
+def get_platform_runtime_secret_plan(
+    db: Session = Depends(get_control_db),
+    _token: dict = Depends(require_role("superadmin")),
+) -> PlatformTenantRuntimeSecretPlanResponse:
+    result = tenant_service.plan_active_tenant_runtime_secret_operations(db=db)
+    return PlatformTenantRuntimeSecretPlanResponse(
+        success=True,
+        message="Plan central de secretos runtime recuperado correctamente",
+        processed=result["processed"],
+        runtime_ready=result["runtime_ready"],
+        sync_recommended=result["sync_recommended"],
+        skipped_not_configured=result["skipped_not_configured"],
+        legacy_rescue_required=result["legacy_rescue_required"],
+        missing_secret=result["missing_secret"],
+        planned_at=result["planned_at"],
+        data=result["data"],
     )
 
 

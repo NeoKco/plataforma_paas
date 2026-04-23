@@ -84,9 +84,19 @@
         - `Settings -> Postura de secretos y runtime` ya agrega `Rotar credenciales central`
         - `POST /platform/security-posture/rotate-db-credentials` ya rota credenciales DB tenant por lote sobre tenants runtime-ready
         - la rotación batch no rescata desde `/.env` y deja los tenants legacy como `skipped_legacy_rescue_required`
+      - séptimo slice ya cerrado en repo:
+        - `GET /platform/security-posture/runtime-secret-plan` ya clasifica tenants activos antes del batch
+        - `Settings -> Postura de secretos y runtime` ya muestra por tenant:
+          - estado operativo
+          - acción recomendada
+          - elegibilidad para `sync batch` y `rotate batch`
+        - el operador ya no necesita inferir si conviene sincronizar, rotar o derivar a tooling legacy controlado
       - siguiente corte recomendado:
-        - el sexto slice ya quedó publicado en `staging` y `production`
-        - abrir distribución/rotación centralizada más formal de secretos tenant
+        - el séptimo slice ya quedó listo para promoción runtime
+        - siguiente corte formal:
+          - convertir la lectura central en una operación más gobernada:
+            - selección/exclusión de tenants desde consola para sync o rotate
+            - o persistencia/auditoría más formal de campañas de rotación
         - mantener el rescate legacy solo como tooling excepcional
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:

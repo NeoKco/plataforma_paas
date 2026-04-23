@@ -149,6 +149,33 @@ Objetivo:
 - usar el mismo criterio runtime-only de la sincronización central
 - dejar trazabilidad por tenant de qué rotó, qué quedó omitido y qué falló
 
+### Plan central previo de secretos runtime
+
+Antes de ejecutar sync o rotate por lote, `Configuración -> Postura de secretos y runtime` ya muestra también un `Plan central de secretos runtime`.
+
+Esta lectura:
+
+- clasifica tenants activos por:
+  - `runtime_ready`
+  - `sync_recommended`
+  - `legacy_rescue_required`
+  - `missing_secret`
+  - `skipped_not_configured`
+- indica acción recomendada por tenant:
+  - `rotate_db_credentials`
+  - `sync_runtime_secret`
+  - `legacy_rescue`
+  - `investigate_secret_source`
+  - `configure_database`
+- deja explícita la elegibilidad para:
+  - `sync batch`
+  - `rotate batch`
+
+Objetivo:
+
+- evitar que el operador adivine si un tenant debe rotar, sincronizar o salir al tooling legacy
+- formalizar la capa previa de distribución/rotación centralizada sin reintroducir rescate desde `/.env`
+
 ### Postura operativa de secretos por carril
 
 El script canónico [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya expone tambien una lectura rápida de postura de secretos:

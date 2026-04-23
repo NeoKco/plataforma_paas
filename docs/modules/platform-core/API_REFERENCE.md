@@ -67,6 +67,7 @@ Capabilities:
 
 - `GET /platform/capabilities`
 - `GET /platform/security-posture`
+- `GET /platform/security-posture/runtime-secret-plan`
 
 Payload operativo actual de `GET /platform/capabilities`:
 
@@ -134,6 +135,37 @@ Mutaciones batch nuevas para el mismo carril:
 
 - `POST /platform/security-posture/sync-runtime-secrets`
 - `POST /platform/security-posture/rotate-db-credentials`
+
+Lectura central nueva previa al batch:
+
+- `GET /platform/security-posture/runtime-secret-plan`
+
+Esta lectura:
+
+- recorre tenants activos configurados
+- clasifica cada tenant antes de mutar:
+  - `runtime_ready`
+  - `sync_recommended`
+  - `legacy_rescue_required`
+  - `missing_secret`
+  - `skipped_not_configured`
+- devuelve por tenant:
+  - `tenant_id`
+  - `tenant_slug`
+  - `outcome`
+  - `recommended_action`
+  - `detail`
+  - `source`
+  - `eligible_for_sync_batch`
+  - `eligible_for_rotation_batch`
+- resume:
+  - `processed`
+  - `runtime_ready`
+  - `sync_recommended`
+  - `skipped_not_configured`
+  - `legacy_rescue_required`
+  - `missing_secret`
+  - `planned_at`
 
 Esta mutación:
 

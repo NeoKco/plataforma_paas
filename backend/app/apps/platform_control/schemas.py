@@ -261,6 +261,30 @@ class PlatformTenantDbCredentialsRotateBatchResponse(BaseModel):
     data: list[PlatformTenantDbCredentialsRotateBatchItemResponse]
 
 
+class PlatformTenantRuntimeSecretPlanItemResponse(BaseModel):
+    tenant_id: int
+    tenant_slug: str
+    outcome: str
+    recommended_action: str
+    detail: str | None = None
+    source: str | None = None
+    eligible_for_sync_batch: bool = False
+    eligible_for_rotation_batch: bool = False
+
+
+class PlatformTenantRuntimeSecretPlanResponse(BaseModel):
+    success: bool
+    message: str
+    processed: int
+    runtime_ready: int
+    sync_recommended: int
+    skipped_not_configured: int
+    legacy_rescue_required: int
+    missing_secret: int
+    planned_at: datetime | None = None
+    data: list[PlatformTenantRuntimeSecretPlanItemResponse]
+
+
 class TenantCreateRequest(BaseModel):
     name: str
     slug: str
