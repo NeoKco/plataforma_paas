@@ -113,6 +113,7 @@ Regla operativa vigente del carril tenant secrets:
 Mutación operativa nueva para el carril tenant secrets:
 
 - `POST /platform/tenants/{tenant_id}/sync-db-runtime-secret`
+- `POST /platform/security-posture/sync-runtime-secrets`
 
 Esta mutación:
 
@@ -128,6 +129,32 @@ Esta mutación:
   - `source_path`
   - `already_runtime_managed`
   - `synced_at`
+
+Mutación batch nueva para el mismo carril:
+
+- `POST /platform/security-posture/sync-runtime-secrets`
+
+Esta mutación:
+
+- recorre tenants activos
+- solo sincroniza desde fuentes runtime-managed
+- no rescata desde `/.env`
+- deja a los tenants todavía legacy como `skipped_legacy_rescue_required`
+- devuelve:
+  - `processed`
+  - `synced`
+  - `already_runtime_managed`
+  - `skipped_not_configured`
+  - `skipped_legacy_rescue_required`
+  - `failed`
+  - `synced_at`
+  - `data[]` por tenant con:
+    - `tenant_id`
+    - `tenant_slug`
+    - `outcome`
+    - `detail`
+    - `source`
+    - `already_runtime_managed`
 
 ## Notas
 
@@ -184,6 +211,10 @@ Esta mutación:
     - no rota la credencial PostgreSQL
     - sirve para corregir drift de distribución cuando el valor válido ya existe en fuentes runtime-managed
     - si el secreto solo sobrevive en `/.env`, el rescate ya no ocurre aquí; debe usarse tooling controlado
+  - `POST /platform/security-posture/sync-runtime-secrets`:
+    - ejecuta la misma lógica en batch sobre tenants activos
+    - deja visibilidad centralizada desde `Configuración -> Postura de secretos y runtime`
+    - no convierte `/.env` en carril normal; los tenants legacy quedan marcados para rescate controlado
   - `POST /platform/tenants` hoy acepta:
     - `base_plan_code`
   - para tenants nuevos:

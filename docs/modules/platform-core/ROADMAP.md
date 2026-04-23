@@ -213,8 +213,12 @@ Estado práctico de cierre:
     - `Sincronizar secreto runtime` ya no rescata desde `/.env` dentro del flujo normal de consola
     - si el secreto solo sobrevive en `/.env`, la operación normal responde conflicto y deriva a tooling controlado
     - el script [rescue_tenant_runtime_secrets_from_legacy.py](/home/felipe/platform_paas/backend/app/scripts/rescue_tenant_runtime_secrets_from_legacy.py) queda como carril explícito de rescate legacy
+  - quinto slice repo ya cerrado:
+    - `Configuración -> Postura de secretos y runtime` ya agrega `Sincronizar runtime central`
+    - `POST /platform/security-posture/sync-runtime-secrets` ya ejecuta batch sobre tenants activos
+    - el batch ya no rescata desde `/.env`; deja esos casos como `skipped_legacy_rescue_required`
   - siguiente corte recomendado:
-    - promover este cuarto slice a runtime published
+    - promover este quinto slice a runtime published
     - abrir distribución/rotación centralizada más formal de secretos tenant
     - mantener el rescate legacy solo como tooling excepcional
 

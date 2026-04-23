@@ -4,14 +4,17 @@ from sqlalchemy.orm import Session
 from app.apps.platform_control.schemas import (
     PlatformCapabilityCatalogResponse,
     PlatformRuntimeSecurityPostureResponse,
+    PlatformTenantRuntimeSecretBatchSyncResponse,
 )
 from app.apps.platform_control.repositories.tenant_repository import TenantRepository
+from app.apps.platform_control.services.auth_audit_service import AuthAuditService
 from app.apps.platform_control.services.platform_capability_service import (
     PlatformCapabilityService,
 )
 from app.apps.platform_control.services.platform_runtime_service import (
     PlatformRuntimeService,
 )
+from app.apps.platform_control.services.tenant_service import TenantService
 from app.common.auth.dependencies import get_current_token_payload
 from app.common.auth.role_dependencies import require_role
 from app.common.config.settings import settings
@@ -23,6 +26,8 @@ platform_runtime_service = PlatformRuntimeService()
 platform_capability_service = PlatformCapabilityService()
 runtime_security_service = RuntimeSecurityService()
 tenant_repository = TenantRepository()
+tenant_service = TenantService()
+auth_audit_service = AuthAuditService()
 
 
 @router.get("/ping-db")
@@ -112,4 +117,42 @@ def get_platform_security_posture(
         tenant_secret_distribution_summary=posture[
             "tenant_secret_distribution_summary"
         ],
+    )
+
+
+@router.post(
+    "/security-posture/sync-runtime-secrets",
+    response_model=PlatformTenantRuntimeSecretBatchSyncResponse,
+)
+def sync_platform_runtime_secrets(
+    db: Session = Depends(get_control_db),
+    token: dict = Depends(require_role("superadmin")),
+) -> PlatformTenantRuntimeSecretBatchSyncResponse:
+    result = tenant_service.sync_active_tenant_runtime_secrets(db=db)
+    auth_audit_service.log_event(
+        db=db,
+        event_type="platform.tenant_runtime_secret_sync_batch",
+        subject_scope="platform",
+        outcome="success" if result["failed"] == 0 else "warning",
+        subject_user_id=token.get("user_id"),
+        email=token.get("email"),
+        token_jti=token.get("jti"),
+        detail=(
+            f"processed={result['processed']} synced={result['synced']} "
+            f"already_runtime_managed={result['already_runtime_managed']} "
+            f"skipped_legacy_rescue_required={result['skipped_legacy_rescue_required']} "
+            f"failed={result['failed']}"
+        ),
+    )
+    return PlatformTenantRuntimeSecretBatchSyncResponse(
+        success=True,
+        message="Sincronización centralizada de secretos runtime completada",
+        processed=result["processed"],
+        synced=result["synced"],
+        already_runtime_managed=result["already_runtime_managed"],
+        skipped_not_configured=result["skipped_not_configured"],
+        skipped_legacy_rescue_required=result["skipped_legacy_rescue_required"],
+        failed=result["failed"],
+        synced_at=result["synced_at"],
+        data=result["data"],
     )

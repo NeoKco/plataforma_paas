@@ -6,6 +6,7 @@ import type {
   PlatformRootRecoveryResponse,
   PlatformRootRecoveryStatusResponse,
   PlatformRuntimeSecurityPostureResponse,
+  PlatformTenantRuntimeSecretBatchSyncResponse,
   PlatformTenant,
   PlatformTenantAccessPolicy,
   PlatformTenantBillingResponse,
@@ -116,6 +117,16 @@ export function getPlatformSecurityPosture(accessToken: string) {
   return apiRequest<PlatformRuntimeSecurityPostureResponse>(
     "/platform/security-posture",
     {
+      token: accessToken,
+    }
+  );
+}
+
+export function syncPlatformRuntimeSecrets(accessToken: string) {
+  return apiRequest<PlatformTenantRuntimeSecretBatchSyncResponse>(
+    "/platform/security-posture/sync-runtime-secrets",
+    {
+      method: "POST",
       token: accessToken,
     }
   );

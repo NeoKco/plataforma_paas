@@ -112,6 +112,23 @@ Uso recomendado:
 - usar `Sincronizar secreto runtime` cuando el valor ya es válido pero el carril runtime quedó incompleto o desalineado
 - si el valor solo sobrevive en `/.env`, usar el tooling controlado [rescue_tenant_runtime_secrets_from_legacy.py](/home/felipe/platform_paas/backend/app/scripts/rescue_tenant_runtime_secrets_from_legacy.py) antes de reintentar la sincronización normal
 
+### Sincronizacion central por lote
+
+Desde `Configuración -> Postura de secretos y runtime` ya existe también `Sincronizar runtime central`.
+
+Política actual:
+
+- recorre tenants activos
+- solo sincroniza desde fuentes runtime-managed
+- no rota la password PostgreSQL
+- no rescata desde `/.env`
+- deja como `skipped_legacy_rescue_required` a los tenants que todavía requieren rescate controlado
+
+Objetivo:
+
+- corregir drift de distribución runtime en lote sin convertir la consola en carril de rescate legacy
+- dejar visibilidad rápida de qué tenants siguen bien, cuáles ya estaban listos y cuáles todavía requieren tooling controlado
+
 ### Postura operativa de secretos por carril
 
 El script canónico [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya expone tambien una lectura rápida de postura de secretos:

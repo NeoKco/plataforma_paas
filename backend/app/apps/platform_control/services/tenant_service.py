@@ -617,6 +617,104 @@ class TenantService:
             "synced_at": datetime.now(timezone.utc),
         }
 
+    def sync_active_tenant_runtime_secrets(
+        self,
+        db: Session,
+        *,
+        limit: int | None = None,
+    ) -> dict:
+        active_tenants = self.tenant_repository.list_active(db)
+        if limit is not None:
+            active_tenants = active_tenants[: max(limit, 0)]
+
+        rows: list[dict] = []
+        synced = 0
+        already_runtime_managed = 0
+        skipped_not_configured = 0
+        skipped_legacy_rescue_required = 0
+        failed = 0
+
+        for tenant in active_tenants:
+            if not tenant.db_name or not tenant.db_user or not tenant.db_host or not tenant.db_port:
+                skipped_not_configured += 1
+                rows.append(
+                    {
+                        "tenant_id": tenant.id,
+                        "tenant_slug": tenant.slug,
+                        "outcome": "skipped_not_configured",
+                        "detail": "Tenant database configuration is incomplete",
+                        "source": None,
+                        "already_runtime_managed": False,
+                    }
+                )
+                continue
+
+            try:
+                result = self.sync_tenant_runtime_secret(
+                    db=db,
+                    tenant_id=tenant.id,
+                    allow_legacy_rescue=False,
+                )
+            except ValueError as exc:
+                detail = str(exc)
+                if "Use controlled legacy rescue tooling" in detail:
+                    skipped_legacy_rescue_required += 1
+                    rows.append(
+                        {
+                            "tenant_id": tenant.id,
+                            "tenant_slug": tenant.slug,
+                            "outcome": "skipped_legacy_rescue_required",
+                            "detail": detail,
+                            "source": None,
+                            "already_runtime_managed": False,
+                        }
+                    )
+                    continue
+
+                failed += 1
+                rows.append(
+                    {
+                        "tenant_id": tenant.id,
+                        "tenant_slug": tenant.slug,
+                        "outcome": "failed",
+                        "detail": detail,
+                        "source": None,
+                        "already_runtime_managed": False,
+                    }
+                )
+                continue
+
+            if result["already_runtime_managed"]:
+                already_runtime_managed += 1
+                outcome = "already_runtime_managed"
+                detail = "Tenant runtime secret was already managed in runtime sources"
+            else:
+                synced += 1
+                outcome = "synced"
+                detail = "Tenant runtime secret was synced successfully"
+
+            rows.append(
+                {
+                    "tenant_id": tenant.id,
+                    "tenant_slug": tenant.slug,
+                    "outcome": outcome,
+                    "detail": detail,
+                    "source": result["source"],
+                    "already_runtime_managed": result["already_runtime_managed"],
+                }
+            )
+
+        return {
+            "processed": len(active_tenants),
+            "synced": synced,
+            "already_runtime_managed": already_runtime_managed,
+            "skipped_not_configured": skipped_not_configured,
+            "skipped_legacy_rescue_required": skipped_legacy_rescue_required,
+            "failed": failed,
+            "data": rows,
+            "synced_at": datetime.now(timezone.utc),
+        }
+
     def deprovision_tenant(self, db: Session, tenant_id: int) -> dict:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:

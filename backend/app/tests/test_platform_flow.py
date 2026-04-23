@@ -66,6 +66,7 @@ from app.apps.platform_control.api.routes import (  # noqa: E402
     get_platform_capabilities,
     get_platform_security_posture,
     ping_control_db,
+    sync_platform_runtime_secrets,
 )
 from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
     router as tenant_router,
@@ -1494,6 +1495,80 @@ class PlatformServicesTestCase(unittest.TestCase):
         )
         tenant_secret_service.store_tenant_db_password.assert_called_once()
         tenant_secret_service.clear_tenant_bootstrap_db_password.assert_called_once()
+
+    def test_tenant_service_syncs_active_runtime_secrets_in_batch(self) -> None:
+        tenant_runtime = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant_runtime.id = 1
+        tenant_runtime.db_name = "tenant_empresa_demo"
+        tenant_runtime.db_user = "user_empresa_demo"
+        tenant_runtime.db_host = "127.0.0.1"
+        tenant_runtime.db_port = 5432
+
+        tenant_legacy = build_tenant_record_stub(status="active", tenant_slug="empresa-legacy")
+        tenant_legacy.id = 2
+        tenant_legacy.db_name = "tenant_empresa_legacy"
+        tenant_legacy.db_user = "user_empresa_legacy"
+        tenant_legacy.db_host = "127.0.0.1"
+        tenant_legacy.db_port = 5432
+
+        tenant_broken = build_tenant_record_stub(status="active", tenant_slug="empresa-broken")
+        tenant_broken.id = 3
+        tenant_broken.db_name = "tenant_empresa_broken"
+        tenant_broken.db_user = "user_empresa_broken"
+        tenant_broken.db_host = "127.0.0.1"
+        tenant_broken.db_port = 5432
+
+        tenant_unconfigured = build_tenant_record_stub(status="active", tenant_slug="empresa-pending")
+        tenant_unconfigured.id = 4
+        tenant_unconfigured.db_name = None
+        tenant_unconfigured.db_user = None
+        tenant_unconfigured.db_host = None
+        tenant_unconfigured.db_port = None
+
+        tenant_repository = MagicMock()
+        tenant_repository.list_active.return_value = [
+            tenant_runtime,
+            tenant_legacy,
+            tenant_broken,
+            tenant_unconfigured,
+        ]
+        service = TenantService(
+            tenant_repository=tenant_repository,
+            tenant_secret_service=MagicMock(),
+        )
+
+        def _sync(db, tenant_id, allow_legacy_rescue=False):
+            self.assertFalse(allow_legacy_rescue)
+            if tenant_id == 1:
+                return {
+                    "source": "runtime_secrets_file",
+                    "already_runtime_managed": True,
+                }
+            if tenant_id == 2:
+                raise ValueError(
+                    "Tenant runtime secret is missing from runtime-managed sources. Use controlled legacy rescue tooling before retrying this action."
+                )
+            raise ValueError("Tenant database access failed")
+
+        service.sync_tenant_runtime_secret = MagicMock(side_effect=_sync)
+
+        result = service.sync_active_tenant_runtime_secrets(db=object())
+
+        self.assertEqual(result["processed"], 4)
+        self.assertEqual(result["synced"], 0)
+        self.assertEqual(result["already_runtime_managed"], 1)
+        self.assertEqual(result["skipped_not_configured"], 1)
+        self.assertEqual(result["skipped_legacy_rescue_required"], 1)
+        self.assertEqual(result["failed"], 1)
+        self.assertEqual(
+            [row["outcome"] for row in result["data"]],
+            [
+                "already_runtime_managed",
+                "skipped_legacy_rescue_required",
+                "failed",
+                "skipped_not_configured",
+            ],
+        )
 
     def test_tenant_service_restores_previous_password_when_rotation_validation_fails(self) -> None:
         tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
@@ -4646,6 +4721,44 @@ class PlatformRoutesTestCase(unittest.TestCase):
             describe_mock.call_args.kwargs["tenant_slugs"],
             ["empresa-bootstrap"],
         )
+
+    def test_sync_platform_runtime_secrets_returns_batch_schema(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.routes.tenant_service.sync_active_tenant_runtime_secrets",
+            return_value={
+                "processed": 2,
+                "synced": 1,
+                "already_runtime_managed": 1,
+                "skipped_not_configured": 0,
+                "skipped_legacy_rescue_required": 0,
+                "failed": 0,
+                "synced_at": datetime.now(timezone.utc),
+                "data": [
+                    {
+                        "tenant_id": 1,
+                        "tenant_slug": "empresa-demo",
+                        "outcome": "synced",
+                        "detail": "ok",
+                        "source": "process_env",
+                        "already_runtime_managed": False,
+                    }
+                ],
+            },
+        ) as sync_mock, patch(
+            "app.apps.platform_control.api.routes.auth_audit_service.log_event",
+        ) as audit_mock:
+            response = sync_platform_runtime_secrets(
+                db=object(),
+                token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.processed, 2)
+        self.assertEqual(response.synced, 1)
+        self.assertEqual(response.already_runtime_managed, 1)
+        self.assertEqual(response.data[0].tenant_slug, "empresa-demo")
+        sync_mock.assert_called_once()
+        audit_mock.assert_called_once()
 
     def test_list_platform_users_returns_catalog(self) -> None:
         users = [

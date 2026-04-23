@@ -164,6 +164,7 @@ Desde `Configuración -> Postura de secretos y runtime`, la lectura visible ahor
    - cuántos ya están runtime-managed
    - cuántos siguen con secreto runtime faltante
    - cuántos todavía podrían rescatarse desde legacy
+5. lanzar `Sincronizar runtime central` cuando quieras empujar la distribución runtime sobre todos los tenants activos sin ir uno por uno
 
 Desde `Tenants`, la operación correcta queda así:
 
@@ -173,6 +174,8 @@ Desde `Tenants`, la operación correcta queda así:
 Regla operativa:
 
 - la resolución normal ya no usa `/.env` como carril normal si `TENANT_SECRETS_FILE` está separado
+- `Sincronizar runtime central` y `Sincronizar secreto runtime` solo usan fuentes runtime-managed
+- si un tenant todavía depende de `/.env`, queda señalado para rescate controlado y no se corrige desde la consola
 - el rescate legacy sigue existiendo solo dentro de acciones explícitas de operación
 - no corresponde volver a tratar `/.env` como target normal de sincronización tenant
 

@@ -208,6 +208,28 @@ export type PlatformRuntimeSecurityPostureResponse = {
   } | null;
 };
 
+export type PlatformTenantRuntimeSecretBatchSyncItem = {
+  tenant_id: number;
+  tenant_slug: string;
+  outcome: string;
+  detail: string | null;
+  source: string | null;
+  already_runtime_managed: boolean;
+};
+
+export type PlatformTenantRuntimeSecretBatchSyncResponse = {
+  success: boolean;
+  message: string;
+  processed: number;
+  synced: number;
+  already_runtime_managed: number;
+  skipped_not_configured: number;
+  skipped_legacy_rescue_required: number;
+  failed: number;
+  synced_at: string | null;
+  data: PlatformTenantRuntimeSecretBatchSyncItem[];
+};
+
 export type PlatformLoginResponse = {
   success: boolean;
   message: string;

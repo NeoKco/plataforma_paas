@@ -217,6 +217,28 @@ class PlatformRuntimeSecurityPostureResponse(BaseModel):
     tenant_secret_distribution_summary: dict | None = None
 
 
+class PlatformTenantRuntimeSecretBatchSyncItemResponse(BaseModel):
+    tenant_id: int
+    tenant_slug: str
+    outcome: str
+    detail: str | None = None
+    source: str | None = None
+    already_runtime_managed: bool = False
+
+
+class PlatformTenantRuntimeSecretBatchSyncResponse(BaseModel):
+    success: bool
+    message: str
+    processed: int
+    synced: int
+    already_runtime_managed: int
+    skipped_not_configured: int
+    skipped_legacy_rescue_required: int
+    failed: int
+    synced_at: datetime | None = None
+    data: list[PlatformTenantRuntimeSecretBatchSyncItemResponse]
+
+
 class TenantCreateRequest(BaseModel):
     name: str
     slug: str

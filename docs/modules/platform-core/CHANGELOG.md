@@ -2,6 +2,17 @@
 
 ## 2026-04-23
 
+- `Etapa 11` ya agrega sincronización central por lote sobre fuentes runtime-managed:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya agrega `sync_active_tenant_runtime_secrets(...)`
+  - [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py) ya expone `POST /platform/security-posture/sync-runtime-secrets`
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) ya agrega la respuesta batch tipada
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya incorpora `Sincronizar runtime central`
+  - el batch ya solo sincroniza desde fuentes runtime-managed y deja los casos legacy como `skipped_legacy_rescue_required`
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `228 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - `Etapa 11` ya aísla el rescate legacy fuera del flujo normal de consola:
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya limita `sync_tenant_runtime_secret(...)` a fuentes runtime-managed salvo rescate controlado explícito
   - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) traduce ese caso a `409` cuando el secreto solo sobrevive en `/.env`

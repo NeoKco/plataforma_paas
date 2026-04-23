@@ -1,5 +1,43 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya agrega sincronización central por lote sobre fuentes runtime-managed
+
+Contexto:
+
+- el cuarto slice ya había sacado el rescate legacy desde `/.env` del flujo normal de consola
+- faltaba un carril centralizado seguro para empujar sincronización runtime sobre todos los tenants activos sin reabrir ese rescate
+
+Cambios:
+
+- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+  - agrega `sync_active_tenant_runtime_secrets(...)`
+  - recorre tenants activos y clasifica por resultado:
+    - `synced`
+    - `already_runtime_managed`
+    - `skipped_not_configured`
+    - `skipped_legacy_rescue_required`
+    - `failed`
+- [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py):
+  - agrega `POST /platform/security-posture/sync-runtime-secrets`
+  - deja trazabilidad de auditoría como `platform.tenant_runtime_secret_sync_batch`
+- [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py):
+  - agrega el contrato de respuesta batch para sincronización central
+- [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts):
+  - agregan el cliente tipado para la mutación batch nueva
+- [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+  - agrega `Sincronizar runtime central`
+  - muestra resumen corto del batch y deja explícito que no rescata desde `/.env`
+
+Resultado:
+
+- ya existe distribución centralizada mínima también por lote, no solo tenant a tenant
+- el batch no reintroduce rescate legacy: solo sincroniza desde fuentes runtime-managed
+- los tenants que todavía dependen de `/.env` quedan visiblemente marcados para tooling controlado
+- validación repo:
+  - `backend.app.tests.test_platform_flow` -> `228 tests OK`
+  - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-23 - `Etapa 11` ya aísla el rescate legacy fuera del flujo normal de consola
 
 Contexto:

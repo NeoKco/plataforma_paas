@@ -12,6 +12,7 @@ import {
   getPlatformRootRecoveryStatus,
   getPlatformSecurityPosture,
   listPlatformUsers,
+  syncPlatformRuntimeSecrets,
 } from "../../../../services/platform-api";
 import { API_BASE_URL, getDefaultApiBaseUrl } from "../../../../services/api";
 import { useAuth } from "../../../../store/auth-context";
@@ -22,6 +23,7 @@ import type {
   PlatformCapabilities,
   PlatformRootRecoveryStatusResponse,
   PlatformRuntimeSecurityPostureResponse,
+  PlatformTenantRuntimeSecretBatchSyncResponse,
   PlatformUser,
 } from "../../../../types";
 
@@ -40,6 +42,8 @@ export function SettingsPage() {
   const [securityPostureError, setSecurityPostureError] = useState<ApiError | null>(
     null
   );
+  const [runtimeSyncFeedback, setRuntimeSyncFeedback] = useState<string | null>(null);
+  const [isRuntimeSyncing, setIsRuntimeSyncing] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -146,6 +150,36 @@ export function SettingsPage() {
   useEffect(() => {
     void loadSettings();
   }, [session?.accessToken]);
+
+  async function handleSyncRuntimeSecrets() {
+    if (!session?.accessToken || isRuntimeSyncing) {
+      return;
+    }
+
+    setRuntimeSyncFeedback(null);
+    setIsRuntimeSyncing(true);
+    try {
+      const response: PlatformTenantRuntimeSecretBatchSyncResponse =
+        await syncPlatformRuntimeSecrets(session.accessToken);
+      const summary =
+        language === "es"
+          ? `Sincronización central completada: procesados ${response.processed}, sincronizados ${response.synced}, ya gestionados ${response.already_runtime_managed}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}.`
+          : `Central sync completed: processed ${response.processed}, synced ${response.synced}, already managed ${response.already_runtime_managed}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}.`;
+      setRuntimeSyncFeedback(summary);
+      await loadSettings();
+    } catch (rawError) {
+      const typedError = rawError as ApiError;
+      setRuntimeSyncFeedback(
+        typedError.payload?.detail ||
+          typedError.message ||
+          (language === "es"
+            ? "No fue posible ejecutar la sincronización central."
+            : "Could not execute the central sync.")
+      );
+    } finally {
+      setIsRuntimeSyncing(false);
+    }
+  }
 
   return (
     <div className="d-grid gap-4">
@@ -295,6 +329,22 @@ export function SettingsPage() {
               : "Quick read to validate with which session and API URL you think you are operating."
           }
         >
+          <div className="d-flex justify-content-end mb-3">
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              onClick={() => void handleSyncRuntimeSecrets()}
+              disabled={!session?.accessToken || isRuntimeSyncing}
+            >
+              {isRuntimeSyncing
+                ? language === "es"
+                  ? "Sincronizando..."
+                  : "Syncing..."
+                : language === "es"
+                  ? "Sincronizar runtime central"
+                  : "Central runtime sync"}
+            </button>
+          </div>
           <div className="tenant-detail-grid">
             <DetailField
               label={language === "es" ? "API configurada" : "Configured API"}
@@ -547,6 +597,9 @@ export function SettingsPage() {
               ))}
             </div>
           ) : null}
+          {runtimeSyncFeedback ? (
+            <div className="alert alert-info mt-3 mb-0">{runtimeSyncFeedback}</div>
+          ) : null}
           <div className="dashboard-quick-hints mt-3">
             <div>
               {language === "es"
@@ -562,6 +615,11 @@ export function SettingsPage() {
               {language === "es"
                 ? "Esta lectura no muestra secretos; solo resume si el runtime tiene hallazgos pendientes."
                 : "This read does not expose secrets; it only summarizes whether the runtime still has pending findings."}
+            </div>
+            <div>
+              {language === "es"
+                ? "La sincronización central solo usa fuentes runtime-managed; si un tenant sigue dependiendo de `/.env`, queda marcado para rescate legacy controlado."
+                : "Central sync only uses runtime-managed sources; if a tenant still depends on `/.env`, it stays flagged for controlled legacy rescue."}
             </div>
             {securityPosture?.tenant_secret_distribution_summary?.missing_runtime_secret_slugs
               ?.length ? (

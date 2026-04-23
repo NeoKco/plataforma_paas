@@ -4,6 +4,20 @@
 
 - fecha: 2026-04-23
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 11`:
+  - quinto corte ya cerrado en repo:
+    - `Settings -> Postura de secretos y runtime` ya expone `Sincronizar runtime central`
+    - la mutación nueva `POST /platform/security-posture/sync-runtime-secrets` ya recorre los tenants activos y sincroniza solo desde fuentes runtime-managed
+    - el batch ya resume por tenant:
+      - `synced`
+      - `already_runtime_managed`
+      - `skipped_not_configured`
+      - `skipped_legacy_rescue_required`
+      - `failed`
+    - si un tenant todavía depende de `/.env`, el batch no lo rescata: lo deja marcado para tooling controlado
+  - validación repo de este quinto corte:
+    - `backend.app.tests.test_platform_flow` -> `228 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
   - `GET /platform/security-posture` ya no solo resume hallazgos genéricos; ahora expone además el carril runtime real de secretos tenant
   - el runtime ya marca hallazgo si `TENANT_SECRETS_FILE` sigue apuntando al `.env` principal
   - también marca hallazgo si el archivo runtime de secretos tenant no es legible o escribible

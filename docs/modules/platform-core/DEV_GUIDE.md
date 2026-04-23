@@ -57,7 +57,9 @@ Documentación base:
   - cualquier evolución nueva debe fortalecer ese carril, no reintroducir escritura normal sobre `.env`
   - `GET /platform/security-posture` ya debe resumir cobertura tenant del carril runtime con `tenant_secret_distribution_summary`
   - la acción explícita `POST /platform/tenants/{tenant_id}/sync-db-runtime-secret` ya debe existir para distribución mínima centralizada sin rotación
+  - también debe existir una mutación batch `POST /platform/security-posture/sync-runtime-secrets` para sincronización central sobre tenants activos
   - esa mutación ya no debe rescatar desde `/.env` como camino normal de consola
+  - la mutación batch tampoco debe rescatar desde `/.env`; debe dejar esos casos como `skipped_legacy_rescue_required`
   - el rescate legacy permitido por diseño debe quedar aislado en tooling/rutas operativas controladas y no reingresar al path normal de resolución
 - la apertura formal de `Etapa 15` también queda backend-driven:
   - `base_plan_catalog`, `module_subscription_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo comercial vigente
