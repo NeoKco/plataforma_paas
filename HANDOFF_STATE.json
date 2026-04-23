@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-23T16:31:02-04:00",
+  "updated_at": "2026-04-23T16:58:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ, business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. La Etapa 15 ya quedó suficientemente cerrada para el alcance actual: el runtime contractual normal ya no depende de `plan_code` y el legado queda acotado a compatibilidad explícita. La Etapa 11 ya queda suficientemente cerrada para el alcance actual con diez slices funcionales en repo y runtime. La Etapa 12 ya queda suficientemente cerrada para el alcance actual: `Actividad` ya correlaciona auth, rechazos relevantes y cambios administrativos con `request_id`, ruta y método visibles, y staging/production ya quedaron redeployados/publicados con este cierre. El siguiente frente formal del roadmap pasa a Etapa 13. Frontend de Plataforma y Tenant.",
+  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ, business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. La Etapa 15 ya quedó suficientemente cerrada para el alcance actual: el runtime contractual normal ya no depende de `plan_code` y el legado queda acotado a compatibilidad explícita. La Etapa 11 ya queda suficientemente cerrada para el alcance actual con diez slices funcionales en repo y runtime. La Etapa 12 ya queda suficientemente cerrada para el alcance actual: `Actividad` ya correlaciona auth, rechazos relevantes y cambios administrativos con `request_id`, ruta y método visibles. La Etapa 13 ya queda suficientemente cerrada para el alcance actual: `Tenants`, `Actividad` y `tenant_portal -> Resumen técnico` ya consumen `ui_label_catalog` backend-driven y dejan de depender de códigos internos como lectura principal. El siguiente frente formal del roadmap pasa a Etapa 14. Módulos de Negocio Reales.",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime, rollback alineado al repo fuente y smoke base embebido por defecto como evidencia repetible",
   "active_modules": [
     "platform-core",
@@ -79,6 +79,10 @@
     "maintenance debe separar cliente individual, razón social legal y grupo social común: el nombre base sigue en organization.name, la razón social legal queda en organization.legal_name y la agrupación social compartida vive en social_community_groups.name donde el campo realmente corresponde"
   ],
   "completed_recently": [
+    "Etapa 13 cerrada para el alcance actual: GET /platform/capabilities y GET /tenant/info ya exponen ui_label_catalog backend-driven",
+    "Tenants, Actividad y TenantOverview ya consumen labels backend-driven para tenant/module/policy/auth codes y claves de límites",
+    "staging frontend republicado con API_BASE_URL=http://192.168.7.42:8081, bundles SettingsPage-B_NcgVNr.js TenantsPage-CYx6YTpC.js PlatformActivityPage-DQEkqpWI.js TenantOverviewPage-BMDYYqbK.js index-BVBey7cQ.js y static readiness OK",
+    "production frontend republicado con API_BASE_URL=https://orkestia.ddns.net, bundles SettingsPage-DN9mvQ-H.js TenantsPage-zuYE5ar6.js PlatformActivityPage-CkbUxyDF.js TenantOverviewPage-qhIp0x9s.js index-DzQ-p7yB.js y static readiness OK",
     "Etapa 12 cerrada para el alcance actual: auth_audit_events ya persiste request_id, request_path y request_method",
     "handlers.py ya audita rechazos 401/403 relevantes fuera de /platform/auth/* y /tenant/auth/*",
     "GET /platform/auth-audit/ ya soporta filtros por event_type, tenant_slug y request_id",
@@ -417,7 +421,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "abrir Etapa 13. Frontend de Plataforma y Tenant con foco en refinamiento final de UX/labels, catálogos backend más ricos y cobertura final de bordes operativos visibles, sin reabrir Etapa 12 salvo evidencia nueva",
+  "next_decision_required": "abrir Etapa 14. Módulos de Negocio Reales, decidir el siguiente módulo real después de finance y usar el bloque frontend ya estabilizado como base para ese dominio nuevo, sin reabrir Etapa 13 salvo evidencia nueva",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

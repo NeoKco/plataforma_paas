@@ -50,6 +50,13 @@ Nota operativa:
 - los módulos del tenant no se habilitan con toggles manuales en el alta; se habilitan por el `Plan Base inicial`
 - la misma pantalla ya debe mostrar qué módulos activa el plan seleccionado
 - en tenants existentes, el bloque correcto para revisar o cambiar eso es `Plan y módulos`
+- la lectura visible principal de `Tenants` ya no debería exponerse con códigos internos crudos:
+  - tipo de tenant
+  - módulos
+  - eventos de policy
+  - changed fields
+  - métricas/límites
+  - todo eso ya sale de catálogos backend-driven y debe leerse como etiqueta operativa normal
 - `Configuración` ya deja además un `Catálogo de planes y módulos` para ver qué declara backend hoy por plan antes de tocar un tenant puntual
 - `Mantenciones` ya no se considera implícito dentro de `Core negocio`; si quieres que el tenant lo use, el `plan` debe traer explícitamente el módulo `maintenance`
 - el bloque `Postura operativa tenant` en `Tenants` debe leerse antes de reabrir un bug:
@@ -162,6 +169,7 @@ Regla operativa:
   - `request_id`
   - `request_method`
   - `request_path`
+- `Actividad` y `Tenants` ya deberían mostrar los nombres operativos desde backend y no requerir interpretar `event_type` o `scope` manualmente
 
 - si no seleccionas tenants, la campaña batch sigue usando todos los tenants activos evaluados
 - si seleccionas tenants en `Modo incluir`, el batch queda acotado a ese subconjunto

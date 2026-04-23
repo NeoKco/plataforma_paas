@@ -3,6 +3,31 @@
 ## Última actualización
 
 - fecha: 2026-04-23
+- foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 13`:
+  - `GET /platform/capabilities` y `GET /tenant/info` ya exponen `ui_label_catalog`
+  - backend ya publica labels visibles reutilizables para:
+    - módulos
+    - tipos y estados de tenant
+    - ciclos billing
+    - scopes
+    - eventos `policy/auth`
+    - `changed_fields`
+    - claves y fuentes de límites
+  - `platform_admin -> Tenants`, `platform_admin -> Actividad` y `tenant_portal -> Resumen técnico` ya consumen ese catálogo backend-driven y dejan de depender de códigos internos como lectura principal
+  - validación repo:
+    - `python3 -m py_compile backend/app/common/utils/platform_ui_labels.py backend/app/apps/platform_control/services/platform_capability_service.py backend/app/apps/platform_control/schemas.py backend/app/apps/tenant_modules/core/schemas.py backend/app/apps/tenant_modules/core/api/tenant_routes.py` -> `OK`
+    - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `staging` publicado con `SettingsPage-B_NcgVNr.js`, `TenantsPage-CYx6YTpC.js`, `PlatformActivityPage-DQEkqpWI.js`, `TenantOverviewPage-BMDYYqbK.js`, `index-BVBey7cQ.js`
+    - `production` publicado con `SettingsPage-DN9mvQ-H.js`, `TenantsPage-zuYE5ar6.js`, `PlatformActivityPage-CkbUxyDF.js`, `TenantOverviewPage-qhIp0x9s.js`, `index-DzQ-p7yB.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- salida formal de este frente:
+  - la `Etapa 13` ya puede considerarse cerrada para el alcance actual
+  - el siguiente frente formal del roadmap pasa a `Etapa 14. Módulos de Negocio Reales`
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 12`:
   - `auth_audit_events` ya persiste:
     - `request_id`

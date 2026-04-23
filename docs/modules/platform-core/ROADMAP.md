@@ -266,7 +266,11 @@ Estado práctico de cierre:
       - `auth_audit_events` ya persiste `request_id`, `request_path` y `request_method`
       - soporte ya puede buscar por `event_type`, `tenant_slug` y `request_id` sin salir de consola
       - staging y production ya quedaron redeployados con `580 tests OK` por carril y frontend publicado con static readiness verde
-    - el siguiente frente formal recomendado del roadmap pasa a `Etapa 13. Frontend de Plataforma y Tenant`
+    - la `Etapa 13` ya queda suficientemente cerrada para el alcance actual:
+      - `GET /platform/capabilities` y `/tenant/info` ya exponen `ui_label_catalog`
+      - `Tenants`, `Actividad` y `TenantOverview` ya consumen labels backend-driven para tenant/module/policy/auth codes y claves de limites
+      - staging y production ya quedaron redeployados/publicados con este cierre y static readiness verde
+    - el siguiente frente formal recomendado del roadmap pasa a `Etapa 14. Modulos de Negocio Reales`
 
 ## Cierre operativo del bloque central
 

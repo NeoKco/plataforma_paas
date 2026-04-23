@@ -47,6 +47,20 @@ Documentación base:
 - `restore` es flujo explícito, no cambio manual de estado
 - `delete` físico de tenants sigue fuera del alcance normal de operación
 - frontend y backend deben consumir el catálogo de capacidades como fuente de verdad cuando aplique
+- los labels visibles criticos del bloque central ya no deben resolverse con heuristicas locales cuando backend ya publica catalogo:
+  - `GET /platform/capabilities` ya expone `ui_label_catalog`
+  - `/tenant/info` ya expone `ui_label_catalog`
+  - `Tenants`, `Actividad` y `TenantOverview` deben consumir ese catalogo para:
+    - `tenant_types`
+    - `modules`
+    - `token_scopes`
+    - `subject_scopes`
+    - `policy_event_types`
+    - `policy_changed_fields`
+    - `auth_event_types`
+    - `module_limit_keys`
+    - `limit_sources`
+  - no volver a introducir mappings frontend ad hoc para esos labels salvo fallback puntual
 - si `Provisioning` muestra o condiciona recorridos broker-only, la fuente de verdad visible del entorno debe salir del catálogo de capacidades y no de inferencias locales; hoy eso se expone como `current_provisioning_dispatch_backend`
 - el bootstrap tenant-side tampoco debe volver a inferir módulos desde `tenant.plan_code`; debe consumir `effective_enabled_modules`
 - en `Etapa 12`, la auditoría visible ya no debe quedarse solo en auth:

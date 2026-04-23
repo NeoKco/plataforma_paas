@@ -1,5 +1,40 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 13` ya queda cerrada para frontend de plataforma y tenant
+
+Contexto:
+
+- la `Etapa 12` ya había cerrado auditoría y observabilidad visibles
+- faltaba el último pase para que el bloque central dejara de apoyarse en códigos internos y mappings frontend ad hoc como superficie normal de operación
+
+Cambios:
+
+- [platform_ui_labels.py](/home/felipe/platform_paas/backend/app/common/utils/platform_ui_labels.py):
+  - agrega el catálogo reusable backend-driven para labels visibles del bloque central
+- [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) y [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py):
+  - exponen `ui_label_catalog` en `GET /platform/capabilities` y `GET /tenant/info`
+- [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+  - deja de mostrar como lectura principal códigos crudos en tenant type, eventos de policy, changed fields y métricas/límites
+- [PlatformActivityPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/activity/PlatformActivityPage.tsx):
+  - consume labels backend-driven para auth/policy/scope y deja la correlación visible sin depender de heurísticas locales
+- [TenantOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/overview/TenantOverviewPage.tsx):
+  - reutiliza el mismo catálogo para tipo de tenant, módulos habilitados, scope y lectura de límites
+
+Resultado:
+
+- la `Etapa 13` ya queda suficientemente cerrada para el alcance actual
+- el bloque central visible ya no depende de códigos internos como camino normal de operación
+- el siguiente frente formal del roadmap pasa a `Etapa 14. Módulos de Negocio Reales`
+- validación repo:
+  - `python3 -m py_compile backend/app/common/utils/platform_ui_labels.py backend/app/apps/platform_control/services/platform_capability_service.py backend/app/apps/platform_control/schemas.py backend/app/apps/tenant_modules/core/schemas.py backend/app/apps/tenant_modules/core/api/tenant_routes.py` -> `OK`
+  - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+  - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- validación runtime:
+  - `staging` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `production` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 ## 2026-04-23 - `Etapa 12` ya queda cerrada para auditoría y observabilidad visibles
 
 Contexto:

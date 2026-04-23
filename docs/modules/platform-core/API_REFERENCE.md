@@ -75,6 +75,7 @@ Payload operativo actual de `GET /platform/capabilities`:
 
 - `plan_modules`
 - `module_dependency_catalog`
+- `ui_label_catalog`
 - `legacy_plan_fallback_available`
 - `subscription_activation_model`
 - `subscription_billing_cycles`
@@ -93,6 +94,25 @@ Payload operativo actual de `GET /platform/security-posture`:
 - `tenant_secrets_legacy`
 - `tenant_secrets_isolated_from_legacy`
 - `tenant_secret_distribution_summary`
+
+Payload operativo actual de `GET /tenant/info`:
+
+- `tenant`
+- `user`
+- `ui_label_catalog`
+
+Regla visible nueva del frontend:
+
+- `ui_label_catalog` es la fuente de verdad backend-driven para labels visibles de:
+  - modulos
+  - tipos de tenant
+  - estados
+  - ciclos billing
+  - scopes
+  - eventos `policy/auth`
+  - `changed_fields`
+  - claves de limites
+- `platform_admin -> Tenants`, `platform_admin -> Actividad` y `tenant_portal -> Resumen tecnico` ya consumen ese catalogo en vez de depender de codigos internos o heuristicas locales
 
 Lectura operativa actual de `GET /platform/auth-audit/`:
 

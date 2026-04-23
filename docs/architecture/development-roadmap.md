@@ -542,7 +542,7 @@ Pendiente deliberado fuera de esta etapa:
 
 ## Etapa 13. Frontend de Plataforma y Tenant
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -560,12 +560,23 @@ Resultado actual:
 - existe `platform_admin` usable con `Dashboard`, `Tenants`, `Provisioning`, `Billing` y `Settings`
 - existe `tenant_portal` usable con login, resumen, usuarios y finanzas
 - ya existe una capa comun de manejo de errores, sesion, labels y estados vacios para no depender de respuestas crudas de API
+- `GET /platform/capabilities` y `/tenant/info` ya exponen `ui_label_catalog` como fuente de verdad visible para:
+  - modulos
+  - tipos de tenant
+  - estados
+  - ciclos billing
+  - scopes
+  - eventos de policy/auth
+  - changed fields y claves de limites
+- `platform_admin -> Tenants`, `platform_admin -> Actividad` y `tenant_portal -> Resumen tecnico` ya consumen ese catalogo backend-driven y dejan de depender de heuristicas frontend para la lectura principal
+- el ultimo borde visible de UX/labels ya no depende de `curl` ni de interpretar codigos internos para operar el bloque central
 
-Falta para cerrarlo:
+Resultado de cierre:
 
-- refinamiento final de UX y labels
-- catalogos mas ricos desde backend para reducir codigos internos visibles
-- automatizacion y cobertura final de algunos bordes operativos
+- el frontend principal de plataforma y tenant ya queda suficientemente cerrado para el alcance actual
+- la lectura principal del bloque central ya no expone codigos internos como superficie normal de operacion
+- los labels visibles criticos ya quedan backend-driven y consistentes entre consola y portal tenant
+- staging y production ya quedaron redeployados/publicados con este cierre
 
 ## Etapa 14. Modulos de Negocio Reales
 

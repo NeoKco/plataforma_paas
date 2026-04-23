@@ -2,6 +2,36 @@
 
 ## 2026-04-23
 
+- `Etapa 13` ya queda cerrada para el alcance actual de frontend de plataforma y tenant:
+  - [platform_ui_labels.py](/home/felipe/platform_paas/backend/app/common/utils/platform_ui_labels.py) agrega el catálogo reusable backend-driven para:
+    - `modules`
+    - `tenant_types`
+    - `tenant_statuses`
+    - `tenant_billing_statuses`
+    - `billing_cycles`
+    - `token_scopes`
+    - `subject_scopes`
+    - `policy_event_types`
+    - `policy_changed_fields`
+    - `auth_event_types`
+    - `module_limit_keys`
+    - `limit_sources`
+  - [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) y [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py) ya exponen `ui_label_catalog` en:
+    - `GET /platform/capabilities`
+    - `GET /tenant/info`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx), [PlatformActivityPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/activity/PlatformActivityPage.tsx) y [TenantOverviewPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/overview/TenantOverviewPage.tsx) ya consumen esos labels backend-driven y dejan de depender de códigos internos visibles en la lectura principal
+  - validación repo:
+    - `python3 -m py_compile backend/app/common/utils/platform_ui_labels.py backend/app/apps/platform_control/services/platform_capability_service.py backend/app/apps/platform_control/schemas.py backend/app/apps/tenant_modules/core/schemas.py backend/app/apps/tenant_modules/core/api/tenant_routes.py` -> `OK`
+    - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend redeployado con `580 tests OK`
+    - `production` backend redeployado con `580 tests OK`
+    - `staging` publicado con `SettingsPage-B_NcgVNr.js`, `TenantsPage-CYx6YTpC.js`, `PlatformActivityPage-DQEkqpWI.js`, `TenantOverviewPage-BMDYYqbK.js`, `index-BVBey7cQ.js`
+    - `production` publicado con `SettingsPage-DN9mvQ-H.js`, `TenantsPage-zuYE5ar6.js`, `PlatformActivityPage-CkbUxyDF.js`, `TenantOverviewPage-qhIp0x9s.js`, `index-DzQ-p7yB.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - `Etapa 12` ya queda cerrada para el alcance actual de auditoría y observabilidad:
   - [auth_audit_event.py](/home/felipe/platform_paas/backend/app/apps/platform_control/models/auth_audit_event.py) ya persiste:
     - `request_id`
