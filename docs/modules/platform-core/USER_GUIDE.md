@@ -91,6 +91,8 @@ La base visible actual de la Etapa 15 ya queda así:
    - qué módulos quedan incluidos, arrendados, técnicos y en fallback
    - qué dependencias técnicas se auto-resolverán por la activación efectiva
    - qué parte del estado sigue viniendo solo del baseline legacy
+   - `Modelo contractual`
+   - `Fuente baseline`
 
 Regla operativa:
 
@@ -99,11 +101,17 @@ Regla operativa:
 - la consola ya muestra el modelo aprobado `Plan Base + add-ons`
 - la activación tenant-side efectiva ya se resuelve desde `tenant_subscriptions`
 - el fallback legacy por `plan_code` ya queda acotado a tenants legacy todavía no recontratados en el modelo nuevo
+- para tenants ya gestionados por contrato, el baseline de cuotas/límites también sale del `Plan Base`
 - backend ya expone además el catálogo del modelo nuevo:
   - `subscription_activation_model`
   - `subscription_billing_cycles`
   - `base_plan_catalog`
   - `module_subscription_catalog`
+- `base_plan_catalog` ya expone además la resolución visible de:
+  - `compatibility_policy_code`
+  - `read_requests_per_minute`
+  - `write_requests_per_minute`
+  - `module_limits`
 - ese catálogo nuevo ya existe y ya fue promovido a runtime como base persistente de `platform_control`
 - la contratación comercial ya puede operarse desde consola:
   - el bloque `Contrato comercial tenant` escribe sobre `tenant_subscriptions` y `tenant_subscription_items`
@@ -115,7 +123,7 @@ Regla operativa:
   - `finance` siempre incluido
   - módulos adicionales arrendables por suscripción
 - `billing`, `grace` y `suspensión` ya quedan conectados al modelo nuevo de suscripción
-- el siguiente corte ya no es contratar add-ons, sino retirar el fallback legacy restante en cuotas/límites y hacer visible qué tenants siguen en baseline legacy
+- el siguiente corte ya no es contratar add-ons, sino migrar los tenants legacy restantes y retirar luego el fallback total por `plan_code`
 - referencia formal:
   - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 

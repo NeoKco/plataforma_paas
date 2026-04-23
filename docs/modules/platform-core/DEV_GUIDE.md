@@ -76,9 +76,10 @@ Documentación base:
     - catálogo comercial aprobado visible en consola
     - activación técnica efectiva visible desde `tenant_subscriptions`
     - fallback legacy por `plan_code` solo para tenants legacy todavía no gestionados en el modelo nuevo
+    - baseline de cuotas/límites para tenants gestionados resuelto desde `base_plan_catalog`
     - contratación formal de add-ons desde consola sobre `tenant_subscriptions`
     - `billing`, `grace` y `suspensión` ya se evalúan primero desde la suscripción cuando existe
-    - siguiente corte: retiro del fallback legacy restante en cuotas/límites y visibilidad explícita de tenants legacy vs gestionados
+    - siguiente corte: migración de tenants legacy restantes y retiro posterior del fallback total por `plan_code`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal

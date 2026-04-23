@@ -128,6 +128,7 @@ Estado práctico de cierre:
       - `Módulos arrendables`
       - `Ciclos comerciales`
       - `Política efectiva actual por plan`
+      - baseline resuelto del `Plan Base` con compatibilidad, cuotas y límites
     - `Tenants > Plan y módulos` ya deja visible:
       - `Plan Base aprobado`
       - `Plan operativo actual`
@@ -135,6 +136,8 @@ Estado práctico de cierre:
       - ciclos comerciales visibles
       - activación efectiva actual desde suscripciones tenant
       - fallback legacy visible cuando aplica
+      - `Modelo contractual`
+      - `Fuente baseline`
       - ruta formal hacia contratación tenant de add-ons
   - `Tenants > Plan y módulos` ya deja también contratación formal visible:
     - `Contrato comercial tenant` opera sobre `tenant_subscriptions` y `tenant_subscription_items`
@@ -144,9 +147,13 @@ Estado práctico de cierre:
     - `billing`, `grace` y `suspensión` ya se evalúan primero desde `tenant_subscriptions`
     - los eventos de billing ya proyectan estado/fechas sobre la suscripción cuando existe
     - el fallback legacy de módulos ya no se aplica a tenants con contrato ya gestionado en el modelo nuevo
+  - subcorte nuevo ya cerrado en repo:
+    - tenants gestionados por contrato ya resuelven el baseline de cuotas/límites desde `tenant_subscriptions` + `base_plan_catalog`
+    - `tenant_plan_api_read_requests_per_minute`, `tenant_plan_api_write_requests_per_minute`, `tenant_plan_enabled_modules` y `tenant_plan_module_limits` ya no salen de `plan_code` para esos tenants
+    - `GET /platform/capabilities` ya expone el `base_plan_catalog` resuelto con compatibilidad, cuotas y límites base
   - el siguiente corte ya no es modelar ni contratar add-ons, sino:
-    - retirar el fallback legacy restante en cuotas/límites todavía resueltos por `plan_code`
-    - volver visible en consola qué tenants siguen legacy vs ya recontratados/gestionados
+    - migrar los tenants legacy restantes al contrato nuevo
+    - retirar después el fallback legacy total por `plan_code`
     - seguir separando en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)

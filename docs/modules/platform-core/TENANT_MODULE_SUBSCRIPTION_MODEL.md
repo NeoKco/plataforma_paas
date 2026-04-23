@@ -285,10 +285,19 @@ Además del corte técnico ya promovido, la consola visible ya quedó adaptada a
    - `billing`, `grace` y `suspensión` ya se evalúan primero desde `tenant_subscriptions`
    - los eventos y campos `billing_*` siguen existiendo como compatibilidad/proyección
    - el fallback legacy de módulos ya no se aplica a tenants con contrato ya gestionado en el modelo nuevo
+6. baseline técnico efectivo ya alineado:
+   - tenants gestionados por contrato ya resuelven el baseline de cuotas/límites desde el `Plan Base`
+   - `read/write rate limits`, módulos base habilitados y `module_limits` ya no salen de `plan_code` para esos tenants
+   - `plan_code` queda como compatibilidad solo para tenants legacy
+   - `Configuración` ya muestra el baseline resuelto del `Plan Base` con compatibilidad, cuotas y límites
+   - `Tenants > Plan y módulos` ya expone:
+     - `Modelo contractual`
+     - `Fuente baseline`
+     - si el tenant sigue en legacy o ya está gestionado por contrato
 
 ## Siguiente corte técnico recomendado
 
-1. retirar el fallback legacy restante en cuotas/límites todavía resueltos por `plan_code`
-2. volver visible en consola la diferencia entre tenant legacy y tenant ya recontratado/gestionado
+1. migrar los tenants legacy restantes al modelo contractual nuevo
+2. retirar luego el fallback legacy total por `plan_code`
 3. seguir manteniendo separada la habilitación técnica efectiva del contrato comercial
-4. recién después cerrar el retiro total del baseline legacy
+4. recién después cerrar la limpieza final del baseline legacy en consola y API

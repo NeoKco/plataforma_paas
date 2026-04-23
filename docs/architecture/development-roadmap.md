@@ -637,13 +637,26 @@ Falta para cerrarlo:
   - `billing`, `grace` y `suspensión` ya se evalúan primero desde `tenant_subscriptions`
   - los eventos de billing ya proyectan estado/fechas sobre la suscripción cuando existe
   - el fallback legacy de módulos ya no se aplica a tenants con contrato ya gestionado en el modelo nuevo
+- el baseline técnico de cuotas/límites ya también da el siguiente paso:
+  - tenants gestionados por contrato ya resuelven `read/write rate limits`, módulos base habilitados y `module_limits` desde `tenant_subscriptions` + `base_plan_catalog`
+  - `plan_code` queda solo como compatibilidad para tenants legacy todavía no recontratados
+  - `Configuración` ya expone el baseline resuelto del `Plan Base` con:
+    - `compatibility_policy_code`
+    - `read_requests_per_minute`
+    - `write_requests_per_minute`
+    - `module_limits`
+  - `Tenants > Plan y módulos` ya deja visible:
+    - `Modelo contractual`
+    - `Fuente baseline`
+    - si el tenant sigue legacy o ya está gestionado por contrato
 - separar el estado visible entre:
   - incluido por `Plan Base`
   - arrendado por suscripción
   - efectivamente habilitado
 - siguiente corte pendiente:
-  - retiro del fallback legacy restante en cuotas/límites todavía resueltos por `plan_code`
-  - visibilidad explícita en consola de tenants legacy vs tenants ya recontratados/gestionados
+  - migrar los tenants legacy restantes al contrato nuevo
+  - retirar después el fallback legacy total por `plan_code`
+  - dejar la consola y la API libres de baseline operativo legacy
 
 Decisión formal cerrada:
 

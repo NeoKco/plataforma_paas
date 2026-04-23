@@ -279,9 +279,7 @@ class TenantMiddlewareMaintenanceTestCase(unittest.TestCase):
         middleware = object.__new__(AuthContextMiddleware)
         tenant_service = TenantService()
         middleware.tenant_repository = SimpleNamespace()
-        middleware.tenant_plan_policy_service = SimpleNamespace(
-            get_policy=lambda plan_code: None
-        )
+        middleware.tenant_plan_policy_service = TenantPlanPolicyService()
         middleware.tenant_billing_grace_policy_service = SimpleNamespace(
             get_policy=lambda: None
         )
@@ -581,9 +579,7 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
         middleware = object.__new__(AuthContextMiddleware)
         tenant_service = TenantService()
         middleware.tenant_repository = SimpleNamespace()
-        middleware.tenant_plan_policy_service = SimpleNamespace(
-            get_policy=lambda plan_code: None
-        )
+        middleware.tenant_plan_policy_service = TenantPlanPolicyService()
         middleware.tenant_billing_grace_policy_service = SimpleNamespace(
             get_policy=lambda: None
         )
@@ -595,6 +591,11 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
                 reset_at=9999999999,
             )
         )
+
+        def _get_tenant_baseline_policy_state(tenant):
+            tenant_service.tenant_plan_policy_service = middleware.tenant_plan_policy_service
+            return tenant_service.get_tenant_baseline_policy_state(tenant)
+
         middleware.tenant_service = SimpleNamespace(
             get_tenant_status_error=tenant_service.get_tenant_status_error,
             get_tenant_access_policy=lambda tenant: tenant_service.get_tenant_access_policy(
@@ -603,6 +604,7 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
             is_tenant_under_maintenance=tenant_service.is_tenant_under_maintenance,
             get_tenant_maintenance_scopes=tenant_service.get_tenant_maintenance_scopes,
             get_tenant_module_activation_state=tenant_service.get_tenant_module_activation_state,
+            get_tenant_baseline_policy_state=_get_tenant_baseline_policy_state,
             get_effective_enabled_modules=tenant_service.get_effective_enabled_modules,
             get_tenant_module_limits=tenant_service.get_tenant_module_limits,
             get_effective_module_limits=None,

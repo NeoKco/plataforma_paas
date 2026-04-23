@@ -117,9 +117,14 @@
           - `tenant_subscriptions`
           - `tenant_subscription_items`
         - `billing`, `grace` y `suspensión` ya quedan conectados al contrato comercial nuevo
+        - el baseline técnico de cuotas/límites para tenants gestionados ya sale del `Plan Base`
+        - `Configuración` y `Tenants > Plan y módulos` ya muestran:
+          - `Modelo contractual`
+          - `Fuente baseline`
+          - compatibilidad legacy cuando todavía aplica
         - siguiente slice:
-          - retiro del fallback legacy restante en cuotas/límites todavía resueltos por `plan_code`
-          - visibilidad explícita en consola de tenants legacy vs tenants ya recontratados/gestionados
+          - migrar los tenants legacy restantes al contrato nuevo
+          - retirar después el fallback total por `plan_code`
         - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:

@@ -91,6 +91,10 @@ Payload operativo actual de `GET /platform/capabilities`:
   - `default_billing_cycle`
   - `allowed_billing_cycles`
   - `is_default`
+  - `compatibility_policy_code`
+  - `read_requests_per_minute`
+  - `write_requests_per_minute`
+  - `module_limits`
 - `module_subscription_catalog` hoy expone filas tipo:
   - `module_key`
   - `display_name`
@@ -116,6 +120,8 @@ Payload operativo actual de `GET /platform/capabilities`:
       - módulos técnicos
       - fallback legacy
       - fuente efectiva
+      - `Modelo contractual`
+      - `Fuente baseline`
   - `PATCH /platform/tenants/{tenant_id}/subscription` hoy acepta:
     - `base_plan_code`
     - `billing_cycle`
@@ -129,6 +135,7 @@ Payload operativo actual de `GET /platform/capabilities`:
     - `items[]`
   - nota:
     - la activación efectiva del tenant ya se resuelve desde `tenant_subscriptions` con fallback legacy por `plan_code`
+    - para tenants gestionados por contrato, el baseline de cuotas/límites ya también sale del `Plan Base`
 - el payload `export_scope` hoy soporta:
   - `portable_full`
   - `functional_data_only`

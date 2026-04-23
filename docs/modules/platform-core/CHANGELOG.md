@@ -1,5 +1,30 @@
 # Platform Core Changelog
 
+## 2026-04-23
+
+- la `Etapa 15` ya deja el baseline técnico de cuotas/límites alineado al contrato nuevo:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ahora resuelve `read/write rate limits`, módulos base habilitados y `module_limits` desde `tenant_subscriptions` + `base_plan_catalog` para tenants gestionados por contrato
+  - [tenant_module_subscription_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_module_subscription_policy_service.py) ya expone el `base_plan_catalog` resuelto con:
+    - `compatibility_policy_code`
+    - `read_requests_per_minute`
+    - `write_requests_per_minute`
+    - `module_limits`
+  - [tenant_context_middleware.py](/home/felipe/platform_paas/backend/app/common/middleware/tenant_context_middleware.py) ya deja visible tenant-side:
+    - `tenant_subscription_contract_managed`
+    - `tenant_legacy_plan_fallback_active`
+    - `tenant_baseline_policy_source`
+    - `tenant_baseline_compatibility_policy_code`
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) y [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py) ya reflejan ese estado en `/platform/tenants`, `TenantPlanResponse` y `/tenant/info`
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya expone el baseline resuelto del `Plan Base`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ya muestra:
+    - `Modelo contractual`
+    - `Fuente baseline`
+    - compatibilidad legacy cuando todavía aplica
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `212 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-22
 
 - la `Etapa 15` ya conecta `billing`, `grace` y `suspensión` al contrato comercial nuevo:

@@ -4590,8 +4590,17 @@ class PlatformRoutesTestCase(unittest.TestCase):
             return_value=tenant,
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
-            "tenant_service.tenant_plan_policy_service.get_enabled_modules",
-            return_value=["core", "users", "finance"],
+            "tenant_service.get_tenant_baseline_policy_state",
+            return_value=SimpleNamespace(
+                subscription_contract_managed=False,
+                legacy_plan_fallback_active=True,
+                source="legacy_plan_code",
+                compatibility_policy_code="pro",
+                enabled_modules=("core", "users", "finance"),
+                read_requests_per_minute=180,
+                write_requests_per_minute=60,
+                module_limits={},
+            ),
         ), patch(
             "app.apps.platform_control.api.tenant_routes.auth_audit_service.log_event",
         ):
