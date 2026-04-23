@@ -283,7 +283,7 @@ Estado práctico de cierre:
       - `GET /platform/capabilities` y `/tenant/info` ya exponen `ui_label_catalog`
       - `Tenants`, `Actividad` y `TenantOverview` ya consumen labels backend-driven para tenant/module/policy/auth codes y claves de limites
       - staging y production ya quedaron redeployados/publicados con este cierre y static readiness verde
-    - el siguiente frente formal recomendado del roadmap pasa a `Etapa 14. Modulos de Negocio Reales`
+    - esa secuencia ya quedó absorbida por el cierre posterior del roadmap base
 
 ## Cierre operativo del bloque central
 

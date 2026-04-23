@@ -817,16 +817,16 @@ Entregables esperados:
 - limites y protecciones
 - politicas de mantenimiento tenant
 
-## Prioridades inmediatas
+## Prioridades estructurales ya absorbidas
 
-Mirando el estado real del proyecto, lo mas conveniente ahora es:
+Las prioridades que guiaron este cierre ya quedaron absorbidas en la base actual:
 
-1. cerrar el ciclo basico de tenants como entidad central de plataforma: alta, edicion basica, archivo y operacion diaria
-2. consolidar frontend y documentacion como capa operativa estable, no como prototipo temporal
-3. endurecer calidad tecnica y automatizacion para depender menos de prueba manual repetitiva
-4. mejorar catalogos y labels expuestos por backend para que frontend deje de traducir tantos codigos internos por su cuenta
-5. dejar instalador, onboarding y flujo diario suficientemente claros para que el arranque del proyecto no requiera reconstruir contexto
-6. solo despues de lo anterior, volver a abrir con fuerza el siguiente bloque de modulos
+1. ciclo básico de tenants operable y visible
+2. frontend y documentación consolidados como capa operativa estable
+3. calidad técnica y automatización suficientes para no depender solo de prueba manual
+4. catálogos y labels críticos expuestos por backend
+5. instalador, onboarding y flujo diario suficientemente claros
+6. base contractual, de seguridad y de observabilidad ya institucionalizada antes de abrir nuevos frentes
 
 Resultado actual:
 
@@ -866,9 +866,11 @@ Resultado actual:
 - existe ya una capa de dispatch desacoplada con backend real `database` o `broker`
 - existen ya cuotas base por tenant para lecturas y escrituras de API, con opcion distribuida sobre Redis
 - existen ya overrides persistidos por tenant para cuotas `read/write`, operables desde `platform`
-- existe ya resolucion de cuotas por `plan_code`, con prioridad intermedia entre override tenant y configuracion global
-- existe ya resolucion de modulos habilitados por `plan_code`, con enforcement central en middleware tenant
-- existe ya una primera resolucion de limites de uso por modulo desde `plan_code`, con enforcement inicial sobre `finance.entries`, `finance.entries.monthly`, cuotas segmentadas por tipo de movimiento, `core.users`, `core.users.active`, `core.users.monthly` y cuotas por rol
+- existe ya resolución contractual de cuotas, módulos habilitados y límites por módulo desde:
+  - `tenant_subscriptions`
+  - `tenant_subscription_items`
+  - `base_plan_catalog`
+- el fallback `plan_code` ya queda acotado solo a compatibilidad legacy explícita y deja de ser baseline normal
 - existe ya un estado minimo de billing por tenant con efecto automatico sobre login, refresh y runtime
 - existe ya una politica efectiva de acceso tenant que consolida `status` manual y billing en una sola salida operativa
 - el login tenant ya traduce mejor bloqueos comunes de lifecycle y billing para no depender de mensajes crudos del backend
