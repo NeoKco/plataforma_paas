@@ -592,8 +592,27 @@ Resultado actual:
 
 Falta para cerrarlo:
 
-- decidir si la activación/desactivación tenant seguirá siendo solo plan-driven o si requiere excepciones formales por tenant
+- dejar implementado el modelo comercial aprobado:
+  - `Plan Base` obligatorio por tenant
+  - `finance` siempre incluido dentro del `Plan Base`
+  - módulos adicionales arrendables por suscripción
+  - ciclos normalizados `monthly|quarterly|semiannual|annual`
+  - co-terminación y prorrateo como política recomendada
+- separar explícitamente:
+  - catálogo comercial
+  - suscripción tenant
+  - habilitación técnica efectiva
 - separar mejor catálogo de módulos, límites por módulo y degradación por billing grace dentro de la UI operativa
+
+Decisión formal cerrada:
+
+- no se seguirá con `plan-driven puro` como modelo final
+- tampoco se abrirán `overrides` libres por tenant como solución principal
+- la dirección aprobada es `Plan Base + módulos arrendables por suscripción`
+
+Referencia:
+
+- [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 
 ## Etapa 16. Infraestructura y Operacion Real
 

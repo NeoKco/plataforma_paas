@@ -55,6 +55,17 @@
     - `staging` publicado con `SettingsPage-CjfCgUmL.js`, `TenantsPage-B58mHQaa.js`, `DashboardPage-B8q3Ct16.js`, `ProvisioningPage-Bjc1b95N.js`, `BillingPage-DyyqyV3V.js`, `index-DF1mJwiA.js`
     - `production` publicado con `SettingsPage-5tn2P9AX.js`, `TenantsPage-C4oOzxQR.js`, `DashboardPage-DjW0RbOv.js`, `ProvisioningPage-7YYCSQZ5.js`, `BillingPage-Ca-L2Ndq.js`, `index-CMImtbe0.js`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  Además, ya queda cerrada la decisión de producto para el siguiente corte de la Etapa 15:
+  - no seguir con `plan-driven puro` como modelo final
+  - no abrir `overrides` libres por tenant como solución principal
+  - avanzar a:
+    - `Plan Base` obligatorio por tenant
+    - `finance` siempre incluido en ese `Plan Base`
+    - módulos adicionales arrendables por suscripción
+    - ciclos `monthly|quarterly|semiannual|annual`
+    - co-terminación y prorrateo como política recomendada
+  - definición formal ya asentada en:
+    - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
   Subcorte nuevo ya cerrado en repo dentro de ese frente:
   - [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh) centraliza el dispatch broker-only `target -> specs`
   - [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh) ya deja de quedarse solo en `all|batch|row|filters`

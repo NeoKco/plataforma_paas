@@ -97,8 +97,15 @@
         - `Tenants > Plan y módulos` deja explícita la ruta formal de activación tenant-side
         - el mismo bloque ya muestra límites por módulo del plan seleccionado
       - siguiente paso correcto dentro de la Etapa 15:
-        - decidir si la activación/desactivación tenant seguirá siendo solo plan-driven o abrirá excepciones formales por tenant
-        - después separar mejor catálogo de módulos, límites por módulo y degradación por billing grace en la UI operativa
+        - implementar el modelo comercial ya aprobado:
+          - `Plan Base` obligatorio por tenant
+          - `finance` siempre incluido
+          - módulos adicionales arrendables por suscripción
+        - separar explícitamente:
+          - catálogo comercial
+          - suscripción tenant
+          - habilitación técnica efectiva
+        - después adaptar `Configuración` y `Tenants > Plan y módulos` a ese modelo
         - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:

@@ -79,9 +79,14 @@ Regla operativa:
 
 - el catálogo de módulos hoy sale de backend
 - las dependencias explícitas entre módulos también salen de backend mediante `module_dependency_catalog`
-- la activación tenant-side sigue siendo plan-driven
+- la activación tenant-side visible hoy sigue siendo plan-driven, pero ya no es el modelo comercial final aprobado
 - los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
-- la decisión aún pendiente ya no es si existen dependencias, sino si la activación seguirá siendo solo por plan o si se abrirán excepciones formales por tenant
+- la dirección aprobada del producto pasa a ser:
+  - `Plan Base` obligatorio por tenant
+  - `finance` siempre incluido
+  - módulos adicionales arrendables por suscripción
+- referencia formal:
+  - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 
 ### Operar provisioning
 

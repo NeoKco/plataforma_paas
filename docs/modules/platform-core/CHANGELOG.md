@@ -2,6 +2,18 @@
 
 ## 2026-04-22
 
+- se cierra la definición formal del modelo comercial de la `Etapa 15`:
+  - el producto ya no seguirá con `plan-driven puro` como modelo final
+  - tampoco se abrirán `overrides` libres por tenant como solución principal
+  - se aprueba el modelo:
+    - `Plan Base` obligatorio
+    - `finance` siempre incluido
+    - módulos adicionales arrendables por suscripción
+    - ciclos `monthly|quarterly|semiannual|annual`
+    - co-terminación y prorrateo como política recomendada
+  - la definición queda formalizada en:
+    - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
+
 - `Etapa 15. Registro y Activación de Módulos` ya cierra también su segundo slice visible backend-driven:
   - [tenant_plan_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_plan_policy_service.py) agrega el catálogo formal `module_dependency_catalog`
   - [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) lo expone en `GET /platform/capabilities`

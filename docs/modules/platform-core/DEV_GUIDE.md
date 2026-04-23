@@ -53,7 +53,15 @@ Documentación base:
   - `module_dependency_catalog` de ese mismo endpoint es la fuente de verdad de las dependencias explícitas entre módulos
   - `Tenants > Plan y módulos` sigue siendo la superficie de activación tenant-side
   - `Configuración` ya expone tanto el catálogo de planes/módulos como el catálogo de dependencias
-  - no reintroducir toggles de módulos sueltos mientras la política activa siga siendo plan-driven
+  - no reintroducir toggles de módulos sueltos
+  - la dirección aprobada ya no es `plan-driven puro` ni `overrides libres por tenant`
+  - el siguiente diseño debe implementar `Plan Base + módulos arrendables por suscripción`
+  - la separación futura obligatoria es:
+    - catálogo comercial
+    - suscripción tenant
+    - habilitación técnica efectiva
+  - referencia formal:
+    - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal
 - en `tenant_portal`, `Usuarios` debe seguir el mismo patrón: catálogo visible primero y alta solo bajo demanda desde botón
 - `tenant_portal > Usuarios` ya expone además edición y borrado seguro: el backend bloquea autoeliminación y protege al último admin activo antes de aceptar `DELETE /tenant/users/{id}` o degradaciones equivalentes
@@ -214,6 +222,10 @@ Regla vigente para `Nuevo tenant` en `platform_admin`:
 - el modal de `Nuevo tenant` ya debe mostrar claramente qué módulos habilita el plan seleccionado
 - el bloque operativo para cambiar módulos en un tenant existente es `Plan y módulos` dentro de `Tenants`
 - ese mismo bloque ya debe dejar visible si el plan cubre o no las dependencias requeridas
+- el siguiente corte ya no debe modelarse como excepción libre por tenant:
+  - primero debe aparecer el contrato comercial base
+  - luego los `subscription items` por módulo
+  - y recién después la resolución a `effective_enabled_modules`
 
 Cobertura actual:
 

@@ -1,5 +1,33 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - la `Etapa 15` fija su modelo comercial final como `Plan Base + módulos arrendables`
+
+- objetivo:
+  - cerrar la decisión de producto antes de seguir implementando la `Etapa 15`, para no arrastrar un modelo incorrecto de activación modular
+- decisiones cerradas:
+  - no seguir con `plan-driven puro` como modelo final
+  - no abrir `overrides` libres por tenant como solución principal
+  - aprobar el modelo:
+    - `Plan Base` obligatorio por tenant
+    - `finance` siempre incluido dentro del `Plan Base`
+    - módulos adicionales arrendables por suscripción
+    - ciclos `monthly|quarterly|semiannual|annual`
+    - co-terminación y prorrateo como política recomendada
+  - separar obligatoriamente:
+    - catálogo comercial
+    - suscripción tenant
+    - habilitación técnica efectiva
+- documentación canónica agregada/alineada:
+  - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
+  - [docs/architecture/development-roadmap.md](/home/felipe/platform_paas/docs/architecture/development-roadmap.md)
+  - [docs/modules/platform-core/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/USER_GUIDE.md)
+  - [docs/modules/platform-core/DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/platform-core/DEV_GUIDE.md)
+  - [docs/modules/platform-core/ROADMAP.md](/home/felipe/platform_paas/docs/modules/platform-core/ROADMAP.md)
+  - [docs/modules/platform-core/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/platform-core/CHANGELOG.md)
+- resultado:
+  - la siguiente implementación de la `Etapa 15` ya no debe diseñarse como excepción libre por tenant
+  - el siguiente corte técnico debe modelar suscripción tenant y módulos arrendables sobre `platform_control`
+
 ## 2026-04-22 - `Etapa 15` cierra también dependencias explícitas backend-driven en `Configuración` y `Tenants`
 
 - objetivo:
