@@ -8,7 +8,7 @@
   - `POST /platform/tenants` ya crea tenants nuevos desde `base_plan_code`
   - los tenants nuevos nacen con `tenant_subscriptions` y `tenant_subscription_items` desde el alta
   - el carril normal de alta ya deja `plan_code=null`
-  - `Tenants > Nuevo tenant` ya usa `Plan Base inicial` y solo mantiene compatibilidad legacy de entrada
+  - `Tenants > Nuevo tenant` ya usa `Plan Base inicial` como baseline contractual normal
   - `Tenants > Plan y módulos` ya oculta el bloque legacy cuando el tenant no tiene `legacy_plan_fallback_active`
   - `Provisioning` ya resuelve el bootstrap modular desde `effective_enabled_modules` en vez de `tenant.plan_code`
   - la regresión de lifecycle/delete sobre tenants contract-managed ya quedó corregida con `cascade="all, delete-orphan"` en `Tenant.subscription` y `TenantSubscription.items`
@@ -19,6 +19,18 @@
   - `tenant_portal > Resumen` ya muestra `Plan base` y deja `plan_code` solo como fallback visible si reaparece un tenant verdaderamente heredado
   - `staging` publicado con `SettingsPage-CFyqMqrB.js`, `TenantsPage-CwTtK5zZ.js`, `TenantOverviewPage-BMVmgh3I.js`, `ProvisioningPage-Ct6n6eMs.js`, `BillingPage-DlvNI2Dt.js`, `DashboardPage-AlaUALix.js`, `index-B4n_FFVI.js`
   - `production` publicado con `SettingsPage-Dzi2iSbq.js`, `TenantsPage-Ds-ykjHt.js`, `TenantOverviewPage-Bo1IwQVl.js`, `ProvisioningPage-DXZMhjAQ.js`, `BillingPage-CCSha2G2.js`, `DashboardPage-CCeF97gI.js`, `index-CRtxaUD4.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- subcorte adicional ya cerrado en repo y runtime dentro de la misma `Etapa 15`:
+  - `TenantCreateRequest` ya no declara `plan_code`; el alta contractual nueva acepta `base_plan_code` como única entrada de baseline
+  - `tenant_service.create_tenant(...)` ya no resuelve `base_plan_code` desde fallback legacy ni mantiene camino de escritura contractual basado en `plan_code`
+  - `PATCH /platform/tenants/{tenant_id}/plan` ya no es write path válido para tenants contract-managed:
+    - si el tenant ya está bajo contrato devuelve `409 Tenant is already contract-managed`
+    - la mutación contractual correcta sigue siendo `PATCH /platform/tenants/{tenant_id}/subscription`
+  - `set_plan(...)` queda solo como compatibilidad de rescate para tenants realmente legacy
+  - `staging` backend redeployado con `551 tests OK`, auditoría `processed=4, warnings=0, failed=0`
+  - `production` backend redeployado con `551 tests OK`, auditoría `processed=4, warnings=0, failed=0`
+  - `staging` publicado con `SettingsPage-DkBsWO_a.js`, `TenantsPage-YI2YvOBp.js`, `TenantOverviewPage-QXrmrCuU.js`, `ProvisioningPage-B_zuoRY9.js`, `BillingPage-DKz1wCgT.js`, `DashboardPage-C3ecG8Ok.js`, `index-516j1KCF.js`
+  - `production` publicado con `SettingsPage-DQ74kk6O.js`, `TenantsPage-Dxo3OuRa.js`, `TenantOverviewPage-BY2T6fVh.js`, `ProvisioningPage-DE0r7it0.js`, `BillingPage-0v0GyiQy.js`, `DashboardPage-Dd9Y1ZNI.js`, `index-D50_BcMT.js`
   - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco de iteración: el roadmap ya dejó suficientemente institucionalizado `platform-core hardening + E2E sobre Provisioning y DLQ` y ya abrió formalmente la `Etapa 15. Registro y Activación de Módulos`. El frente anterior queda cerrado en repo y runtime: el bloque broker-only de `Provisioning/DLQ` ya no mantiene el mapping `target -> specs` duplicado entre helper local, helper published y workflow manual; ahora existe un runner compartido [run_broker_dlq_playwright_target.sh](/home/felipe/platform_paas/scripts/dev/run_broker_dlq_playwright_target.sh), consumido por [run_local_broker_dlq_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_local_broker_dlq_baseline.sh), [run_staging_published_broker_dlq_smoke.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_broker_dlq_smoke.sh) y [.github/workflows/frontend-broker-dlq-e2e.yml](/home/felipe/platform_paas/.github/workflows/frontend-broker-dlq-e2e.yml). Después, ya quedó institucionalizado un baseline published curado de `Provisioning/DLQ` mediante [run_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_published_provisioning_baseline.sh): siempre corre `dispatch-capability + surface-gating + observability-visible`, y suma broker-only solo cuando el entorno realmente usa `broker`. Para sostener esa pasada published sin depender de seeds en producción, se agrega además el smoke [platform-admin-provisioning-observability-visible.smoke.spec.ts](/home/felipe/platform_paas/frontend/e2e/specs/platform-admin-provisioning-observability-visible.smoke.spec.ts). Y ese baseline ya quedó convertido en rutina operativa explícita por ambiente con:
   - [run_staging_published_provisioning_baseline.sh](/home/felipe/platform_paas/scripts/dev/run_staging_published_provisioning_baseline.sh)

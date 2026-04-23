@@ -2,6 +2,23 @@
 
 ## 2026-04-23
 
+- la `Etapa 15` ya retira `plan_code` de las rutas de escritura contractuales normales:
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) ya deja `TenantCreateRequest` solo con `base_plan_code` como baseline contractual
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ya crea tenants nuevos sin pasar `plan_code` y devuelve `409` si `PATCH /platform/tenants/{tenant_id}/plan` se intenta sobre un tenant contract-managed
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya elimina el fallback legacy del alta contractual y deja `set_plan(...)` como compatibilidad de rescate legacy
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) ya dejan de enviar/modelar `plan_code` en el alta
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `218 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend deploy -> `551 tests OK`, auditoría `processed=4, warnings=0, failed=0`
+    - `production` backend deploy -> `551 tests OK`, auditoría `processed=4, warnings=0, failed=0`
+    - frontend publicado:
+      - `staging`: `SettingsPage-DkBsWO_a.js`, `TenantsPage-YI2YvOBp.js`, `TenantOverviewPage-QXrmrCuU.js`, `ProvisioningPage-B_zuoRY9.js`, `BillingPage-DKz1wCgT.js`, `DashboardPage-C3ecG8Ok.js`, `index-516j1KCF.js`
+      - `production`: `SettingsPage-DQ74kk6O.js`, `TenantsPage-Dxo3OuRa.js`, `TenantOverviewPage-BY2T6fVh.js`, `ProvisioningPage-DE0r7it0.js`, `BillingPage-0v0GyiQy.js`, `DashboardPage-Dd9Y1ZNI.js`, `index-D50_BcMT.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - la `Etapa 15` ya retira `plan_code` de la lectura visible normal para tenants contract-managed:
   - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ya expone `plan_code` / `tenant_plan_code` solo cuando `legacy_plan_fallback_active=true`
   - [tenant_context_middleware.py](/home/felipe/platform_paas/backend/app/common/middleware/tenant_context_middleware.py) ya deja `request.state.tenant_plan_code=null` para tenants contract-managed
@@ -20,10 +37,10 @@
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - la `Etapa 15` ya saca `plan_code` del carril normal de alta y bootstrap:
-  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) agrega `base_plan_code` en `TenantCreateRequest` y deja `plan_code` solo como compatibilidad
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) agrega `base_plan_code` en `TenantCreateRequest`
   - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) ya crea tenants nuevos pasando `base_plan_code`
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
-    - resuelve `base_plan_code` desde la entrada nueva o compatibilidad legacy
+    - en ese corte ya resolvía `base_plan_code` desde la entrada nueva y luego fue endurecido para quitar el fallback contractual legacy
     - crea `tenant_subscriptions` desde el alta
     - persiste `plan_code=null` para tenants nuevos
   - [provisioning_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/provisioning_service.py) ya bootstrappea módulos desde `effective_enabled_modules`

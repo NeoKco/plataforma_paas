@@ -162,6 +162,10 @@ Estado práctico de cierre:
     - `plan_code` ya sale de la lectura visible normal para tenants contract-managed
     - `GET /platform/tenants`, `TenantPlanResponse`, respuestas de límites/uso y `tenant_context_middleware` ya lo dejan en `null` salvo que `legacy_plan_fallback_active=true`
     - `Tenants > Plan y módulos` y `tenant_portal > Resumen` ya muestran `Plan base` como baseline normal y reservan `plan_code` para compatibilidad legacy real
+  - subcorte nuevo ya cerrado en repo y runtime:
+    - `TenantCreateRequest` ya no declara `plan_code`
+    - `PATCH /platform/tenants/{tenant_id}/plan` ya devuelve `409` para tenants contract-managed
+    - la escritura contractual normal queda acotada a `base_plan_code` + `PATCH /platform/tenants/{tenant_id}/subscription`
   - el siguiente corte ya no es migrar tenants activos ni limpiar la lectura visible, sino:
     - retirar compatibilidad residual `plan_code` más profunda donde ya no aporte
     - dejar explícito si en el futuro reaparece algún tenant realmente legacy fuera del set activo actual

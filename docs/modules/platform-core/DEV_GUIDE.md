@@ -75,8 +75,8 @@ Documentación base:
     - `module_subscription_catalog`
   - `POST /platform/tenants` ya debe tratarse como contrato nuevo:
     - usar `base_plan_code`
-    - dejar `plan_code` solo como compatibilidad de entrada
     - no abrir caminos nuevos que dependan de `tenant.plan_code`
+    - no reintroducir `plan_code` en `TenantCreateRequest`
   - el estado visible actual debe respetar esta secuencia:
     - catálogo comercial aprobado visible en consola
     - activación técnica efectiva visible desde `tenant_subscriptions`
@@ -86,6 +86,7 @@ Documentación base:
     - `billing`, `grace` y `suspensión` ya se evalúan primero desde la suscripción cuando existe
     - migración de tenants legacy ya disponible por API y script batch
     - `tenant_plan_code` en middleware y respuestas API ya debe quedar `null` para tenants contract-managed
+    - `PATCH /platform/tenants/{tenant_id}/plan` debe quedar limitado a tenants realmente legacy
     - siguiente corte: retiro posterior de superficies residuales de compatibilidad `plan_code`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)

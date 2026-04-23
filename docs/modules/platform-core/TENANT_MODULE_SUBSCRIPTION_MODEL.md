@@ -263,13 +263,19 @@ Esto deja a los 4 tenants activos de ambos ambientes ya gestionados por contrato
 La creación de tenants nuevos ya no debe depender del baseline legacy:
 
 - `POST /platform/tenants` acepta `base_plan_code`
-- `plan_code` queda solo como compatibilidad heredada de entrada
 - el tenant nuevo nace con:
   - `plan_code = null`
   - `tenant_subscriptions`
   - `tenant_subscription_items`
 - `Tenants > Nuevo tenant` ya pide `Plan Base inicial`
 - el bootstrap de provisioning ya resuelve módulos desde `effective_enabled_modules`
+
+Estado endurecido actual:
+
+- `TenantCreateRequest` ya no declara `plan_code`
+- el alta contractual nueva ya no debe usar fallback legacy por `plan_code`
+- `PATCH /platform/tenants/{tenant_id}/plan` queda reservado a rescate legacy
+- si el tenant ya es contract-managed, esa ruta responde `409 Tenant is already contract-managed`
 
 Resultado operativo actual:
 

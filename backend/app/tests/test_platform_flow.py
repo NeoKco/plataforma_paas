@@ -3150,6 +3150,31 @@ class PlatformServicesTestCase(unittest.TestCase):
 
         self.assertEqual(result.plan_code, "pro")
 
+    def test_tenant_service_rejects_plan_write_for_contract_managed_tenant(self) -> None:
+        tenant = build_tenant_record_stub(
+            plan_code=None,
+            subscription=SimpleNamespace(
+                base_plan_code="base_finance",
+                status="active",
+                billing_cycle="monthly",
+                current_period_starts_at=datetime(2026, 4, 1, tzinfo=timezone.utc),
+                items=[],
+            ),
+        )
+
+        class FakeTenantRepository:
+            def get_by_id(self, db, tenant_id):
+                return tenant
+
+        service = TenantService(tenant_repository=FakeTenantRepository())
+
+        with self.assertRaisesRegex(ValueError, "Tenant is already contract-managed"):
+            service.set_plan(
+                db=object(),
+                tenant_id=1,
+                plan_code="pro",
+            )
+
     def test_tenant_service_sets_subscription_contract(self) -> None:
         tenant = build_tenant_record_stub(
             tenant_name="Empresa Demo",
@@ -4706,7 +4731,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
                     name="Empresa Bootstrap",
                     slug="empresa-bootstrap",
                     tenant_type="empresa",
-                    plan_code="pro",
+                    base_plan_code="base_finance",
                     admin_full_name="Admin Bootstrap",
                     admin_email="admin@empresa-bootstrap.local",
                     admin_password="AdminBootstrap123!",
@@ -5595,6 +5620,29 @@ class PlatformRoutesTestCase(unittest.TestCase):
             ["core", "finance", "users"],
         )
         self.assertEqual(response.effective_activation_source, "subscriptions")
+
+    def test_update_tenant_plan_returns_conflict_for_contract_managed_tenant(self) -> None:
+        previous_tenant = build_tenant_record_stub(plan_code=None)
+        previous_tenant.id = 1
+
+        with patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.tenant_repository.get_by_id",
+            return_value=previous_tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.set_plan",
+            side_effect=ValueError("Tenant is already contract-managed"),
+        ):
+            with self.assertRaises(HTTPException) as context:
+                update_tenant_plan(
+                    tenant_id=1,
+                    payload=TenantPlanUpdateRequest(plan_code="pro"),
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(context.exception.status_code, 409)
 
     def test_update_tenant_subscription_contract_returns_schema(self) -> None:
         previous_tenant = build_tenant_record_stub(plan_code="pro")
@@ -7304,7 +7352,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
                     name="Empresa Central",
                     slug="empresa-central",
                     tenant_type="empresa",
-                    plan_code=None,
+                    base_plan_code="base_finance",
                     admin_full_name="Admin Central",
                     admin_email="admin@empresa-central.local",
                     admin_password="AdminCentral123!",

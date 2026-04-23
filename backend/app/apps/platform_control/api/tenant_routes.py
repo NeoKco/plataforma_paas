@@ -792,7 +792,6 @@ def create_tenant(
             admin_email=payload.admin_email,
             admin_password=payload.admin_password,
             base_plan_code=payload.base_plan_code,
-            plan_code=payload.plan_code,
         )
         auth_audit_service.log_event(
             db,
@@ -1546,7 +1545,12 @@ def update_tenant_plan(
         )
     except ValueError as exc:
         detail = str(exc)
-        status_code = 404 if detail == "Tenant not found" else 400
+        if detail == "Tenant not found":
+            status_code = 404
+        elif detail == "Tenant is already contract-managed":
+            status_code = 409
+        else:
+            status_code = 400
         raise HTTPException(status_code=status_code, detail=detail) from exc
     _record_tenant_policy_event(
         db,

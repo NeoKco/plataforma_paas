@@ -114,7 +114,7 @@ Regla operativa:
   - `module_subscription_catalog`
 - el alta nueva ya no deja tenants operando con `plan_code`:
   - crea la suscripción desde `base_plan_code`
-  - deja `plan_code` solo como compatibilidad heredada
+  - no debe tratar `plan_code` como entrada contractual normal
 - el bloque `Baseline legacy por plan_code` ya no es camino normal:
   - solo debe aparecer cuando el tenant realmente sigue legacy
 - para tenants contract-managed, la lectura visible normal ya no debe mostrar `plan_code` como baseline:
@@ -133,6 +133,9 @@ Regla operativa:
 - la migración de tenants legacy ya puede hacerse:
   - tenant a tenant desde `Tenants`
   - o por batch con `migrate_legacy_tenant_contracts.py`
+- el cambio de baseline por la ruta legacy ya no corresponde sobre tenants contract-managed:
+  - `PATCH /platform/tenants/{tenant_id}/plan` queda reservado a rescate legacy
+  - para contratos vigentes, la mutación correcta es `PATCH /platform/tenants/{tenant_id}/subscription`
 - los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
 - la dirección aprobada del producto pasa a ser:
   - `Plan Base` obligatorio por tenant

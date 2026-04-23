@@ -130,10 +130,13 @@ Payload operativo actual de `GET /platform/capabilities`:
     - `addon_items[]`
   - `POST /platform/tenants` hoy acepta:
     - `base_plan_code`
-    - `plan_code` solo como compatibilidad heredada de entrada
   - para tenants nuevos:
     - crea `tenant_subscriptions` desde el alta
     - persiste `plan_code = null`
+  - `PATCH /platform/tenants/{tenant_id}/plan`:
+    - queda como write path legacy
+    - para tenants contract-managed responde `409 Tenant is already contract-managed`
+    - el camino contractual normal sigue siendo `PATCH /platform/tenants/{tenant_id}/subscription`
   - y devuelve además:
     - `current_period_starts_at`
     - `current_period_ends_at`
@@ -151,6 +154,7 @@ Payload operativo actual de `GET /platform/capabilities`:
     - en los 4 tenants activos actuales de `staging` y `production`, esa migración legacy ya quedó completada
     - para tenants contract-managed, la API visible ya no expone `plan_code` como baseline normal; ese campo solo debe venir poblado cuando el tenant siga realmente legacy
     - el bootstrap de provisioning para tenants nuevos ya resuelve módulos desde `effective_enabled_modules`, no desde `tenant.plan_code`
+    - el alta contractual nueva ya no usa `plan_code` como entrada documentada
 - el payload `export_scope` hoy soporta:
   - `portable_full`
   - `functional_data_only`

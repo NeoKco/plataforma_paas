@@ -175,7 +175,6 @@ class TenantService:
         admin_email: str,
         admin_password: str,
         base_plan_code: str | None = None,
-        plan_code: str | None = None,
     ) -> Tenant:
         normalized_name = name.strip()
         normalized_slug = slug.strip().lower()
@@ -203,10 +202,8 @@ class TenantService:
         if len(normalized_admin_password) < 10:
             raise ValueError("Tenant admin password must be at least 10 characters")
 
-        normalized_legacy_plan_code = self._normalize_plan_code(plan_code)
         resolved_base_plan_code = self._normalize_base_plan_code(
             base_plan_code
-            or self._resolve_base_plan_code_from_legacy_plan(normalized_legacy_plan_code)
             or self.tenant_module_subscription_policy_service.DEFAULT_BASE_PLAN_CODE
         )
         base_plan_entry = (
@@ -1176,6 +1173,8 @@ class TenantService:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:
             raise ValueError("Tenant not found")
+        if self._is_subscription_contract_managed(getattr(tenant, "subscription", None)):
+            raise ValueError("Tenant is already contract-managed")
 
         normalized_plan_code = self._normalize_plan_code(plan_code)
         enabled_modules = self.tenant_plan_policy_service.get_enabled_modules(
@@ -2141,17 +2140,6 @@ class TenantService:
             raise ValueError("Invalid tenant base plan")
         return normalized
 
-    def _resolve_base_plan_code_from_legacy_plan(
-        self,
-        legacy_plan_code: str | None,
-    ) -> str | None:
-        entry = self.tenant_module_subscription_policy_service.resolve_base_plan_catalog_entry(
-            legacy_plan_code,
-            tenant_plan_policy_service=self.tenant_plan_policy_service,
-        )
-        if entry is None:
-            return None
-        return entry.plan_code
 
     def _normalize_subscription_billing_cycle(
         self,

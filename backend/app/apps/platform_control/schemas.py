@@ -218,7 +218,6 @@ class TenantCreateRequest(BaseModel):
     slug: str
     tenant_type: str
     base_plan_code: str | None = None
-    plan_code: str | None = None
     admin_full_name: str
     admin_email: str
     admin_password: str

@@ -434,7 +434,6 @@ export type PlatformTenantCreateRequest = {
   slug: string;
   tenant_type: string;
   base_plan_code: string | null;
-  plan_code: string | null;
   admin_full_name: string;
   admin_email: string;
   admin_password: string;

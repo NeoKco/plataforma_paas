@@ -45,13 +45,15 @@
 - siguiente paso correcto del roadmap:
   - `business-core` y el hardening inmediato de `Provisioning/DLQ` ya quedan suficientemente institucionalizados; no corresponde seguir limándolos por inercia
   - la prioridad vigente dentro de la `Etapa 15` pasa a ser:
-    - retirar el fallback residual de `plan_code` en superficies de código donde todavía sobreviva como compatibilidad profunda
-    - dejar visibilidad explícita de legacy solo si reaparece un tenant realmente heredado
+    - retirar la compatibilidad residual de `plan_code` que todavía sobreviva más abajo en policy/repository/scripts no visibles
+    - mantener visibilidad explícita de legacy solo si reaparece un tenant realmente heredado
   - lo ya cerrado y que no debe reabrirse:
     - tenants nuevos ya nacen contract-managed desde `base_plan_code`
     - `Provisioning` ya bootstrappea por `effective_enabled_modules`
     - los 4 tenants activos de `staging` y `production` ya están gestionados por contrato y sin `plan_code` activo
     - la consola y el portal tenant ya no muestran `plan_code` como baseline normal para tenants contract-managed
+    - el alta nueva ya no acepta `plan_code` como campo contractual normal
+    - `PATCH /platform/tenants/{tenant_id}/plan` ya no debe usarse sobre tenants contract-managed
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual
@@ -124,8 +126,8 @@
           - `Fuente baseline`
           - compatibilidad legacy cuando todavía aplica
         - siguiente slice:
-          - retirar el fallback residual por `plan_code` del código y de la consola
-          - dejar visible si en el futuro reaparece algún tenant realmente legacy fuera del set activo actual
+          - retirar el fallback residual por `plan_code` en capas profundas que todavía no estén visibles en consola
+          - mantener visible el estado legacy solo si reaparece algún tenant realmente heredado fuera del set activo actual
         - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:

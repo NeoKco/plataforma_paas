@@ -1147,7 +1147,6 @@ export function TenantsPage() {
         slug: createTenantSlug.trim(),
         tenant_type: createTenantType,
         base_plan_code: normalizeNullableString(createTenantBasePlanCode),
-        plan_code: null,
         admin_full_name: createTenantAdminFullName.trim(),
         admin_email: createTenantAdminEmail.trim().toLowerCase(),
         admin_password: createTenantAdminPassword,

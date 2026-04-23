@@ -1,5 +1,37 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - la `Etapa 15` ya retira `plan_code` de las rutas de escritura contractuales normales
+
+- objetivo:
+  - cerrar el cleanup profundo de compatibilidad para que el alta nueva y el cambio de plan contractual ya no dependan de `plan_code`
+  - dejar `set_plan(...)` y `PATCH /platform/tenants/{tenant_id}/plan` solo como rescate legacy explícito
+- cambios y acciones ejecutadas:
+  - [backend/app/apps/platform_control/schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py):
+    - `TenantCreateRequest` ya no declara `plan_code`
+    - el carril contractual normal del alta queda expresado solo con `base_plan_code`
+  - [backend/app/apps/platform_control/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py):
+    - `POST /platform/tenants` ya no pasa `plan_code`
+    - `PATCH /platform/tenants/{tenant_id}/plan` devuelve `409` si el tenant ya está contract-managed
+  - [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+    - `create_tenant(...)` ya no acepta `plan_code`
+    - se elimina la resolución contractual desde fallback legacy en el alta
+    - `set_plan(...)` rechaza tenants contract-managed y queda limitado al rescate legacy
+  - [frontend/src/types.ts](/home/felipe/platform_paas/frontend/src/types.ts) y [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - el formulario de alta ya no envía `plan_code`
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `218 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_flow -v` -> `96 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+  - `staging` backend deploy -> `551 tests OK`
+  - `production` backend deploy -> `551 tests OK`
+  - `staging` publicado con `SettingsPage-DkBsWO_a.js`, `TenantsPage-YI2YvOBp.js`, `TenantOverviewPage-QXrmrCuU.js`, `ProvisioningPage-B_zuoRY9.js`, `BillingPage-DKz1wCgT.js`, `DashboardPage-C3ecG8Ok.js`, `index-516j1KCF.js`
+  - `production` publicado con `SettingsPage-DQ74kk6O.js`, `TenantsPage-Dxo3OuRa.js`, `TenantOverviewPage-BY2T6fVh.js`, `ProvisioningPage-DE0r7it0.js`, `BillingPage-0v0GyiQy.js`, `DashboardPage-Dd9Y1ZNI.js`, `index-D50_BcMT.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- resultado:
+  - el alta contractual normal ya no depende de `plan_code`
+  - la escritura directa de plan legacy ya no aplica a tenants contract-managed
+  - el siguiente paso pasa a ser retirar compatibilidad `plan_code` más profunda donde siga sobreviviendo sin valor operativo
+
 ## 2026-04-23 - la `Etapa 15` ya retira `plan_code` de la lectura visible normal para tenants contract-managed
 
 - objetivo:
@@ -37,11 +69,11 @@
 - cambios y acciones ejecutadas:
   - [backend/app/apps/platform_control/schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py):
     - `TenantCreateRequest` agrega `base_plan_code`
-    - mantiene `plan_code` solo como compatibilidad
+    - este fue el primer corte; el cleanup posterior ya retira `plan_code` del schema contractual normal
   - [backend/app/apps/platform_control/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py):
     - `POST /platform/tenants` ya pasa `base_plan_code`
   - [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
-    - resuelve `base_plan_code` desde la entrada nueva o compatibilidad legacy
+    - en ese corte todavía resolvía `base_plan_code` desde entrada nueva o compatibilidad legacy
     - crea `tenant_subscriptions` desde el alta
     - deja `plan_code=null` para tenants nuevos
   - [backend/app/apps/provisioning/services/provisioning_service.py](/home/felipe/platform_paas/backend/app/apps/provisioning/services/provisioning_service.py):
