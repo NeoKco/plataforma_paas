@@ -92,16 +92,30 @@
       - no conviene seguir limando `platform-core hardening + E2E` por inercia
     - siguiente frente formal del roadmap:
       - `Etapa 15. Registro y Activación de Módulos` ya quedó formalmente abierta
-      - primer slice visible ya cerrado en runtime:
-        - `Configuración` expone `Catálogo de planes y módulos`
-        - `Tenants > Plan y módulos` deja explícita la ruta formal de activación tenant-side
-        - el mismo bloque ya muestra límites por módulo del plan seleccionado
+      - slices visibles ya cerrados en runtime:
+        - `Configuración` expone:
+          - `Catálogo de planes y módulos`
+          - `Dependencias entre módulos`
+          - `Planes base`
+          - `Módulos arrendables`
+          - `Ciclos comerciales`
+          - `Política efectiva actual por plan`
+        - `Tenants > Plan y módulos` ya deja visible:
+          - `Plan Base aprobado`
+          - `Plan operativo actual`
+          - add-ons visibles
+          - ciclos comerciales visibles
+          - dependencias cubiertas o no
       - siguiente paso correcto dentro de la Etapa 15:
         - el primer corte técnico ya quedó promovido a runtime en `staging` y `production`
-        - adaptar `Configuración` y `Tenants > Plan y módulos` a `Plan Base + add-ons`
+        - la adaptación visible de `Configuración` y `Tenants > Plan y módulos` al modelo `Plan Base + add-ons` ya quedó publicada en `staging` y `production`
         - empezar a resolver la activación técnica efectiva desde:
           - `tenant_subscriptions`
           - `tenant_subscription_items`
+        - separar en consola:
+          - incluido por `Plan Base`
+          - arrendado por suscripción
+          - efectivamente habilitado
         - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:

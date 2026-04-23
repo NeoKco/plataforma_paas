@@ -122,10 +122,23 @@ Estado práctico de cierre:
     - no seguir con `plan-driven puro` como modelo final
     - no abrir `overrides` manuales libres por tenant
     - avanzar a `Plan Base + módulos arrendables por suscripción`
-  - el siguiente corte ya no es modelar estas tablas, sino:
-    - promoverlas a runtime
-    - adaptar `Configuración` y `Tenants > Plan y módulos` a `Plan Base + add-ons`
-    - luego resolver habilitación técnica efectiva desde suscripciones
+  - `Configuración` y `Tenants > Plan y módulos` ya quedaron adaptados al modelo aprobado:
+    - `Configuración` ya muestra:
+      - `Planes base`
+      - `Módulos arrendables`
+      - `Ciclos comerciales`
+      - `Política efectiva actual por plan`
+    - `Tenants > Plan y módulos` ya deja visible:
+      - `Plan Base aprobado`
+      - `Plan operativo actual`
+      - add-ons visibles
+      - ciclos comerciales visibles
+      - compatibilidad efectiva actual del plan legacy
+      - ruta formal hacia `tenant_subscriptions` y `tenant_subscription_items`
+  - el siguiente corte ya no es modelar ni visibilizar el catálogo, sino:
+    - consumir `tenant_subscriptions` y `tenant_subscription_items`
+    - resolver habilitación técnica efectiva desde suscripciones y no solo desde `plan_code`
+    - separar en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`

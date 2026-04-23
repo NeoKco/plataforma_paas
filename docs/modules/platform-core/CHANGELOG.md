@@ -2,6 +2,34 @@
 
 ## 2026-04-22
 
+- la `Etapa 15` ya deja también su tercer slice visible publicado en runtime:
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ahora adapta `Configuración` al modelo aprobado `Plan Base + add-ons`
+  - la consola ya muestra:
+    - `Planes base`
+    - `Módulos arrendables`
+    - `Ciclos comerciales`
+    - `Plan Base`
+    - `Módulos arrendables`
+    - `Política efectiva actual por plan`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) ahora adapta `Tenants > Plan y módulos` al mismo modelo visible:
+    - `Plan Base aprobado`
+    - `Plan operativo actual`
+    - add-ons visibles
+    - ciclos comerciales visibles
+    - dependencias explícitas ya cubiertas o no
+    - aclaración visible de que la activación efectiva todavía se resuelve por `plan_code` mientras no se consuman `tenant_subscriptions` y `tenant_subscription_items`
+  - [types.ts](/home/felipe/platform_paas/frontend/src/types.ts) agrega:
+    - `PlatformBasePlanCatalogEntry`
+    - `PlatformModuleSubscriptionCatalogEntry`
+    - `subscription_activation_model`
+    - `subscription_billing_cycles`
+    - `base_plan_catalog`
+    - `module_subscription_catalog`
+  - validación:
+    - `staging` publicado con `SettingsPage-C8zlfTAn.js`, `TenantsPage-DuWwfmpU.js`, `DashboardPage-Jhib68zR.js`, `ProvisioningPage-DgVKP199.js`, `BillingPage-BqYkxRAu.js`, `index-Bij8-DyY.js`
+    - `production` publicado con `SettingsPage-oNShPC5b.js`, `TenantsPage-C8h-Kts9.js`, `DashboardPage-6Zojk-Q8.js`, `ProvisioningPage-CjB90EAk.js`, `BillingPage-DUmcGUC-.js`, `index-BqtN2FXm.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - la `Etapa 15` ya deja también su primer corte técnico persistente en `platform_control`:
   - [tenant_module_subscription_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_module_subscription_policy_service.py) formaliza:
     - `subscription_activation_model=base_plan_plus_module_subscriptions`

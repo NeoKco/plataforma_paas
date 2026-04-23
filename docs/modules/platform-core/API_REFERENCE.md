@@ -94,9 +94,22 @@ Payload operativo actual de `GET /platform/capabilities`:
   - `module_key`
   - `display_name`
   - `activation_kind`
-  - `available_billing_cycles`
+  - `billing_cycles`
 - `subscription_activation_model` hoy queda en:
   - `base_plan_plus_module_subscriptions`
+- la consola visible hoy consume este payload así:
+  - `Configuración`:
+    - `Planes base`
+    - `Módulos arrendables`
+    - `Ciclos comerciales`
+    - `Política efectiva actual por plan`
+  - `Tenants > Plan y módulos`:
+    - `Plan Base aprobado`
+    - `Plan operativo actual`
+    - add-ons visibles
+    - dependencias visibles
+  - nota:
+    - la activación efectiva del tenant todavía no se resuelve desde `tenant_subscriptions`; por ahora la consola sigue mostrando esa compatibilidad como política legacy por `plan_code`
 - el payload `export_scope` hoy soporta:
   - `portable_full`
   - `functional_data_only`

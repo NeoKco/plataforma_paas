@@ -251,12 +251,31 @@ Sino como:
 - `Plan Base` obligatorio
 - más `suscripciones por módulo`
 
+## Estado visible actual
+
+Además del primer corte técnico ya promovido, la consola visible ya quedó adaptada así:
+
+1. `Configuración` ya expone:
+   - `Planes base`
+   - `Módulos arrendables`
+   - `Ciclos comerciales`
+   - `Política efectiva actual por plan`
+2. `Tenants > Plan y módulos` ya expone:
+   - `Plan Base aprobado`
+   - `Plan operativo actual`
+   - add-ons visibles
+   - ciclos visibles
+   - dependencias cubiertas o no
+3. la consola ya aclara explícitamente que la activación efectiva todavía se resuelve por `plan_code` mientras no se consuman `tenant_subscriptions` y `tenant_subscription_items`
+
 ## Siguiente corte técnico recomendado
 
-1. promover el modelo nuevo a `staging` y `production`
-2. resolver lectura y gestión tenant-side desde:
+1. resolver lectura y gestión tenant-side desde:
    - `tenant_subscriptions`
    - `tenant_subscription_items`
-3. separar habilitación técnica efectiva de contrato comercial
-4. adaptar `Configuración` y `Tenants > Plan y módulos` al nuevo catálogo base + add-ons
-5. recién después conectar billing, grace y suspensión sobre esa misma base
+2. separar habilitación técnica efectiva de contrato comercial
+3. distinguir en consola:
+   - incluido por `Plan Base`
+   - arrendado por suscripción
+   - efectivamente habilitado
+4. recién después conectar billing, grace y suspensión sobre esa misma base

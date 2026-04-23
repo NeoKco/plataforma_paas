@@ -1,5 +1,47 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-22 - la `Etapa 15` adapta `Configuración` y `Tenants > Plan y módulos` al modelo `Plan Base + add-ons`
+
+- objetivo:
+  - cerrar el siguiente slice visible de la Etapa 15 dejando la consola alineada al modelo comercial aprobado sin adelantar todavía la activación técnica efectiva desde suscripciones
+- cambios y acciones ejecutadas:
+  - [frontend/src/types.ts](/home/felipe/platform_paas/frontend/src/types.ts):
+    - agrega:
+      - `PlatformBasePlanCatalogEntry`
+      - `PlatformModuleSubscriptionCatalogEntry`
+      - `subscription_activation_model`
+      - `subscription_billing_cycles`
+      - `base_plan_catalog`
+      - `module_subscription_catalog`
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+    - agrega métricas de:
+      - `Planes base`
+      - `Módulos arrendables`
+      - `Ciclos comerciales`
+    - muestra tablas visibles para:
+      - `Plan Base`
+      - `Módulos arrendables`
+      - `Política efectiva actual por plan`
+    - deja explícito que la política efectiva actual sigue siendo la compatibilidad legacy mientras no se consuman suscripciones
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - adapta `Plan y módulos` a:
+      - `Plan Base aprobado`
+      - `Plan operativo actual`
+      - add-ons visibles
+      - ciclos comerciales visibles
+      - dependencias cubiertas o no
+    - deja explícito que la activación efectiva todavía se resuelve desde `plan_code`
+- validaciones:
+  - `cd frontend && ALLOW_STAGING_API=1 VITE_API_BASE_URL=http://192.168.7.42:8081 npm run build` -> `OK`
+  - `staging` publicado con `SettingsPage-C8zlfTAn.js`, `TenantsPage-DuWwfmpU.js`, `DashboardPage-Jhib68zR.js`, `ProvisioningPage-DgVKP199.js`, `BillingPage-BqYkxRAu.js`, `index-Bij8-DyY.js`
+  - `staging` `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `cd frontend && VITE_API_BASE_URL=https://orkestia.ddns.net npm run build` -> `OK`
+  - `production` publicado con `SettingsPage-oNShPC5b.js`, `TenantsPage-C8h-Kts9.js`, `DashboardPage-6Zojk-Q8.js`, `ProvisioningPage-CjB90EAk.js`, `BillingPage-DUmcGUC-.js`, `index-BqtN2FXm.js`
+  - `production` `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+- resultado:
+  - la Etapa 15 ya no solo existe como catálogo técnico y decisión comercial; ahora la consola visible ya refleja el modelo `Plan Base + add-ons`
+  - el siguiente paso deja de ser copy/catalogación y pasa a resolver la activación técnica efectiva desde `tenant_subscriptions` y `tenant_subscription_items`
+
 ## 2026-04-22 - la `Etapa 15` promueve su primer corte técnico a `staging` y `production`
 
 - objetivo:

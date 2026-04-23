@@ -65,32 +65,46 @@ Referencia:
 
 ### Leer catálogo y activación de módulos
 
-La primera base operativa de la Etapa 15 ya queda visible así:
+La base visible actual de la Etapa 15 ya queda así:
 
 1. abrir `Configuración`
-2. revisar `Catálogo de planes y módulos`
-3. revisar `Dependencias entre módulos`
-4. confirmar qué módulos, límites por módulo y dependencias declara backend para cada plan
+2. revisar:
+   - `Planes base`
+   - `Módulos arrendables`
+   - `Ciclos comerciales`
+   - `Dependencias entre módulos`
+   - `Política efectiva actual por plan`
+3. confirmar qué declara backend hoy para:
+   - catálogo comercial aprobado
+   - compatibilidad efectiva legacy
+   - dependencias entre módulos
 4. abrir `Tenants`
-5. usar `Plan y módulos` para activar la combinación correcta en un tenant específico
-6. leer ahí mismo si el plan cubre o no las dependencias requeridas antes de aplicar cambios
+5. usar `Plan y módulos` para revisar:
+   - `Plan Base aprobado`
+   - `Plan operativo actual`
+   - add-ons visibles
+   - ciclos comerciales visibles
+6. leer ahí mismo si el plan legacy cubre o no las dependencias requeridas antes de aplicar cambios
 
 Regla operativa:
 
 - el catálogo de módulos hoy sale de backend
 - las dependencias explícitas entre módulos también salen de backend mediante `module_dependency_catalog`
-- la activación tenant-side visible hoy sigue siendo plan-driven, pero ya no es el modelo comercial final aprobado
+- la consola ya muestra el modelo aprobado `Plan Base + add-ons`, pero la activación tenant-side efectiva todavía se resuelve por `plan_code`
 - backend ya expone además el catálogo del modelo nuevo:
   - `subscription_activation_model`
   - `subscription_billing_cycles`
   - `base_plan_catalog`
   - `module_subscription_catalog`
-- ese catálogo nuevo ya existe en repo como base persistente de `platform_control`, aunque la resolución efectiva del tenant todavía no sale solo desde suscripciones
+- ese catálogo nuevo ya existe y ya fue promovido a runtime como base persistente de `platform_control`, aunque la resolución efectiva del tenant todavía no sale solo desde suscripciones
 - los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
 - la dirección aprobada del producto pasa a ser:
   - `Plan Base` obligatorio por tenant
   - `finance` siempre incluido
   - módulos adicionales arrendables por suscripción
+- el siguiente corte ya no es seguir ajustando copy/catalogos, sino consumir:
+  - `tenant_subscriptions`
+  - `tenant_subscription_items`
 - referencia formal:
   - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 

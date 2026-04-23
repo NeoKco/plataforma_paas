@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-22T22:12:00-04:00",
+  "updated_at": "2026-04-22T22:26:23-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ: runner broker-only compartido, baseline published curado, wrappers por ambiente, equivalente repo/CI y guías visibles en platform_admin para Provisioning y Billing ya están cerrados en repo y runtime. business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. La Etapa 15 ya deja dos slices visibles cerrados en runtime, una decisión comercial asentada y ahora además el primer corte técnico persistente y promovido en runtime: `platform_control` ya modela Plan Base, catálogo de módulos arrendables, precios/ciclos y suscripción tenant mediante tablas nuevas y expansión de `/platform/capabilities`, con `531 tests OK` por ambiente y deploy backend verde en staging/production.",
+  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ: runner broker-only compartido, baseline published curado, wrappers por ambiente, equivalente repo/CI y guías visibles en platform_admin para Provisioning y Billing ya están cerrados en repo y runtime. business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. La Etapa 15 ya deja además su adaptación visible publicada en runtime: `Configuración` y `Tenants > Plan y módulos` ya reflejan el modelo `Plan Base + add-ons`, mientras `platform_control` ya modela catálogo base, módulos arrendables, precios/ciclos y suscripción tenant mediante tablas nuevas y expansión de `/platform/capabilities`.",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime, rollback alineado al repo fuente y smoke base embebido por defecto como evidencia repetible",
   "active_modules": [
     "platform-core",
@@ -403,7 +403,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "decidir el siguiente slice funcional de la Etapa 15: adaptar Configuración y Tenants > Plan y módulos al modelo Plan Base + add-ons o resolver primero la activación técnica efectiva desde tenant_subscriptions y tenant_subscription_items",
+  "next_decision_required": "resolver el siguiente slice funcional de la Etapa 15: consumir tenant_subscriptions y tenant_subscription_items para calcular la activación técnica efectiva y separar en consola lo incluido por Plan Base, lo arrendado por suscripción y lo efectivamente habilitado",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

@@ -45,6 +45,9 @@ export function SettingsPage() {
 
   const overview = useMemo(() => {
     return {
+      basePlans: capabilities?.base_plan_catalog.length || 0,
+      rentableModules: capabilities?.module_subscription_catalog.length || 0,
+      billingCycles: capabilities?.subscription_billing_cycles.length || 0,
       tenantStatuses: capabilities?.tenant_statuses.length || 0,
       billingStatuses: capabilities?.tenant_billing_statuses.length || 0,
       maintenanceScopes: capabilities?.maintenance_scopes.length || 0,
@@ -181,6 +184,39 @@ export function SettingsPage() {
       ) : null}
 
       <div className="settings-overview-grid">
+        <MetricCard
+          label={language === "es" ? "Planes base" : "Base plans"}
+          icon="catalogs"
+          tone="success"
+          value={overview.basePlans}
+          hint={
+            language === "es"
+              ? "Base comercial obligatoria hoy declarada por backend."
+              : "Commercial mandatory base currently declared by the backend."
+          }
+        />
+        <MetricCard
+          label={language === "es" ? "Módulos arrendables" : "Rentable modules"}
+          icon="overview"
+          tone="info"
+          value={overview.rentableModules}
+          hint={
+            language === "es"
+              ? "Add-ons que el modelo aprobado deja contratar por suscripción."
+              : "Add-ons the approved model allows to contract by subscription."
+          }
+        />
+        <MetricCard
+          label={language === "es" ? "Ciclos comerciales" : "Billing cycles"}
+          icon="billing"
+          tone="default"
+          value={overview.billingCycles}
+          hint={
+            language === "es"
+              ? "Ciclos normalizados para base y módulos arrendables."
+              : "Normalized cycles for the base plan and rentable modules."
+          }
+        />
         <MetricCard
           label={language === "es" ? "Estados tenant" : "Tenant statuses"}
           icon="tenants"
@@ -538,11 +574,125 @@ export function SettingsPage() {
       {capabilities ? (
         <>
           <DataTableCard
-            title={language === "es" ? "Catálogo de planes y módulos" : "Plans and modules catalog"}
+            title={language === "es" ? "Plan Base" : "Base plan"}
             subtitle={
               language === "es"
-                ? "Primera base formal de la Etapa 15: qué módulos declara hoy backend por plan y qué límites por módulo ya existen."
-                : "First formal base for Stage 15: which modules the backend currently declares per plan and which per-module limits already exist."
+                ? "Catálogo comercial obligatorio del tenant: base mínima, finanzas incluidas y ciclos permitidos."
+                : "Tenant mandatory commercial catalog: minimum base, included finance and allowed cycles."
+            }
+            rows={capabilities.base_plan_catalog}
+            columns={[
+              {
+                key: "plan_code",
+                header: language === "es" ? "Código" : "Code",
+                render: (row) => <code>{row.plan_code}</code>,
+              },
+              {
+                key: "display_name",
+                header: language === "es" ? "Nombre visible" : "Display name",
+                render: (row) => row.display_name,
+              },
+              {
+                key: "included_modules",
+                header: language === "es" ? "Incluye" : "Includes",
+                render: (row) =>
+                  row.included_modules?.length ? (
+                    <div className="settings-token-chips">
+                      {row.included_modules.map((value) => (
+                        <span key={`${row.plan_code}-included-${value}`} className="tenant-chip">
+                          {getPlanModuleLabel(value, language)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    "—"
+                  ),
+              },
+              {
+                key: "default_billing_cycle",
+                header: language === "es" ? "Ciclo base" : "Default cycle",
+                render: (row) => getBillingCycleLabel(row.default_billing_cycle, language),
+              },
+              {
+                key: "allowed_billing_cycles",
+                header: language === "es" ? "Ciclos permitidos" : "Allowed cycles",
+                render: (row) => (
+                  <div className="settings-token-chips">
+                    {row.allowed_billing_cycles.map((value) => (
+                      <span key={`${row.plan_code}-cycle-${value}`} className="tenant-chip">
+                        {getBillingCycleLabel(value, language)}
+                      </span>
+                    ))}
+                  </div>
+                ),
+              },
+              {
+                key: "description",
+                header: language === "es" ? "Lectura" : "Read",
+                render: (row) => row.description || "—",
+              },
+            ]}
+          />
+
+          <DataTableCard
+            title={language === "es" ? "Módulos arrendables" : "Rentable modules"}
+            subtitle={
+              language === "es"
+                ? "Add-ons del modelo aprobado. Aquí se ve qué módulo se vende aparte y con qué ciclos comerciales."
+                : "Add-ons from the approved model. This shows which module is sold separately and with which billing cycles."
+            }
+            rows={capabilities.module_subscription_catalog}
+            columns={[
+              {
+                key: "module_key",
+                header: language === "es" ? "Módulo" : "Module",
+                render: (row) => (
+                  <span className="tenant-chip">
+                    {getPlanModuleLabel(row.module_key, language)}
+                  </span>
+                ),
+              },
+              {
+                key: "display_name",
+                header: language === "es" ? "Nombre visible" : "Display name",
+                render: (row) => row.display_name,
+              },
+              {
+                key: "activation_kind",
+                header: language === "es" ? "Tipo" : "Kind",
+                render: (row) => getActivationKindLabel(row.activation_kind, language),
+              },
+              {
+                key: "billing_cycles",
+                header: language === "es" ? "Ciclos" : "Cycles",
+                render: (row) => (
+                  <div className="settings-token-chips">
+                    {row.billing_cycles.map((value) => (
+                      <span key={`${row.module_key}-cycle-${value}`} className="tenant-chip">
+                        {getBillingCycleLabel(value, language)}
+                      </span>
+                    ))}
+                  </div>
+                ),
+              },
+              {
+                key: "description",
+                header: language === "es" ? "Lectura" : "Read",
+                render: (row) => row.description || "—",
+              },
+            ]}
+          />
+
+          <DataTableCard
+            title={
+              language === "es"
+                ? "Política efectiva actual por plan"
+                : "Current effective policy by plan"
+            }
+            subtitle={
+              language === "es"
+                ? "Compatibilidad vigente mientras la activación efectiva todavía se resuelve por `plan_code` y no por suscripciones tenant."
+                : "Current compatibility while effective activation is still resolved through `plan_code` rather than tenant subscriptions."
             }
             rows={capabilities.plan_catalog}
             columns={[
@@ -553,7 +703,7 @@ export function SettingsPage() {
               },
               {
                 key: "enabled_modules",
-                header: language === "es" ? "Módulos declarados" : "Declared modules",
+                header: language === "es" ? "Módulos efectivos" : "Effective modules",
                 render: (row) =>
                   row.enabled_modules?.length ? (
                     <div className="settings-token-chips">
@@ -751,34 +901,34 @@ export function SettingsPage() {
               <div className="dashboard-quick-hints mt-0">
                 <div>
                   {language === "es"
-                    ? "El catálogo explícito hoy sale de `GET /platform/capabilities`: planes, módulos declarados y límites por módulo."
-                    : "The explicit catalog now comes from `GET /platform/capabilities`: plans, declared modules and per-module limits."}
+                    ? "El modelo aprobado ya separa `Plan Base`, módulos arrendables, ciclos y dependencias desde `GET /platform/capabilities`."
+                    : "The approved model already separates `Base plan`, rentable modules, billing cycles and dependencies from `GET /platform/capabilities`."}
                 </div>
                 <div>
                   {language === "es"
-                    ? "La activación tenant-side sigue ocurriendo en `Tenants > Plan y módulos`; el plan seleccionado es la fuente principal de módulos habilitados."
-                    : "Tenant-side activation still happens in `Tenants > Plan and modules`; the selected plan is the main source of enabled modules."}
+                    ? "La activación tenant-side visible todavía se resuelve por `plan_code`; el siguiente slice debe mover esa resolución a suscripciones tenant."
+                    : "Visible tenant-side activation is still resolved through `plan_code`; the next slice must move that resolution to tenant subscriptions."}
                 </div>
                 <div>
                   {language === "es"
-                    ? "Los overrides de límites por tenant siguen existiendo, pero no reemplazan el catálogo de módulos ni las dependencias que declare backend."
-                    : "Tenant-specific limit overrides still exist, but they do not replace the module catalog or the dependencies declared by the backend."}
+                    ? "Los overrides de límites por tenant siguen existiendo, pero no reemplazan ni el `Plan Base` ni los add-ons comerciales."
+                    : "Tenant-specific limit overrides still exist, but they do not replace either the `Base plan` or the commercial add-ons."}
                 </div>
                 <div>
                   {language === "es"
-                    ? "Las dependencias explícitas ya se leen desde el backend y deben revisarse antes de abrir activaciones parciales por tenant."
-                    : "Explicit dependencies are now read from the backend and should be reviewed before opening partial tenant activations."}
+                    ? "Las dependencias explícitas ya se leen desde backend y sirven para no vender ni habilitar combinaciones inválidas."
+                    : "Explicit dependencies are now read from the backend and help avoid selling or enabling invalid combinations."}
                 </div>
                 <div>
                   {language === "es"
-                    ? "El siguiente paso formal ya no es inventar módulos nuevos en la UI, sino modelar mejor dependencias y activación/desactivación explícita por tenant sobre esta base."
-                    : "The next formal step is no longer inventing new modules in the UI, but modeling dependencies and explicit tenant activation/deactivation on top of this base."}
+                    ? "El siguiente paso formal ya no es inventar módulos nuevos en la UI, sino consumir `tenant_subscriptions` y `tenant_subscription_items` en la activación efectiva."
+                    : "The next formal step is no longer inventing new modules in the UI, but consuming `tenant_subscriptions` and `tenant_subscription_items` in effective activation."}
                 </div>
               </div>
               <div className="settings-token-chips mt-3">
-                {capabilities.plan_modules.map((moduleKey) => (
-                  <span key={moduleKey} className="tenant-chip">
-                    {getPlanModuleLabel(moduleKey, language)}
+                {capabilities.module_subscription_catalog.map((entry) => (
+                  <span key={entry.module_key} className="tenant-chip">
+                    {getPlanModuleLabel(entry.module_key, language)}
                   </span>
                 ))}
               </div>
@@ -840,6 +990,33 @@ function getPlanModuleLabel(
     maintenance: language === "es" ? "Mantenciones" : "Maintenance",
   };
   return labels[moduleKey] || moduleKey;
+}
+
+function getBillingCycleLabel(
+  billingCycle: string,
+  language: "es" | "en"
+): string {
+  const labels: Record<string, string> = {
+    monthly: language === "es" ? "Mensual" : "Monthly",
+    quarterly: language === "es" ? "Trimestral" : "Quarterly",
+    semiannual: language === "es" ? "Semestral" : "Semiannual",
+    annual: language === "es" ? "Anual" : "Annual",
+  };
+
+  return labels[billingCycle] || billingCycle;
+}
+
+function getActivationKindLabel(
+  activationKind: string,
+  language: "es" | "en"
+): string {
+  const labels: Record<string, string> = {
+    included: language === "es" ? "Incluido" : "Included",
+    addon: language === "es" ? "Arrendable" : "Add-on",
+    dependency: language === "es" ? "Dependencia técnica" : "Technical dependency",
+  };
+
+  return labels[activationKind] || activationKind;
 }
 
 function formatModuleLimitsSummary(

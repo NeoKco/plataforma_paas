@@ -53,6 +53,7 @@ Documentación base:
   - `module_dependency_catalog` de ese mismo endpoint es la fuente de verdad de las dependencias explícitas entre módulos
   - `Tenants > Plan y módulos` sigue siendo la superficie de activación tenant-side
   - `Configuración` ya expone tanto el catálogo de planes/módulos como el catálogo de dependencias
+  - `Configuración` y `Tenants > Plan y módulos` ya quedaron adaptados al lenguaje visible `Plan Base + add-ons`
   - no reintroducir toggles de módulos sueltos
   - la dirección aprobada ya no es `plan-driven puro` ni `overrides libres por tenant`
   - el primer corte técnico ya modela `Plan Base + módulos arrendables por suscripción` en `platform_control`
@@ -71,6 +72,10 @@ Documentación base:
     - `subscription_billing_cycles`
     - `base_plan_catalog`
     - `module_subscription_catalog`
+  - el estado visible actual debe respetar esta secuencia:
+    - catálogo comercial aprobado visible en consola
+    - compatibilidad efectiva legacy todavía visible por `plan_code`
+    - siguiente corte: resolver habilitación técnica efectiva desde `tenant_subscriptions` y `tenant_subscription_items`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal

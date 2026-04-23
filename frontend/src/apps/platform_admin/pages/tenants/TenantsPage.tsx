@@ -391,6 +391,22 @@ export function TenantsPage() {
       ? planCatalogByCode.get(selectedTenantSummary.plan_code) || null
       : null;
 
+  const defaultBasePlanCatalog = useMemo(
+    () =>
+      capabilities?.base_plan_catalog.find((entry) => entry.is_default) ||
+      capabilities?.base_plan_catalog[0] ||
+      null,
+    [capabilities?.base_plan_catalog]
+  );
+
+  const rentableModuleCatalog = useMemo(
+    () =>
+      (capabilities?.module_subscription_catalog || []).filter(
+        (entry) => entry.activation_kind === "addon"
+      ),
+    [capabilities?.module_subscription_catalog]
+  );
+
   const selectedCreatePlanDependencyStatus = useMemo(
     () =>
       buildTenantPlanDependencyStatus(
@@ -2001,11 +2017,15 @@ export function TenantsPage() {
               </AppFormField>
               <AppFormField>
                 <FieldHelpLabel
-                  label={language === "es" ? "Plan inicial" : "Initial plan"}
+                  label={
+                    language === "es"
+                      ? "Plan operativo actual"
+                      : "Current operational plan"
+                  }
                   help={
                     language === "es"
-                      ? "Aquí se habilitan los módulos del tenant. Mantenciones ya no se arrastra dentro de Core negocio: el plan define módulos, límites y política base."
-                      : "This is where tenant modules are enabled. The plan defines modules, limits and the base policy."
+                      ? "Mientras la activación efectiva todavía no usa suscripciones tenant, este campo sigue escribiendo `plan_code` y define el baseline operativo inicial."
+                      : "While effective activation does not yet use tenant subscriptions, this field still writes `plan_code` and defines the initial operational baseline."
                   }
                 />
                 <select
@@ -2021,6 +2041,41 @@ export function TenantsPage() {
                   ))}
                 </select>
               </AppFormField>
+              <div className="app-form-field app-form-field--full">
+                <div className="tenant-help-box">
+                  <p className="tenant-help-text mb-2">
+                    {language === "es"
+                      ? "Modelo comercial aprobado para la Etapa 15:"
+                      : "Approved commercial model for Stage 15:"}
+                  </p>
+                  <div className="tenant-scope-list">
+                    <div className="tenant-scope-list__item">
+                      <strong>{language === "es" ? "Plan Base" : "Base plan"}</strong>:{" "}
+                      {defaultBasePlanCatalog
+                        ? `${defaultBasePlanCatalog.display_name} · ${defaultBasePlanCatalog.included_modules
+                            .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                            .join(", ")}`
+                        : language === "es"
+                          ? "sin catálogo visible"
+                          : "no visible catalog"}
+                    </div>
+                    <div className="tenant-scope-list__item">
+                      <strong>{language === "es" ? "Add-ons" : "Add-ons"}</strong>:{" "}
+                      {rentableModuleCatalog.length
+                        ? rentableModuleCatalog
+                            .map((entry) => getTenantPlanModuleLabel(entry.module_key))
+                            .join(", ")
+                        : "—"}
+                    </div>
+                    <div className="tenant-scope-list__item">
+                      <strong>{language === "es" ? "Ciclos" : "Cycles"}</strong>:{" "}
+                      {(capabilities?.subscription_billing_cycles || [])
+                        .map((value) => getTenantBillingCycleLabel(value))
+                        .join(", ") || "—"}
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="app-form-field app-form-field--full">
                 <FieldHelpLabel
                   label={language === "es" ? "Admin inicial del tenant" : "Initial tenant admin"}
@@ -2517,8 +2572,8 @@ export function TenantsPage() {
                 ) : null}
                 <div className="tenant-inline-note">
                   {language === "es"
-                    ? "Módulos vigentes por plan"
-                    : "Active modules by plan"}
+                    ? "Activación efectiva actual"
+                    : "Current effective activation"}
                   :{" "}
                   {selectedTenantPlanCatalog?.enabled_modules?.length
                     ? selectedTenantPlanCatalog.enabled_modules
@@ -2530,12 +2585,29 @@ export function TenantsPage() {
                 </div>
                 <div className="tenant-inline-note">
                   {language === "es"
+                    ? "Plan Base aprobado"
+                    : "Approved base plan"}
+                  :{" "}
+                  {language === "es"
+                    ? defaultBasePlanCatalog
+                      ? `${defaultBasePlanCatalog.display_name} · incluye ${defaultBasePlanCatalog.included_modules
+                          .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                          .join(", ")}`
+                      : "sin catálogo visible"
+                    : defaultBasePlanCatalog
+                      ? `${defaultBasePlanCatalog.display_name} · includes ${defaultBasePlanCatalog.included_modules
+                          .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                          .join(", ")}`
+                      : "no visible catalog"}
+                </div>
+                <div className="tenant-inline-note">
+                  {language === "es"
                     ? "Ruta formal de activación"
                     : "Formal activation route"}
                   :{" "}
                   {language === "es"
-                    ? "el catálogo vive en Configuración y la activación tenant se ejecuta desde Plan y módulos."
-                    : "the catalog lives in Settings and tenant activation is applied from Plan and modules."}
+                    ? "el catálogo vive en Configuración, el modelo final es Plan Base + add-ons y esta ficha todavía aplica `plan_code` mientras se consume la suscripción tenant."
+                    : "the catalog lives in Settings, the final model is Base plan + add-ons, and this form still applies `plan_code` until tenant subscriptions are consumed."}
                 </div>
                 {selectedTenantSummary.maintenance_reason ? (
                   <div className="tenant-inline-note">
@@ -3974,15 +4046,21 @@ export function TenantsPage() {
 
                   <AppForm className="tenant-action-form" onSubmit={handlePlanSubmit}>
                     <h3 className="tenant-action-form__title">
-                      {language === "es" ? "Plan y módulos" : "Plan and modules"}
+                      {language === "es"
+                        ? "Plan Base y add-ons"
+                        : "Base plan and add-ons"}
                     </h3>
                     <AppFormField fullWidth>
                       <FieldHelpLabel
-                        label={language === "es" ? "Código de plan" : "Plan code"}
+                        label={
+                          language === "es"
+                            ? "Plan operativo actual"
+                            : "Current operational plan"
+                        }
                         help={
                           language === "es"
-                            ? "Aquí habilitas módulos a nivel tenant. Mantenciones ya no viaja implícito dentro de Core negocio: el plan seleccionado define módulos, límites y políticas derivadas."
-                            : "This is where modules are enabled at tenant level. The selected plan defines modules, limits and derived policies."
+                            ? "Este campo sigue aplicando el baseline efectivo vía `plan_code`. La activación final por suscripciones tenant se implementa en el siguiente slice."
+                            : "This field still applies the effective baseline through `plan_code`. Final activation through tenant subscriptions is implemented in the next slice."
                         }
                         placement="left"
                       />
@@ -4003,13 +4081,26 @@ export function TenantsPage() {
                       <div className="tenant-help-box">
                         <p className="tenant-help-text mb-0">
                           {language === "es"
-                            ? "Etapa 15 ya queda abierta sobre esta regla: el plan activa módulos y define su baseline. Los overrides tenant siguen siendo solo para límites y no reemplazan el catálogo."
-                            : "Stage 15 now opens on top of this rule: the plan activates modules and defines their baseline. Tenant overrides remain for limits only and do not replace the catalog."}
+                            ? "Etapa 15 ya no se explica como `plan-driven puro`: el modelo aprobado es `Plan Base + add-ons`, pero la activación efectiva visible sigue bajando desde `plan_code` hasta que la consola consuma suscripciones tenant."
+                            : "Stage 15 is no longer explained as pure `plan-driven`: the approved model is `Base plan + add-ons`, but visible effective activation still comes from `plan_code` until the console consumes tenant subscriptions."}
                         </p>
                         <div className="tenant-scope-list">
-                          {(capabilities?.plan_modules || []).map((moduleKey) => (
-                            <div key={moduleKey} className="tenant-scope-list__item">
-                              <strong>{getTenantPlanModuleLabel(moduleKey)}</strong>
+                          <div className="tenant-scope-list__item">
+                            <strong>{language === "es" ? "Plan Base" : "Base plan"}</strong>:{" "}
+                            {defaultBasePlanCatalog
+                              ? `${defaultBasePlanCatalog.display_name} · ${defaultBasePlanCatalog.included_modules
+                                  .map((moduleKey) => getTenantPlanModuleLabel(moduleKey))
+                                  .join(", ")}`
+                              : language === "es"
+                                ? "sin catálogo visible"
+                                : "no visible catalog"}
+                          </div>
+                          {rentableModuleCatalog.map((entry) => (
+                            <div key={entry.module_key} className="tenant-scope-list__item">
+                              <strong>{getTenantPlanModuleLabel(entry.module_key)}</strong>:{" "}
+                              {entry.billing_cycles
+                                .map((value) => getTenantBillingCycleLabel(value))
+                                .join(", ")}
                             </div>
                           ))}
                         </div>
@@ -4020,8 +4111,8 @@ export function TenantsPage() {
                         <>
                           <p className="tenant-help-text mt-2 mb-2">
                             {language === "es"
-                              ? "Módulos que quedarán habilitados si aplicas este plan:"
-                              : "Modules that will be enabled if you apply this plan:"}
+                              ? "Compatibilidad efectiva actual si aplicas este plan:"
+                              : "Current effective compatibility if you apply this plan:"}
                           </p>
                           <div className="tenant-list__chips">
                             {(planCatalogByCode.get(planCode)?.enabled_modules || []).map(
@@ -4100,8 +4191,8 @@ export function TenantsPage() {
                       ) : null}
                       <p className="tenant-help-text mt-2 mb-0">
                         {language === "es"
-                          ? "Solo puedes aplicar planes definidos en backend. Sin plan, no habilitas módulos por esta vía."
-                          : "You can only apply plans defined in the backend policy. If you do not select one, the tenant operates without an associated plan and no modules are enabled through this path."}
+                          ? "Aquí todavía solo puedes aplicar planes definidos en backend. Los add-ons arrendables ya son visibles, pero su contratación formal llegará cuando la consola escriba `tenant_subscriptions` y `tenant_subscription_items`."
+                          : "You can still only apply backend-defined plans here. Rentable add-ons are already visible, but their formal contracting will arrive once the console writes `tenant_subscriptions` and `tenant_subscription_items`."}
                       </p>
                     </div>
                     <AppFormActions>
@@ -5439,6 +5530,18 @@ function getTenantPlanModuleLabel(moduleKey: string): string {
   };
 
   return labels[moduleKey] || moduleKey;
+}
+
+function getTenantBillingCycleLabel(billingCycle: string): string {
+  const language = getCurrentLanguage();
+  const labels: Record<string, string> = {
+    monthly: language === "es" ? "Mensual" : "Monthly",
+    quarterly: language === "es" ? "Trimestral" : "Quarterly",
+    semiannual: language === "es" ? "Semestral" : "Semiannual",
+    annual: language === "es" ? "Anual" : "Annual",
+  };
+
+  return labels[billingCycle] || billingCycle;
 }
 
 function buildTenantPlanDependencyStatus(

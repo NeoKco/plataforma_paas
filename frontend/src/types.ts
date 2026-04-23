@@ -118,6 +118,25 @@ export type PlatformModuleDependency = {
   reason: string | null;
 };
 
+export type PlatformBasePlanCatalogEntry = {
+  plan_code: string;
+  display_name: string;
+  description: string | null;
+  included_modules: string[];
+  default_billing_cycle: string;
+  allowed_billing_cycles: string[];
+  is_default: boolean;
+};
+
+export type PlatformModuleSubscriptionCatalogEntry = {
+  module_key: string;
+  display_name: string;
+  description: string | null;
+  activation_kind: string;
+  billing_cycles: string[];
+  is_active: boolean;
+};
+
 export type PlatformCapabilities = {
   success: boolean;
   message: string;
@@ -128,6 +147,10 @@ export type PlatformCapabilities = {
   available_plan_codes: string[];
   plan_modules: string[];
   module_dependency_catalog: PlatformModuleDependency[];
+  subscription_activation_model: string;
+  subscription_billing_cycles: string[];
+  base_plan_catalog: PlatformBasePlanCatalogEntry[];
+  module_subscription_catalog: PlatformModuleSubscriptionCatalogEntry[];
   plan_catalog: PlatformPlanCatalogEntry[];
   supported_module_limit_keys: string[];
   module_limit_capabilities: PlatformModuleLimitCapability[];

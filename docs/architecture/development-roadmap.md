@@ -601,6 +601,18 @@ Resultado actual:
   - `base_plan_catalog`
   - `module_subscription_catalog`
 - la migración de control ya quedó aplicada en `staging` y `production` para backfillear una suscripción base por tenant con `finance` incluido
+- `Configuración` y `Tenants > Plan y módulos` ya quedaron adaptados al modelo visible `Plan Base + add-ons`:
+  - `Configuración` ya expone:
+    - `Planes base`
+    - `Módulos arrendables`
+    - `Ciclos comerciales`
+    - `Política efectiva actual por plan`
+  - `Tenants > Plan y módulos` ya expone:
+    - `Plan Base aprobado`
+    - add-ons visibles
+    - ciclos comerciales visibles
+    - dependencias ya cubiertas o no
+    - aclaración explícita de que la activación efectiva todavía sale de `plan_code`
 
 Falta para cerrarlo:
 
@@ -617,7 +629,10 @@ Falta para cerrarlo:
 - separar mejor catálogo de módulos, límites por módulo y degradación por billing grace dentro de la UI operativa
 - el primer corte técnico del modelo nuevo ya quedó promovido a `staging` y `production`
 - resolver la activación técnica efectiva desde suscripciones y no solo desde plan legacy
-- adaptar `Configuración` y `Tenants > Plan y módulos` al modelo `Plan Base + add-ons`
+- separar el estado visible entre:
+  - incluido por `Plan Base`
+  - arrendado por suscripción
+  - efectivamente habilitado
 
 Decisión formal cerrada:
 
