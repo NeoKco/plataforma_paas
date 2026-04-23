@@ -72,9 +72,14 @@
         - `Tenants` ya agrega `Sincronizar secreto runtime` como acción formal separada de la rotación
         - la distribución mínima centralizada ya existe sin obligar cambio de credencial
       - siguiente corte recomendado:
-        - promover este tercer slice a runtime published
-        - decidir si el rescate legacy explícito queda todavía dentro de la mutación operativa o si ya se aísla en tooling/ruta aún más controlada
-        - cerrar mejor política de distribución/rotación centralizada de secretos fuera de `.env`
+        - ya cerrado en repo:
+          - `Sincronizar secreto runtime` queda limitado a fuentes runtime-managed
+          - el rescate desde `/.env` ya no vive en la acción normal de consola
+          - el rescate legacy explícito queda aislado en tooling controlado
+        - siguiente corte recomendado:
+          - promover este cuarto slice a runtime published
+          - abrir un carril más formal de distribución/rotación centralizada de secretos tenant
+          - mantener el rescate legacy solo como tooling excepcional
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:
   - el bloque broker-only de `Provisioning/DLQ` ya no mantiene el dispatch `target -> specs` duplicado entre helper local, helper published y workflow manual

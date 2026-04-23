@@ -118,7 +118,8 @@ Esta mutación:
 
 - replica el secreto DB tenant al `TENANT_SECRETS_FILE` runtime
 - reutiliza el valor ya runtime-managed si el tenant ya estaba bien sincronizado
-- permite rescate legacy explícito solo dentro de esta acción cuando el tenant todavía existe en `/.env`
+- ya no debe rescatar desde `/.env` como camino normal de consola
+- si el secreto solo sobrevive en `/.env`, responde conflicto operativo y exige rescate controlado
 - devuelve:
   - `tenant`
   - `env_var_name`
@@ -181,7 +182,8 @@ Esta mutación:
   - `POST /platform/tenants/{tenant_id}/sync-db-runtime-secret`:
     - sincroniza el secreto DB tenant al archivo runtime dedicado
     - no rota la credencial PostgreSQL
-    - sirve para corregir drift de distribución cuando el valor válido ya existe
+    - sirve para corregir drift de distribución cuando el valor válido ya existe en fuentes runtime-managed
+    - si el secreto solo sobrevive en `/.env`, el rescate ya no ocurre aquí; debe usarse tooling controlado
   - `POST /platform/tenants` hoy acepta:
     - `base_plan_code`
   - para tenants nuevos:

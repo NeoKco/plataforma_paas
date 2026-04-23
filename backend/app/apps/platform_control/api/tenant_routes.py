@@ -188,6 +188,18 @@ def _raise_tenant_db_credentials_rotation_http_error(exc: ValueError) -> None:
             ),
         ) from exc
 
+    if (
+        detail
+        == "Tenant runtime secret is missing from runtime-managed sources. Use controlled legacy rescue tooling before retrying this action."
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Tenant runtime secret is missing from runtime-managed sources. "
+                "Use controlled legacy rescue tooling before retrying this action."
+            ),
+        ) from exc
+
     status_code = 404 if detail == "Tenant not found" else 400
     raise HTTPException(status_code=status_code, detail=detail) from exc
 

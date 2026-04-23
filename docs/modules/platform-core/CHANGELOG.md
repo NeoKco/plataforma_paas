@@ -2,6 +2,16 @@
 
 ## 2026-04-23
 
+- `Etapa 11` ya aísla el rescate legacy fuera del flujo normal de consola:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya limita `sync_tenant_runtime_secret(...)` a fuentes runtime-managed salvo rescate controlado explícito
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) traduce ese caso a `409` cuando el secreto solo sobrevive en `/.env`
+  - [rescue_tenant_runtime_secrets_from_legacy.py](/home/felipe/platform_paas/backend/app/scripts/rescue_tenant_runtime_secrets_from_legacy.py) queda como tooling operativo para auditar o aplicar rescate legacy excepcional
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) y [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya dejan explícito que el rescate legacy no vive en la acción normal de consola
+  - validación repo:
+    - `backend.app.tests.test_security_hardening` -> `17 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `226 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - `Etapa 11` ya abre distribución centralizada mínima del secreto runtime tenant:
   - [tenant_secret_service.py](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ahora expone detalle de origen y resumen de distribución por tenant
   - [runtime_security_service.py](/home/felipe/platform_paas/backend/app/common/security/runtime_security_service.py) ya publica `tenant_secret_distribution_summary`

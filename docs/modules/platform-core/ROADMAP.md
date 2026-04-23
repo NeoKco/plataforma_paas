@@ -209,6 +209,14 @@ Estado práctico de cierre:
     - `Tenants` ya expone `Sincronizar secreto runtime` además de `Rotar credenciales técnicas`
     - la distribución mínima centralizada ya existe sin obligar rotación
     - el rescate legacy queda más acotado dentro de una mutación explícita
+  - cuarto slice repo ya cerrado:
+    - `Sincronizar secreto runtime` ya no rescata desde `/.env` dentro del flujo normal de consola
+    - si el secreto solo sobrevive en `/.env`, la operación normal responde conflicto y deriva a tooling controlado
+    - el script [rescue_tenant_runtime_secrets_from_legacy.py](/home/felipe/platform_paas/backend/app/scripts/rescue_tenant_runtime_secrets_from_legacy.py) queda como carril explícito de rescate legacy
+  - siguiente corte recomendado:
+    - promover este cuarto slice a runtime published
+    - abrir distribución/rotación centralizada más formal de secretos tenant
+    - mantener el rescate legacy solo como tooling excepcional
 
 ## Cierre operativo del bloque central
 

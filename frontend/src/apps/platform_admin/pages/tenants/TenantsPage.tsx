@@ -1865,15 +1865,15 @@ export function TenantsPage() {
           : "Confirm runtime secret sync",
       description:
         language === "es"
-          ? "Esta acción valida la credencial técnica actual de la base tenant y la replica al carril runtime de secretos sin rotar la contraseña."
-          : "This action validates the current tenant database technical credential and replicates it to the runtime secret lane without rotating the password.",
+          ? "Esta acción valida la credencial técnica actual desde fuentes runtime gestionadas y la replica al carril runtime de secretos sin rotar la contraseña."
+          : "This action validates the current technical credential from runtime-managed sources and replicates it to the runtime secret lane without rotating the password.",
       details: [
         `Tenant: ${selectedTenantSummary.name}`,
         `Slug: ${selectedTenantSummary.slug}`,
         `${language === "es" ? "DB tenant configurada" : "Tenant DB configured"}: ${selectedTenantSummary.db_configured ? (language === "es" ? "sí" : "yes") : "no"}`,
         language === "es"
-          ? "Úsalo cuando sospeches drift del archivo runtime o cuando falte replicar el secreto técnico en `TENANT_SECRETS_FILE`."
-          : "Use it when you suspect runtime file drift or when the technical secret is missing from `TENANT_SECRETS_FILE`.",
+          ? "Úsalo cuando sospeches drift del archivo runtime o cuando falte replicar el secreto técnico en `TENANT_SECRETS_FILE`. Si solo existe en `/.env`, el rescate ya requiere tooling controlado."
+          : "Use it when you suspect runtime file drift or when the technical secret is missing from `TENANT_SECRETS_FILE`. If it only exists in `/.env`, rescue now requires controlled tooling.",
       ],
       confirmLabel:
         language === "es" ? "Sincronizar secreto runtime" : "Sync runtime secret",

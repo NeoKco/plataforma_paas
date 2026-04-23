@@ -549,7 +549,13 @@ class TenantService:
             "rotated_at": tenant.tenant_db_credentials_rotated_at,
         }
 
-    def sync_tenant_runtime_secret(self, db: Session, tenant_id: int) -> dict:
+    def sync_tenant_runtime_secret(
+        self,
+        db: Session,
+        tenant_id: int,
+        *,
+        allow_legacy_rescue: bool = False,
+    ) -> dict:
         tenant = self.tenant_repository.get_by_id(db, tenant_id)
         if not tenant:
             raise ValueError("Tenant not found")
@@ -560,11 +566,26 @@ class TenantService:
         if not tenant.db_name or not tenant.db_user or not tenant.db_host or not tenant.db_port:
             raise ValueError("Tenant database configuration is incomplete")
 
-        resolution = self.tenant_secret_service.resolve_tenant_db_password_details(
-            tenant.slug,
-            settings,
-            allow_legacy_env_fallback=True,
-        )
+        try:
+            resolution = self.tenant_secret_service.resolve_tenant_db_password_details(
+                tenant.slug,
+                settings,
+                allow_legacy_env_fallback=allow_legacy_rescue,
+            )
+        except ValueError as exc:
+            distribution = self.tenant_secret_service.describe_tenant_db_secret_distribution(
+                tenant.slug,
+                settings,
+            )
+            if (
+                not allow_legacy_rescue
+                and distribution.get("legacy_rescue_available")
+            ):
+                raise ValueError(
+                    "Tenant runtime secret is missing from runtime-managed sources. "
+                    "Use controlled legacy rescue tooling before retrying this action."
+                ) from exc
+            raise
         password = resolution["password"]
 
         self._validate_tenant_db_connection(

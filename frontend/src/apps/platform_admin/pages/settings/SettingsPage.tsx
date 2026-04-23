@@ -575,8 +575,8 @@ export function SettingsPage() {
               ?.length ? (
               <div>
                 {language === "es"
-                  ? `Rescate legacy disponible para: ${securityPosture.tenant_secret_distribution_summary.legacy_rescue_available_slugs.join(", ")}`
-                  : `Legacy rescue available for: ${securityPosture.tenant_secret_distribution_summary.legacy_rescue_available_slugs.join(", ")}`}
+                  ? `Rescate legacy disponible solo vía tooling controlado para: ${securityPosture.tenant_secret_distribution_summary.legacy_rescue_available_slugs.join(", ")}`
+                  : `Legacy rescue available only through controlled tooling for: ${securityPosture.tenant_secret_distribution_summary.legacy_rescue_available_slugs.join(", ")}`}
               </div>
             ) : null}
           </div>

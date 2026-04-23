@@ -58,6 +58,7 @@ Nota operativa:
   - si marca schema drift, usar `Sincronizar esquema tenant`
   - si marca drift de credenciales, usar `Rotar credenciales técnicas`
   - si marca drift de secreto runtime, usar `Sincronizar secreto runtime`
+  - si además aparece `legacy rescue` disponible, la recuperación desde `/.env` ya no ocurre en la consola; debe usarse tooling controlado
 
 Referencia:
 

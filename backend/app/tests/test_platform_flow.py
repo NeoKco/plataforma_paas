@@ -1423,6 +1423,35 @@ class PlatformServicesTestCase(unittest.TestCase):
             tenant_secret_service.clear_tenant_bootstrap_db_password.call_count, 2
         )
 
+    def test_tenant_service_sync_rejects_implicit_legacy_rescue(self) -> None:
+        tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+
+        tenant_secret_service = MagicMock()
+        tenant_secret_service.resolve_tenant_db_password_details.side_effect = ValueError(
+            "Tenant DB password not configured for this tenant"
+        )
+        tenant_secret_service.describe_tenant_db_secret_distribution.return_value = {
+            "tenant_slug": "empresa-demo",
+            "runtime_secret_present": False,
+            "legacy_secret_present": True,
+            "legacy_rescue_available": True,
+        }
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant),
+            tenant_secret_service=tenant_secret_service,
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Use controlled legacy rescue tooling before retrying this action.",
+        ):
+            service.sync_tenant_runtime_secret(db=object(), tenant_id=1)
+
     def test_tenant_service_syncs_runtime_secret_from_legacy_rescue(self) -> None:
         tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
         tenant.id = 1
@@ -1447,7 +1476,11 @@ class PlatformServicesTestCase(unittest.TestCase):
         )
 
         with patch.object(service, "_validate_tenant_db_connection") as validate_mock:
-            result = service.sync_tenant_runtime_secret(db=object(), tenant_id=1)
+            result = service.sync_tenant_runtime_secret(
+                db=object(),
+                tenant_id=1,
+                allow_legacy_rescue=True,
+            )
 
         self.assertIs(result["tenant"], tenant)
         self.assertEqual(result["source"], "legacy_env_file")
@@ -7227,6 +7260,29 @@ class PlatformRoutesTestCase(unittest.TestCase):
                 )
 
         self.assertEqual(exc.exception.status_code, 404)
+
+    def test_sync_tenant_runtime_secret_translates_controlled_legacy_rescue_error(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
+            return_value={"status": "active"},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.sync_tenant_runtime_secret",
+            side_effect=ValueError(
+                "Tenant runtime secret is missing from runtime-managed sources. Use controlled legacy rescue tooling before retrying this action."
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                sync_tenant_runtime_secret(
+                    tenant_id=5,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 409)
+        self.assertEqual(
+            exc.exception.detail,
+            "Tenant runtime secret is missing from runtime-managed sources. Use controlled legacy rescue tooling before retrying this action.",
+        )
 
     def test_deprovision_tenant_returns_schema(self) -> None:
         job = SimpleNamespace(

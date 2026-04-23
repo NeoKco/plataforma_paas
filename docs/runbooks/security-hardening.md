@@ -103,13 +103,14 @@ Politica actual:
 - no cambia la password PostgreSQL
 - solo asegura que el secreto DB tenant quede presente en `TENANT_SECRETS_FILE`
 - reutiliza el valor runtime si ya estaba bien gestionado
-- si todavia faltaba en runtime pero seguia disponible en `/.env`, el rescate legacy ocurre solo aqui y de forma explícita
+- si todavia faltaba en runtime pero seguia disponible en `/.env`, la consola ya no rescata ese valor dentro de esta acción
 - deja trazabilidad operativa y de policy como `technical_secret_distribution`
 
 Uso recomendado:
 
 - usar `Rotar credenciales tecnicas` cuando sospechas exposición o quieres renovar la credencial
 - usar `Sincronizar secreto runtime` cuando el valor ya es válido pero el carril runtime quedó incompleto o desalineado
+- si el valor solo sobrevive en `/.env`, usar el tooling controlado [rescue_tenant_runtime_secrets_from_legacy.py](/home/felipe/platform_paas/backend/app/scripts/rescue_tenant_runtime_secrets_from_legacy.py) antes de reintentar la sincronización normal
 
 ### Postura operativa de secretos por carril
 

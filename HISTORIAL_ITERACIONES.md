@@ -1,5 +1,36 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya aísla el rescate legacy fuera del flujo normal de consola
+
+Contexto:
+
+- el tercer slice ya había abierto `Sincronizar secreto runtime` como mutación formal separada de la rotación
+- faltaba evitar que esa misma acción siguiera rescatando desde `/.env` dentro del camino normal de consola
+
+Cambios:
+
+- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+  - `sync_tenant_runtime_secret(...)` ahora solo usa fuentes runtime-managed salvo rescate controlado explícito
+  - si el secreto solo existe en `/.env`, ahora exige tooling controlado
+- [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py):
+  - traduce ese caso a `409` para que la consola no lo trate como sincronización normal
+- [rescue_tenant_runtime_secrets_from_legacy.py](/home/felipe/platform_paas/backend/app/scripts/rescue_tenant_runtime_secrets_from_legacy.py):
+  - nuevo script operativo para auditar o aplicar rescate desde `/.env` hacia `TENANT_SECRETS_FILE`
+- [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+  - aclara que `Sincronizar secreto runtime` valida solo fuentes runtime-managed
+- [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+  - deja explícito que el rescate legacy disponible existe solo vía tooling controlado
+
+Resultado:
+
+- la consola ya no mezcla sincronización runtime con rescate legacy
+- `/.env` queda disponible solo para recuperación operativa excepcional
+- el carril normal de seguridad tenant queda más limpio antes de abrir distribución/rotación más centralizada
+- validación repo:
+  - `backend.app.tests.test_security_hardening` -> `17 tests OK`
+  - `backend.app.tests.test_platform_flow` -> `226 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-23 - `Etapa 11` ya abre distribución centralizada mínima de secretos tenant
 
 Contexto:
