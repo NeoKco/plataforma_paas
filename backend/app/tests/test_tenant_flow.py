@@ -792,6 +792,42 @@ class TenantRateLimitServiceTestCase(unittest.TestCase):
         self.assertEqual(request.state.tenant_plan_api_write_requests_per_minute, 60)
         self.assertIsNone(request.state.tenant_plan_enabled_modules)
 
+    def test_apply_tenant_runtime_state_uses_base_plan_limits_for_managed_subscription(self) -> None:
+        request = SimpleNamespace(
+            method="GET",
+            url=SimpleNamespace(path="/tenant/info"),
+            state=SimpleNamespace(tenant_slug="empresa-bootstrap"),
+        )
+        middleware = self._middleware()
+        middleware.tenant_plan_policy_service = TenantPlanPolicyService(
+            plan_rate_limits="mensual=120:40;pro=180:60",
+            plan_module_limits="mensual=finance.entries:250",
+        )
+        middleware._load_tenant = lambda tenant_slug: build_tenant_record_stub(  # type: ignore[attr-defined]
+            plan_code="pro",
+            subscription=SimpleNamespace(
+                base_plan_code="base_finance",
+                status="active",
+                billing_cycle="monthly",
+                current_period_starts_at=datetime.now(timezone.utc) - timedelta(days=2),
+                current_period_ends_at=datetime.now(timezone.utc) + timedelta(days=28),
+                items=[],
+            ),
+        )
+
+        middleware._apply_tenant_runtime_state(request)  # type: ignore[arg-type]
+
+        self.assertTrue(request.state.tenant_subscription_contract_managed)
+        self.assertEqual(request.state.tenant_baseline_policy_source, "subscription_base_plan")
+        self.assertEqual(request.state.tenant_baseline_compatibility_policy_code, "mensual")
+        self.assertEqual(request.state.tenant_plan_api_read_requests_per_minute, 120)
+        self.assertEqual(request.state.tenant_plan_api_write_requests_per_minute, 40)
+        self.assertEqual(request.state.tenant_plan_module_limits, {"finance.entries": 250})
+        self.assertEqual(
+            request.state.tenant_plan_enabled_modules,
+            ("core", "finance", "users"),
+        )
+
     def test_apply_tenant_runtime_state_exposes_plan_enabled_modules(self) -> None:
         request = SimpleNamespace(
             method="GET",

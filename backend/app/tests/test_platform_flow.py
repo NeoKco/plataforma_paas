@@ -3044,6 +3044,7 @@ class PlatformServicesTestCase(unittest.TestCase):
             catalog["base_plan_catalog"][0]["plan_code"],
             "base_finance",
         )
+        self.assertIn("compatibility_policy_code", catalog["base_plan_catalog"][0])
         self.assertEqual(
             catalog["module_subscription_catalog"][-1]["module_key"],
             "maintenance",
@@ -4991,12 +4992,25 @@ class PlatformRoutesTestCase(unittest.TestCase):
             return_value=[tenant_one, tenant_two],
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
-            "tenant_service.tenant_plan_policy_service.get_enabled_modules",
-            side_effect=enabled_modules,
-        ), patch(
-            "app.apps.platform_control.api.tenant_routes."
-            "tenant_service.tenant_plan_policy_service.get_module_limits",
-            side_effect=module_limits,
+            "tenant_service.get_tenant_baseline_policy_state",
+            side_effect=[
+                SimpleNamespace(
+                    subscription_contract_managed=True,
+                    legacy_plan_fallback_active=False,
+                    source="subscription_base_plan",
+                    compatibility_policy_code="mensual",
+                    enabled_modules=("core", "finance", "users"),
+                    module_limits={"finance.entries": 250},
+                ),
+                SimpleNamespace(
+                    subscription_contract_managed=False,
+                    legacy_plan_fallback_active=True,
+                    source="legacy_plan_code",
+                    compatibility_policy_code="basic",
+                    enabled_modules=enabled_modules("basic"),
+                    module_limits=module_limits("basic"),
+                ),
+            ],
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
             "tenant_service.get_tenant_module_activation_state",
@@ -5043,11 +5057,14 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.total_tenants, 2)
         self.assertEqual(response.data[0].slug, "condominio-demo")
         self.assertEqual(response.data[0].subscription_base_plan_code, "base_finance")
+        self.assertTrue(response.data[0].subscription_contract_managed)
+        self.assertEqual(response.data[0].baseline_policy_source, "subscription_base_plan")
         self.assertEqual(
             response.data[0].effective_enabled_modules,
             ["core", "finance", "maintenance", "users"],
         )
         self.assertEqual(response.data[1].billing_status, "past_due")
+        self.assertFalse(response.data[1].subscription_contract_managed)
         self.assertEqual(response.data[1].effective_activation_source, "legacy_plan_only")
 
     def test_tenant_service_activation_state_ignores_legacy_plan_for_managed_subscription(self) -> None:
@@ -5078,6 +5095,36 @@ class PlatformRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(activation_state.activation_source, "subscriptions")
 
+    def test_tenant_service_effective_module_limits_use_subscription_base_plan_for_managed_subscription(
+        self,
+    ) -> None:
+        service = TenantService(
+            tenant_repository=SimpleNamespace(),
+            tenant_plan_policy_service=TenantPlanPolicyService(
+                plan_module_limits="mensual=finance.entries:250;pro=finance.entries:999"
+            ),
+        )
+        tenant = build_tenant_record_stub(
+            plan_code="pro",
+            subscription=SimpleNamespace(
+                base_plan_code="base_finance",
+                status="active",
+                billing_cycle="monthly",
+                current_period_starts_at=datetime.now(timezone.utc) - timedelta(days=5),
+                current_period_ends_at=datetime.now(timezone.utc) + timedelta(days=25),
+                items=[],
+            ),
+        )
+
+        self.assertEqual(
+            service.get_effective_module_limits(tenant),
+            {"finance.entries": 250},
+        )
+        self.assertEqual(
+            service.get_effective_module_limit_sources(tenant),
+            {"finance.entries": "plan"},
+        )
+
     def test_get_tenant_returns_detail(self) -> None:
         tenant = build_tenant_record_stub(
             tenant_name="Condominio Demo",
@@ -5096,12 +5143,15 @@ class PlatformRoutesTestCase(unittest.TestCase):
             return_value=tenant,
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
-            "tenant_service.tenant_plan_policy_service.get_enabled_modules",
-            return_value=["core", "users", "finance"],
-        ), patch(
-            "app.apps.platform_control.api.tenant_routes."
-            "tenant_service.tenant_plan_policy_service.get_module_limits",
-            return_value={"finance.entries": 250},
+            "tenant_service.get_tenant_baseline_policy_state",
+            return_value=SimpleNamespace(
+                subscription_contract_managed=True,
+                legacy_plan_fallback_active=False,
+                source="subscription_base_plan",
+                compatibility_policy_code="mensual",
+                enabled_modules=("core", "users", "finance"),
+                module_limits={"finance.entries": 250},
+            ),
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
             "tenant_service.get_tenant_module_activation_state",
@@ -5133,6 +5183,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.slug, "condominio-demo")
         self.assertEqual(response.subscription_base_plan_code, "base_finance")
         self.assertEqual(response.plan_enabled_modules, ["core", "users", "finance"])
+        self.assertTrue(response.subscription_contract_managed)
+        self.assertEqual(response.baseline_policy_source, "subscription_base_plan")
         self.assertEqual(
             response.effective_enabled_modules,
             ["core", "finance", "maintenance", "users"],
@@ -5361,8 +5413,13 @@ class PlatformRoutesTestCase(unittest.TestCase):
             return_value=tenant,
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
-            "tenant_service.tenant_plan_policy_service.get_module_limits",
-            return_value={"finance.entries": 250},
+            "tenant_service.get_tenant_baseline_policy_state",
+            return_value=SimpleNamespace(
+                subscription_contract_managed=True,
+                legacy_plan_fallback_active=False,
+                source="subscription_base_plan",
+                module_limits={"finance.entries": 250},
+            ),
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
             "tenant_policy_event_service.record_change",
@@ -5378,6 +5435,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_plan_module_limits, {"finance.entries": 250})
+        self.assertTrue(response.subscription_contract_managed)
         self.assertEqual(response.module_limits, {"finance.entries": 40})
 
     def test_update_tenant_plan_returns_schema(self) -> None:
@@ -5571,6 +5629,15 @@ class PlatformRoutesTestCase(unittest.TestCase):
             return_value=tenant,
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_tenant_baseline_policy_state",
+            return_value=SimpleNamespace(
+                subscription_contract_managed=True,
+                legacy_plan_fallback_active=False,
+                source="subscription_base_plan",
+                module_limits={"finance.entries": 250},
+            ),
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
             "tenant_service.get_effective_module_limits",
             return_value={"finance.entries": 25},
         ), patch(
@@ -5581,10 +5648,6 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.tenant_routes."
             "tenant_service.get_tenant_access_policy",
             return_value=SimpleNamespace(billing_in_grace=True),
-        ), patch(
-            "app.apps.platform_control.api.tenant_routes."
-            "tenant_service.tenant_plan_policy_service.get_module_limits",
-            return_value={"finance.entries": 250},
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
             "tenant_service.get_tenant_module_limits",
@@ -5617,6 +5680,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.tenant_plan_module_limits, {"finance.entries": 250})
+        self.assertTrue(response.subscription_contract_managed)
         self.assertEqual(response.tenant_module_limits, {"finance.entries": 40})
         self.assertEqual(response.billing_grace_module_limits, {"finance.entries": 25})
         self.assertEqual(response.effective_module_limit, 25)
@@ -5638,6 +5702,14 @@ class PlatformRoutesTestCase(unittest.TestCase):
             "app.apps.platform_control.api.tenant_routes."
             "tenant_service.tenant_repository.get_by_id",
             return_value=tenant,
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes."
+            "tenant_service.get_tenant_baseline_policy_state",
+            return_value=SimpleNamespace(
+                subscription_contract_managed=False,
+                legacy_plan_fallback_active=True,
+                source="legacy_plan_code",
+            ),
         ), patch(
             "app.apps.platform_control.api.tenant_routes."
             "tenant_service.get_tenant_access_policy",
@@ -5754,6 +5826,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
 
         self.assertTrue(response.success)
         self.assertEqual(response.total_modules, 7)
+        self.assertFalse(response.subscription_contract_managed)
+        self.assertEqual(response.baseline_policy_source, "legacy_plan_code")
         self.assertEqual(response.data[0].module_key, "core.users")
         self.assertEqual(response.data[0].max_units, 5)
         self.assertEqual(response.data[1].module_key, "core.users.active")
