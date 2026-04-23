@@ -348,7 +348,7 @@ Backlog opcional post-cierre:
 
 ## Etapa 9. Calidad Tecnica Base
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -369,15 +369,24 @@ Resultado actual:
 - existe un helper local repetible en `scripts/dev/run_local_backend_baseline.sh` alineado con esa baseline
 - ya quedo corregido el riesgo de parseo incorrecto de credenciales PostgreSQL con caracteres reservados usando builders seguros de URL
 - el backend ya reaplica migraciones de control al startup cuando la plataforma esta instalada, para evitar desalineacion entre modelo y esquema tras cambios de `platform_control`
+- la política actual de ramas protegidas ya queda formalizada sobre el check:
+  - `Backend Tests / backend-tests`
+- los subsets manuales ya quedan documentados como revalidación puntual y no como reemplazo del gate principal
+- los datos de prueba ya no dependen solo de stubs mínimos:
+  - `fixtures.py` ya cubre builders para contexto contractual tenant
+  - `fixtures.py` ya cubre builders para `subscription_items`
+  - `fixtures.py` ya cubre builders para `social_community_groups`
+  - existe cobertura explícita en `backend/app/tests/test_fixtures.py`
 
-Falta para cerrarlo:
+Resultado de cierre:
 
-- endurecer la politica del workflow en ramas protegidas
-- ampliar la estrategia de datos de prueba hacia casos mas ricos de negocio
+- la regresión backend ya queda controlada con runner unificado, CI reproducible y política explícita de check obligatorio
+- la estrategia de datos de prueba ya queda más rica y reutilizable para slices contractuales y sociales recientes
+- la `Etapa 9` deja de ser frente activo principal para el alcance actual
 
 ## Etapa 10. Migraciones y Bootstrap Evolutivo
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -398,10 +407,25 @@ Resultado actual:
 - existen migraciones versionadas base para `control` y `tenant`
 - `Tenants` ya deja leer la version de esquema aplicada por tenant, la ultima version disponible, la cantidad de migraciones pendientes y la ultima sincronizacion registrada
 - `platform_control.tenants` ya guarda trazabilidad minima del esquema tenant con `tenant_schema_version` y `tenant_schema_synced_at`
+- el runtime ya opera con cadena versionada real:
+  - `control` hasta `v0029_auth_audit_observability_fields`
+  - `tenant` hasta `v0039_social_community_groups`
+- la estrategia formal de upgrade ya queda documentada:
+  - migraciones tenant en una cadena global compartida, no ramas paralelas por modulo
+  - repairs y backfills como migraciones o tooling forward-only, no parches manuales invisibles
+  - `sync-schema` como camino administrativo normal para tenants existentes
+  - verificacion post-deploy y convergencia tenant como cierre operativo minimo
+- la politica de downgrade ya queda cerrada:
+  - no existe downgrade destructivo in-place como camino normal
+  - rollback de codigo no revierte datos
+  - si una migracion falla, la recuperacion es forward-only o via restore drill documentado
+  - desactivar un modulo por contrato no elimina ni rebaja su esquema tenant
 
-Falta para cerrarlo:
+Resultado de cierre:
 
-- estrategia mas rica por modulo y posibles downgrades
+- la PaaS ya no depende de bootstrap puntual ni de `create_all()` como camino normal de evolucion estructural
+- la estrategia por modulo y la politica de downgrade/recovery ya quedan formalizadas y alineadas al runtime actual
+- `Etapa 10` deja de ser frente activo principal para el alcance actual
 
 ## Etapa 11. Secretos y Seguridad Operativa
 
@@ -613,7 +637,7 @@ Falta para cerrarlo:
 
 ## Etapa 15. Registro y Activacion de Modulos
 
-Estado: `En progreso`
+Estado: `Completado`
 
 Objetivo:
 
@@ -665,15 +689,6 @@ Resultado actual:
   - `Contrato comercial tenant` opera sobre `tenant_subscriptions` y `tenant_subscription_items`
   - `Baseline legacy por plan_code` queda como compatibilidad temporal
   - la vista ya separa `Plan Base`, add-ons arrendados y dependencias técnicas auto-resueltas
-
-Falta para cerrarlo:
-
-- endurecer después la baja definitiva del carril legacy si reaparece un tenant heredado real
-- mejorar visibilidad operativa de:
-  - grace period
-  - suspensión
-  - co-terminación / próxima renovación
-  - prorrateo aplicado
 - el primer corte técnico del modelo nuevo ya quedó promovido a `staging` y `production`
 - el cálculo de activación técnica efectiva desde suscripciones tenant ya quedó implementado con fallback legacy por `plan_code`
 - la política comercial ya da un paso más:
@@ -696,9 +711,22 @@ Falta para cerrarlo:
   - incluido por `Plan Base`
   - arrendado por suscripción
   - efectivamente habilitado
-- siguiente corte pendiente:
-  - mover el foco principal fuera de la `Etapa 15`
-  - mantener la compatibilidad legacy solo como rescate si reaparece un tenant heredado real
+- la lectura visible final del contrato ya quedó cerrada en `Tenants > Plan y módulos`:
+  - `Estado contractual`
+  - `Ciclo vigente`
+  - `Gracia contractual`
+  - `Co-termination`
+  - próxima renovación y fin de período actual
+  - estado por item con ciclo, prorrateo y fechas de renovación / término
+- los 4 tenants activos de `staging` y `production` ya quedaron gestionados por contrato y sin `plan_code` activo
+- el carril normal de alta, bootstrap, billing, cuotas y activación efectiva ya no depende de `plan_code`
+
+Resultado de cierre:
+
+- la activación modular ya queda gobernada por `Plan Base + add-ons` sobre `tenant_subscriptions` y `tenant_subscription_items`
+- el fallback legacy por `plan_code` queda suficientemente acotado a compatibilidad explícita y rescate legacy real
+- la lectura contractual visible ya cubre baseline, add-ons, estado, gracia, co-terminación, prorrateo y activación efectiva
+- `Etapa 15` deja de ser frente activo principal para el alcance actual
 
 Decisión formal cerrada:
 

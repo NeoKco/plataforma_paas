@@ -2969,6 +2969,42 @@ export function TenantsPage() {
                 </div>
                 <div className="tenant-inline-note">
                   {language === "es"
+                    ? "Estado contractual"
+                    : "Contract status"}
+                  :{" "}
+                  {getUiCatalogLabel(
+                    uiLabelCatalog,
+                    "subscription_statuses",
+                    selectedTenantSummary?.subscription_status || "active",
+                    language
+                  )}
+                  {" · "}
+                  {selectedTenantSummary?.subscription_is_co_termed === false
+                    ? language === "es"
+                      ? "no alineado"
+                      : "not aligned"
+                    : language === "es"
+                      ? "alineado"
+                      : "aligned"}
+                  {" · "}
+                  {selectedTenantSummary?.subscription_next_renewal_at
+                    ? `${language === "es" ? "renueva" : "renews"} ${formatDateTime(
+                        selectedTenantSummary.subscription_next_renewal_at
+                      )}`
+                    : language === "es"
+                      ? "sin renovación visible"
+                      : "no visible renewal"}
+                </div>
+                {selectedTenantSummary.subscription_grace_until ? (
+                  <div className="tenant-inline-note">
+                    {language === "es"
+                      ? "Gracia contractual hasta"
+                      : "Contract grace until"}
+                    : {formatDateTime(selectedTenantSummary.subscription_grace_until)}
+                  </div>
+                ) : null}
+                <div className="tenant-inline-note">
+                  {language === "es"
                     ? "Ruta formal de activación"
                     : "Formal activation route"}
                   :{" "}
@@ -4521,9 +4557,22 @@ export function TenantsPage() {
                                 : "Subscription status"}
                             </strong>
                             :{" "}
-                            {displayPlatformCode(
+                            {getUiCatalogLabel(
+                              uiLabelCatalog,
+                              "subscription_statuses",
                               selectedTenantSummary?.subscription_status || "active",
                               language
+                            )}
+                          </div>
+                          <div className="tenant-scope-list__item">
+                            <strong>
+                              {language === "es" ? "Ciclo vigente" : "Current cycle"}
+                            </strong>
+                            :{" "}
+                            {getTenantBillingCycleLabel(
+                              selectedTenantSummary?.subscription_billing_cycle ||
+                                subscriptionBillingCycle ||
+                                "monthly"
                             )}
                           </div>
                           <div className="tenant-scope-list__item">
@@ -4547,6 +4596,36 @@ export function TenantsPage() {
                             {formatDateTime(
                               selectedTenantSummary?.subscription_current_period_ends_at
                             )}
+                          </div>
+                          <div className="tenant-scope-list__item">
+                            <strong>
+                              {language === "es"
+                                ? "Gracia contractual"
+                                : "Contract grace"}
+                            </strong>
+                            :{" "}
+                            {selectedTenantSummary?.subscription_grace_until
+                              ? formatDateTime(
+                                  selectedTenantSummary.subscription_grace_until
+                                )
+                              : language === "es"
+                                ? "sin gracia activa"
+                                : "no active grace"}
+                          </div>
+                          <div className="tenant-scope-list__item">
+                            <strong>
+                              {language === "es"
+                                ? "Co-termination"
+                                : "Co-termination"}
+                            </strong>
+                            :{" "}
+                            {selectedTenantSummary?.subscription_is_co_termed === false
+                              ? language === "es"
+                                ? "no alineado"
+                                : "not aligned"
+                              : language === "es"
+                                ? "alineado"
+                                : "aligned"}
                           </div>
                         </div>
                       </div>
@@ -4619,11 +4698,36 @@ export function TenantsPage() {
                                   {language === "es"
                                     ? "Actual"
                                     : "Current"}
-                                  : {displayPlatformCode(currentItem.status, language)}
+                                  :{" "}
+                                  {getUiCatalogLabel(
+                                    uiLabelCatalog,
+                                    "subscription_statuses",
+                                    currentItem.status,
+                                    language
+                                  )}
                                   {currentItem.billing_cycle
                                     ? ` · ${getTenantBillingCycleLabel(
                                         currentItem.billing_cycle
                                       )}`
+                                    : ""}
+                                  {currentItem.is_prorated
+                                    ? language === "es"
+                                      ? " · prorrateado"
+                                      : " · prorated"
+                                    : ""}
+                                  {currentItem.renews_at
+                                    ? ` · ${
+                                        language === "es"
+                                          ? "renueva"
+                                          : "renews"
+                                      } ${formatDateTime(currentItem.renews_at)}`
+                                    : ""}
+                                  {currentItem.ends_at
+                                    ? ` · ${
+                                        language === "es"
+                                          ? "termina"
+                                          : "ends"
+                                      } ${formatDateTime(currentItem.ends_at)}`
                                     : ""}
                                 </div>
                               ) : (

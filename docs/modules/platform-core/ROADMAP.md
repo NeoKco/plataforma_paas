@@ -143,6 +143,17 @@ Estado práctico de cierre:
     - `Contrato comercial tenant` opera sobre `tenant_subscriptions` y `tenant_subscription_items`
     - `Baseline legacy por plan_code` queda como compatibilidad temporal
     - la vista ya separa `Plan Base`, add-ons arrendados y dependencias técnicas auto-resueltas
+  - cierre formal ya publicado en runtime:
+    - `Tenants > Plan y módulos` ya deja lectura contractual visible de:
+      - estado
+      - ciclo vigente
+      - gracia contractual
+      - co-terminación
+      - prorrateo por item
+    - los 4 tenants activos de `staging` y `production` ya están gestionados por contrato y sin `plan_code` activo
+    - el fallback legacy por `plan_code` queda suficientemente acotado a compatibilidad explícita
+  - salida formal:
+    - la `Etapa 15` ya puede considerarse cerrada para el alcance actual
   - siguiente subcorte ya cerrado en repo:
     - `billing`, `grace` y `suspensión` ya se evalúan primero desde `tenant_subscriptions`
     - los eventos de billing ya proyectan estado/fechas sobre la suscripción cuando existe

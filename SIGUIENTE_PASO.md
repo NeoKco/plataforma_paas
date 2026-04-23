@@ -2,16 +2,25 @@
 
 ## Prioridad vigente
 
+- la `Etapa 15` ya queda cerrada para el alcance actual:
+  - el runtime contractual normal ya no depende de `plan_code`
+  - `Tenants > Plan y módulos` ya deja visible estado, ciclo, gracia, co-terminación, renovación y prorrateo
+  - los 4 tenants activos de `staging` y `production` ya siguen contract-managed y sin `plan_code` activo
+- la `Etapa 10` ya queda cerrada para el alcance actual:
+  - cadena global de migraciones real en `control` y `tenant`
+  - sync administrativo por tenant y verificación post-deploy ya institucionalizados
+  - downgrade/recovery formalizado como `forward-only` + restore drill
+- siguiente frente formal recomendado del roadmap:
+  - abrir `Etapa 9. Calidad Técnica Base`
+  - foco inicial:
+    - endurecer política CI sobre ramas protegidas
+    - ampliar datos de prueba y fixtures de negocio más ricos
+    - consolidar ese cierre sin reabrir `Etapa 10` ni `Etapa 15` salvo evidencia nueva
+
 - la `Etapa 13` ya queda suficientemente cerrada para el alcance actual:
   - los labels visibles críticos del bloque central ya son backend-driven
   - `Tenants`, `Actividad` y `TenantOverview` ya no dependen de códigos internos como lectura principal
   - staging y production ya quedaron redeployados/publicados con este cierre y `580 tests OK` por carril backend
-- siguiente frente formal recomendado del roadmap:
-  - abrir `Etapa 14. Módulos de Negocio Reales`
-  - foco inicial:
-    - decidir el siguiente módulo real después de `finance`
-    - usar el bloque frontend ya estabilizado como base para ese dominio nuevo
-    - no reabrir `Etapa 13` salvo evidencia nueva
 
 - memoria viva y documentación ya rearmonizadas al estado real actual:
   - `business-core` ya documenta `Duplicados` con su naming vigente

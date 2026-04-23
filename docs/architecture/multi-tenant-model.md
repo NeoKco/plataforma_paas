@@ -161,10 +161,9 @@ Eso muestra que el modelo funcional existe, pero el manejo de secretos aun esta 
 
 ## Limitaciones Actuales
 
-- manejo de secretos tenant todavia temporal
-- falta endurecer y ampliar la estrategia de migraciones por tenant
-- no hay tests sobre el ciclo de vida multi-tenant
-- no existe aun una capa visible de automatizacion operativa para backup, restore o rotacion de credenciales
+- manejo de secretos tenant todavia temporal respecto de un secret manager externo pleno
+- el ciclo multi-tenant todavia puede endurecer mas sus pruebas y automatizacion operativa
+- no existe aun una capa visible mas rica de automatizacion para backup, restore o rotacion de credenciales fuera del bloque actual
 
 ## Resumen
 

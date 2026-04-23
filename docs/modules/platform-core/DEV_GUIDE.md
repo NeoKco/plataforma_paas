@@ -123,6 +123,8 @@ Documentación base:
     - `subscription_billing_cycles`
     - `base_plan_catalog`
     - `module_subscription_catalog`
+    - `ui_label_catalog.subscription_statuses`
+    - `ui_label_catalog.subscription_item_kinds`
     - `legacy_plan_fallback_available`
     - `legacy_plan_catalog` solo cuando reaparece un tenant realmente legacy
   - `POST /platform/tenants` ya debe tratarse como contrato nuevo:
@@ -144,6 +146,12 @@ Documentación base:
     - `tenant_policy_event_service` debe serializar `plan_code=null` en snapshots de tenants contract-managed para no contaminar `changed_fields`
     - revisión repo-wide ya cerrada: no queda consumidor contractual real de `plan_code` fuera del carril legacy explícito, archivado o documental
     - cualquier uso nuevo de `plan_code` debe justificarse solo como compatibilidad legacy real
+    - `Tenants > Plan y módulos` ya debe dejar visible:
+      - estado contractual
+      - ciclo vigente
+      - gracia contractual
+      - co-terminación
+      - prorrateo por item cuando aplique
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
   - mutación nueva de migración:

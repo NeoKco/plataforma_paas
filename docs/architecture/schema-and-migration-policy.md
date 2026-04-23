@@ -78,6 +78,22 @@ Toda migración relevante debe considerar:
 - qué pasa si falla a mitad de camino
 - si el rollback es posible o si el recovery es forward-only
 
+### 6. Cadena tenant por módulo
+
+- la cadena tenant es global y acumulativa
+- los módulos nuevos no crean ramas paralelas de migración
+- una dependencia nueva entre módulos debe resolverse por orden de la cadena y documentación, no por ejecuciones manuales ad hoc
+- desactivar un módulo por contrato no implica borrar ni degradar su esquema
+
+### 7. Política de downgrade
+
+- no existe downgrade destructivo in-place como camino normal
+- rollback de código no revierte datos ni migraciones ya aplicadas
+- si una migración queda mal aplicada, la corrección debe entrar como:
+  - nueva migración reparadora
+  - o tooling explícito de convergencia / restore
+- no se reescriben migraciones históricas ya promovidas a runtime
+
 ## Cierre mínimo
 
 No cerrar un cambio estructural sin:

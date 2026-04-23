@@ -1,5 +1,59 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 15` ya queda cerrada para activación modular contractual visible
+
+Contexto:
+
+- la base contractual ya estaba cerrada en backend, migraciones, billing, cuotas/límites y compatibilidad legacy acotada
+- faltaba cerrar la última lectura visible para declarar la etapa realmente terminada
+
+Cambios:
+
+- [platform_ui_labels.py](/home/felipe/platform_paas/backend/app/common/utils/platform_ui_labels.py):
+  - agrega `subscription_statuses` y `subscription_item_kinds` al `ui_label_catalog`
+- [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+  - deja visible `Estado contractual`, `Ciclo vigente`, `Gracia contractual`, `Co-termination`, próxima renovación, fin de período actual y prorrateo/fechas por item en `Plan y módulos`
+
+Resultado:
+
+- la `Etapa 15` ya queda suficientemente cerrada para el alcance actual
+- la lectura contractual visible ya distingue mejor:
+  - baseline contractual
+  - add-ons arrendados
+  - activación efectiva
+  - estado temporal del contrato
+- validación repo:
+  - `python3 -m py_compile backend/app/common/utils/platform_ui_labels.py` -> `OK`
+  - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- validación runtime:
+  - `staging` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `production` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+## 2026-04-23 - `Etapa 10` ya queda cerrada con estrategia formal de migraciones y recovery
+
+Contexto:
+
+- el runtime ya tenía cadena versionada real, sync administrativo y trazabilidad de esquema
+- faltaba alinear la estrategia formal de upgrade por módulo y la política de downgrade/recovery con ese estado real
+
+Cambios:
+
+- [backend-migrations.md](/home/felipe/platform_paas/docs/runbooks/backend-migrations.md):
+  - actualiza la cadena real de migraciones `control` y `tenant`
+  - formaliza estrategia por módulo, upgrade y recovery
+- [schema-and-migration-policy.md](/home/felipe/platform_paas/docs/architecture/schema-and-migration-policy.md):
+  - fija política de cadena global tenant y downgrade `forward-only`
+- [multi-tenant-model.md](/home/felipe/platform_paas/docs/architecture/multi-tenant-model.md):
+  - deja de describir la estrategia de migraciones como un gap abierto del modelo
+
+Resultado:
+
+- la `Etapa 10` ya queda suficientemente cerrada para el alcance actual
+- la PaaS ya no depende de bootstrap puntual ni de `create_all()` como camino normal de evolución estructural
+- la política oficial ya queda alineada al runtime: repair forward-only o restore drill, no downgrade destructivo in-place
+
 ## 2026-04-23 - `Etapa 13` ya queda cerrada para frontend de plataforma y tenant
 
 Contexto:

@@ -3,6 +3,31 @@
 ## Última actualización
 
 - fecha: 2026-04-23
+- foco operativo nuevo ya cerrado en repo, runtime y handoff dentro de la `Etapa 15`:
+  - `Tenants > Plan y módulos` ya deja lectura contractual visible de:
+    - `Estado contractual`
+    - `Ciclo vigente`
+    - `Gracia contractual`
+    - `Co-termination`
+    - próxima renovación / fin del período actual
+    - prorrateo y fechas por item cuando aplica
+  - backend ya publica labels backend-driven para esa lectura mediante:
+    - `ui_label_catalog.subscription_statuses`
+    - `ui_label_catalog.subscription_item_kinds`
+  - validación repo:
+    - `python3 -m py_compile backend/app/common/utils/platform_ui_labels.py` -> `OK`
+    - `backend.app.tests.test_platform_flow` -> `238 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend redeployado con `580 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `staging` publicado con `SettingsPage-DyvZviop.js`, `TenantsPage-Cdiapykk.js`, `PlatformActivityPage-C63pXB0A.js`, `TenantOverviewPage-DxBUv-17.js`, `index-BqM0eEUK.js`
+    - `production` publicado con `SettingsPage-Mg6_WJLF.js`, `TenantsPage-CxmO2kV5.js`, `PlatformActivityPage-CmWARtK_.js`, `TenantOverviewPage-DDcwQ33v.js`, `index-DyuXAuos.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- salida formal de este cierre:
+  - la `Etapa 15` ya puede considerarse cerrada para el alcance actual
+  - la `Etapa 10` ya también queda cerrada para el alcance actual con política formal de migraciones, upgrade por cadena global y recovery `forward-only`
+  - el siguiente frente formal recomendado del roadmap pasa a `Etapa 9. Calidad Técnica Base`
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 13`:
   - `GET /platform/capabilities` y `GET /tenant/info` ya exponen `ui_label_catalog`
   - backend ya publica labels visibles reutilizables para:

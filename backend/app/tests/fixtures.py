@@ -106,6 +106,76 @@ def build_tenant_user_stub(
     )
 
 
+def build_subscription_item_stub(
+    item_id: int = 1,
+    module_key: str = "finance",
+    item_kind: str = "addon",
+    billing_cycle: str = "monthly",
+    status: str = "active",
+    starts_at: datetime | None = None,
+    renews_at: datetime | None = None,
+    ends_at: datetime | None = None,
+    is_prorated: bool = False,
+):
+    return SimpleNamespace(
+        id=item_id,
+        module_key=module_key,
+        item_kind=item_kind,
+        billing_cycle=billing_cycle,
+        status=status,
+        starts_at=starts_at,
+        renews_at=renews_at,
+        ends_at=ends_at,
+        is_prorated=is_prorated,
+    )
+
+
+def build_subscription_stub(
+    subscription_id: int = 1,
+    base_plan_code: str = "base_finance",
+    status: str = "active",
+    billing_cycle: str = "monthly",
+    current_period_starts_at: datetime | None = None,
+    current_period_ends_at: datetime | None = None,
+    next_renewal_at: datetime | None = None,
+    grace_until: datetime | None = None,
+    is_co_termed: bool = True,
+    items: list | None = None,
+):
+    return SimpleNamespace(
+        id=subscription_id,
+        base_plan_code=base_plan_code,
+        status=status,
+        billing_cycle=billing_cycle,
+        current_period_starts_at=current_period_starts_at,
+        current_period_ends_at=current_period_ends_at,
+        next_renewal_at=next_renewal_at,
+        grace_until=grace_until,
+        is_co_termed=is_co_termed,
+        items=items or [],
+    )
+
+
+def build_social_community_group_stub(
+    group_id: int = 1,
+    name: str = "Cerrillos",
+    commune: str | None = "Cerrillos",
+    sector: str | None = "Sector Centro",
+    zone: str | None = "Zona Sur",
+    territorial_classification: str | None = "comunidad",
+    is_active: bool = True,
+):
+    return SimpleNamespace(
+        id=group_id,
+        name=name,
+        commune=commune,
+        sector=sector,
+        zone=zone,
+        territorial_classification=territorial_classification,
+        is_active=is_active,
+    )
+
+
 def build_tenant_record_stub(
     tenant_name: str = "Empresa Bootstrap",
     tenant_slug: str = "empresa-bootstrap",

@@ -37,26 +37,78 @@ Y wrappers operativos en:
 
 ### Control
 
-- `0001_initial`
-
-Crea:
-
-- `platform_installation`
-- `platform_users`
-- `tenants`
-- `provisioning_jobs`
+- cadena actual:
+  - `v0001_initial`
+  - `v0002_auth_tokens`
+  - `v0003_auth_audit_events`
+  - `v0004_tenant_maintenance_mode`
+  - `v0005_provisioning_job_retries`
+  - `v0006_tenant_maintenance_windows`
+  - `v0007_tenant_maintenance_policy`
+  - `v0008_provisioning_metric_snapshots`
+  - `v0009_provisioning_worker_cycle_traces`
+  - `v0010_provisioning_operational_alerts`
+  - `v0011_provisioning_job_error_code`
+  - `v0012_provisioning_operational_alert_error_code`
+  - `v0013_tenant_rate_limit_overrides`
+  - `v0014_tenant_status_reason`
+  - `v0015_tenant_plan_code`
+  - `v0016_tenant_billing_state`
+  - `v0017_tenant_policy_change_events`
+  - `v0018_tenant_billing_sync_events`
+  - `v0019_tenant_billing_identity`
+  - `v0020_billing_operational_alerts`
+  - `v0021_tenant_module_limits`
+  - `v0022_tenant_schema_tracking`
+  - `v0023_tenant_db_credentials_tracking`
+  - `v0024_tenant_retirement_archives`
+  - `v0025_tenant_bootstrap_admin`
+  - `v0026_tenant_data_transfer_jobs`
+  - `v0027_tenant_module_subscription_model`
+  - `v0028_tenant_runtime_secret_campaigns`
+  - `v0029_auth_audit_observability_fields`
 
 ### Tenant
 
-- `0001_core`
-- `0002_finance_entries`
-
-Crea:
-
-- `tenant_info`
-- `roles`
-- `users`
-- `finance_entries`
+- cadena actual:
+  - `v0001_core`
+  - `v0002_finance_entries`
+  - `v0003_finance_catalogs`
+  - `v0004_finance_seed_clp`
+  - `v0005_finance_transactions`
+  - `v0006_finance_budgets`
+  - `v0007_finance_loans`
+  - `v0008_finance_loan_installments`
+  - `v0009_finance_loan_installment_payment_split`
+  - `v0010_finance_loan_installment_reversal_reason`
+  - `v0011_finance_loan_source_account`
+  - `v0012_finance_transaction_voids`
+  - `v0013_finance_transaction_voids_repair`
+  - `v0014_finance_default_category_catalog`
+  - `v0015_business_core_base`
+  - `v0016_maintenance_base`
+  - `v0017_business_core_taxonomy`
+  - `v0018_business_core_site_commune`
+  - `v0019_core_user_timezones`
+  - `v0020_work_group_members_and_maintenance_assignments`
+  - `v0021_maintenance_schedules_and_due_items`
+  - `v0022_maintenance_costing_and_finance_sync`
+  - `v0023_maintenance_cost_lines`
+  - `v0024_maintenance_finance_sync_policy`
+  - `v0025_maintenance_schedule_estimate_defaults`
+  - `v0026_maintenance_cost_templates`
+  - `v0027_maintenance_schedule_template_links`
+  - `v0028_maintenance_field_reports`
+  - `v0029_business_task_type_function_profiles`
+  - `v0030_business_core_merge_audits`
+  - `v0032_business_core_assets`
+  - `v0033_business_organization_addresses`
+  - `v0034_maintenance_actual_template_trace`
+  - `v0035_maintenance_visit_type`
+  - `v0036_maintenance_visit_result`
+  - `v0037_maintenance_cost_line_expense_flag`
+  - `v0038_maintenance_work_order_task_type`
+  - `v0039_social_community_groups`
 
 ## Scripts operativos
 
@@ -98,9 +150,7 @@ cd /home/felipe/platform_paas/backend
 
 Estado local validado al cierre actual:
 
-- `empresa-demo` -> `0024_maintenance_finance_sync_policy`
-- `condominio-demo` -> `0024_maintenance_finance_sync_policy`
-- `empresa-bootstrap` -> `0024_maintenance_finance_sync_policy`
+- `staging` y `production` convergen 4/4 sobre `0039_social_community_groups`
 
 ## Integracion con el backend
 
@@ -143,14 +193,35 @@ Importante:
 - el wrapper `deploy/verify_backend_deploy.sh` ya ejecuta esa corrida masiva post-deploy por defecto, salvo que `BACKEND_AUTO_SYNC_POST_DEPLOY=false`
 - si una migracion tenant queda marcada como aplicada pero faltan columnas fisicas, la correccion debe entrar como nueva migracion reparadora; por ejemplo, `0013_finance_transaction_voids_repair` repara tenants que hubieran quedado en `0012_finance_transaction_voids` sin las columnas reales de anulacion
 
-## Limitaciones actuales
+## Estrategia vigente por modulo
 
-Todavia falta:
+- la cadena tenant es global y acumulativa; no existen ramas paralelas de migraciones por modulo
+- cada modulo nuevo entra como nuevas versiones sobre `backend/migrations/tenant/`
+- las dependencias entre modulos se resuelven por orden de la cadena, no por runners separados
+- activar o desactivar un modulo por contrato no sube ni baja esquema; la habilitación contractual y el esquema son capas distintas
+- si una migracion requiere repair o backfill para tenants existentes, ese cierre entra como:
+  - nueva migración reparadora
+  - o tooling explícito de convergencia documentado
 
-- estrategia de downgrade
-- dependencias entre migraciones por modulo
-- metadata de version por modulo activado
-- integracion formal con CI/CD y despliegue
+## Politica de downgrade y recovery
+
+- no existe downgrade destructivo in-place como camino normal
+- rollback de código no revierte migraciones ni datos
+- si una migración falla a mitad de camino:
+  - recovery preferido = fix forward
+  - o restore drill / restore documentado cuando haga falta
+- si una migracion deja tracking adelantado pero columnas faltantes:
+  - la correccion entra como nueva migración reparadora
+  - no se edita la migración vieja ya aplicada en runtime
+
+## Cierre actual
+
+- la `Etapa 10` ya queda suficientemente cerrada para el alcance actual:
+  - migraciones versionadas reales en `control` y `tenant`
+  - sync administrativo por tenant y post-deploy masivo
+  - trazabilidad de versión en `platform_control.tenants`
+  - estrategia formal por módulo
+  - política explícita de downgrade/recovery forward-only
 
 ## Regla para developers
 

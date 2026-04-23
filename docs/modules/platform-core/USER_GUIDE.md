@@ -102,6 +102,12 @@ La base visible actual de la Etapa 15 ya queda así:
    - qué parte del estado sigue viniendo solo del baseline legacy
    - `Modelo contractual`
    - `Fuente baseline`
+   - `Estado contractual`
+   - `Ciclo vigente`
+   - `Gracia contractual`
+   - `Co-termination`
+   - próxima renovación y fin del período actual
+   - estado por item con prorrateo y fechas de renovación / término cuando aplique
 7. si un tenant todavía muestra compatibilidad legacy, usar:
    - `Migrar baseline legacy al contrato`
 8. confirmar después que:
@@ -116,6 +122,10 @@ Regla operativa:
 - la activación tenant-side efectiva ya se resuelve desde `tenant_subscriptions`
 - el fallback legacy por `plan_code` ya queda acotado a tenants legacy todavía no recontratados en el modelo nuevo
 - para tenants ya gestionados por contrato, el baseline de cuotas/límites también sale del `Plan Base`
+- la lectura contractual visible ya deja distinguido:
+  - lo incluido por `Plan Base`
+  - lo arrendado por suscripción
+  - lo efectivamente habilitado
 - backend ya expone además el catálogo del modelo nuevo:
   - `subscription_activation_model`
   - `subscription_billing_cycles`

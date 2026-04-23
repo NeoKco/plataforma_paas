@@ -50,6 +50,22 @@ BILLING_CYCLE_LABELS: dict[str, dict[str, str]] = {
     "annual": _entry("Anual", "Annual"),
 }
 
+SUBSCRIPTION_STATUS_LABELS: dict[str, dict[str, str]] = {
+    "draft": _entry("Borrador", "Draft"),
+    "pending_activation": _entry("Pendiente de activación", "Pending activation"),
+    "active": _entry("Activa", "Active"),
+    "scheduled_cancel": _entry("Cancelación programada", "Scheduled cancel"),
+    "grace_period": _entry("En gracia", "Grace period"),
+    "suspended": _entry("Suspendida", "Suspended"),
+    "cancelled": _entry("Cancelada", "Cancelled"),
+    "expired": _entry("Expirada", "Expired"),
+}
+
+SUBSCRIPTION_ITEM_KIND_LABELS: dict[str, dict[str, str]] = {
+    "base_plan": _entry("Plan Base", "Base plan"),
+    "addon": _entry("Add-on", "Add-on"),
+}
+
 TOKEN_SCOPE_LABELS: dict[str, dict[str, str]] = {
     "platform": _entry("Plataforma", "Platform"),
     "tenant": _entry("Portal tenant", "Tenant portal"),
@@ -242,6 +258,8 @@ def build_platform_ui_label_catalog() -> dict[str, dict[str, dict[str, str]]]:
         "maintenance_scopes": {key: MODULE_LABELS[key] for key in MODULE_LABELS},
         "maintenance_access_modes": MAINTENANCE_ACCESS_MODE_LABELS,
         "billing_cycles": BILLING_CYCLE_LABELS,
+        "subscription_statuses": SUBSCRIPTION_STATUS_LABELS,
+        "subscription_item_kinds": SUBSCRIPTION_ITEM_KIND_LABELS,
         "token_scopes": TOKEN_SCOPE_LABELS,
         "subject_scopes": SUBJECT_SCOPE_LABELS,
         "audit_outcomes": AUDIT_OUTCOME_LABELS,

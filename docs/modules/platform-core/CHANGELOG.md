@@ -1,5 +1,15 @@
 # Platform Core Changelog
 
+- `Etapa 15` ya queda formalmente cerrada para el alcance actual:
+  - `Tenants > Plan y módulos` ya deja lectura contractual visible de `estado`, `ciclo vigente`, `gracia contractual`, `co-terminación`, próxima renovación y prorrateo por item
+  - `ui_label_catalog` ya expone `subscription_statuses` y `subscription_item_kinds` para no depender de códigos crudos en esa lectura
+  - `staging` y `production` ya quedaron redeployados/publicados con `580 tests OK` backend por carril y `0 fallos, 0 advertencias` en `check_frontend_static_readiness.sh`
+
+- `Etapa 10` ya queda formalmente cerrada para el alcance actual:
+  - la estrategia de migraciones y bootstrap ya queda explicitada como cadena global acumulativa en `control` y `tenant`
+  - la política de downgrade/recovery ya queda fijada como `forward-only` más restore drill, sin downgrade destructivo in-place
+  - `backend-migrations.md` y `schema-and-migration-policy.md` ya quedan alineados al runtime actual
+
 ## 2026-04-23
 
 - `Etapa 13` ya queda cerrada para el alcance actual de frontend de plataforma y tenant:

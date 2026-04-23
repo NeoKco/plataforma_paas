@@ -84,6 +84,11 @@ Payload operativo actual de `GET /platform/capabilities`:
 - `legacy_plan_catalog` solo si todavía existe algún tenant realmente legacy
 - `current_provisioning_dispatch_backend`
 
+Claves relevantes nuevas dentro de `ui_label_catalog`:
+
+- `subscription_statuses`
+- `subscription_item_kinds`
+
 Payload operativo actual de `GET /platform/security-posture`:
 
 - `app_env`
@@ -100,6 +105,25 @@ Payload operativo actual de `GET /tenant/info`:
 - `tenant`
 - `user`
 - `ui_label_catalog`
+
+Lectura contractual visible actual de `GET /platform/tenants` / `GET /platform/tenants/{tenant_id}`:
+
+- `subscription_status`
+- `subscription_billing_cycle`
+- `subscription_current_period_starts_at`
+- `subscription_current_period_ends_at`
+- `subscription_next_renewal_at`
+- `subscription_grace_until`
+- `subscription_is_co_termed`
+- `subscription_items[]` con:
+  - `item_kind`
+  - `module_key`
+  - `billing_cycle`
+  - `status`
+  - `starts_at`
+  - `renews_at`
+  - `ends_at`
+  - `is_prorated`
 
 Regla visible nueva del frontend:
 

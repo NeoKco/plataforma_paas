@@ -136,6 +136,9 @@ Builders disponibles actualmente:
 - `build_tenant_context()`
 - `build_tenant_user_stub()`
 - `build_tenant_record_stub()`
+- `build_subscription_item_stub()`
+- `build_subscription_stub()`
+- `build_social_community_group_stub()`
 - `build_platform_request()`
 - `build_platform_context()`
 - `build_platform_user_stub()`
@@ -146,6 +149,7 @@ Regla recomendada:
 
 - cuando una suite necesite stubs simples o contexto autenticado, debe partir desde `fixtures.py`
 - solo crear builders locales si la estructura de prueba es realmente especifica del caso
+- para cierres transversales nuevos, preferir enriquecer `fixtures.py` antes que volver a sembrar stubs contractuales o sociales ad hoc por suite
 
 ## Finance Slices Relevantes
 

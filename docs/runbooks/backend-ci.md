@@ -66,10 +66,26 @@ Con el estado actual del repositorio, el runner unificado deberia cerrar con alg
 Ran 77 tests ... OK
 ```
 
-## Siguientes Mejoras Naturales
+## Politica actual para ramas protegidas
+
+- el check obligatorio del backend pasa a ser este workflow completo:
+  - `Backend Tests / backend-tests`
+- el merge a ramas protegidas no debe depender de subsets manuales ni de `workflow_dispatch`
+- los subsets `auth|tenant|finance|provisioning|platform` sirven para revalidacion puntual, no para reemplazar el gate principal
+- si cambia `backend/**`, `infra/env/pgtest.example.env`, el runner local backend o la documentacion canónica de CI/backend-tests, este workflow debe seguir disparando
+- si la plataforma necesita mas granularidad en el futuro, se separaran jobs manteniendo un check agregado estable para branch protection
+
+## Cierre actual de la etapa
+
+- la `Etapa 9` ya queda suficientemente cerrada para el alcance actual:
+  - existe runner unificado
+  - existe workflow CI reproducible con PostgreSQL temporal
+  - ya queda fijada la politica del check obligatorio para ramas protegidas
+  - los datos de prueba ya no dependen solo de stubs minimos; `fixtures.py` ya incluye builders mas ricos para contrato tenant y grupos sociales
+
+## Backlog opcional posterior
 
 - separar jobs `base` y `postgres` si el tiempo de CI crece demasiado
 - agregar matriz de versiones de Python cuando el proyecto lo necesite
-- volver obligatorio el workflow en ramas protegidas
 - agregar artifacts si mas adelante aparecen reportes de test o coverage
 - evaluar coverage formal cuando la baseline backend ya quede estable varias semanas seguidas

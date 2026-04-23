@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-23T16:58:00-04:00",
+  "updated_at": "2026-04-23T17:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ, business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. La Etapa 15 ya quedó suficientemente cerrada para el alcance actual: el runtime contractual normal ya no depende de `plan_code` y el legado queda acotado a compatibilidad explícita. La Etapa 11 ya queda suficientemente cerrada para el alcance actual con diez slices funcionales en repo y runtime. La Etapa 12 ya queda suficientemente cerrada para el alcance actual: `Actividad` ya correlaciona auth, rechazos relevantes y cambios administrativos con `request_id`, ruta y método visibles. La Etapa 13 ya queda suficientemente cerrada para el alcance actual: `Tenants`, `Actividad` y `tenant_portal -> Resumen técnico` ya consumen `ui_label_catalog` backend-driven y dejan de depender de códigos internos como lectura principal. El siguiente frente formal del roadmap pasa a Etapa 14. Módulos de Negocio Reales.",
+  "current_focus": "La PaaS ya dejó suficientemente institucionalizado el frente de platform-core hardening + E2E sobre Provisioning y DLQ, business-core sigue estable con social_community_groups promovido, maintenance ya separa correctamente cliente, razón social y grupo social común, y staging/production siguen 4/4 en verde. La Etapa 15 ya queda cerrada para el alcance actual con lectura contractual visible de estado, ciclo, gracia, co-terminación y prorrateo, y la Etapa 10 ya queda cerrada con política formal de migraciones, upgrade por cadena global y recovery forward-only. Las Etapas 11, 12 y 13 siguen cerradas para el alcance actual. El siguiente frente formal del roadmap pasa a Etapa 9. Calidad Técnica Base.",
   "project_phase": "staging y production vuelven a estar auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, política de entornos, política E2E y prompt maestro de sesión aplicables a platform-core, business-core, maintenance, finance, agenda y a los frentes transversales de seeds/imports/convergencia, además de enforcement mínimo de release y continuidad; el carril normal de deploy backend ya integra promoción repo -> runtime, rollback alineado al repo fuente y smoke base embebido por defecto como evidencia repetible",
   "active_modules": [
     "platform-core",
@@ -421,7 +421,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "abrir Etapa 14. Módulos de Negocio Reales, decidir el siguiente módulo real después de finance y usar el bloque frontend ya estabilizado como base para ese dominio nuevo, sin reabrir Etapa 13 salvo evidencia nueva",
+  "next_decision_required": "abrir Etapa 9. Calidad Técnica Base, endurecer la política CI de ramas protegidas y ampliar datos/fixtures de negocio más ricos sin reabrir Etapa 10 ni Etapa 15 salvo evidencia nueva",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
