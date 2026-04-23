@@ -129,6 +129,26 @@ Objetivo:
 - corregir drift de distribución runtime en lote sin convertir la consola en carril de rescate legacy
 - dejar visibilidad rápida de qué tenants siguen bien, cuáles ya estaban listos y cuáles todavía requieren tooling controlado
 
+### Rotacion central por lote
+
+Desde `Configuración -> Postura de secretos y runtime` ya existe también `Rotar credenciales central`.
+
+Politica actual:
+
+- recorre tenants activos
+- solo rota tenants con secreto runtime ya gestionado
+- genera una password nueva y fuerte por tenant
+- valida el acceso con la credencial nueva antes de confirmar
+- persiste la credencial nueva en `TENANT_SECRETS_FILE`
+- no rescata desde `/.env`
+- deja a los tenants legacy como `skipped_legacy_rescue_required`
+
+Objetivo:
+
+- renovar en lote credenciales técnicas DB sin reabrir el carril legacy
+- usar el mismo criterio runtime-only de la sincronización central
+- dejar trazabilidad por tenant de qué rotó, qué quedó omitido y qué falló
+
 ### Postura operativa de secretos por carril
 
 El script canónico [repair_tenant_operational_drift.py](/home/felipe/platform_paas/backend/app/scripts/repair_tenant_operational_drift.py) ya expone tambien una lectura rápida de postura de secretos:

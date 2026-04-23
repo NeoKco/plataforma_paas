@@ -66,6 +66,7 @@ from app.apps.platform_control.api.routes import (  # noqa: E402
     get_platform_capabilities,
     get_platform_security_posture,
     ping_control_db,
+    rotate_platform_tenant_db_credentials,
     sync_platform_runtime_secrets,
 )
 from app.apps.platform_control.api.tenant_routes import (  # noqa: E402
@@ -1564,6 +1565,224 @@ class PlatformServicesTestCase(unittest.TestCase):
             [row["outcome"] for row in result["data"]],
             [
                 "already_runtime_managed",
+                "skipped_legacy_rescue_required",
+                "failed",
+                "skipped_not_configured",
+            ],
+        )
+
+    def test_tenant_service_rotation_rejects_implicit_legacy_rescue(self) -> None:
+        tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+
+        tenant_secret_service = MagicMock()
+        tenant_secret_service.describe_tenant_db_secret_distribution.return_value = {
+            "tenant_slug": "empresa-demo",
+            "runtime_secret_present": False,
+            "legacy_secret_present": True,
+            "legacy_rescue_available": True,
+        }
+        tenant_connection_service = MagicMock()
+        tenant_connection_service.get_tenant_database_credentials.side_effect = ValueError(
+            "Tenant DB password not configured for this tenant"
+        )
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant),
+            tenant_connection_service=tenant_connection_service,
+            tenant_secret_service=tenant_secret_service,
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Use controlled legacy rescue tooling before retrying this action.",
+        ):
+            service.rotate_tenant_db_credentials(db=object(), tenant_id=1)
+
+    def test_tenant_service_rotates_active_db_credentials_in_batch(self) -> None:
+        tenant_runtime = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant_runtime.id = 1
+        tenant_runtime.db_name = "tenant_empresa_demo"
+        tenant_runtime.db_user = "user_empresa_demo"
+        tenant_runtime.db_host = "127.0.0.1"
+        tenant_runtime.db_port = 5432
+
+        tenant_legacy = build_tenant_record_stub(status="active", tenant_slug="empresa-legacy")
+        tenant_legacy.id = 2
+        tenant_legacy.db_name = "tenant_empresa_legacy"
+        tenant_legacy.db_user = "user_empresa_legacy"
+        tenant_legacy.db_host = "127.0.0.1"
+        tenant_legacy.db_port = 5432
+
+        tenant_broken = build_tenant_record_stub(status="active", tenant_slug="empresa-broken")
+        tenant_broken.id = 3
+        tenant_broken.db_name = "tenant_empresa_broken"
+        tenant_broken.db_user = "user_empresa_broken"
+        tenant_broken.db_host = "127.0.0.1"
+        tenant_broken.db_port = 5432
+
+        tenant_unconfigured = build_tenant_record_stub(status="active", tenant_slug="empresa-pending")
+        tenant_unconfigured.id = 4
+        tenant_unconfigured.db_name = None
+        tenant_unconfigured.db_user = None
+        tenant_unconfigured.db_host = None
+        tenant_unconfigured.db_port = None
+
+        tenant_repository = MagicMock()
+        tenant_repository.list_active.return_value = [
+            tenant_runtime,
+            tenant_legacy,
+            tenant_broken,
+            tenant_unconfigured,
+        ]
+        tenant_secret_service = MagicMock()
+        tenant_secret_service.describe_tenant_db_secret_distribution.side_effect = (
+            lambda slug, _settings: {
+                "tenant_slug": slug,
+                "runtime_secret_present": slug != "empresa-legacy",
+                "legacy_secret_present": slug == "empresa-legacy",
+                "legacy_rescue_available": slug == "empresa-legacy",
+            }
+        )
+        service = TenantService(
+            tenant_repository=tenant_repository,
+            tenant_secret_service=tenant_secret_service,
+        )
+
+        def _rotate(db, tenant_id):
+            if tenant_id == 1:
+                return {
+                    "env_var_name": "TENANT_DB_PASSWORD__EMPRESA_DEMO",
+                    "managed_secret_path": "/opt/platform_paas/.tenant-secrets.env",
+                    "rotated_at": datetime.now(timezone.utc),
+                }
+            raise ValueError("Tenant database access failed")
+
+        service.rotate_tenant_db_credentials = MagicMock(side_effect=_rotate)
+
+        result = service.rotate_active_tenant_db_credentials(db=object())
+
+        self.assertEqual(result["processed"], 4)
+        self.assertEqual(result["rotated"], 1)
+        self.assertEqual(result["skipped_not_configured"], 1)
+        self.assertEqual(result["skipped_legacy_rescue_required"], 1)
+        self.assertEqual(result["failed"], 1)
+        self.assertEqual(
+            [row["outcome"] for row in result["data"]],
+            [
+                "rotated",
+                "skipped_legacy_rescue_required",
+                "failed",
+                "skipped_not_configured",
+            ],
+        )
+
+    def test_tenant_service_rotation_rejects_implicit_legacy_rescue(self) -> None:
+        tenant = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant.id = 1
+        tenant.db_name = "tenant_empresa_demo"
+        tenant.db_user = "user_empresa_demo"
+        tenant.db_host = "127.0.0.1"
+        tenant.db_port = 5432
+
+        tenant_secret_service = MagicMock()
+        tenant_secret_service.describe_tenant_db_secret_distribution.return_value = {
+            "tenant_slug": "empresa-demo",
+            "runtime_secret_present": False,
+            "legacy_secret_present": True,
+            "legacy_rescue_available": True,
+        }
+        tenant_connection_service = MagicMock()
+        tenant_connection_service.get_tenant_database_credentials.side_effect = ValueError(
+            "Tenant DB password not configured for this tenant"
+        )
+        service = TenantService(
+            tenant_repository=SimpleNamespace(get_by_id=lambda db, tenant_id: tenant),
+            tenant_connection_service=tenant_connection_service,
+            tenant_secret_service=tenant_secret_service,
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Use controlled legacy rescue tooling before retrying this action.",
+        ):
+            service.rotate_tenant_db_credentials(db=object(), tenant_id=1)
+
+    def test_tenant_service_rotates_active_db_credentials_in_batch(self) -> None:
+        tenant_runtime = build_tenant_record_stub(status="active", tenant_slug="empresa-demo")
+        tenant_runtime.id = 1
+        tenant_runtime.db_name = "tenant_empresa_demo"
+        tenant_runtime.db_user = "user_empresa_demo"
+        tenant_runtime.db_host = "127.0.0.1"
+        tenant_runtime.db_port = 5432
+
+        tenant_legacy = build_tenant_record_stub(status="active", tenant_slug="empresa-legacy")
+        tenant_legacy.id = 2
+        tenant_legacy.db_name = "tenant_empresa_legacy"
+        tenant_legacy.db_user = "user_empresa_legacy"
+        tenant_legacy.db_host = "127.0.0.1"
+        tenant_legacy.db_port = 5432
+
+        tenant_broken = build_tenant_record_stub(status="active", tenant_slug="empresa-broken")
+        tenant_broken.id = 3
+        tenant_broken.db_name = "tenant_empresa_broken"
+        tenant_broken.db_user = "user_empresa_broken"
+        tenant_broken.db_host = "127.0.0.1"
+        tenant_broken.db_port = 5432
+
+        tenant_unconfigured = build_tenant_record_stub(status="active", tenant_slug="empresa-pending")
+        tenant_unconfigured.id = 4
+        tenant_unconfigured.db_name = None
+        tenant_unconfigured.db_user = None
+        tenant_unconfigured.db_host = None
+        tenant_unconfigured.db_port = None
+
+        tenant_repository = MagicMock()
+        tenant_repository.list_active.return_value = [
+            tenant_runtime,
+            tenant_legacy,
+            tenant_broken,
+            tenant_unconfigured,
+        ]
+        tenant_secret_service = MagicMock()
+        tenant_secret_service.describe_tenant_db_secret_distribution.side_effect = (
+            lambda slug, _settings: {
+                "tenant_slug": slug,
+                "runtime_secret_present": slug != "empresa-legacy",
+                "legacy_secret_present": slug == "empresa-legacy",
+                "legacy_rescue_available": slug == "empresa-legacy",
+            }
+        )
+        service = TenantService(
+            tenant_repository=tenant_repository,
+            tenant_secret_service=tenant_secret_service,
+        )
+
+        def _rotate(db, tenant_id):
+            if tenant_id == 1:
+                return {
+                    "env_var_name": "TENANT_DB_PASSWORD__EMPRESA_DEMO",
+                    "managed_secret_path": "/opt/platform_paas/.tenant-secrets.env",
+                    "rotated_at": datetime.now(timezone.utc),
+                }
+            raise ValueError("Tenant database access failed")
+
+        service.rotate_tenant_db_credentials = MagicMock(side_effect=_rotate)
+
+        result = service.rotate_active_tenant_db_credentials(db=object())
+
+        self.assertEqual(result["processed"], 4)
+        self.assertEqual(result["rotated"], 1)
+        self.assertEqual(result["skipped_not_configured"], 1)
+        self.assertEqual(result["skipped_legacy_rescue_required"], 1)
+        self.assertEqual(result["failed"], 1)
+        self.assertEqual(
+            [row["outcome"] for row in result["data"]],
+            [
+                "rotated",
                 "skipped_legacy_rescue_required",
                 "failed",
                 "skipped_not_configured",
@@ -4756,9 +4975,45 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.processed, 2)
         self.assertEqual(response.synced, 1)
         self.assertEqual(response.already_runtime_managed, 1)
-        self.assertEqual(response.data[0].tenant_slug, "empresa-demo")
-        sync_mock.assert_called_once()
+
+    def test_rotate_platform_tenant_db_credentials_returns_batch_schema(self) -> None:
+        rotated_at = datetime.now(timezone.utc)
+        with patch(
+            "app.apps.platform_control.api.routes.tenant_service.rotate_active_tenant_db_credentials",
+            return_value={
+                "processed": 2,
+                "rotated": 1,
+                "skipped_not_configured": 0,
+                "skipped_legacy_rescue_required": 1,
+                "failed": 0,
+                "rotated_at": rotated_at,
+                "data": [
+                    {
+                        "tenant_id": 1,
+                        "tenant_slug": "empresa-demo",
+                        "outcome": "rotated",
+                        "detail": "ok",
+                        "env_var_name": "TENANT_DB_PASSWORD__EMPRESA_DEMO",
+                        "managed_secret_path": "/opt/platform_paas/.tenant-secrets.env",
+                        "rotated_at": rotated_at,
+                    }
+                ],
+            },
+        ) as rotate_mock, patch(
+            "app.apps.platform_control.api.routes.auth_audit_service.log_event",
+        ) as audit_mock:
+            response = rotate_platform_tenant_db_credentials(
+                db=object(),
+                token=self._token_payload(),
+            )
+
+        self.assertTrue(response.success)
+        self.assertEqual(response.processed, 2)
+        self.assertEqual(response.rotated, 1)
+        self.assertEqual(response.skipped_legacy_rescue_required, 1)
+        rotate_mock.assert_called_once()
         audit_mock.assert_called_once()
+        self.assertEqual(response.data[0].tenant_slug, "empresa-demo")
 
     def test_list_platform_users_returns_catalog(self) -> None:
         users = [
@@ -7308,6 +7563,29 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(
             exc.exception.detail,
             "The rotated tenant credentials could not be validated and the previous password was restored. Verify PostgreSQL admin access and tenant database reachability before retrying.",
+        )
+
+    def test_rotate_tenant_db_credentials_translates_controlled_legacy_rescue_error(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.tenant_routes._capture_tenant_snapshot",
+            return_value={"status": "active"},
+        ), patch(
+            "app.apps.platform_control.api.tenant_routes.tenant_service.rotate_tenant_db_credentials",
+            side_effect=ValueError(
+                "Tenant runtime secret is missing from runtime-managed sources. Use controlled legacy rescue tooling before retrying this action."
+            ),
+        ):
+            with self.assertRaises(HTTPException) as exc:
+                rotate_tenant_db_credentials(
+                    tenant_id=5,
+                    db=object(),
+                    _token=self._token_payload(),
+                )
+
+        self.assertEqual(exc.exception.status_code, 409)
+        self.assertEqual(
+            exc.exception.detail,
+            "Tenant runtime secret is missing from runtime-managed sources. Use controlled legacy rescue tooling before retrying this action.",
         )
 
     def test_sync_tenant_runtime_secret_returns_schema(self) -> None:

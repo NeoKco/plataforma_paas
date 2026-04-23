@@ -230,6 +230,28 @@ export type PlatformTenantRuntimeSecretBatchSyncResponse = {
   data: PlatformTenantRuntimeSecretBatchSyncItem[];
 };
 
+export type PlatformTenantDbCredentialsRotateBatchItem = {
+  tenant_id: number;
+  tenant_slug: string;
+  outcome: string;
+  detail: string | null;
+  env_var_name: string | null;
+  managed_secret_path: string | null;
+  rotated_at: string | null;
+};
+
+export type PlatformTenantDbCredentialsRotateBatchResponse = {
+  success: boolean;
+  message: string;
+  processed: number;
+  rotated: number;
+  skipped_not_configured: number;
+  skipped_legacy_rescue_required: number;
+  failed: number;
+  rotated_at: string | null;
+  data: PlatformTenantDbCredentialsRotateBatchItem[];
+};
+
 export type PlatformLoginResponse = {
   success: boolean;
   message: string;

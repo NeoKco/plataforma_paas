@@ -1,5 +1,46 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya agrega rotación centralizada por lote sobre el carril runtime-only
+
+Contexto:
+
+- el quinto slice ya había dejado `Sincronizar runtime central` como batch seguro de distribución
+- faltaba el equivalente formal para renovar credenciales técnicas DB en lote sin reabrir el rescate legacy desde `/.env`
+
+Cambios:
+
+- [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+  - agrega `rotate_active_tenant_db_credentials(...)`
+  - rota por lote solo tenants runtime-ready
+  - deja como `skipped_legacy_rescue_required` a los tenants que todavía dependen de legacy
+  - también endurece la rotación individual para traducir explícitamente el caso donde el secreto solo sobrevive en `/.env`
+- [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py):
+  - agrega `POST /platform/security-posture/rotate-db-credentials`
+  - deja trazabilidad de auditoría para la rotación central
+- [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py):
+  - agrega el contrato batch tipado de rotación
+- [platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts) y [types.ts](/home/felipe/platform_paas/frontend/src/types.ts):
+  - agregan el cliente tipado para la mutación batch nueva
+- [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+  - agrega `Rotar credenciales central`
+  - muestra resumen corto del batch y deja explícito que no rescata desde `/.env`
+
+Resultado:
+
+- ya existe rotación centralizada mínima también por lote, no solo tenant a tenant
+- la rotación batch comparte la misma política runtime-only:
+  - no rescata desde `/.env`
+  - valida la credencial nueva antes de confirmar
+  - deja los tenants legacy marcados para tooling controlado
+- validación repo:
+  - `backend.app.tests.test_platform_flow` -> `232 tests OK`
+  - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+- validación runtime:
+  - `staging` backend redeployado con `572 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `production` backend redeployado con `572 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 ## 2026-04-23 - `Etapa 11` ya agrega sincronización central por lote sobre fuentes runtime-managed
 
 Contexto:

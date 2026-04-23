@@ -239,6 +239,28 @@ class PlatformTenantRuntimeSecretBatchSyncResponse(BaseModel):
     data: list[PlatformTenantRuntimeSecretBatchSyncItemResponse]
 
 
+class PlatformTenantDbCredentialsRotateBatchItemResponse(BaseModel):
+    tenant_id: int
+    tenant_slug: str
+    outcome: str
+    detail: str | None = None
+    env_var_name: str | None = None
+    managed_secret_path: str | None = None
+    rotated_at: datetime | None = None
+
+
+class PlatformTenantDbCredentialsRotateBatchResponse(BaseModel):
+    success: bool
+    message: str
+    processed: int
+    rotated: int
+    skipped_not_configured: int
+    skipped_legacy_rescue_required: int
+    failed: int
+    rotated_at: datetime | None = None
+    data: list[PlatformTenantDbCredentialsRotateBatchItemResponse]
+
+
 class TenantCreateRequest(BaseModel):
     name: str
     slug: str

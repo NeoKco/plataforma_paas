@@ -80,8 +80,12 @@
         - `POST /platform/security-posture/sync-runtime-secrets` ya procesa tenants activos por lote
         - el batch solo sincroniza desde fuentes runtime-managed
         - los tenants que todavía dependen de `/.env` quedan marcados como `skipped_legacy_rescue_required`
+      - sexto slice ya cerrado en repo:
+        - `Settings -> Postura de secretos y runtime` ya agrega `Rotar credenciales central`
+        - `POST /platform/security-posture/rotate-db-credentials` ya rota credenciales DB tenant por lote sobre tenants runtime-ready
+        - la rotación batch no rescata desde `/.env` y deja los tenants legacy como `skipped_legacy_rescue_required`
       - siguiente corte recomendado:
-        - promover este quinto slice a runtime published
+        - el sexto slice ya quedó publicado en `staging` y `production`
         - abrir distribución/rotación centralizada más formal de secretos tenant
         - mantener el rescate legacy solo como tooling excepcional
 

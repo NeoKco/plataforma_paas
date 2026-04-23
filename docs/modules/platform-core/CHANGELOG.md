@@ -2,6 +2,21 @@
 
 ## 2026-04-23
 
+- `Etapa 11` ya agrega rotación centralizada por lote sobre el carril runtime-only:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya agrega `rotate_active_tenant_db_credentials(...)`
+  - [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py) ya expone `POST /platform/security-posture/rotate-db-credentials`
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) ya agrega la respuesta batch tipada de rotación
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya incorpora `Rotar credenciales central`
+  - la rotación batch ya:
+    - solo opera sobre tenants runtime-ready
+    - no rescata desde `/.env`
+    - deja los casos legacy como `skipped_legacy_rescue_required`
+  - además, la rotación por tenant ahora traduce de forma explícita el caso donde el secreto solo sobrevive en legacy
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `232 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - `Etapa 11` ya agrega sincronización central por lote sobre fuentes runtime-managed:
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya agrega `sync_active_tenant_runtime_secrets(...)`
   - [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py) ya expone `POST /platform/security-posture/sync-runtime-secrets`

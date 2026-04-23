@@ -130,9 +130,10 @@ Esta mutación:
   - `already_runtime_managed`
   - `synced_at`
 
-Mutación batch nueva para el mismo carril:
+Mutaciones batch nuevas para el mismo carril:
 
 - `POST /platform/security-posture/sync-runtime-secrets`
+- `POST /platform/security-posture/rotate-db-credentials`
 
 Esta mutación:
 
@@ -155,6 +156,33 @@ Esta mutación:
     - `detail`
     - `source`
     - `already_runtime_managed`
+
+Mutación batch nueva para rotación centralizada:
+
+- `POST /platform/security-posture/rotate-db-credentials`
+
+Esta mutación:
+
+- recorre tenants activos
+- rota la password técnica DB solo para tenants con secreto runtime gestionado
+- valida el acceso con la credencial nueva antes de confirmar
+- no rescata desde `/.env`
+- deja a los tenants todavía legacy como `skipped_legacy_rescue_required`
+- devuelve:
+  - `processed`
+  - `rotated`
+  - `skipped_not_configured`
+  - `skipped_legacy_rescue_required`
+  - `failed`
+  - `rotated_at`
+  - `data[]` por tenant con:
+    - `tenant_id`
+    - `tenant_slug`
+    - `outcome`
+    - `detail`
+    - `env_var_name`
+    - `managed_secret_path`
+    - `rotated_at`
 
 ## Notas
 
@@ -215,6 +243,11 @@ Esta mutación:
     - ejecuta la misma lógica en batch sobre tenants activos
     - deja visibilidad centralizada desde `Configuración -> Postura de secretos y runtime`
     - no convierte `/.env` en carril normal; los tenants legacy quedan marcados para rescate controlado
+  - `POST /platform/security-posture/rotate-db-credentials`:
+    - ejecuta rotación centralizada de credenciales técnicas tenant en batch
+    - usa el mismo carril runtime-only y no rescata desde `/.env`
+    - si un tenant todavía depende de legacy, lo deja como `skipped_legacy_rescue_required`
+    - la consola lo expone como `Rotar credenciales central`
   - `POST /platform/tenants` hoy acepta:
     - `base_plan_code`
   - para tenants nuevos:

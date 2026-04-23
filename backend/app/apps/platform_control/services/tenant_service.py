@@ -488,9 +488,21 @@ class TenantService:
         if tenant.status == "archived":
             raise ValueError("Archived tenants cannot rotate technical credentials")
 
-        credentials = self.tenant_connection_service.get_tenant_database_credentials(
-            tenant
-        )
+        try:
+            credentials = self.tenant_connection_service.get_tenant_database_credentials(
+                tenant
+            )
+        except ValueError as exc:
+            distribution = self.tenant_secret_service.describe_tenant_db_secret_distribution(
+                tenant.slug,
+                settings,
+            )
+            if distribution.get("legacy_rescue_available"):
+                raise ValueError(
+                    "Tenant runtime secret is missing from runtime-managed sources. "
+                    "Use controlled legacy rescue tooling before retrying this action."
+                ) from exc
+            raise
         current_password = credentials["password"]
         new_password = self._generate_tenant_db_password()
         while new_password == current_password:
@@ -713,6 +725,116 @@ class TenantService:
             "failed": failed,
             "data": rows,
             "synced_at": datetime.now(timezone.utc),
+        }
+
+    def rotate_active_tenant_db_credentials(
+        self,
+        db: Session,
+        *,
+        limit: int | None = None,
+    ) -> dict:
+        active_tenants = self.tenant_repository.list_active(db)
+        if limit is not None:
+            active_tenants = active_tenants[: max(limit, 0)]
+
+        rows: list[dict] = []
+        rotated = 0
+        skipped_not_configured = 0
+        skipped_legacy_rescue_required = 0
+        failed = 0
+
+        for tenant in active_tenants:
+            if not tenant.db_name or not tenant.db_user or not tenant.db_host or not tenant.db_port:
+                skipped_not_configured += 1
+                rows.append(
+                    {
+                        "tenant_id": tenant.id,
+                        "tenant_slug": tenant.slug,
+                        "outcome": "skipped_not_configured",
+                        "detail": "Tenant database configuration is incomplete",
+                        "env_var_name": None,
+                        "managed_secret_path": None,
+                        "rotated_at": None,
+                    }
+                )
+                continue
+
+            distribution = self.tenant_secret_service.describe_tenant_db_secret_distribution(
+                tenant.slug,
+                settings,
+            )
+            if distribution.get("legacy_rescue_available"):
+                skipped_legacy_rescue_required += 1
+                rows.append(
+                    {
+                        "tenant_id": tenant.id,
+                        "tenant_slug": tenant.slug,
+                        "outcome": "skipped_legacy_rescue_required",
+                        "detail": (
+                            "Tenant runtime secret is missing from runtime-managed "
+                            "sources. Use controlled legacy rescue tooling before retrying this action."
+                        ),
+                        "env_var_name": None,
+                        "managed_secret_path": None,
+                        "rotated_at": None,
+                    }
+                )
+                continue
+
+            try:
+                result = self.rotate_tenant_db_credentials(db=db, tenant_id=tenant.id)
+            except ValueError as exc:
+                detail = str(exc)
+                if "Use controlled legacy rescue tooling" in detail:
+                    skipped_legacy_rescue_required += 1
+                    rows.append(
+                        {
+                            "tenant_id": tenant.id,
+                            "tenant_slug": tenant.slug,
+                            "outcome": "skipped_legacy_rescue_required",
+                            "detail": detail,
+                            "env_var_name": None,
+                            "managed_secret_path": None,
+                            "rotated_at": None,
+                        }
+                    )
+                    continue
+
+                failed += 1
+                rows.append(
+                    {
+                        "tenant_id": tenant.id,
+                        "tenant_slug": tenant.slug,
+                        "outcome": "failed",
+                        "detail": detail,
+                        "env_var_name": None,
+                        "managed_secret_path": None,
+                        "rotated_at": None,
+                    }
+                )
+                continue
+
+            rotated += 1
+            rows.append(
+                {
+                    "tenant_id": tenant.id,
+                    "tenant_slug": tenant.slug,
+                    "outcome": "rotated",
+                    "detail": "Tenant technical credentials were rotated successfully",
+                    "env_var_name": result["env_var_name"],
+                    "managed_secret_path": result.get("managed_secret_path"),
+                    "rotated_at": result["rotated_at"],
+                }
+            )
+
+        return {
+            "processed": len(active_tenants),
+            "rotated": rotated,
+            "skipped_not_configured": skipped_not_configured,
+            "skipped_legacy_rescue_required": skipped_legacy_rescue_required,
+            "failed": failed,
+            "data": rows,
+            "rotated_at": datetime.now(timezone.utc),
         }
 
     def deprovision_tenant(self, db: Session, tenant_id: int) -> dict:

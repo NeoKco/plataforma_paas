@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.apps.platform_control.schemas import (
     PlatformCapabilityCatalogResponse,
+    PlatformTenantDbCredentialsRotateBatchResponse,
     PlatformRuntimeSecurityPostureResponse,
     PlatformTenantRuntimeSecretBatchSyncResponse,
 )
@@ -154,5 +155,41 @@ def sync_platform_runtime_secrets(
         skipped_legacy_rescue_required=result["skipped_legacy_rescue_required"],
         failed=result["failed"],
         synced_at=result["synced_at"],
+        data=result["data"],
+    )
+
+
+@router.post(
+    "/security-posture/rotate-db-credentials",
+    response_model=PlatformTenantDbCredentialsRotateBatchResponse,
+)
+def rotate_platform_tenant_db_credentials(
+    db: Session = Depends(get_control_db),
+    token: dict = Depends(require_role("superadmin")),
+) -> PlatformTenantDbCredentialsRotateBatchResponse:
+    result = tenant_service.rotate_active_tenant_db_credentials(db=db)
+    auth_audit_service.log_event(
+        db=db,
+        event_type="platform.tenant_db_credentials_rotate_batch",
+        subject_scope="platform",
+        outcome="success" if result["failed"] == 0 else "warning",
+        subject_user_id=token.get("user_id"),
+        email=token.get("email"),
+        token_jti=token.get("jti"),
+        detail=(
+            f"processed={result['processed']} rotated={result['rotated']} "
+            f"skipped_legacy_rescue_required={result['skipped_legacy_rescue_required']} "
+            f"failed={result['failed']}"
+        ),
+    )
+    return PlatformTenantDbCredentialsRotateBatchResponse(
+        success=True,
+        message="Rotación centralizada de credenciales técnicas completada",
+        processed=result["processed"],
+        rotated=result["rotated"],
+        skipped_not_configured=result["skipped_not_configured"],
+        skipped_legacy_rescue_required=result["skipped_legacy_rescue_required"],
+        failed=result["failed"],
+        rotated_at=result["rotated_at"],
         data=result["data"],
     )

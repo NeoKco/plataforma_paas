@@ -217,8 +217,18 @@ Estado práctico de cierre:
     - `Configuración -> Postura de secretos y runtime` ya agrega `Sincronizar runtime central`
     - `POST /platform/security-posture/sync-runtime-secrets` ya ejecuta batch sobre tenants activos
     - el batch ya no rescata desde `/.env`; deja esos casos como `skipped_legacy_rescue_required`
+  - sexto slice repo ya cerrado:
+    - `Configuración -> Postura de secretos y runtime` ya agrega `Rotar credenciales central`
+    - `POST /platform/security-posture/rotate-db-credentials` ya ejecuta rotación batch sobre tenants activos runtime-ready
+    - la rotación batch ya comparte la misma política runtime-only:
+      - no rescata desde `/.env`
+      - valida la credencial nueva antes de confirmar
+      - deja los tenants legacy como `skipped_legacy_rescue_required`
+  - ese sexto slice ya queda también publicado en runtime:
+    - `staging` backend redeployado con `572 tests OK`
+    - `production` backend redeployado con `572 tests OK`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - siguiente corte recomendado:
-    - promover este quinto slice a runtime published
     - abrir distribución/rotación centralizada más formal de secretos tenant
     - mantener el rescate legacy solo como tooling excepcional
 

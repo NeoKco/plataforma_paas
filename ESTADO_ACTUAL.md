@@ -4,6 +4,29 @@
 
 - fecha: 2026-04-23
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 11`:
+  - sexto corte ya cerrado en repo:
+    - `Settings -> Postura de secretos y runtime` ya expone `Rotar credenciales central`
+    - la mutación nueva `POST /platform/security-posture/rotate-db-credentials` ya recorre tenants activos y rota solo credenciales DB tenant runtime-ready
+    - el batch ya resume por tenant:
+      - `rotated`
+      - `skipped_not_configured`
+      - `skipped_legacy_rescue_required`
+      - `failed`
+    - el batch usa el mismo carril runtime-only:
+      - valida la credencial nueva antes de confirmar
+      - no rescata desde `/.env`
+      - deja los casos legacy para tooling controlado
+    - la rotación individual por tenant también traduce explícitamente el caso donde el secreto solo sobrevive en `/.env`
+  - validación repo de este sexto corte:
+    - `backend.app.tests.test_platform_flow` -> `232 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/schemas.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime de este sexto corte:
+    - `staging` backend redeployado con `572 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend redeployado con `572 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `staging` publicado con `SettingsPage-Bxz88naU.js`, `TenantsPage-D4MWVmk4.js`, `DashboardPage-Dog-bfet.js`, `ProvisioningPage-BSQR0QXQ.js`, `BillingPage-DdNG8g7f.js`, `TenantOverviewPage-QtpBB_ra.js`, `index-C-BNGspV.js`
+    - `production` publicado con `SettingsPage-zT54S803.js`, `TenantsPage-ScThy6eo.js`, `DashboardPage-CYKVZqQ9.js`, `ProvisioningPage-CPisjce0.js`, `BillingPage-Cr4mqRxc.js`, `TenantOverviewPage-DJYhdROl.js`, `index-CBdqUgc0.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - quinto corte ya cerrado en repo:
     - `Settings -> Postura de secretos y runtime` ya expone `Sincronizar runtime central`
     - la mutación nueva `POST /platform/security-posture/sync-runtime-secrets` ya recorre los tenants activos y sincroniza solo desde fuentes runtime-managed

@@ -12,6 +12,7 @@ import {
   getPlatformRootRecoveryStatus,
   getPlatformSecurityPosture,
   listPlatformUsers,
+  rotatePlatformRuntimeDbCredentials,
   syncPlatformRuntimeSecrets,
 } from "../../../../services/platform-api";
 import { API_BASE_URL, getDefaultApiBaseUrl } from "../../../../services/api";
@@ -22,6 +23,7 @@ import type {
   ApiError,
   PlatformCapabilities,
   PlatformRootRecoveryStatusResponse,
+  PlatformTenantDbCredentialsRotateBatchResponse,
   PlatformRuntimeSecurityPostureResponse,
   PlatformTenantRuntimeSecretBatchSyncResponse,
   PlatformUser,
@@ -43,7 +45,9 @@ export function SettingsPage() {
     null
   );
   const [runtimeSyncFeedback, setRuntimeSyncFeedback] = useState<string | null>(null);
+  const [runtimeRotateFeedback, setRuntimeRotateFeedback] = useState<string | null>(null);
   const [isRuntimeSyncing, setIsRuntimeSyncing] = useState(false);
+  const [isRuntimeRotating, setIsRuntimeRotating] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -178,6 +182,36 @@ export function SettingsPage() {
       );
     } finally {
       setIsRuntimeSyncing(false);
+    }
+  }
+
+  async function handleRotateRuntimeCredentials() {
+    if (!session?.accessToken || isRuntimeRotating) {
+      return;
+    }
+
+    setRuntimeRotateFeedback(null);
+    setIsRuntimeRotating(true);
+    try {
+      const response: PlatformTenantDbCredentialsRotateBatchResponse =
+        await rotatePlatformRuntimeDbCredentials(session.accessToken);
+      const summary =
+        language === "es"
+          ? `Rotación central completada: procesados ${response.processed}, rotados ${response.rotated}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}.`
+          : `Central rotation completed: processed ${response.processed}, rotated ${response.rotated}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}.`;
+      setRuntimeRotateFeedback(summary);
+      await loadSettings();
+    } catch (rawError) {
+      const typedError = rawError as ApiError;
+      setRuntimeRotateFeedback(
+        typedError.payload?.detail ||
+          typedError.message ||
+          (language === "es"
+            ? "No fue posible ejecutar la rotación central."
+            : "Could not execute the central rotation.")
+      );
+    } finally {
+      setIsRuntimeRotating(false);
     }
   }
 
@@ -329,7 +363,21 @@ export function SettingsPage() {
               : "Quick read to validate with which session and API URL you think you are operating."
           }
         >
-          <div className="d-flex justify-content-end mb-3">
+          <div className="d-flex justify-content-end gap-2 mb-3">
+            <button
+              className="btn btn-outline-danger"
+              type="button"
+              onClick={() => void handleRotateRuntimeCredentials()}
+              disabled={!session?.accessToken || isRuntimeRotating}
+            >
+              {isRuntimeRotating
+                ? language === "es"
+                  ? "Rotando..."
+                  : "Rotating..."
+                : language === "es"
+                  ? "Rotar credenciales central"
+                  : "Central credential rotation"}
+            </button>
             <button
               className="btn btn-outline-secondary"
               type="button"
@@ -600,6 +648,9 @@ export function SettingsPage() {
           {runtimeSyncFeedback ? (
             <div className="alert alert-info mt-3 mb-0">{runtimeSyncFeedback}</div>
           ) : null}
+          {runtimeRotateFeedback ? (
+            <div className="alert alert-info mt-3 mb-0">{runtimeRotateFeedback}</div>
+          ) : null}
           <div className="dashboard-quick-hints mt-3">
             <div>
               {language === "es"
@@ -620,6 +671,11 @@ export function SettingsPage() {
               {language === "es"
                 ? "La sincronización central solo usa fuentes runtime-managed; si un tenant sigue dependiendo de `/.env`, queda marcado para rescate legacy controlado."
                 : "Central sync only uses runtime-managed sources; if a tenant still depends on `/.env`, it stays flagged for controlled legacy rescue."}
+            </div>
+            <div>
+              {language === "es"
+                ? "La rotación central usa el mismo carril runtime-only: no rescata desde `/.env` y deja fuera a los tenants que todavía requieren tooling controlado."
+                : "Central rotation uses the same runtime-only lane: it does not rescue from `/.env` and skips tenants that still require controlled tooling."}
             </div>
             {securityPosture?.tenant_secret_distribution_summary?.missing_runtime_secret_slugs
               ?.length ? (
