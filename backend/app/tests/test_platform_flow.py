@@ -3101,7 +3101,8 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("full_block", catalog["maintenance_access_modes"])
         self.assertIn("all", catalog["plan_modules"])
         self.assertIn("maintenance", catalog["plan_modules"])
-        self.assertIn("plan_catalog", catalog)
+        self.assertIn("legacy_plan_fallback_available", catalog)
+        self.assertIn("legacy_plan_catalog", catalog)
         self.assertIn(
             "finance.entries.monthly.income",
             catalog["supported_module_limit_keys"],
@@ -4441,7 +4442,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
             response.module_subscription_catalog[-1].module_key,
             "maintenance",
         )
-        self.assertIsInstance(response.plan_catalog, list)
+        self.assertIsInstance(response.legacy_plan_fallback_available, bool)
+        self.assertIsInstance(response.legacy_plan_catalog, list)
 
     @patch("app.apps.platform_control.api.routes.runtime_security_service")
     @patch("app.apps.platform_control.api.routes.settings")

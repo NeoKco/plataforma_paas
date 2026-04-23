@@ -719,58 +719,60 @@ export function SettingsPage() {
             ]}
           />
 
-          <DataTableCard
-            title={
-              language === "es"
-                ? "Catálogo legacy de compatibilidad por plan"
-                : "Legacy compatibility catalog by plan"
-            }
-            subtitle={
-              language === "es"
-                ? "Matriz antigua que todavía sirve como compatibilidad para tenants legacy y como policy source de transición del Plan Base cuando corresponde."
-                : "Legacy matrix that still serves as compatibility for legacy tenants and as a transitional policy source for the Base plan when needed."
-            }
-            rows={capabilities.plan_catalog}
-            columns={[
-              {
-                key: "plan_code",
-                header: language === "es" ? "Plan" : "Plan",
-                render: (row) => <code>{row.plan_code}</code>,
-              },
-              {
-                key: "enabled_modules",
-                header: language === "es" ? "Módulos efectivos" : "Effective modules",
-                render: (row) =>
-                  row.enabled_modules?.length ? (
-                    <div className="settings-token-chips">
-                      {row.enabled_modules.map((value) => (
-                        <span key={`${row.plan_code}-${value}`} className="tenant-chip">
-                          {getPlanModuleLabel(value, language)}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    "—"
-                  ),
-              },
-              {
-                key: "module_limits",
-                header: language === "es" ? "Límites por módulo" : "Per-module limits",
-                render: (row) =>
-                  formatModuleLimitsSummary(row.module_limits, language),
-              },
-              {
-                key: "read_requests_per_minute",
-                header: language === "es" ? "Read req/min" : "Read req/min",
-                render: (row) => row.read_requests_per_minute ?? "—",
-              },
-              {
-                key: "write_requests_per_minute",
-                header: language === "es" ? "Write req/min" : "Write req/min",
-                render: (row) => row.write_requests_per_minute ?? "—",
-              },
-            ]}
-          />
+          {capabilities.legacy_plan_fallback_available ? (
+            <DataTableCard
+              title={
+                language === "es"
+                  ? "Catálogo legacy de compatibilidad por plan"
+                  : "Legacy compatibility catalog by plan"
+              }
+              subtitle={
+                language === "es"
+                  ? "Solo aparece si todavía existe al menos un tenant heredado que dependa de `plan_code`."
+                  : "Only shown while at least one inherited tenant still depends on `plan_code`."
+              }
+              rows={capabilities.legacy_plan_catalog}
+              columns={[
+                {
+                  key: "plan_code",
+                  header: language === "es" ? "Plan" : "Plan",
+                  render: (row) => <code>{row.plan_code}</code>,
+                },
+                {
+                  key: "enabled_modules",
+                  header: language === "es" ? "Módulos efectivos" : "Effective modules",
+                  render: (row) =>
+                    row.enabled_modules?.length ? (
+                      <div className="settings-token-chips">
+                        {row.enabled_modules.map((value) => (
+                          <span key={`${row.plan_code}-${value}`} className="tenant-chip">
+                            {getPlanModuleLabel(value, language)}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      "—"
+                    ),
+                },
+                {
+                  key: "module_limits",
+                  header: language === "es" ? "Límites por módulo" : "Per-module limits",
+                  render: (row) =>
+                    formatModuleLimitsSummary(row.module_limits, language),
+                },
+                {
+                  key: "read_requests_per_minute",
+                  header: language === "es" ? "Read req/min" : "Read req/min",
+                  render: (row) => row.read_requests_per_minute ?? "—",
+                },
+                {
+                  key: "write_requests_per_minute",
+                  header: language === "es" ? "Write req/min" : "Write req/min",
+                  render: (row) => row.write_requests_per_minute ?? "—",
+                },
+              ]}
+            />
+          ) : null}
 
           <DataTableCard
             title={language === "es" ? "Catálogo de capacidades" : "Capabilities catalog"}

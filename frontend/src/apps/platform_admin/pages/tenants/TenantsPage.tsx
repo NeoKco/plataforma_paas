@@ -369,21 +369,20 @@ export function TenantsPage() {
     () =>
       Array.from(
         new Set([
-          ...(capabilities?.available_plan_codes || []),
           ...tenants
             .map((tenant) => tenant.plan_code)
             .filter((value): value is string => Boolean(value)),
         ])
       ).sort(),
-    [capabilities?.available_plan_codes, tenants]
+    [tenants]
   );
 
   const planCatalogByCode = useMemo(
     () =>
       new Map(
-        (capabilities?.plan_catalog || []).map((entry) => [entry.plan_code, entry])
+        (capabilities?.legacy_plan_catalog || []).map((entry) => [entry.plan_code, entry])
       ),
-    [capabilities?.plan_catalog]
+    [capabilities?.legacy_plan_catalog]
   );
 
   const moduleDependencyMap = useMemo(

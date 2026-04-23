@@ -188,14 +188,14 @@ class PlatformCapabilityCatalogResponse(BaseModel):
     tenant_billing_statuses: list[str]
     maintenance_scopes: list[str]
     maintenance_access_modes: list[str]
-    available_plan_codes: list[str]
     plan_modules: list[str]
     module_dependency_catalog: list[PlatformModuleDependencyResponse]
+    legacy_plan_fallback_available: bool = False
     subscription_activation_model: str
     subscription_billing_cycles: list[str]
     base_plan_catalog: list[PlatformBasePlanCatalogEntryResponse]
     module_subscription_catalog: list[PlatformModuleSubscriptionCatalogEntryResponse]
-    plan_catalog: list[PlatformPlanCatalogEntryResponse]
+    legacy_plan_catalog: list[PlatformPlanCatalogEntryResponse] = []
     supported_module_limit_keys: list[str]
     module_limit_capabilities: list[PlatformModuleLimitCapabilityResponse]
     billing_providers: list[str]

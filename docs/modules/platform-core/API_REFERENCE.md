@@ -69,13 +69,14 @@ Capabilities:
 
 Payload operativo actual de `GET /platform/capabilities`:
 
-- `plan_catalog`
 - `plan_modules`
 - `module_dependency_catalog`
+- `legacy_plan_fallback_available`
 - `subscription_activation_model`
 - `subscription_billing_cycles`
 - `base_plan_catalog`
 - `module_subscription_catalog`
+- `legacy_plan_catalog` solo si todavía existe algún tenant realmente legacy
 - `current_provisioning_dispatch_backend`
 
 ## Notas

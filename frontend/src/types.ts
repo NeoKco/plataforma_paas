@@ -159,14 +159,14 @@ export type PlatformCapabilities = {
   tenant_billing_statuses: string[];
   maintenance_scopes: string[];
   maintenance_access_modes: string[];
-  available_plan_codes: string[];
   plan_modules: string[];
   module_dependency_catalog: PlatformModuleDependency[];
+  legacy_plan_fallback_available: boolean;
   subscription_activation_model: string;
   subscription_billing_cycles: string[];
   base_plan_catalog: PlatformBasePlanCatalogEntry[];
   module_subscription_catalog: PlatformModuleSubscriptionCatalogEntry[];
-  plan_catalog: PlatformPlanCatalogEntry[];
+  legacy_plan_catalog: PlatformPlanCatalogEntry[];
   supported_module_limit_keys: string[];
   module_limit_capabilities: PlatformModuleLimitCapability[];
   billing_providers: string[];

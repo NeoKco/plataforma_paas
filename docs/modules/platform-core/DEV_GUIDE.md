@@ -50,7 +50,7 @@ Documentación base:
 - si `Provisioning` muestra o condiciona recorridos broker-only, la fuente de verdad visible del entorno debe salir del catálogo de capacidades y no de inferencias locales; hoy eso se expone como `current_provisioning_dispatch_backend`
 - el bootstrap tenant-side tampoco debe volver a inferir módulos desde `tenant.plan_code`; debe consumir `effective_enabled_modules`
 - la apertura formal de `Etapa 15` también queda backend-driven:
-  - `plan_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo de módulos y planes
+  - `base_plan_catalog`, `module_subscription_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo comercial vigente
   - `module_dependency_catalog` de ese mismo endpoint es la fuente de verdad de las dependencias explícitas entre módulos
   - `Tenants > Plan y módulos` sigue siendo la superficie de activación tenant-side
   - `Configuración` ya expone tanto el catálogo de planes/módulos como el catálogo de dependencias
@@ -73,6 +73,8 @@ Documentación base:
     - `subscription_billing_cycles`
     - `base_plan_catalog`
     - `module_subscription_catalog`
+    - `legacy_plan_fallback_available`
+    - `legacy_plan_catalog` solo cuando reaparece un tenant realmente legacy
   - `POST /platform/tenants` ya debe tratarse como contrato nuevo:
     - usar `base_plan_code`
     - no abrir caminos nuevos que dependan de `tenant.plan_code`

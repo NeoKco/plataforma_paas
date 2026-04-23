@@ -101,7 +101,7 @@
     - `GET /platform/capabilities` ya incluye `module_dependency_catalog`
     - `Configuración` ya muestra `Dependencias entre módulos`
     - `Tenants > Plan y módulos` ya indica si el plan cubre o no las dependencias requeridas antes de aplicar
-  - el slice se apoya en `plan_catalog`, `plan_modules` y `module_dependency_catalog` como fuentes de verdad backend-driven
+  - el slice ya se apoya en `base_plan_catalog`, `module_subscription_catalog`, `plan_modules` y `module_dependency_catalog` como fuentes de verdad backend-driven
   - validación:
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `201 tests OK`
     - `cd frontend && npm run build` -> `OK`

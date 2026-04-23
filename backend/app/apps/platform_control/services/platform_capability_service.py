@@ -5,6 +5,7 @@ from app.common.policies.tenant_module_subscription_policy_service import (
 )
 from app.common.policies.tenant_plan_policy_service import TenantPlanPolicyService
 from app.common.config.settings import settings
+from app.common.db.control_database import ControlSessionLocal
 
 
 class PlatformCapabilityService:
@@ -34,24 +35,33 @@ class PlatformCapabilityService:
         )
 
     def get_catalog(self) -> dict:
-        plan_catalog = []
-        for plan_code in self.tenant_plan_policy_service.list_plan_codes():
-            policy = self.tenant_plan_policy_service.get_policy(plan_code)
-            if policy is None:
-                continue
-            plan_catalog.append(
-                {
-                    "plan_code": plan_code,
-                    "read_requests_per_minute": policy.read_requests_per_minute,
-                    "write_requests_per_minute": policy.write_requests_per_minute,
-                    "enabled_modules": None
-                    if policy.enabled_modules is None
-                    else list(policy.enabled_modules),
-                    "module_limits": None
-                    if policy.module_limits is None
-                    else dict(policy.module_limits),
-                }
-            )
+        try:
+            with ControlSessionLocal() as db:
+                legacy_plan_fallback_available = (
+                    self.tenant_service.has_legacy_plan_fallback_tenants(db)
+                )
+        except Exception:
+            legacy_plan_fallback_available = False
+
+        legacy_plan_catalog = []
+        if legacy_plan_fallback_available:
+            for plan_code in self.tenant_plan_policy_service.list_plan_codes():
+                policy = self.tenant_plan_policy_service.get_policy(plan_code)
+                if policy is None:
+                    continue
+                legacy_plan_catalog.append(
+                    {
+                        "plan_code": plan_code,
+                        "read_requests_per_minute": policy.read_requests_per_minute,
+                        "write_requests_per_minute": policy.write_requests_per_minute,
+                        "enabled_modules": None
+                        if policy.enabled_modules is None
+                        else list(policy.enabled_modules),
+                        "module_limits": None
+                        if policy.module_limits is None
+                        else dict(policy.module_limits),
+                    }
+                )
         return {
             "tenant_statuses": sorted(self.tenant_service.VALID_STATUSES),
             "tenant_billing_statuses": sorted(
@@ -63,9 +73,9 @@ class PlatformCapabilityService:
             "maintenance_access_modes": sorted(
                 self.tenant_service.VALID_MAINTENANCE_ACCESS_MODES
             ),
-            "available_plan_codes": self.tenant_plan_policy_service.list_plan_codes(),
             "plan_modules": sorted(self.tenant_plan_policy_service.VALID_MODULES),
             "module_dependency_catalog": self.tenant_plan_policy_service.list_module_dependency_catalog(),
+            "legacy_plan_fallback_available": legacy_plan_fallback_available,
             "subscription_activation_model": (
                 self.tenant_module_subscription_policy_service.SUBSCRIPTION_ACTIVATION_MODEL
             ),
@@ -76,7 +86,7 @@ class PlatformCapabilityService:
                 tenant_plan_policy_service=self.tenant_plan_policy_service
             ),
             "module_subscription_catalog": self.tenant_module_subscription_policy_service.list_module_subscription_catalog(),
-            "plan_catalog": plan_catalog,
+            "legacy_plan_catalog": legacy_plan_catalog,
             "supported_module_limit_keys": sorted(
                 self.tenant_plan_policy_service.VALID_MODULE_LIMIT_KEYS
             ),

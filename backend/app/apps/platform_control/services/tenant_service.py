@@ -165,6 +165,13 @@ class TenantService:
             tenant_data_transfer_job_repository or TenantDataTransferJobRepository()
         )
 
+    def has_legacy_plan_fallback_tenants(self, db: Session) -> bool:
+        for tenant in self.tenant_repository.list_all(db):
+            baseline_policy = self.get_tenant_baseline_policy_state(tenant)
+            if baseline_policy.legacy_plan_fallback_active:
+                return True
+        return False
+
     def create_tenant(
         self,
         db: Session,

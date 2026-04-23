@@ -112,6 +112,9 @@ Regla operativa:
   - `subscription_billing_cycles`
   - `base_plan_catalog`
   - `module_subscription_catalog`
+- `Configuración` ya no muestra el catálogo legacy por `plan_code` como baseline normal:
+  - solo reaparece si `legacy_plan_fallback_available=true`
+  - y entonces usa `legacy_plan_catalog`
 - el alta nueva ya no deja tenants operando con `plan_code`:
   - crea la suscripción desde `base_plan_code`
   - no debe tratar `plan_code` como entrada contractual normal

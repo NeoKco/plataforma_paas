@@ -582,7 +582,7 @@ Entregables esperados:
 
 Resultado actual:
 
-- ya existe backend-driven `plan_catalog` en `GET /platform/capabilities`
+- la consola ya consume el catálogo comercial vigente desde `base_plan_catalog` + `module_subscription_catalog`; el catálogo legacy por `plan_code` ya queda como superficie condicional
 - ya existe `plan_modules` como catálogo explícito de módulos declarados por backend
 - ya existe `module_dependency_catalog` como catálogo explícito de dependencias entre módulos declarado por backend
 - `platform_admin > Configuración` ya expone una primera lectura formal del catálogo de planes y módulos

@@ -2,6 +2,16 @@
 
 ## 2026-04-23
 
+- la `Etapa 15` ya recorta la superficie pública residual de `plan_code` en capacidades y consola:
+  - [platform_capability_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/platform_capability_service.py) ya no expone `plan_catalog` ni `available_plan_codes` como catálogo normal
+  - el endpoint `/platform/capabilities` ahora publica `legacy_plan_fallback_available` y `legacy_plan_catalog` solo cuando existe al menos un tenant realmente legacy
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) oculta el catálogo legacy salvo que esa señal esté activa
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) usa el catálogo legacy solo dentro del bloque `Baseline legacy por plan_code`
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `220 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - la `Etapa 15` ya recorta otro remanente profundo de `plan_code` en policy/runtime contractual:
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya no consulta `tenant_plan_policy_service.get_enabled_modules(...)` ni `get_policy(...)` para tenants contract-managed solo porque todavía arrastren un `plan_code` histórico
   - el baseline contractual ya no vuelve a `legacy_plan_code` cuando un tenant contract-managed queda sin `base_plan_code`; ahora se informa como `source=subscription_contract`

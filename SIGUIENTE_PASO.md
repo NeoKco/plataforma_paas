@@ -58,7 +58,7 @@
     - `tenant_service` ya no debe consultar módulos ni baseline legacy para tenants contract-managed solo porque el registro aún arrastre un `plan_code` histórico
     - los snapshots de `tenant_policy_event_service` ya no deben exponer ni marcar cambios de `plan_code` para tenants contract-managed
   - remanente real después de este corte:
-    - revisar si todavía conviene conservar `plan_catalog` / `available_plan_codes` como compatibilidad operativa en `platform_capability_service`
+    - revisar si todavía sobrevive algún consumidor profundo de `plan_code` fuera de `legacy_plan_catalog`
     - revisar si algún script o reporte histórico todavía usa `plan_code` como etiqueta contractual normal en vez de solo `compatibility_policy_code`
     - si no aparece otro consumidor real, el siguiente paso correcto ya pasa a ser declarar el fallback legacy suficientemente acotado y salir de este frente
 
