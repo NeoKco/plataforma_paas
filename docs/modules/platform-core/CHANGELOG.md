@@ -12,6 +12,12 @@
   - validación repo:
     - `backend.app.tests.test_security_hardening` -> `14 tests OK`
     - `backend.app.tests.test_platform_flow` -> `220 tests OK`
+  - validación runtime:
+    - `staging` backend redeployado con `557 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend redeployado con `557 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - incidencia corregida en despliegue:
+    - `empresa-bootstrap` no tenía `TENANT_DB_PASSWORD__EMPRESA_BOOTSTRAP` replicado en `.tenant-secrets.env` de ambos carriles
+    - la credencial válida se sincronizó al archivo runtime de secretos tenant y el redeploy volvió a converger 4/4
 
 - `Etapa 11` ya abre su primer slice visible real sobre secretos tenant:
   - [runtime_security_service.py](/home/felipe/platform_paas/backend/app/common/security/runtime_security_service.py) ya marca hallazgo si `TENANT_SECRETS_FILE` apunta al mismo `.env` legacy o si el archivo runtime no es legible/escribible

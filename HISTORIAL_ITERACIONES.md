@@ -25,6 +25,11 @@ Resultado:
 
 - `TENANT_SECRETS_FILE` queda consolidado como único carril normal de secretos tenant en archivo
 - `/.env` legacy deja de contaminar la resolución normal
+- el redeploy real detectó además un drift operativo concreto: `empresa-bootstrap` no tenía su secreto DB replicado en `.tenant-secrets.env` de `staging` ni de `production`
+- la corrección se aplicó en ambos carriles antes del redeploy final
+- validación runtime final:
+  - `staging` backend redeployado con `557 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+  - `production` backend redeployado con `557 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
 - el siguiente corte de `Etapa 11` ya puede concentrarse en distribución/rotación centralizada o en aislar aún más el rescate legacy
 
 ## 2026-04-23 - `Etapa 11` ya abre su primer slice visible sobre secretos tenant

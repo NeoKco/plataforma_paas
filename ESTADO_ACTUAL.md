@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-23
-- foco operativo nuevo ya abierto en repo dentro de la `Etapa 11`:
+- foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 11`:
   - `GET /platform/security-posture` ya no solo resume hallazgos genéricos; ahora expone además el carril runtime real de secretos tenant
   - el runtime ya marca hallazgo si `TENANT_SECRETS_FILE` sigue apuntando al `.env` principal
   - también marca hallazgo si el archivo runtime de secretos tenant no es legible o escribible
@@ -12,9 +12,16 @@
     - si está separado del `.env` legacy
     - si ese carril es escribible
   - este es el primer corte real de la `Etapa 11`: enforcement + visibilidad, sin introducir todavía un secret manager nuevo
-  - segundo corte repo ya abierto:
+  - segundo corte ya cerrado en repo y runtime:
     - la resolución normal de passwords tenant ya no usa `/.env` legacy cuando `TENANT_SECRETS_FILE` está separado
     - `/.env` queda solo como rescate explícito, no como carril normal
+  - incidencia runtime ya corregida durante el deploy de este segundo corte:
+    - `empresa-bootstrap` no tenía su secreto DB replicado en `/opt/platform_paas_staging/.tenant-secrets.env`
+    - `empresa-bootstrap` tampoco lo tenía en `/opt/platform_paas/.tenant-secrets.env`
+    - se replicó la credencial válida hacia ambos carriles y el redeploy volvió a converger 4/4
+  - validación runtime:
+    - `staging` backend redeployado con `557 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+    - `production` backend redeployado con `557 tests OK`, auditoría `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 15`: `platform_control` ya no solo tiene el corte técnico persistente del modelo `Plan Base + módulos arrendables por suscripción`, promovido y validado en `staging` y `production`; además `Configuración` y `Tenants > Plan y módulos` ya quedaron adaptados y publicados al lenguaje visible `Plan Base + add-ons`, la activación efectiva visible ya consume `tenant_subscriptions`, `billing/grace/suspensión` ya se evalúan primero desde la suscripción cuando existe, el baseline técnico de cuotas/límites para tenants gestionados ya sale del `Plan Base` en vez de `plan_code`, y los 4 tenants activos de ambos ambientes ya quedaron migrados al contrato nuevo sin `plan_code` activo
 - subcorte adicional ya cerrado en repo y runtime dentro de la misma `Etapa 15`:
   - `POST /platform/tenants` ya crea tenants nuevos desde `base_plan_code`
