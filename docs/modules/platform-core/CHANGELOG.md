@@ -2,6 +2,17 @@
 
 ## 2026-04-23
 
+- `Etapa 11` ya recorta el fallback legacy de secretos tenant en el carril normal:
+  - [tenant_secret_service.py](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py) ya resuelve passwords tenant en modo normal desde:
+    - `TENANT_SECRETS_FILE`
+    - `os.environ`
+    - settings
+  - `/.env` legacy ya no participa como candidato normal cuando el runtime ya usa un carril separado
+  - el fallback legacy queda disponible solo como rescate explícito mediante `allow_legacy_env_fallback=True`
+  - validación repo:
+    - `backend.app.tests.test_security_hardening` -> `14 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `220 tests OK`
+
 - `Etapa 11` ya abre su primer slice visible real sobre secretos tenant:
   - [runtime_security_service.py](/home/felipe/platform_paas/backend/app/common/security/runtime_security_service.py) ya marca hallazgo si `TENANT_SECRETS_FILE` apunta al mismo `.env` legacy o si el archivo runtime no es legible/escribible
   - `production_ready` de `/platform/security-posture` ya cae cuando el runtime sigue mezclando secretos tenant con el `.env` principal

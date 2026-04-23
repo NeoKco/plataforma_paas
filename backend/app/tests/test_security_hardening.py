@@ -211,7 +211,7 @@ class TenantSecretServiceTestCase(unittest.TestCase):
         self.assertEqual(env_var, "TENANT_DB_PASSWORD__EMPRESA_BOOTSTRAP")
         self.assertEqual(resolved, "SuperSecret123!")
 
-    def test_resolve_tenant_db_password_prefers_env_file_over_stale_process_env(self) -> None:
+    def test_resolve_tenant_db_password_prefers_runtime_env_file_over_stale_process_env(self) -> None:
         service = TenantSecretService()
         env_var = "TENANT_DB_PASSWORD__EMPRESA_DEMO"
         previous_value = os.environ.get(env_var)
@@ -219,15 +219,18 @@ class TenantSecretServiceTestCase(unittest.TestCase):
 
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
-                env_path = Path(temp_dir) / ".env"
-                env_path.write_text(
+                runtime_path = Path(temp_dir) / ".tenant-secrets.env"
+                runtime_path.write_text(
                     "TENANT_DB_PASSWORD__EMPRESA_DEMO=fresh-file-secret\n",
                     encoding="utf-8",
                 )
 
                 resolved = service.resolve_tenant_db_password(
                     "empresa-demo",
-                    SimpleNamespace(BASE_DIR=Path(temp_dir)),
+                    SimpleNamespace(
+                        BASE_DIR=Path(temp_dir),
+                        TENANT_SECRETS_FILE=str(runtime_path),
+                    ),
                 )
         finally:
             if previous_value is None:
@@ -236,6 +239,44 @@ class TenantSecretServiceTestCase(unittest.TestCase):
                 os.environ[env_var] = previous_value
 
         self.assertEqual(resolved, "fresh-file-secret")
+
+    def test_resolve_tenant_db_password_does_not_use_legacy_env_in_normal_runtime_mode(self) -> None:
+        service = TenantSecretService()
+        env_var = "TENANT_DB_PASSWORD__EMPRESA_DEMO"
+        bootstrap_var = "TENANT_BOOTSTRAP_DB_PASSWORD_EMPRESA_DEMO"
+        previous_runtime_value = os.environ.get(env_var)
+        previous_bootstrap_value = os.environ.get(bootstrap_var)
+        os.environ.pop(env_var, None)
+        os.environ.pop(bootstrap_var, None)
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                base_dir = Path(temp_dir)
+                runtime_path = base_dir / ".tenant-secrets.env"
+                legacy_path = base_dir / ".env"
+                legacy_path.write_text(
+                    "TENANT_DB_PASSWORD__EMPRESA_DEMO=legacy-secret\n",
+                    encoding="utf-8",
+                )
+                runtime_path.write_text("", encoding="utf-8")
+
+                with self.assertRaises(ValueError):
+                    service.resolve_tenant_db_password(
+                        "empresa-demo",
+                        SimpleNamespace(
+                            BASE_DIR=base_dir,
+                            TENANT_SECRETS_FILE=str(runtime_path),
+                        ),
+                    )
+        finally:
+            if previous_runtime_value is None:
+                os.environ.pop(env_var, None)
+            else:
+                os.environ[env_var] = previous_runtime_value
+            if previous_bootstrap_value is None:
+                os.environ.pop(bootstrap_var, None)
+            else:
+                os.environ[bootstrap_var] = previous_bootstrap_value
 
     def test_resolve_tenant_db_password_prefers_runtime_secret_file_over_legacy_env(self) -> None:
         service = TenantSecretService()
@@ -262,6 +303,30 @@ class TenantSecretServiceTestCase(unittest.TestCase):
             )
 
         self.assertEqual(resolved, "runtime-secret")
+
+    def test_resolve_tenant_db_password_allows_explicit_legacy_env_rescue(self) -> None:
+        service = TenantSecretService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            runtime_path = base_dir / ".tenant-secrets.env"
+            legacy_path = base_dir / ".env"
+            legacy_path.write_text(
+                "TENANT_DB_PASSWORD__EMPRESA_DEMO=legacy-secret\n",
+                encoding="utf-8",
+            )
+            runtime_path.write_text("", encoding="utf-8")
+
+            resolved = service.resolve_tenant_db_password(
+                "empresa-demo",
+                SimpleNamespace(
+                    BASE_DIR=base_dir,
+                    TENANT_SECRETS_FILE=str(runtime_path),
+                ),
+                allow_legacy_env_fallback=True,
+            )
+
+        self.assertEqual(resolved, "legacy-secret")
 
     def test_mask_secret_keeps_last_characters_only(self) -> None:
         service = TenantSecretService()

@@ -1,5 +1,32 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya retira `.env` del carril normal de resolución tenant
+
+Contexto:
+
+- el primer slice visible ya había dejado explícito el carril runtime de secretos tenant
+- faltaba endurecer la resolución real para que `/.env` legacy dejara de participar como candidato normal
+
+Cambios:
+
+- [tenant_secret_service.py](/home/felipe/platform_paas/backend/app/common/security/tenant_secret_service.py):
+  - la resolución normal ahora intenta:
+    - `TENANT_SECRETS_FILE`
+    - `os.environ`
+    - settings
+  - `/.env` legacy ya no se usa como candidato normal si el runtime ya está separado
+  - el rescate legacy queda solo bajo `allow_legacy_env_fallback=True`
+- cobertura nueva en [test_security_hardening.py](/home/felipe/platform_paas/backend/app/tests/test_security_hardening.py):
+  - valida que el modo normal ya no lea `/.env`
+  - valida que el rescate legacy siga disponible solo de forma explícita
+- ajuste puntual en [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py) para mantener aislado el caso de schema status sin reabrir el fallback
+
+Resultado:
+
+- `TENANT_SECRETS_FILE` queda consolidado como único carril normal de secretos tenant en archivo
+- `/.env` legacy deja de contaminar la resolución normal
+- el siguiente corte de `Etapa 11` ya puede concentrarse en distribución/rotación centralizada o en aislar aún más el rescate legacy
+
 ## 2026-04-23 - `Etapa 11` ya abre su primer slice visible sobre secretos tenant
 
 Contexto:

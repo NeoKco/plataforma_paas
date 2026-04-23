@@ -200,6 +200,10 @@ Estado práctico de cierre:
   - `GET /platform/security-posture` ya expone el carril runtime real de secretos tenant
   - `Settings` ya muestra si `TENANT_SECRETS_FILE` está separado del `.env` legacy y si el backend puede escribir ahí
   - `production_ready` ya cae si el runtime sigue mezclando secretos tenant con el `.env` principal
+  - segundo slice repo ya cerrado:
+    - la resolución normal de secretos tenant ya no usa `/.env` como candidato cuando el runtime ya trabaja con `TENANT_SECRETS_FILE` separado
+    - `/.env` legacy queda solo como rescate explícito
+    - cobertura nueva en `test_security_hardening` para modo normal sin `.env` y para rescate legacy bajo flag
 
 ## Cierre operativo del bloque central
 

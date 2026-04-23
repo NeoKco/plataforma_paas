@@ -12,6 +12,9 @@
     - si está separado del `.env` legacy
     - si ese carril es escribible
   - este es el primer corte real de la `Etapa 11`: enforcement + visibilidad, sin introducir todavía un secret manager nuevo
+  - segundo corte repo ya abierto:
+    - la resolución normal de passwords tenant ya no usa `/.env` legacy cuando `TENANT_SECRETS_FILE` está separado
+    - `/.env` queda solo como rescate explícito, no como carril normal
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 15`: `platform_control` ya no solo tiene el corte técnico persistente del modelo `Plan Base + módulos arrendables por suscripción`, promovido y validado en `staging` y `production`; además `Configuración` y `Tenants > Plan y módulos` ya quedaron adaptados y publicados al lenguaje visible `Plan Base + add-ons`, la activación efectiva visible ya consume `tenant_subscriptions`, `billing/grace/suspensión` ya se evalúan primero desde la suscripción cuando existe, el baseline técnico de cuotas/límites para tenants gestionados ya sale del `Plan Base` en vez de `plan_code`, y los 4 tenants activos de ambos ambientes ya quedaron migrados al contrato nuevo sin `plan_code` activo
 - subcorte adicional ya cerrado en repo y runtime dentro de la misma `Etapa 15`:
   - `POST /platform/tenants` ya crea tenants nuevos desde `base_plan_code`

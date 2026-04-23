@@ -28,6 +28,16 @@ class TenantSecretService:
                 paths.append(path)
         return paths
 
+    def get_runtime_resolution_env_paths(self, current_settings) -> list[Path]:
+        return [self.get_runtime_env_path(current_settings)]
+
+    def get_legacy_rescue_env_paths(self, current_settings) -> list[Path]:
+        runtime_path = self.get_runtime_env_path(current_settings)
+        legacy_path = self.get_legacy_env_path(current_settings)
+        if runtime_path == legacy_path:
+            return []
+        return [legacy_path]
+
     def classify_env_path(self, env_path: Path, current_settings) -> str:
         resolved_path = env_path.expanduser().resolve()
         runtime_path = self.get_runtime_env_path(current_settings).expanduser().resolve()
@@ -71,15 +81,25 @@ class TenantSecretService:
         normalized_slug = tenant_slug.upper().replace("-", "_")
         return f"TENANT_DB_PASSWORD__{normalized_slug}"
 
-    def resolve_tenant_db_password(self, tenant_slug: str, current_settings) -> str:
+    def resolve_tenant_db_password(
+        self,
+        tenant_slug: str,
+        current_settings,
+        *,
+        allow_legacy_env_fallback: bool = False,
+    ) -> str:
         normalized_slug = tenant_slug.upper().replace("-", "_")
         candidates = [
             self.build_tenant_db_password_env_var_name(tenant_slug),
             f"TENANT_BOOTSTRAP_DB_PASSWORD_{normalized_slug}",
         ]
 
+        resolution_paths = list(self.get_runtime_resolution_env_paths(current_settings))
+        if allow_legacy_env_fallback:
+            resolution_paths.extend(self.get_legacy_rescue_env_paths(current_settings))
+
         for env_var in candidates:
-            for env_path in self.get_candidate_env_paths(current_settings):
+            for env_path in resolution_paths:
                 env_file_value = self._read_env_var_from_file(env_path, env_var)
                 if env_file_value:
                     return env_file_value

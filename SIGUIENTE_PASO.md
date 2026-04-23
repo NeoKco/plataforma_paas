@@ -65,8 +65,10 @@
         - enforcement visible de `TENANT_SECRETS_FILE` separado del `.env` legacy
         - lectura operativa explícita del carril runtime de secretos tenant en `Settings`
       - siguiente slice:
-        - dejar de tratar el `.env` legacy como candidato normal de resolución cuando el runtime ya tiene `TENANT_SECRETS_FILE`
-        - fortalecer política de distribución/rotación centralizada de secretos fuera de `.env`
+        - ya cerrado en repo: dejar de tratar el `.env` legacy como candidato normal de resolución cuando el runtime ya tiene `TENANT_SECRETS_FILE`
+        - siguiente corte recomendado:
+          - fortalecer política de distribución/rotación centralizada de secretos fuera de `.env`
+          - decidir si el rescate legacy explícito sigue viviendo en código normal o se aísla en tooling operativo
         - cerrar mejor política de reactivación, acceso y evidencia operativa ligada a credenciales
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:

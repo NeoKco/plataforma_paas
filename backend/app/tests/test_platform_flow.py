@@ -1665,6 +1665,15 @@ class PlatformServicesTestCase(unittest.TestCase):
         service = TenantService(
             tenant_repository=FakeTenantRepository(),
             tenant_schema_service=fake_schema_service,
+            tenant_connection_service=SimpleNamespace(
+                get_tenant_database_credentials=lambda tenant_arg: {
+                    "host": tenant_arg.db_host,
+                    "port": tenant_arg.db_port,
+                    "name": tenant_arg.db_name,
+                    "user": tenant_arg.db_user,
+                    "password": "runtime-secret",
+                }
+            ),
         )
 
         result = service.get_tenant_schema_status(db=object(), tenant_id=1)

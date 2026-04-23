@@ -69,10 +69,12 @@ Archivo principal:
 
 Resolucion actual:
 
-- primero intenta `TENANT_SECRETS_FILE`
-- luego `/.env` legacy solo como compatibilidad residual de lectura
-- luego `os.environ`
-- luego settings estaticos ya declarados
+- modo normal:
+  - primero intenta `TENANT_SECRETS_FILE`
+  - luego `os.environ`
+  - luego settings estaticos ya declarados
+- `/.env` legacy ya no participa como candidato normal cuando el runtime usa `TENANT_SECRETS_FILE` separado
+- el `/.env` legacy queda solo como compatibilidad residual de rescate explicito
 
 Esto permite que el provisioning cree secretos tenant dinámicos después de la instalación inicial y que el backend pueda resolverlos tras reinicios, sin tratar el `.env` principal como carril normal de escritura.
 

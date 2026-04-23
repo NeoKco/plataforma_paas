@@ -90,6 +90,15 @@ Payload operativo actual de `GET /platform/security-posture`:
 - `tenant_secrets_legacy`
 - `tenant_secrets_isolated_from_legacy`
 
+Regla operativa vigente del carril tenant secrets:
+
+- resolución normal:
+  - `TENANT_SECRETS_FILE`
+  - `os.environ`
+  - settings
+- `/.env` legacy ya no debe contar como candidato normal si el runtime ya quedó separado
+- el fallback legacy queda solo como rescate explícito
+
 ## Notas
 
 - la referencia detallada de contratos sigue viviendo en la documentación API general

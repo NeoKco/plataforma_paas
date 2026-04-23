@@ -52,6 +52,8 @@ Documentación base:
 - en `Etapa 11`, el runtime ya debe tratar `TENANT_SECRETS_FILE` como carril normal de secretos tenant:
   - si apunta al mismo `.env` legacy, `security-posture` ya debe marcar hallazgo
   - si no es legible o escribible, `security-posture` ya debe marcar hallazgo
+  - la resolución normal de secretos tenant ya no debe leer `/.env` cuando `TENANT_SECRETS_FILE` está separado
+  - cualquier fallback hacia `/.env` debe quedar explícito como rescate legacy
   - cualquier evolución nueva debe fortalecer ese carril, no reintroducir escritura normal sobre `.env`
 - la apertura formal de `Etapa 15` también queda backend-driven:
   - `base_plan_catalog`, `module_subscription_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo comercial vigente
