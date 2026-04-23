@@ -152,11 +152,15 @@ Estado práctico de cierre:
     - `tenant_plan_api_read_requests_per_minute`, `tenant_plan_api_write_requests_per_minute`, `tenant_plan_enabled_modules` y `tenant_plan_module_limits` ya no salen de `plan_code` para esos tenants
     - `GET /platform/capabilities` ya expone el `base_plan_catalog` resuelto con compatibilidad, cuotas y límites base
   - el siguiente corte ya no es modelar ni contratar add-ons, sino:
-    - migrar los tenants legacy restantes al contrato nuevo
-    - retirar después el fallback legacy total por `plan_code`
+    - retirar el fallback residual por `plan_code` del código y de la consola
+    - dejar explícito si en el futuro reaparece algún tenant realmente legacy fuera del set activo actual
     - seguir separando en la consola el estado `contratado`, `incluido` y `efectivamente habilitado`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
+  - migración contractual legacy ya cerrada:
+    - `POST /platform/tenants/{tenant_id}/subscription/migrate-legacy`
+    - [migrate_legacy_tenant_contracts.py](/home/felipe/platform_paas/backend/app/scripts/migrate_legacy_tenant_contracts.py)
+    - `staging` y `production` ya dejan `processed=4, migrated=0, skipped=4, failed=0, mode=audit`
 - validación browser de enforcement visible de límites de usuarios activos en `tenant_portal`
 - validación browser de enforcement visible de límites de `finance` en `tenant_portal`
 - validación browser de precedencia visible de `finance.entries` sobre `finance.entries.monthly` en `tenant_portal`

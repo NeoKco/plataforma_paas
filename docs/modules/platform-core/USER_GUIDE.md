@@ -93,6 +93,11 @@ La base visible actual de la Etapa 15 ya queda así:
    - qué parte del estado sigue viniendo solo del baseline legacy
    - `Modelo contractual`
    - `Fuente baseline`
+7. si un tenant todavía muestra compatibilidad legacy, usar:
+   - `Migrar baseline legacy al contrato`
+8. confirmar después que:
+   - desaparece el fallback operativo por `plan_code`
+   - `Plan / Base` ya queda leído desde la suscripción contractual
 
 Regla operativa:
 
@@ -117,13 +122,16 @@ Regla operativa:
   - el bloque `Contrato comercial tenant` escribe sobre `tenant_subscriptions` y `tenant_subscription_items`
   - el bloque `Baseline legacy por plan_code` queda solo como compatibilidad temporal
   - si el tenant ya quedó gestionado por contrato, ese baseline legacy ya no debe seguir agregando módulos efectivos
+- la migración de tenants legacy ya puede hacerse:
+  - tenant a tenant desde `Tenants`
+  - o por batch con `migrate_legacy_tenant_contracts.py`
 - los overrides tenant visibles siguen siendo de límites; no reemplazan el catálogo de módulos
 - la dirección aprobada del producto pasa a ser:
   - `Plan Base` obligatorio por tenant
   - `finance` siempre incluido
   - módulos adicionales arrendables por suscripción
 - `billing`, `grace` y `suspensión` ya quedan conectados al modelo nuevo de suscripción
-- el siguiente corte ya no es contratar add-ons, sino migrar los tenants legacy restantes y retirar luego el fallback total por `plan_code`
+- los 4 tenants activos actuales de `staging` y `production` ya fueron migrados al contrato nuevo; el siguiente corte ya no es migrarlos, sino retirar luego el fallback residual total por `plan_code`
 - referencia formal:
   - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
 

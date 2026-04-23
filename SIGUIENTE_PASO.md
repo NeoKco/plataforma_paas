@@ -123,8 +123,8 @@
           - `Fuente baseline`
           - compatibilidad legacy cuando todavía aplica
         - siguiente slice:
-          - migrar los tenants legacy restantes al contrato nuevo
-          - retirar después el fallback total por `plan_code`
+          - retirar el fallback residual por `plan_code` del código y de la consola
+          - dejar visible si en el futuro reaparece algún tenant realmente legacy fuera del set activo actual
         - no reabrir dependencias explícitas salvo evidencia nueva; ese slice ya quedó backend-driven y visible en consola
 
 - subcorte nuevo ya cerrado en runtime dentro de `business-core > Nombre común`:

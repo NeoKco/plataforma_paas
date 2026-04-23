@@ -7,7 +7,7 @@ Estado actual:
 - decisión de producto: `Aprobada`
 - implementación repo/control model: `Contratación formal desde consola completada`
 - implementación runtime: `Contratación formal promovida en staging y production`
-- política vigente de activación efectiva: `tenant_subscriptions` como fuente principal, con fallback legacy por `plan_code` solo para tenants legacy aún no recontratados en el modelo nuevo
+- política vigente de activación efectiva: `tenant_subscriptions` como fuente principal, con fallback legacy por `plan_code` solo como compatibilidad residual cuando todavía aparezca un tenant legacy fuera del set activo ya migrado
 
 ## Objetivo
 
@@ -213,7 +213,7 @@ Hoy la operación visible queda así:
 
 - catálogo backend-driven por `plan`
 - activación tenant-side efectiva desde `tenant_subscriptions`
-- fallback legacy por `plan_code` solo cuando todavía hace falta compatibilidad en tenants legacy aún no gestionados desde contrato
+- fallback legacy por `plan_code` solo cuando todavía hace falta compatibilidad en tenants legacy todavía no migrados fuera del set activo actual
 
 El primer corte técnico ya existe en `platform_control` y deja modelado:
 
@@ -238,6 +238,24 @@ Resultado operativo:
 - `tenant_schema_sync` verde por ambiente
 - auditoría activa multi-tenant en verde:
   - `staging`: `processed=4, warnings=0, failed=0`
+  - `production`: `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
+
+## Estado del corte de migración legacy
+
+La transición contractual ya no depende solo de cambios manuales en consola:
+
+- existe mutación formal:
+  - `POST /platform/tenants/{tenant_id}/subscription/migrate-legacy`
+- existe script batch:
+  - [migrate_legacy_tenant_contracts.py](/home/felipe/platform_paas/backend/app/scripts/migrate_legacy_tenant_contracts.py)
+- `set_subscription_contract(...)` ya retira `plan_code` por defecto al guardar el contrato
+
+Estado actual validado:
+
+- `staging`: `processed=4, migrated=0, skipped=4, failed=0, mode=audit`
+- `production`: `processed=4, migrated=0, skipped=4, failed=0, mode=audit`
+
+Esto deja a los 4 tenants activos de ambos ambientes ya gestionados por contrato y sin `plan_code`.
   - `production`: `processed=4, warnings=0, failed=0, accepted_tenants_with_notes=1`
 - expansión de `GET /platform/capabilities` con:
   - `subscription_activation_model`

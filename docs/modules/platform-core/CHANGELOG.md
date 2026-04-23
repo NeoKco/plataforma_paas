@@ -2,6 +2,26 @@
 
 ## 2026-04-23
 
+- la `Etapa 15` ya migra el baseline legacy restante al contrato nuevo y deja `plan_code` fuera del set activo:
+  - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) agrega migración explícita desde `plan_code` a contrato y retira `plan_code` al persistir la suscripción
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py) agrega `POST /platform/tenants/{tenant_id}/subscription/migrate-legacy`
+  - [migrate_legacy_tenant_contracts.py](/home/felipe/platform_paas/backend/app/scripts/migrate_legacy_tenant_contracts.py) deja auditoría y aplicación por slug o `--all-active`
+  - [TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx) agrega la acción `Migrar baseline legacy al contrato`
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `216 tests OK`
+    - `backend.app.tests.test_tenant_flow` -> `96 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` apply -> `processed=4, migrated=2, skipped=2, failed=0`
+    - `production` apply -> `processed=4, migrated=2, skipped=2, failed=0`
+    - auditoría final:
+      - `staging` -> `processed=4, migrated=0, skipped=4, failed=0, mode=audit`
+      - `production` -> `processed=4, migrated=0, skipped=4, failed=0, mode=audit`
+    - frontend publicado:
+      - `staging`: `SettingsPage-CaJ0zb-T.js`, `TenantsPage-DTeXPHTz.js`, `ProvisioningPage-CrnlQ79L.js`, `BillingPage-BK2PExA0.js`, `DashboardPage-QgZ5cNCH.js`, `index-RGBfZ-FE.js`
+      - `production`: `SettingsPage-CyEp87CR.js`, `TenantsPage-C8oS75Zj.js`, `ProvisioningPage-CmVoU8q0.js`, `BillingPage-DOEg9ygo.js`, `DashboardPage-C5YLg8nA.js`, `index-B22If51k.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - la `Etapa 15` ya deja el baseline técnico de cuotas/límites alineado al contrato nuevo:
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ahora resuelve `read/write rate limits`, módulos base habilitados y `module_limits` desde `tenant_subscriptions` + `base_plan_catalog` para tenants gestionados por contrato
   - [tenant_module_subscription_policy_service.py](/home/felipe/platform_paas/backend/app/common/policies/tenant_module_subscription_policy_service.py) ya expone el `base_plan_catalog` resuelto con:

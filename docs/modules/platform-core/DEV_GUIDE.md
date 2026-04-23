@@ -79,9 +79,16 @@ Documentación base:
     - baseline de cuotas/límites para tenants gestionados resuelto desde `base_plan_catalog`
     - contratación formal de add-ons desde consola sobre `tenant_subscriptions`
     - `billing`, `grace` y `suspensión` ya se evalúan primero desde la suscripción cuando existe
-    - siguiente corte: migración de tenants legacy restantes y retiro posterior del fallback total por `plan_code`
+    - migración de tenants legacy ya disponible por API y script batch
+    - siguiente corte: retiro posterior del fallback residual total por `plan_code`
   - referencia formal:
     - [TENANT_MODULE_SUBSCRIPTION_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_MODULE_SUBSCRIPTION_MODEL.md)
+  - mutación nueva de migración:
+    - `POST /platform/tenants/{tenant_id}/subscription/migrate-legacy`
+  - script operativo nuevo:
+    - [migrate_legacy_tenant_contracts.py](/home/felipe/platform_paas/backend/app/scripts/migrate_legacy_tenant_contracts.py)
+  - regla actual:
+    - `set_subscription_contract(...)` ya retira `plan_code` por defecto al persistir un tenant contractual
 - en `platform_admin`, las capturas de alta más sensibles (`Tenants`, `Usuarios de plataforma`) no deberían quedar abiertas por defecto; la lectura principal debe mostrarse primero y la creación abrirse bajo demanda en modal
 - en `tenant_portal`, `Usuarios` debe seguir el mismo patrón: catálogo visible primero y alta solo bajo demanda desde botón
 - `tenant_portal > Usuarios` ya expone además edición y borrado seguro: el backend bloquea autoeliminación y protege al último admin activo antes de aceptar `DELETE /tenant/users/{id}` o degradaciones equivalentes

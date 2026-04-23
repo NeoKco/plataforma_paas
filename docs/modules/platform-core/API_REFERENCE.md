@@ -30,6 +30,7 @@ Tenants:
 - `POST /platform/tenants`
 - `GET /platform/tenants/{tenant_id}`
 - `PATCH /platform/tenants/{tenant_id}/subscription`
+- `POST /platform/tenants/{tenant_id}/subscription/migrate-legacy`
 - `POST /platform/tenants/{tenant_id}/data-export-jobs`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs`
 - `GET /platform/tenants/{tenant_id}/data-export-jobs/{job_id}`
@@ -133,9 +134,14 @@ Payload operativo actual de `GET /platform/capabilities`:
     - `grace_until`
     - `is_co_termed`
     - `items[]`
+  - `POST /platform/tenants/{tenant_id}/subscription/migrate-legacy`:
+    - migra un tenant que todavía depende de `plan_code` al contrato nuevo
+    - conserva `Plan Base`, ciclo y add-ons inferidos
+    - retira `plan_code` si la migración queda guardada
   - nota:
     - la activación efectiva del tenant ya se resuelve desde `tenant_subscriptions` con fallback legacy por `plan_code`
     - para tenants gestionados por contrato, el baseline de cuotas/límites ya también sale del `Plan Base`
+    - en los 4 tenants activos actuales de `staging` y `production`, esa migración legacy ya quedó completada
 - el payload `export_scope` hoy soporta:
   - `portable_full`
   - `functional_data_only`

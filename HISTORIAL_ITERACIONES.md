@@ -1,5 +1,40 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - la `Etapa 15` ya migra los tenants legacy activos al contrato nuevo
+
+- objetivo:
+  - cerrar la migración contractual legacy real en `staging` y `production` para los tenants activos que todavía dependían de `plan_code`
+- cambios y acciones ejecutadas:
+  - [backend/app/apps/platform_control/services/tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py):
+    - agrega migración explícita `migrate_legacy_plan_to_subscription_contract(...)`
+    - `set_subscription_contract(...)` ya retira `plan_code` por defecto al persistir el contrato
+    - el camino de migración evita depender del seed/backfill tenant-side para no bloquearse por credenciales runtime de DB tenant
+  - [backend/app/apps/platform_control/api/tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/tenant_routes.py):
+    - agrega `POST /platform/tenants/{tenant_id}/subscription/migrate-legacy`
+  - [backend/app/scripts/migrate_legacy_tenant_contracts.py](/home/felipe/platform_paas/backend/app/scripts/migrate_legacy_tenant_contracts.py):
+    - agrega auditoría y aplicación batch por slug o `--all-active`
+  - [frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/tenants/TenantsPage.tsx):
+    - agrega `Migrar baseline legacy al contrato`
+    - aclara cuándo el tenant sigue en fallback legacy y cuándo ya queda bajo contrato
+  - [frontend/src/services/platform-api.ts](/home/felipe/platform_paas/frontend/src/services/platform-api.ts):
+    - agrega la llamada de frontend para esa mutación
+- validaciones:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `216 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_flow -v` -> `96 tests OK`
+  - `python3 -m py_compile backend/app/apps/platform_control/services/tenant_service.py backend/app/apps/platform_control/api/tenant_routes.py backend/app/scripts/migrate_legacy_tenant_contracts.py` -> `OK`
+  - `staging` apply -> `processed=4, migrated=2, skipped=2, failed=0`
+  - `production` apply -> `processed=4, migrated=2, skipped=2, failed=0`
+  - auditoría final:
+    - `staging` -> `processed=4, migrated=0, skipped=4, failed=0, mode=audit`
+    - `production` -> `processed=4, migrated=0, skipped=4, failed=0, mode=audit`
+  - frontend publicado:
+    - `staging`: `SettingsPage-CaJ0zb-T.js`, `TenantsPage-DTeXPHTz.js`, `ProvisioningPage-CrnlQ79L.js`, `BillingPage-BK2PExA0.js`, `DashboardPage-QgZ5cNCH.js`, `index-RGBfZ-FE.js`
+    - `production`: `SettingsPage-CyEp87CR.js`, `TenantsPage-C8oS75Zj.js`, `ProvisioningPage-CmVoU8q0.js`, `BillingPage-DOEg9ygo.js`, `DashboardPage-C5YLg8nA.js`, `index-B22If51k.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- resultado:
+  - los 4 tenants activos de `staging` y `production` ya quedan gestionados por contrato y sin `plan_code`
+  - el siguiente paso deja de ser “migrar tenants activos” y pasa a retirar el fallback residual por `plan_code`
+
 ## 2026-04-23 - la `Etapa 15` ya mueve también el baseline de cuotas/límites al contrato nuevo
 
 - objetivo:
