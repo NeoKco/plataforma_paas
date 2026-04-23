@@ -68,7 +68,8 @@ Documentación base:
     - acción recomendada
     - elegibilidad para `sync batch` y `rotate batch`
   - el batch central ya debe poder acotarse por `tenant_slugs` explícitos desde consola sin cambiar el carril runtime-only
-  - `excluded_tenant_slugs` puede existir como recorte adicional, pero no debe reintroducir inferencias legacy ni bypasses operativos
+  - `excluded_tenant_slugs` ya puede usarse como modo explícito de exclusión desde consola
+  - incluir y excluir deben seguir el mismo carril runtime-only y no deben reintroducir inferencias legacy ni bypasses operativos
   - el rescate legacy permitido por diseño debe quedar aislado en tooling/rutas operativas controladas y no reingresar al path normal de resolución
 - la apertura formal de `Etapa 15` también queda backend-driven:
   - `base_plan_catalog`, `module_subscription_catalog` y `plan_modules` de `GET /platform/capabilities` son la fuente de verdad del catálogo comercial vigente

@@ -5099,6 +5099,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             sync_mock.call_args.kwargs["tenant_slugs"],
             ["empresa-demo"],
         )
+        self.assertIsNone(sync_mock.call_args.kwargs["excluded_tenant_slugs"])
 
     def test_rotate_platform_tenant_db_credentials_returns_batch_schema(self) -> None:
         rotated_at = datetime.now(timezone.utc)
@@ -5142,7 +5143,38 @@ class PlatformRoutesTestCase(unittest.TestCase):
             rotate_mock.call_args.kwargs["tenant_slugs"],
             ["empresa-demo"],
         )
+        self.assertIsNone(rotate_mock.call_args.kwargs["excluded_tenant_slugs"])
         audit_mock.assert_called_once()
+
+    def test_sync_platform_runtime_secrets_forwards_excluded_tenants(self) -> None:
+        with patch(
+            "app.apps.platform_control.api.routes.tenant_service.sync_active_tenant_runtime_secrets",
+            return_value={
+                "processed": 1,
+                "synced": 1,
+                "already_runtime_managed": 0,
+                "skipped_not_configured": 0,
+                "skipped_legacy_rescue_required": 0,
+                "failed": 0,
+                "synced_at": datetime.now(timezone.utc),
+                "data": [],
+            },
+        ) as sync_mock, patch(
+            "app.apps.platform_control.api.routes.auth_audit_service.log_event",
+        ):
+            sync_platform_runtime_secrets(
+                payload=PlatformTenantRuntimeSecretBatchRequest(
+                    excluded_tenant_slugs=["empresa-legacy"],
+                ),
+                db=object(),
+                token=self._token_payload(),
+            )
+
+        self.assertIsNone(sync_mock.call_args.kwargs["tenant_slugs"])
+        self.assertEqual(
+            sync_mock.call_args.kwargs["excluded_tenant_slugs"],
+            ["empresa-legacy"],
+        )
 
     def test_get_platform_runtime_secret_plan_returns_schema(self) -> None:
         planned_at = datetime.now(timezone.utc)

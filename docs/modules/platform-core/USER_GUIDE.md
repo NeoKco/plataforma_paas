@@ -124,15 +124,19 @@ Regla operativa:
 En `Configuración -> Postura de secretos y runtime`:
 
 1. revisar primero `Plan central de secretos runtime`
-2. marcar solo los tenants que quieres incluir en la campaña, si no quieres operar sobre todos
-3. usar:
+2. elegir el modo de campaña:
+   - `Modo incluir` para operar solo sobre tenants seleccionados
+   - `Modo excluir` para operar sobre todos excepto los tenants seleccionados
+3. marcar los tenants según el modo elegido, si no quieres operar sobre todos
+4. usar:
    - `Sincronizar runtime central` si el tenant aún requiere llevar el secreto al carril runtime
    - `Rotar credenciales central` si ya está `runtime_ready`
 
 Regla operativa:
 
 - si no seleccionas tenants, la campaña batch sigue usando todos los tenants activos evaluados
-- si seleccionas tenants, el batch queda acotado a ese subconjunto
+- si seleccionas tenants en `Modo incluir`, el batch queda acotado a ese subconjunto
+- si seleccionas tenants en `Modo excluir`, el batch corre sobre todos los tenants auditados excepto ese subconjunto
 - el rescate legacy sigue fuera de la consola normal; si el plan marca `legacy_rescue_required`, debes usar tooling controlado
   - crea la suscripción desde `base_plan_code`
   - no debe tratar `plan_code` como entrada contractual normal

@@ -2,6 +2,19 @@
 
 ## 2026-04-23
 
+- `Etapa 11` ya agrega exclusión explícita por tenant para campañas batch de secretos runtime:
+  - [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py) ya deja trazabilidad de `selected` y `excluded` en la auditoría de `sync batch` y `rotate batch`
+  - [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx) ya permite alternar entre:
+    - `Modo incluir`
+    - `Modo excluir`
+  - la consola ya puede:
+    - acotar el batch a tenants seleccionados
+    - o correrlo sobre todos los tenants auditados excepto el subconjunto excluido
+  - validación repo:
+    - `backend.app.tests.test_platform_flow` -> `236 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - `Etapa 11` ya agrega targeting manual gobernado para campañas batch de secretos runtime:
   - [schemas.py](/home/felipe/platform_paas/backend/app/apps/platform_control/schemas.py) ya agrega `PlatformTenantRuntimeSecretBatchRequest`
   - [tenant_service.py](/home/felipe/platform_paas/backend/app/apps/platform_control/services/tenant_service.py) ya filtra tenants activos por `tenant_slugs` y exclusiones opcionales antes de `sync` o `rotate`

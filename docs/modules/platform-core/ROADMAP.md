@@ -237,12 +237,18 @@ Estado práctico de cierre:
     - `Configuración -> Plan central de secretos runtime` ya permite seleccionar tenants antes de correr `sync batch` o `rotate batch`
     - `POST /platform/security-posture/sync-runtime-secrets` y `POST /platform/security-posture/rotate-db-credentials` ya aceptan `tenant_slugs` opcionales
     - la campaña batch puede quedar acotada a un subconjunto manual sin reabrir rescate desde `/.env`
-  - ese séptimo slice ya queda también publicado en runtime:
-    - `staging` backend redeployado con `572 tests OK`
-    - `production` backend redeployado con `572 tests OK`
+  - noveno slice repo ya cerrado:
+    - `Configuración -> Plan central de secretos runtime` ya permite exclusión explícita de tenants además de la selección positiva
+    - la consola ya puede operar:
+      - solo sobre los tenants seleccionados
+      - o sobre todos los tenants auditados excepto los excluidos
+    - la auditoría batch ya deja visible el alcance por `selected` y `excluded`
+  - el octavo slice ya queda también publicado en runtime:
+    - `staging` backend redeployado con `575 tests OK`
+    - `production` backend redeployado con `575 tests OK`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - siguiente corte recomendado:
-    - publicar el octavo slice y luego abrir persistencia/auditoría más formal de campañas batch
+    - publicar el noveno slice y luego abrir persistencia/auditoría más formal de campañas batch
     - mantener el rescate legacy solo como tooling excepcional
 
 ## Cierre operativo del bloque central

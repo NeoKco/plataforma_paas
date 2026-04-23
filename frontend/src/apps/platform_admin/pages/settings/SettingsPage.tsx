@@ -55,6 +55,9 @@ export function SettingsPage() {
   const [runtimeSyncFeedback, setRuntimeSyncFeedback] = useState<string | null>(null);
   const [runtimeRotateFeedback, setRuntimeRotateFeedback] = useState<string | null>(null);
   const [selectedRuntimePlanTenants, setSelectedRuntimePlanTenants] = useState<string[]>([]);
+  const [runtimePlanSelectionMode, setRuntimePlanSelectionMode] = useState<
+    "include" | "exclude"
+  >("include");
   const [isRuntimeSyncing, setIsRuntimeSyncing] = useState(false);
   const [isRuntimeRotating, setIsRuntimeRotating] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -112,6 +115,19 @@ export function SettingsPage() {
       rotationEligible: selectedRows.filter((row) => row.eligible_for_rotation_batch).length,
     };
   }, [runtimeSecretPlanRows, selectedRuntimePlanTenants]);
+
+  const runtimeBatchScopeLabel =
+    selectedRuntimePlanTenants.length === 0
+      ? language === "es"
+        ? "todos los tenants auditados"
+        : "all audited tenants"
+      : runtimePlanSelectionMode === "include"
+        ? language === "es"
+          ? `${selectedRuntimePlanTenants.length} tenant(s) seleccionados`
+          : `${selectedRuntimePlanTenants.length} selected tenant(s)`
+        : language === "es"
+          ? `todos excepto ${selectedRuntimePlanTenants.length} tenant(s) excluidos`
+          : `all except ${selectedRuntimePlanTenants.length} excluded tenant(s)`;
 
   async function loadSettings() {
     if (!session?.accessToken) {
@@ -217,14 +233,16 @@ export function SettingsPage() {
     try {
       const payload: PlatformTenantRuntimeSecretBatchRequest | undefined =
         selectedRuntimePlanTenants.length > 0
-          ? { tenant_slugs: selectedRuntimePlanTenants }
+          ? runtimePlanSelectionMode === "include"
+            ? { tenant_slugs: selectedRuntimePlanTenants }
+            : { excluded_tenant_slugs: selectedRuntimePlanTenants }
           : undefined;
       const response: PlatformTenantRuntimeSecretBatchSyncResponse =
         await syncPlatformRuntimeSecrets(session.accessToken, payload);
       const summary =
         language === "es"
-          ? `Sincronización central completada: procesados ${response.processed}, sincronizados ${response.synced}, ya gestionados ${response.already_runtime_managed}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}.${selectedRuntimePlanTenants.length > 0 ? ` Alcance manual: ${selectedRuntimePlanTenants.length} tenant(s) seleccionados.` : ""}`
-          : `Central sync completed: processed ${response.processed}, synced ${response.synced}, already managed ${response.already_runtime_managed}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}.${selectedRuntimePlanTenants.length > 0 ? ` Manual scope: ${selectedRuntimePlanTenants.length} selected tenant(s).` : ""}`;
+          ? `Sincronización central completada: procesados ${response.processed}, sincronizados ${response.synced}, ya gestionados ${response.already_runtime_managed}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}. Alcance: ${runtimeBatchScopeLabel}.`
+          : `Central sync completed: processed ${response.processed}, synced ${response.synced}, already managed ${response.already_runtime_managed}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}. Scope: ${runtimeBatchScopeLabel}.`;
       setRuntimeSyncFeedback(summary);
       await loadSettings();
     } catch (rawError) {
@@ -251,14 +269,16 @@ export function SettingsPage() {
     try {
       const payload: PlatformTenantRuntimeSecretBatchRequest | undefined =
         selectedRuntimePlanTenants.length > 0
-          ? { tenant_slugs: selectedRuntimePlanTenants }
+          ? runtimePlanSelectionMode === "include"
+            ? { tenant_slugs: selectedRuntimePlanTenants }
+            : { excluded_tenant_slugs: selectedRuntimePlanTenants }
           : undefined;
       const response: PlatformTenantDbCredentialsRotateBatchResponse =
         await rotatePlatformRuntimeDbCredentials(session.accessToken, payload);
       const summary =
         language === "es"
-          ? `Rotación central completada: procesados ${response.processed}, rotados ${response.rotated}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}.${selectedRuntimePlanTenants.length > 0 ? ` Alcance manual: ${selectedRuntimePlanTenants.length} tenant(s) seleccionados.` : ""}`
-          : `Central rotation completed: processed ${response.processed}, rotated ${response.rotated}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}.${selectedRuntimePlanTenants.length > 0 ? ` Manual scope: ${selectedRuntimePlanTenants.length} selected tenant(s).` : ""}`;
+          ? `Rotación central completada: procesados ${response.processed}, rotados ${response.rotated}, rescate legacy requerido ${response.skipped_legacy_rescue_required}, fallidos ${response.failed}. Alcance: ${runtimeBatchScopeLabel}.`
+          : `Central rotation completed: processed ${response.processed}, rotated ${response.rotated}, legacy rescue required ${response.skipped_legacy_rescue_required}, failed ${response.failed}. Scope: ${runtimeBatchScopeLabel}.`;
       setRuntimeRotateFeedback(summary);
       await loadSettings();
     } catch (rawError) {
@@ -755,6 +775,10 @@ export function SettingsPage() {
               label={language === "es" ? "Tenant(s) seleccionados" : "Selected tenant(s)"}
               value={selectedRuntimePlanOverview.count}
             />
+            <DetailField
+              label={language === "es" ? "Alcance batch actual" : "Current batch scope"}
+              value={runtimeBatchScopeLabel}
+            />
           </div>
           {runtimeSecretPlanError ? (
             <div className="alert alert-warning mt-3 mb-0">
@@ -792,8 +816,12 @@ export function SettingsPage() {
             <div>
               {selectedRuntimePlanOverview.count > 0
                 ? language === "es"
-                  ? `La próxima campaña batch quedará acotada a ${selectedRuntimePlanOverview.count} tenant(s) seleccionados desde la tabla inferior.`
-                  : `The next batch campaign will be scoped to ${selectedRuntimePlanOverview.count} tenant(s) selected in the table below.`
+                  ? runtimePlanSelectionMode === "include"
+                    ? `La próxima campaña batch quedará acotada a ${selectedRuntimePlanOverview.count} tenant(s) seleccionados desde la tabla inferior.`
+                    : `La próxima campaña batch correrá sobre todos los tenants auditados excepto ${selectedRuntimePlanOverview.count} tenant(s) excluidos desde la tabla inferior.`
+                  : runtimePlanSelectionMode === "include"
+                    ? `The next batch campaign will be scoped to ${selectedRuntimePlanOverview.count} tenant(s) selected in the table below.`
+                    : `The next batch campaign will run for all audited tenants except ${selectedRuntimePlanOverview.count} tenant(s) excluded in the table below.`
                 : language === "es"
                   ? "Si no seleccionas tenants en la tabla inferior, la campaña batch se aplicará sobre todos los tenants activos evaluados por el plan central."
                   : "If no tenants are selected in the table below, the batch campaign applies to all active tenants evaluated by the central plan."}
@@ -895,10 +923,22 @@ export function SettingsPage() {
           actions={
             <>
               <span className="data-table-card__meta">
-                {language === "es"
-                  ? `${selectedRuntimePlanOverview.count} seleccionados`
-                  : `${selectedRuntimePlanOverview.count} selected`}
+                {runtimeBatchScopeLabel}
               </span>
+              <button
+                className={`btn btn-sm ${runtimePlanSelectionMode === "include" ? "btn-primary" : "btn-outline-secondary"}`}
+                type="button"
+                onClick={() => setRuntimePlanSelectionMode("include")}
+              >
+                {language === "es" ? "Modo incluir" : "Include mode"}
+              </button>
+              <button
+                className={`btn btn-sm ${runtimePlanSelectionMode === "exclude" ? "btn-primary" : "btn-outline-secondary"}`}
+                type="button"
+                onClick={() => setRuntimePlanSelectionMode("exclude")}
+              >
+                {language === "es" ? "Modo excluir" : "Exclude mode"}
+              </button>
               <button
                 className="btn btn-outline-secondary btn-sm"
                 type="button"

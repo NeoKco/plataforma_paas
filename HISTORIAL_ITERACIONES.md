@@ -1,5 +1,34 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - `Etapa 11` ya deja campañas batch por inclusión o exclusión explícita de tenants
+
+Contexto:
+
+- el octavo slice ya permitía seleccionar tenants manualmente antes de `sync batch` o `rotate batch`
+- faltaba dejar el mismo control también en modo exclusión, sin reabrir rescate legacy ni persistencia formal de campañas
+
+Cambios:
+
+- [routes.py](/home/felipe/platform_paas/backend/app/apps/platform_control/api/routes.py):
+  - ya deja trazabilidad de `selected` y `excluded` en la auditoría de ambos endpoints batch
+- [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py):
+  - agrega cobertura para `excluded_tenant_slugs`
+- [SettingsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/platform_admin/pages/settings/SettingsPage.tsx):
+  - agrega `Modo incluir`
+  - agrega `Modo excluir`
+  - deja visible el alcance actual del batch antes de ejecutar
+
+Resultado:
+
+- la consola ya puede correr campañas batch:
+  - solo sobre tenants seleccionados
+  - o sobre todos los tenants auditados excepto los excluidos
+- el carril sigue siendo runtime-only y no reintroduce rescate desde `/.env`
+- validación repo:
+  - `backend.app.tests.test_platform_flow` -> `236 tests OK`
+  - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-23 - `Etapa 11` ya deja gobernar campañas batch por selección manual de tenants
 
 Contexto:

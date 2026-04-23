@@ -155,6 +155,8 @@ def sync_platform_runtime_secrets(
     db: Session = Depends(get_control_db),
     token: dict = Depends(require_role("superadmin")),
 ) -> PlatformTenantRuntimeSecretBatchSyncResponse:
+    selected_count = len(payload.tenant_slugs or []) if payload else 0
+    excluded_count = len(payload.excluded_tenant_slugs or []) if payload else 0
     result = tenant_service.sync_active_tenant_runtime_secrets(
         db=db,
         tenant_slugs=payload.tenant_slugs if payload else None,
@@ -172,7 +174,8 @@ def sync_platform_runtime_secrets(
             f"processed={result['processed']} synced={result['synced']} "
             f"already_runtime_managed={result['already_runtime_managed']} "
             f"skipped_legacy_rescue_required={result['skipped_legacy_rescue_required']} "
-            f"failed={result['failed']} targeted={result['processed']}"
+            f"failed={result['failed']} targeted={result['processed']} "
+            f"selected={selected_count} excluded={excluded_count}"
         ),
     )
     return PlatformTenantRuntimeSecretBatchSyncResponse(
@@ -198,6 +201,8 @@ def rotate_platform_tenant_db_credentials(
     db: Session = Depends(get_control_db),
     token: dict = Depends(require_role("superadmin")),
 ) -> PlatformTenantDbCredentialsRotateBatchResponse:
+    selected_count = len(payload.tenant_slugs or []) if payload else 0
+    excluded_count = len(payload.excluded_tenant_slugs or []) if payload else 0
     result = tenant_service.rotate_active_tenant_db_credentials(
         db=db,
         tenant_slugs=payload.tenant_slugs if payload else None,
@@ -214,7 +219,8 @@ def rotate_platform_tenant_db_credentials(
         detail=(
             f"processed={result['processed']} rotated={result['rotated']} "
             f"skipped_legacy_rescue_required={result['skipped_legacy_rescue_required']} "
-            f"failed={result['failed']} targeted={result['processed']}"
+            f"failed={result['failed']} targeted={result['processed']} "
+            f"selected={selected_count} excluded={excluded_count}"
         ),
     )
     return PlatformTenantDbCredentialsRotateBatchResponse(

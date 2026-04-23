@@ -4,6 +4,22 @@
 
 - fecha: 2026-04-23
 - foco operativo nuevo ya cerrado en repo y runtime dentro de la `Etapa 11`:
+  - noveno corte ya cerrado en repo:
+    - `Settings -> Plan central de secretos runtime` ya permite campañas batch por inclusión o exclusión explícita
+    - la consola ya deja alternar:
+      - `Modo incluir`
+      - `Modo excluir`
+    - el batch ya puede correr:
+      - solo sobre `tenant_slugs` seleccionados
+      - o sobre todos los tenants auditados excepto los excluidos manualmente
+    - la auditoría de ambos endpoints batch ya deja visible:
+      - `selected`
+      - `excluded`
+    - este corte deja gobernado el alcance operativo del batch sin mezclar todavía persistencia formal de campañas
+  - validación repo de este noveno corte:
+    - `backend.app.tests.test_platform_flow` -> `236 tests OK`
+    - `python3 -m py_compile backend/app/apps/platform_control/api/routes.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
   - octavo corte ya cerrado en repo:
     - `Settings -> Plan central de secretos runtime` ya permite seleccionar manualmente tenants antes de correr `Sincronizar runtime central` o `Rotar credenciales central`
     - la consola ya puede limitar el batch a `tenant_slugs` explícitos; si no hay selección, sigue operando sobre todos los tenants activos evaluados

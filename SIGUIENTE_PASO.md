@@ -94,9 +94,12 @@
       - octavo slice ya cerrado en repo:
         - `Settings -> Plan central de secretos runtime` ya permite seleccionar tenants desde consola antes de `sync batch` o `rotate batch`
         - el backend ya acepta `tenant_slugs` opcionales para acotar campañas batch sin reabrir rescate desde `/.env`
+      - noveno slice ya cerrado en repo:
+        - la misma consola ya permite `Modo excluir` además del `Modo incluir`
+        - el backend ya acepta campañas sobre todos los tenants auditados excepto `excluded_tenant_slugs`
+        - el alcance batch ya queda visible antes de ejecutar
       - siguiente corte recomendado:
         - persistencia/auditoría más formal de campañas centralizadas
-        - o exclusión explícita de tenants desde consola además de la selección positiva
         - mantener el rescate legacy solo como tooling excepcional
 
 - subcorte nuevo ya cerrado en repo dentro de `platform-core hardening + E2E`:

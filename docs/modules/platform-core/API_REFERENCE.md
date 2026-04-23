@@ -181,8 +181,9 @@ Regla actual:
 
 - si no se envía selección, el batch opera sobre todos los tenants activos
 - si se envía `tenant_slugs`, el batch queda acotado a ese subconjunto
-- `excluded_tenant_slugs` permite recortar aún más el subconjunto seleccionado
-- la consola ya usa esta capacidad para campañas manuales cortas desde `Plan central de secretos runtime`
+- si se envía solo `excluded_tenant_slugs`, el batch opera sobre todos los tenants activos excepto ese subconjunto
+- si se envían ambos, primero se acota por `tenant_slugs` y luego se excluyen los `excluded_tenant_slugs`
+- la consola ya usa esta capacidad para campañas manuales cortas desde `Plan central de secretos runtime`, tanto en modo incluir como en modo excluir
 
 Esta mutación:
 

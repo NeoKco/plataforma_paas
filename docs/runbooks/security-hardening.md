@@ -186,12 +186,13 @@ El `Plan central de secretos runtime` ya permite además seleccionar tenants ant
 Regla operativa:
 
 - sin selección visible, el batch sigue operando sobre todos los tenants activos evaluados
-- con selección visible, el batch queda acotado a `tenant_slugs` explícitos
-- el backend también tolera exclusiones opcionales para tooling futuro, pero la consola hoy prioriza selección positiva simple
+- en `Modo incluir`, el batch queda acotado a `tenant_slugs` explícitos
+- en `Modo excluir`, el batch opera sobre todos los tenants auditados excepto `excluded_tenant_slugs`
+- el mismo carril runtime-only aplica en ambos modos; la exclusión no habilita rescate legacy ni bypasses operativos
 
 Objetivo:
 
-- permitir campañas cortas y controladas sin abrir todavía persistencia formal de campañas
+- permitir campañas cortas y controladas tanto por inclusión como por exclusión sin abrir todavía persistencia formal de campañas
 - no volver a mezclar rescate legacy dentro del carril batch normal
 
 ### Postura operativa de secretos por carril
