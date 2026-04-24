@@ -1,5 +1,33 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `crm ingestion` queda cerrada también en runtime
+
+Contexto:
+
+- el slice de ingesta asistida ya estaba cerrado a nivel repo dentro de `crm`
+- faltaba completarlo en `staging` y `production` respetando la regla de backup PostgreSQL tenant previo
+
+Cambios:
+
+- se ejecuta backup PostgreSQL tenant previo en `staging` antes de converger `0045_crm_product_ingestion`
+- se ejecuta backup PostgreSQL tenant previo en `production`, incluyendo `ieris-ltda`, antes de converger `0045_crm_product_ingestion`
+- backend redeployado en ambos carriles y convergencia tenant completada
+- frontend publicado en ambos carriles con la vista `CRM > Ingesta` y el overview comercial actualizado
+
+Validación:
+
+- runtime:
+  - `staging` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado con `CRMProductIngestionPage-D7ZIlv_N.js`, `crmService-B3w0W1e7.js`, `CRMOverviewPage-JB9nVH80.js` e `index-Bv39exNC.js`
+  - `production` frontend publicado con `CRMProductIngestionPage-BhEIJxo_.js`, `crmService-CopyIg3l.js`, `CRMOverviewPage--vl-XnH0.js` e `index-8jUbGDEA.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+Resultado:
+
+- `crm ingestion` deja de estar “pendiente de publish” y pasa a expansión cerrada también en runtime
+- el siguiente frente ya no es publicar este slice, sino decidir la profundización automática del mismo carril comercial
+
 ## 2026-04-24 - `crm ingestion` queda cerrada para el alcance asistido actual
 
 Contexto:

@@ -69,3 +69,10 @@
 - regresión ampliada en:
   - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
   - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
+- el cierre ya queda promovido a runtime:
+  - backup PostgreSQL tenant previo ejecutado en `staging` y `production` antes de converger `0045_crm_product_ingestion`
+  - `production` incluye backup previo explícito de `ieris-ltda`
+  - `staging` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`
+  - `production` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`

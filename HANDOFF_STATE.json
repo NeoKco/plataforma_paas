@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-24T18:10:00-04:00",
+  "updated_at": "2026-04-24T20:00:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya deja `crm`, `crm ingestion`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo, con `crm ingestion` ya cubriendo borradores asistidos de productos previos a publicación en catálogo, el hotfix contractual de `platform-core` ya evita el fallo al contratar múltiples add-ons (`maintenance + crm`), `ieris-ltda` ya fue restaurado selectivamente al snapshot útil del 23-04-2026, y la regla de backup PostgreSQL obligatorio antes de mutar datos tenant en development, staging o production ya queda formalizada.",
+  "current_focus": "La PaaS ya deja `crm`, `crm ingestion`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime, con `crm ingestion` ya convergido en staging y production bajo backup tenant previo obligatorio por carril, el hotfix contractual de `platform-core` ya evita el fallo al contratar múltiples add-ons (`maintenance + crm`), `ieris-ltda` ya fue restaurado selectivamente al snapshot útil del 23-04-2026, y la regla de backup PostgreSQL obligatorio antes de mutar datos tenant en development, staging o production ya queda formalizada.",
   "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada, con `crm`, `taskops`, `techdocs` y `chat` institucionalizados en runtime y el siguiente salto recomendado moviéndose a `scraping de productos` sobre `crm` como siguiente frente faltante desde `ieris_app`.",
   "active_modules": [
     "platform-core",
@@ -443,7 +443,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "publicar crm ingestion en staging y production con backup tenant previo por carril y, después de ese cierre runtime, decidir si la siguiente profundización de crm será scraping automático multi-fuente o deduplicación/enriquecimiento sobre el mismo carril de ingesta",
+  "next_decision_required": "decidir si la siguiente profundización de crm será scraping automático multi-fuente o deduplicación/enriquecimiento sobre el mismo carril de ingesta, ahora que crm ingestion ya quedó publicado en staging y production con backup tenant previo por carril",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

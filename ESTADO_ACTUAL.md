@@ -22,6 +22,14 @@
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_crm_services backend.app.tests.test_migration_flow backend.app.tests.test_platform_flow -v` -> `268 tests OK`
     - `python3 -m py_compile backend/app/apps/tenant_modules/crm/api/*.py backend/app/apps/tenant_modules/crm/models/*.py backend/app/apps/tenant_modules/crm/schemas/*.py backend/app/apps/tenant_modules/crm/services/*.py backend/migrations/tenant/v0045_crm_product_ingestion.py` -> `OK`
     - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - backup PostgreSQL tenant previo ejecutado en `staging` y `production` antes de converger `0045_crm_product_ingestion`
+    - `production` incluye backup previo explícito de `ieris-ltda`
+    - `staging` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `production` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `staging` publicado con `CRMProductIngestionPage-D7ZIlv_N.js`, `crmService-B3w0W1e7.js`, `CRMOverviewPage-JB9nVH80.js`, `CRMModuleNav-DlV8sg48.js`, `SettingsPage-BsoJ_PnL.js`, `TenantsPage-DHRAoOpA.js`, `TenantOverviewPage-BQONb2ph.js`, `DashboardPage-BPlRmdS2.js`, `ProvisioningPage-B_7NfUVj.js`, `BillingPage-BQq0L1eY.js`, `PlatformActivityPage-CYZoC0C8.js` e `index-Bv39exNC.js`
+    - `production` publicado con `CRMProductIngestionPage-BhEIJxo_.js`, `crmService-CopyIg3l.js`, `CRMOverviewPage--vl-XnH0.js`, `CRMModuleNav-Dl90-Yq7.js`, `SettingsPage-HtUerESN.js`, `TenantsPage-DrXwxqY6.js`, `TenantOverviewPage-CdaKRWEu.js`, `DashboardPage-CPdRNGli.js`, `ProvisioningPage-D-Eu0Rn6.js`, `BillingPage-jlZQha_b.js`, `PlatformActivityPage-CFfEO00M.js` e `index-8jUbGDEA.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `chat` ya queda terminado para su alcance operativo actual como cuarto módulo de expansión post-cierre
   - backend tenant ya expone:

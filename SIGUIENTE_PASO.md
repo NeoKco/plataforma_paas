@@ -4,7 +4,7 @@
 
 - expansión reciente ya cerrada:
   - `crm` ya queda cerrado para su alcance comercial actual en runtime
-  - `crm ingestion` ya queda cerrada como expansión sobre `crm`
+  - `crm ingestion` ya queda cerrada como expansión sobre `crm` también en runtime
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
   - `techdocs` ya queda cerrado para su alcance operativo actual en runtime
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
