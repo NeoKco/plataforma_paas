@@ -29,6 +29,7 @@ from app.apps.tenant_modules.finance.api.routes import router as tenant_finance_
 from app.apps.tenant_modules.maintenance.api.routes import (
     router as tenant_maintenance_router,
 )
+from app.apps.tenant_modules.taskops.api.routes import router as tenant_taskops_router
 from app.bootstrap.install_checker import is_platform_installed
 from app.common.auth.jwt_service import JWTService
 from app.common.config.settings import settings
@@ -123,6 +124,7 @@ def register_installed_routes(app: FastAPI) -> None:
     app.include_router(tenant_crm_router)
     app.include_router(tenant_finance_router)
     app.include_router(tenant_maintenance_router)
+    app.include_router(tenant_taskops_router)
 
     @app.get("/")
     def root() -> dict:

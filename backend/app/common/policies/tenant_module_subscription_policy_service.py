@@ -96,6 +96,13 @@ class TenantModuleSubscriptionPolicyService:
             activation_kind="addon",
             billing_cycles=VALID_BILLING_CYCLES,
         ),
+        ModuleSubscriptionCatalogEntry(
+            module_key="taskops",
+            display_name="TaskOps",
+            description="Tareas internas con kanban, comentarios, adjuntos e histórico.",
+            activation_kind="addon",
+            billing_cycles=VALID_BILLING_CYCLES,
+        ),
     )
 
     LEGACY_PLAN_CODE_TO_BILLING_CYCLE = {

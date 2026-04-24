@@ -22,10 +22,12 @@ class TenantPlanPolicyService:
     MODULE_DEPENDENCIES = {
         "maintenance": ("core",),
         "crm": ("core",),
+        "taskops": ("core",),
     }
     MODULE_DEPENDENCY_REASONS = {
         "maintenance": "Maintenance depende de business-core y no debe duplicarlo.",
         "crm": "CRM depende de business-core para reutilizar clientes y base compartida.",
+        "taskops": "TaskOps depende de business-core para reutilizar clientes y grupos de trabajo.",
     }
 
     def __init__(
