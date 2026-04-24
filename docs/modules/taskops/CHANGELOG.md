@@ -20,6 +20,13 @@
 - la plataforma ya expone:
   - dependencia técnica `taskops -> core`
   - labels visibles para el nuevo módulo
+- validación runtime final:
+  - backups tenant previos ejecutados antes de mutar `staging` y `production`
+  - `staging` backend redeployado con `582 tests OK`, convergencia `processed=4, synced=4, failed=0`
+  - `production` backend redeployado con `582 tests OK`, convergencia `processed=4, synced=4, failed=0`
+  - `staging` frontend publicado con `TaskOpsOverviewPage-rlZhmAVt.js`, `TaskOpsHistoryPage-CcAehJVR.js`, `TaskOpsKanbanPage-ApSgXgqs.js`, `TaskOpsTasksPage-DgEFxY71.js`, `taskopsService-AREnSosS.js`, `TenantsPage-CyTcV9O4.js`, `SettingsPage-D_j7BFu8.js` e `index-CeKZzb_n.js`
+  - `production` frontend publicado con `TaskOpsOverviewPage-rlZhmAVt.js`, `TaskOpsHistoryPage-CcAehJVR.js`, `TaskOpsKanbanPage-ApSgXgqs.js`, `TaskOpsTasksPage-DgEFxY71.js`, `taskopsService-AREnSosS.js`, `TenantsPage-CyTcV9O4.js`, `SettingsPage-D_j7BFu8.js` e `index-CeKZzb_n.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - regresión ampliada en:
   - [test_taskops_services.py](/home/felipe/platform_paas/backend/app/tests/test_taskops_services.py)
   - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)

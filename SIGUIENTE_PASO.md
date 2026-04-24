@@ -2,22 +2,23 @@
 
 ## Prioridad vigente
 
-- hotfix contractual recién cerrado:
-  - `Tenants -> Plan y módulos` ya no debería fallar al contratar `maintenance + crm` sobre tenants contract-managed
-  - si reaparece otro error en el mismo carril, ya no se espera un fallo estructural de PK/sequence en `platform_control`; tocaría revisar un caso de datos puntual
-- primer frente de expansión ya abierto:
-  - `crm` ya queda cerrado para el alcance comercial actual también en runtime
-  - no conviene reabrirlo por inercia salvo para expansión explícita como:
-    - render/PDF
-    - scraping comercial
-    - IA comercial
-  - el siguiente frente correcto ahora es abrir el próximo módulo faltante desde `ieris_app`
+- expansión reciente ya cerrada:
+  - `crm` ya queda cerrado para su alcance comercial actual en runtime
+  - `taskops` ya queda cerrado para su alcance operativo actual en runtime
+  - no conviene reabrir ninguno de los dos por inercia salvo expansión explícita
+- siguiente frente recomendado:
+  - abrir el próximo módulo faltante desde `ieris_app`
   - recomendación actual:
-    - `TaskOps` / tareas internas con kanban, comentarios, adjuntos e histórico
-  - criterio de salida ya cumplido:
-    - backend redeployado en `staging` y `production`
-    - tenant schemas convergidos a `0041_crm_expansion` en ambos carriles
-    - frontend publicado en ambos carriles con readiness verde
+    - `Expediente técnico`
+  - por qué este orden:
+    - conecta naturalmente con `maintenance`, `business-core`, `crm` y ahora también con `taskops`
+    - tiene mejor retorno operativo que abrir `chat interno` primero
+    - evita seguir dejando la evidencia técnica/documental repartida entre módulos
+  - alcance sugerido del primer slice:
+    - ficha técnica por cliente/sitio/instalación
+    - evidencias y adjuntos estructurados
+    - documentos operativos y comerciales relacionados
+    - lectura histórica reusable para soporte y terreno
 - el roadmap base actual ya queda formalmente cerrado:
   - las `Etapas 9`, `10`, `11`, `12`, `13`, `14`, `15`, `16` y `17` ya quedaron cerradas para el alcance actual
   - la base PaaS ya no necesita más cierres estructurales para operar
@@ -41,8 +42,8 @@
   - deploy reproducible, rollback, backups, restore drills y evidencia operativa ya están institucionalizados
   - worker, cuotas, alertas, DLQ, rate limiting y billing operativo ya dejan el hardening suficientemente cerrado para esta base
 - siguiente frente recomendado del proyecto:
-  - profundizar primero la expansión ya abierta en `crm`
-  - después recién decidir si conviene abrir otro módulo real (`iot`, `condos`, `projects`)
+  - abrir `Expediente técnico` como siguiente módulo faltante
+  - después recién decidir si conviene abrir otro módulo real (`iot`, `condos`, `projects`, `chat interno`)
   - endurecimiento adicional opcional, por ejemplo:
     - stack externa de observabilidad/alerting
     - infraestructura más distribuida o automatización/CD más agresiva

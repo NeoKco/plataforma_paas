@@ -1,5 +1,47 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `taskops` queda cerrado para el alcance operativo actual
+
+Contexto:
+
+- después de cerrar `crm`, el siguiente módulo faltante de `ieris_app` con mejor retorno operativo era `TaskOps`
+- el objetivo era abrirlo con el mismo estándar del PaaS y cerrarlo completo en backend, frontend, runtime, catálogo contractual y documentación
+
+Cambios:
+
+- backend nuevo en [backend/app/apps/tenant_modules/taskops](/home/felipe/platform_paas/backend/app/apps/tenant_modules/taskops)
+- migración tenant nueva en [v0042_taskops_base.py](/home/felipe/platform_paas/backend/migrations/tenant/v0042_taskops_base.py)
+- frontend nuevo en [frontend/src/apps/tenant_portal/modules/taskops](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops)
+- documentación canónica del módulo en [docs/modules/taskops/README.md](/home/felipe/platform_paas/docs/modules/taskops/README.md)
+- el módulo queda operativo con:
+  - `Resumen`
+  - `Tareas`
+  - `Kanban`
+  - `Histórico`
+  - comentarios
+  - adjuntos con descarga
+  - trazabilidad de cambios de estado
+  - referencias cruzadas a cliente, oportunidad, OT, usuario y grupo de trabajo
+- el módulo entra al catálogo contractual como add-on `taskops`
+- se ejecuta backup PostgreSQL tenant previo en `staging` y `production` antes de mutar esquemas tenant
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_taskops_services + backend.app.tests.test_migration_flow` -> `21 tests OK`
+  - `backend.app.tests.test_platform_flow + backend.app.tests.test_tenant_flow` -> `335 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- runtime:
+  - `staging` backend redeploy -> `582 tests OK`, convergencia `processed=4, synced=4, failed=0`
+  - `production` backend redeploy -> `582 tests OK`, convergencia `processed=4, synced=4, failed=0`
+  - frontend publicado en ambos carriles con `TaskOpsOverviewPage-rlZhmAVt.js`, `TaskOpsHistoryPage-CcAehJVR.js`, `TaskOpsKanbanPage-ApSgXgqs.js`, `TaskOpsTasksPage-DgEFxY71.js`, `taskopsService-AREnSosS.js` e `index-CeKZzb_n.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+Resultado:
+
+- `taskops` deja de ser propuesta y pasa a módulo tenant cerrado para su alcance actual
+- el siguiente paso ya no es “terminar TaskOps”, sino elegir el próximo módulo faltante; la recomendación actual pasa a `Expediente técnico`
+
 ## 2026-04-24 - se formaliza regla de backup obligatorio previo a mutaciones tenant
 
 Contexto:

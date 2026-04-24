@@ -2,7 +2,36 @@
 
 ## Última actualización
 
-- fecha: 2026-04-23
+- fecha: 2026-04-24
+- foco operativo nuevo ya cerrado en repo y runtime fuera del roadmap base:
+  - `taskops` ya queda terminado para su alcance operativo actual como segundo módulo de expansión post-cierre
+  - backend tenant ya expone:
+    - `/tenant/taskops/overview`
+    - `/tenant/taskops/tasks`
+    - `/tenant/taskops/tasks/kanban`
+    - `/tenant/taskops/tasks/history`
+  - frontend tenant ya publica:
+    - `Resumen`
+    - `Tareas`
+    - `Kanban`
+    - `Histórico`
+  - el módulo ya soporta:
+    - comentarios
+    - adjuntos con descarga
+    - trazabilidad de cambios de estado
+    - referencias cruzadas a cliente, oportunidad, OT, usuario y grupo de trabajo
+  - el módulo ya entra al catálogo contractual como add-on `taskops`
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_taskops_services backend.app.tests.test_migration_flow -v` -> `21 tests OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow backend.app.tests.test_tenant_flow -v` -> `335 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - backup PostgreSQL tenant previo ejecutado en `staging` y `production` antes de converger `0042_taskops_base`
+    - `staging` backend redeployado con `582 tests OK`, convergencia `processed=4, synced=4, failed=0`
+    - `production` backend redeployado con `582 tests OK`, convergencia `processed=4, synced=4, failed=0`
+    - `staging` publicado con `TaskOpsOverviewPage-rlZhmAVt.js`, `TaskOpsHistoryPage-CcAehJVR.js`, `TaskOpsKanbanPage-ApSgXgqs.js`, `TaskOpsTasksPage-DgEFxY71.js`, `taskopsService-AREnSosS.js`, `TenantsPage-CyTcV9O4.js`, `SettingsPage-D_j7BFu8.js` e `index-CeKZzb_n.js`
+    - `production` publicado con `TaskOpsOverviewPage-rlZhmAVt.js`, `TaskOpsHistoryPage-CcAehJVR.js`, `TaskOpsKanbanPage-ApSgXgqs.js`, `TaskOpsTasksPage-DgEFxY71.js`, `taskopsService-AREnSosS.js`, `TenantsPage-CyTcV9O4.js`, `SettingsPage-D_j7BFu8.js` e `index-CeKZzb_n.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - regla operativa nueva formalizada:
   - antes de modificar datos de cualquier tenant en `development`, `staging` o `production`, ya queda obligatorio tomar backup PostgreSQL del tenant afectado
   - si la intervención recrea, reemplaza, reimporta o repuebla datos, el cierre correcto exige restaurar primero la base existente desde ese backup inmediato previo y luego reaplicar la modificación deseada de forma controlada
