@@ -20,12 +20,14 @@ class TenantPlanPolicyService:
     VALID_MODULES = VALID_PLAN_MODULES
     VALID_MODULE_LIMIT_KEYS = SUPPORTED_MODULE_LIMIT_KEYS
     MODULE_DEPENDENCIES = {
+        "chat": ("core", "users"),
         "maintenance": ("core",),
         "crm": ("core",),
         "taskops": ("core",),
         "techdocs": ("core",),
     }
     MODULE_DEPENDENCY_REASONS = {
+        "chat": "Chat interno depende de core y users para reutilizar usuarios tenant y contexto base.",
         "maintenance": "Maintenance depende de business-core y no debe duplicarlo.",
         "crm": "CRM depende de business-core para reutilizar clientes y base compartida.",
         "taskops": "TaskOps depende de business-core para reutilizar clientes y grupos de trabajo.",

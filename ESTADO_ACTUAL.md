@@ -4,6 +4,35 @@
 
 - fecha: 2026-04-24
 - foco operativo nuevo ya cerrado en repo y runtime:
+  - `chat` ya queda terminado para su alcance operativo actual como cuarto módulo de expansión post-cierre
+  - backend tenant ya expone:
+    - `/tenant/chat/overview`
+    - `/tenant/chat/activity`
+    - `/tenant/chat/conversations`
+  - frontend tenant ya publica:
+    - `Resumen`
+    - `Conversaciones`
+    - `Actividad`
+  - el módulo ya soporta:
+    - conversaciones directas entre usuarios tenant
+    - hilos internos por contexto
+    - lectura y archivado por participante
+    - actividad reciente filtrable
+    - referencias cruzadas a cliente, oportunidad, OT y tarea
+  - el módulo ya entra al catálogo contractual como add-on `chat`
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_chat_services backend.app.tests.test_platform_flow backend.app.tests.test_migration_flow -v` -> `263 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/chat/api/*.py backend/app/apps/tenant_modules/chat/models/*.py backend/app/apps/tenant_modules/chat/schemas/*.py backend/app/apps/tenant_modules/chat/services/*.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - backup PostgreSQL tenant previo ejecutado en `staging` y `production` antes de converger `0044_chat_base`
+    - `production` incluye backup previo explícito de `ieris-ltda`
+    - `staging` backend redeployado con `584 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `production` backend redeployado con `584 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `staging` publicado con `ChatActivityPage-CYPEROO-.js`, `chatService-CJ9mpymY.js`, `ChatOverviewPage-CsdI_4CC.js`, `ChatConversationsPage-pFRXcrbj.js`, `SettingsPage-Bb0H6Ol9.js`, `TenantsPage-CWl0TfYg.js`, `TenantOverviewPage-BQD3eb2Q.js`, `DashboardPage-h7Fj9oKZ.js`, `ProvisioningPage-CB1eAzRt.js`, `BillingPage-1kN0x0jD.js`, `PlatformActivityPage-C8L-aqND.js` e `index-DQU7Mv77.js`
+    - `production` publicado con `ChatActivityPage-DO_1jvDu.js`, `chatService-BGKSYp93.js`, `ChatOverviewPage-BomTRMfG.js`, `ChatConversationsPage-D6WWlVT2.js`, `SettingsPage-DFzIDfAk.js`, `TenantsPage-CeDHv-_4.js`, `TenantOverviewPage-urkeSyO4.js`, `DashboardPage-COAelEj0.js`, `ProvisioningPage-Cg7z96w7.js`, `BillingPage-I8DIAOxr.js`, `PlatformActivityPage-BGpdUnCX.js` e `index-BJWihdb_.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- foco operativo nuevo ya cerrado en repo y runtime:
   - `techdocs` ya queda terminado para su alcance operativo actual como tercer módulo de expansión post-cierre
   - backend tenant ya expone:
     - `/tenant/techdocs/overview`

@@ -3547,6 +3547,7 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(
             service.get_module_dependencies(),
             {
+                "chat": ("core", "users"),
                 "crm": ("core",),
                 "maintenance": ("core",),
                 "taskops": ("core",),
@@ -3556,6 +3557,11 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertEqual(
             service.list_module_dependency_catalog(),
             [
+                {
+                    "module_key": "chat",
+                    "requires_modules": ["core", "users"],
+                    "reason": "Chat interno depende de core y users para reutilizar usuarios tenant y contexto base.",
+                },
                 {
                     "module_key": "crm",
                     "requires_modules": ["core"],
@@ -3652,22 +3658,26 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("finance", catalog["maintenance_scopes"])
         self.assertEqual(
             catalog["module_dependency_catalog"][0]["module_key"],
-            "crm",
+            "chat",
         )
         self.assertEqual(
             catalog["module_dependency_catalog"][0]["requires_modules"],
-            ["core"],
+            ["core", "users"],
         )
         self.assertEqual(
             catalog["module_dependency_catalog"][1]["module_key"],
-            "maintenance",
+            "crm",
         )
         self.assertEqual(
             catalog["module_dependency_catalog"][2]["module_key"],
-            "taskops",
+            "maintenance",
         )
         self.assertEqual(
             catalog["module_dependency_catalog"][3]["module_key"],
+            "taskops",
+        )
+        self.assertEqual(
+            catalog["module_dependency_catalog"][4]["module_key"],
             "techdocs",
         )
         self.assertEqual(
@@ -3697,6 +3707,10 @@ class PlatformServicesTestCase(unittest.TestCase):
         )
         self.assertEqual(
             catalog["module_subscription_catalog"][-4]["module_key"],
+            "chat",
+        )
+        self.assertEqual(
+            catalog["module_subscription_catalog"][-5]["module_key"],
             "maintenance",
         )
         self.assertIn("maintenance", catalog["maintenance_scopes"])
@@ -5074,14 +5088,15 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.billing_providers, ["stripe"])
         self.assertEqual(response.current_provisioning_dispatch_backend, "database")
         self.assertIn("broker", response.provisioning_dispatch_backends)
-        self.assertEqual(response.module_dependency_catalog[0].module_key, "crm")
+        self.assertEqual(response.module_dependency_catalog[0].module_key, "chat")
         self.assertEqual(
             response.module_dependency_catalog[0].requires_modules,
-            ["core"],
+            ["core", "users"],
         )
-        self.assertEqual(response.module_dependency_catalog[1].module_key, "maintenance")
-        self.assertEqual(response.module_dependency_catalog[2].module_key, "taskops")
-        self.assertEqual(response.module_dependency_catalog[3].module_key, "techdocs")
+        self.assertEqual(response.module_dependency_catalog[1].module_key, "crm")
+        self.assertEqual(response.module_dependency_catalog[2].module_key, "maintenance")
+        self.assertEqual(response.module_dependency_catalog[3].module_key, "taskops")
+        self.assertEqual(response.module_dependency_catalog[4].module_key, "techdocs")
         self.assertEqual(
             response.subscription_activation_model,
             "base_plan_plus_module_subscriptions",
@@ -5105,6 +5120,10 @@ class PlatformRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(
             response.module_subscription_catalog[-4].module_key,
+            "chat",
+        )
+        self.assertEqual(
+            response.module_subscription_catalog[-5].module_key,
             "maintenance",
         )
         self.assertEqual(response.ui_label_catalog["modules"]["finance"]["es"], "Finanzas")

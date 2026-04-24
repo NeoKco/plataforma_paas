@@ -43,6 +43,7 @@ from migrations.tenant import v0040_crm_base
 from migrations.tenant import v0041_crm_expansion
 from migrations.tenant import v0042_taskops_base
 from migrations.tenant import v0043_techdocs_base
+from migrations.tenant import v0044_chat_base
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -224,6 +225,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0041_crm_expansion",
                 "0042_taskops_base",
                 "0043_techdocs_base",
+                "0044_chat_base",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -287,6 +289,9 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("techdocs_measurements", tables)
         self.assertIn("techdocs_evidences", tables)
         self.assertIn("techdocs_audit_events", tables)
+        self.assertIn("chat_conversations", tables)
+        self.assertIn("chat_conversation_participants", tables)
+        self.assertIn("chat_messages", tables)
         maintenance_cost_line_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_cost_lines")
         }
@@ -456,6 +461,15 @@ class MigrationFlowTestCase(unittest.TestCase):
         techdocs_audit_columns = {
             column["name"] for column in inspect(engine).get_columns("techdocs_audit_events")
         }
+        chat_conversation_columns = {
+            column["name"] for column in inspect(engine).get_columns("chat_conversations")
+        }
+        chat_participant_columns = {
+            column["name"] for column in inspect(engine).get_columns("chat_conversation_participants")
+        }
+        chat_message_columns = {
+            column["name"] for column in inspect(engine).get_columns("chat_messages")
+        }
         maintenance_status_log_columns = {
             column["name"]
             for column in inspect(engine).get_columns("maintenance_status_logs")
@@ -513,6 +527,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("expected_range", techdocs_measurement_columns)
         self.assertIn("storage_key", techdocs_evidence_columns)
         self.assertIn("event_type", techdocs_audit_columns)
+        self.assertIn("conversation_kind", chat_conversation_columns)
+        self.assertIn("context_type", chat_conversation_columns)
+        self.assertIn("user_id", chat_participant_columns)
+        self.assertIn("last_read_message_id", chat_participant_columns)
+        self.assertIn("sender_user_id", chat_message_columns)
+        self.assertIn("message_kind", chat_message_columns)
         self.assertIn("timezone", tenant_user_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
@@ -640,6 +660,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0041_crm_expansion",
                 "0042_taskops_base",
                 "0043_techdocs_base",
+                "0044_chat_base",
             ],
         )
 
@@ -965,6 +986,22 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("techdocs_measurements", tables)
         self.assertIn("techdocs_evidences", tables)
         self.assertIn("techdocs_audit_events", tables)
+
+    def test_chat_base_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0015_business_core_base.upgrade(conn)
+            v0016_maintenance_base.upgrade(conn)
+            v0040_crm_base.upgrade(conn)
+            v0042_taskops_base.upgrade(conn)
+            v0044_chat_base.upgrade(conn)
+            v0044_chat_base.upgrade(conn)
+
+        tables = set(inspect(engine).get_table_names())
+        self.assertIn("chat_conversations", tables)
+        self.assertIn("chat_conversation_participants", tables)
+        self.assertIn("chat_messages", tables)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,1 @@
+export { chatTenantPortalRoutes } from "./routes";

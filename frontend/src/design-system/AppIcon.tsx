@@ -6,6 +6,7 @@ export type AppIconName =
   | "business-core"
   | "finance"
   | "maintenance"
+  | "chat"
   | "crm"
   | "taskops"
   | "techdocs"
@@ -133,6 +134,14 @@ function renderIconPath(name: AppIconName) {
           <path d="m14.5 5.5 4 4" />
           <path d="M12 8 6 14l-1.5 4.5L9 17l6-6" />
           <path d="m13 7 4-4 2 2-4 4" />
+        </>
+      );
+    case "chat":
+      return (
+        <>
+          <path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v6A2.5 2.5 0 0 1 16.5 15H11l-4 4v-4H7.5A2.5 2.5 0 0 1 5 12.5z" />
+          <path d="M9 8h6" />
+          <path d="M9 11h4" />
         </>
       );
     case "crm":

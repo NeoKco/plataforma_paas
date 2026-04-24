@@ -1,5 +1,36 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `chat` queda cerrado también en runtime
+
+Contexto:
+
+- después de cerrar `techdocs`, el siguiente módulo faltante de `ieris_app` con mejor retorno operativo era `chat interno`
+- por regla operativa vigente, antes de mutar esquemas tenant había que ejecutar backup PostgreSQL previo por carril
+
+Cambios:
+
+- se ejecuta backup PostgreSQL tenant previo en `staging` antes de converger `0044_chat_base`
+- se ejecuta backup PostgreSQL tenant previo en `production`, incluyendo `ieris-ltda`, antes de converger `0044_chat_base`
+- backend redeployado en ambos carriles y convergencia tenant completada
+- frontend publicado en ambos carriles con las pantallas y servicio de `chat`
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_chat_services + backend.app.tests.test_platform_flow + backend.app.tests.test_migration_flow` -> `263 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- runtime:
+  - `staging` backend redeploy -> `584 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeploy -> `584 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado con `ChatActivityPage-CYPEROO-.js`, `chatService-CJ9mpymY.js`, `ChatOverviewPage-CsdI_4CC.js`, `ChatConversationsPage-pFRXcrbj.js` e `index-DQU7Mv77.js`
+  - `production` frontend publicado con `ChatActivityPage-DO_1jvDu.js`, `chatService-BGKSYp93.js`, `ChatOverviewPage-BomTRMfG.js`, `ChatConversationsPage-D6WWlVT2.js` e `index-BJWihdb_.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+Resultado:
+
+- `chat` deja de estar “pendiente de publish” y pasa a módulo tenant completamente cerrado para su alcance actual en repo y runtime
+- el siguiente frente recomendado desde `ieris_app` pasa a ser `scraping de productos` sobre `crm`
+
 ## 2026-04-24 - `techdocs` queda cerrado también en runtime
 
 Contexto:

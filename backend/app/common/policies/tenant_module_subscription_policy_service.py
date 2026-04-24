@@ -90,6 +90,13 @@ class TenantModuleSubscriptionPolicyService:
             billing_cycles=VALID_BILLING_CYCLES,
         ),
         ModuleSubscriptionCatalogEntry(
+            module_key="chat",
+            display_name="Chat interno",
+            description="Conversaciones internas entre usuarios e hilos por contexto operativo.",
+            activation_kind="addon",
+            billing_cycles=VALID_BILLING_CYCLES,
+        ),
+        ModuleSubscriptionCatalogEntry(
             module_key="crm",
             display_name="CRM comercial",
             description="Oportunidades, cotizaciones y catálogo comercial arrendable.",

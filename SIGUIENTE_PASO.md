@@ -6,19 +6,20 @@
   - `crm` ya queda cerrado para su alcance comercial actual en runtime
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
   - `techdocs` ya queda cerrado para su alcance operativo actual en runtime
-  - no conviene reabrir ninguno de los tres por inercia salvo expansión explícita
+  - `chat` ya queda cerrado para su alcance operativo actual en runtime
+  - no conviene reabrir ninguno de los cuatro por inercia salvo expansión explícita
 - siguiente frente recomendado:
-  - abrir el próximo módulo faltante desde `ieris_app`
+  - abrir el próximo frente faltante desde `ieris_app`
   - recomendación actual:
-    - `chat interno`
+    - `scraping de productos` sobre `crm`
   - por qué este orden:
-    - `techdocs` ya absorbe el frente técnico-documental faltante
-    - `chat interno` queda como siguiente bloque ligero y transversal todavía ausente de `ieris_app`
-    - evita reabrir por inercia módulos ya cerrados
+    - `crm` ya absorbió productos, oportunidades, plantillas y cotizaciones, pero todavía falta el frente de captura asistida desde fuentes externas
+    - `taskops`, `techdocs` y `chat` ya cubren los bloques internos transversales que faltaban
+    - evita reabrir por inercia módulos ya cerrados cuando el hueco real restante está en la entrada de catálogo
   - alcance sugerido del primer slice:
-    - conversaciones entre usuarios tenant
-    - hilos internos por contexto operativo
-    - lectura básica y histórico reciente
+    - ingesta/scraping asistido de productos
+    - normalización mínima al catálogo `crm_products`
+    - revisión humana antes de publicar en catálogo operativo
 - el roadmap base actual ya queda formalmente cerrado:
   - las `Etapas 9`, `10`, `11`, `12`, `13`, `14`, `15`, `16` y `17` ya quedaron cerradas para el alcance actual
   - la base PaaS ya no necesita más cierres estructurales para operar
@@ -42,8 +43,8 @@
   - deploy reproducible, rollback, backups, restore drills y evidencia operativa ya están institucionalizados
   - worker, cuotas, alertas, DLQ, rate limiting y billing operativo ya dejan el hardening suficientemente cerrado para esta base
 - siguiente frente recomendado del proyecto:
-  - abrir `chat interno` como siguiente módulo faltante
-  - después recién decidir si conviene abrir otro módulo real (`iot`, `condos`, `projects`, `chat interno`)
+  - abrir `scraping de productos` como siguiente frente faltante conectado a `crm`
+  - después recién decidir si conviene abrir otro módulo real (`iot`, `condos`, `projects`) o el frente administrativo de `IA local`
   - endurecimiento adicional opcional, por ejemplo:
     - stack externa de observabilidad/alerting
     - infraestructura más distribuida o automatización/CD más agresiva
