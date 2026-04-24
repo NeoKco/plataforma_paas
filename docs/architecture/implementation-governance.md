@@ -83,6 +83,35 @@ Paquete mínimo de enforcement asociado:
 - [check_memory_viva_sync.py](../../backend/app/scripts/check_memory_viva_sync.py)
 - [Respuesta a incidentes tenant](../runbooks/tenant-incident-response.md)
 
+## Regla de Protección de Datos Tenant Antes de Mutaciones
+
+Antes de modificar datos de cualquier tenant en cualquiera de los tres carriles operativos:
+
+- `development`
+- `staging`
+- `production`
+
+debe ejecutarse un backup técnico PostgreSQL del tenant afectado.
+
+Regla operativa:
+
+- no ejecutar imports, backfills, repairs, seeds correctivos, scripts manuales ni cambios directos en DB tenant sin backup previo del mismo tenant
+- el backup previo debe ser el respaldo de referencia para validar rollback o restauración selectiva si el cambio pisa datos
+- CSV portable no reemplaza este requisito
+
+Regla derivada:
+
+- si el cambio recrea, reemplaza, reimporta o repuebla la DB tenant, el cierre correcto exige restaurar primero los datos desde el backup inmediato previo y luego reaplicar la modificación deseada de forma controlada
+- si el cambio es in-place y no destructivo, no corresponde restaurar “por costumbre” después de ejecutarlo; corresponde:
+  - conservar el backup previo
+  - verificar que los datos existentes sigan intactos
+  - restaurar desde el backup solo si se detecta pérdida o pisado
+
+Regla especial:
+
+- `ieris-ltda` queda tratado como tenant sensible
+- cualquier mutación sobre `ieris-ltda` exige backup previo explícito y verificación posterior contra ese punto de control
+
 ## Aplicacion transversal a toda la PaaS
 
 La gobernanza de implementacion y `SRED` aplican a toda la PaaS, no solo a modulos nuevos.

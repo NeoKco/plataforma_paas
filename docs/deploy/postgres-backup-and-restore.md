@@ -8,6 +8,29 @@ Importante:
 - no debe confundirse con el export/import tenant en `CSV + manifest`
 - la Fase 1 de export portable ya existe en `platform_admin > Tenants`, pero no reemplaza este backup técnico
 - el diseño de portabilidad tenant queda en [TENANT_DATA_PORTABILITY_MODEL.md](/home/felipe/platform_paas/docs/modules/platform-core/TENANT_DATA_PORTABILITY_MODEL.md)
+- antes de mutar datos de cualquier tenant en `development`, `staging` o `production`, este backup técnico tenant es obligatorio
+
+## Regla operativa obligatoria antes de modificar tenants
+
+Antes de ejecutar sobre un tenant:
+
+- imports
+- backfills
+- repairs
+- seeds correctivos
+- SQL manual
+- recreación o repoblado de DB tenant
+
+se debe generar primero un backup PostgreSQL del tenant afectado.
+
+Regla derivada:
+
+- si el cambio recrea o reemplaza datos, la restauración desde ese backup previo es obligatoria para reponer la base existente antes de dejar cerrada la nueva modificación
+- si el cambio es in-place y no destructivo, el backup previo sigue siendo obligatorio, pero la restauración solo se ejecuta si la validación posterior detecta pérdida o pisado de datos
+
+Regla especial:
+
+- `ieris-ltda` debe tratarse como tenant protegido; no se muta sin backup previo explícito y validación posterior contra ese punto de control
 
 ## Archivos Base
 
@@ -131,6 +154,8 @@ cd /home/felipe/platform_paas/backend
   --backup-dir /var/backups/platform_paas/tenants
 ```
 
+Este paso es obligatorio antes de mutar datos tenant.
+
 Formato esperado del backup:
 
 - `tenant-slug__tenant_db_name_YYYYMMDD_HHMMSS.sql.gz`
@@ -155,6 +180,7 @@ Precaucion:
 
 - el restore tenant usa el tenant activo registrado en `platform_control`
 - no lo ejecutes sin validar primero que el backup corresponde al tenant correcto
+- si la intervención fue destructiva o reemplazó datos, la restauración del backup previo forma parte del cierre obligatorio del cambio
 
 ## Timer `systemd` para Tenants
 

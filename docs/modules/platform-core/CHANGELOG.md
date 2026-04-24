@@ -1,5 +1,18 @@
 # Platform Core Changelog
 
+## 2026-04-24
+
+- se formaliza la regla transversal de protección de datos tenant:
+  - antes de modificar datos de cualquier tenant en `development`, `staging` o `production` ya es obligatorio tomar backup PostgreSQL del tenant afectado
+  - si la intervención recrea, reemplaza, reimporta o repuebla datos, el cierre correcto exige restaurar primero la base existente desde el backup inmediato previo y luego reaplicar la modificación deseada de forma controlada
+  - si la intervención es in-place y no destructiva, el backup previo sigue siendo obligatorio, pero la restauración solo se ejecuta si la validación posterior detecta pérdida o pisado
+  - `ieris-ltda` queda explicitado como tenant sensible, siempre con backup previo y verificación posterior reforzada
+  - la regla ya queda asentada en:
+    - [implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+    - [data-governance.md](/home/felipe/platform_paas/docs/architecture/data-governance.md)
+    - [tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md)
+    - [postgres-backup-and-restore.md](/home/felipe/platform_paas/docs/deploy/postgres-backup-and-restore.md)
+
 - `Etapa 16` ya queda formalmente cerrada para el alcance actual:
   - el carril de operación real ya cuenta con:
     - deploy reproducible por ambiente

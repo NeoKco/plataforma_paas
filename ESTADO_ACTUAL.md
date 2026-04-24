@@ -3,6 +3,11 @@
 ## Última actualización
 
 - fecha: 2026-04-23
+- regla operativa nueva formalizada:
+  - antes de modificar datos de cualquier tenant en `development`, `staging` o `production`, ya queda obligatorio tomar backup PostgreSQL del tenant afectado
+  - si la intervención recrea, reemplaza, reimporta o repuebla datos, el cierre correcto exige restaurar primero la base existente desde ese backup inmediato previo y luego reaplicar la modificación deseada de forma controlada
+  - si la intervención es in-place y no destructiva, el backup sigue siendo obligatorio, pero la restauración se ejecuta solo si la validación posterior detecta pérdida o pisado de datos
+  - `ieris-ltda` queda explicitado como tenant sensible y exige backup previo + validación posterior explícita
 - incidente `ieris-ltda` ya restaurado al snapshot útil del `23-04-2026`:
   - el objetivo era recuperar el tenant sin retroceder a snapshots anteriores que hubieran borrado trabajo válido posterior
   - se contrastó el estado vivo actual del tenant `tenant_ieris_ltda` contra el paquete:

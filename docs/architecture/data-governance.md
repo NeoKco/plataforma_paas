@@ -218,6 +218,35 @@ Los defaults no son datos “de muestra”. Son parte del contrato operativo.
 - `CLP` es la moneda base efectiva por defecto para tenants nuevos o sin uso financiero
 - el catálogo financiero mezcla familias `Casa - ...` y `Empresa - ...` sin romper la unicidad vigente
 
+## Regla de Protección de Datos Operativos Tenant
+
+Cuando una intervención toca datos vivos de un tenant:
+
+- primero se respalda la DB tenant
+- después se ejecuta la mutación
+- luego se verifica que los datos previos sigan presentes
+
+Esto aplica a:
+
+- imports
+- backfills
+- repairs
+- seeds correctivos
+- scripts manuales
+- cambios SQL directos
+- recreación o repoblado de la DB tenant
+
+Reglas:
+
+- el backup PostgreSQL por tenant es el punto de control canónico antes de mutar datos
+- export/import portable no sustituye el backup técnico
+- si una mutación reemplaza o recrea datos, la restauración desde el backup inmediato previo pasa a ser obligatoria antes del cierre
+- si la mutación es in-place y no destruye datos, el backup queda como red de seguridad y la validación posterior debe demostrar que no hubo pérdida
+
+Caso sensible:
+
+- `ieris-ltda` debe tratarse como tenant protegido de alta sensibilidad operativa; cualquier intervención allí exige backup previo y validación posterior explícita
+
 ## Regla de calidad de datos
 
 La calidad mínima obligatoria incluye:

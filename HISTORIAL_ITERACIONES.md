@@ -1,5 +1,33 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - se formaliza regla de backup obligatorio previo a mutaciones tenant
+
+Contexto:
+
+- después del incidente de datos en `ieris-ltda`, hacía falta dejar explícita una regla operativa transversal para evitar nuevas pérdidas por mutaciones sobre tenants reales
+
+Cambios:
+
+- se formaliza en gobernanza y runbooks que antes de modificar datos de cualquier tenant en `development`, `staging` o `production` ya es obligatorio tomar backup PostgreSQL del tenant afectado
+- la regla distingue dos casos:
+  - mutación destructiva o de reemplazo:
+    - el cierre correcto exige restaurar primero la base existente desde el backup inmediato previo y luego reaplicar el cambio deseado de forma controlada
+  - mutación in-place no destructiva:
+    - el backup sigue siendo obligatorio, pero la restauración solo se ejecuta si la validación posterior detecta pérdida o pisado
+- `ieris-ltda` queda tratado explícitamente como tenant sensible, siempre con backup previo y validación posterior reforzada
+
+Documentación actualizada:
+
+- [docs/architecture/implementation-governance.md](/home/felipe/platform_paas/docs/architecture/implementation-governance.md)
+- [docs/architecture/data-governance.md](/home/felipe/platform_paas/docs/architecture/data-governance.md)
+- [docs/runbooks/tenant-incident-response.md](/home/felipe/platform_paas/docs/runbooks/tenant-incident-response.md)
+- [docs/deploy/postgres-backup-and-restore.md](/home/felipe/platform_paas/docs/deploy/postgres-backup-and-restore.md)
+- [docs/runbooks/tenant-backend-implementation.md](/home/felipe/platform_paas/docs/runbooks/tenant-backend-implementation.md)
+
+Resultado:
+
+- la protección de datos tenant deja de ser una recomendación implícita y pasa a ser una regla operativa formal de la PaaS
+
 ## 2026-04-23 - restauración selectiva de `ieris-ltda` al snapshot útil del día
 
 Contexto:

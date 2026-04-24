@@ -219,6 +219,24 @@ La dependency `get_tenant_db()` hace el puente importante entre autenticacion y 
 5. resuelve la session factory tenant
 6. entrega una sesion SQLAlchemy a la ruta
 
+## Regla transversal antes de mutar la DB tenant
+
+Antes de ejecutar mutaciones manuales o scripts sobre una DB tenant real:
+
+- generar backup PostgreSQL del tenant afectado
+- usar ese backup como punto de control
+- si el cambio recrea o reemplaza datos, restaurar desde el backup previo antes de cerrar el trabajo
+
+Esto aplica igual en:
+
+- `development`
+- `staging`
+- `production`
+
+Y se vuelve obligatorio reforzado para:
+
+- `ieris-ltda`
+
 Ese es el momento en que la request deja de trabajar solo con JWT y empieza a trabajar con la base real del tenant.
 
 ## Paso 5. Primeras rutas reales tenant

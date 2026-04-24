@@ -21,6 +21,35 @@ Si vas a ejecutar scripts del repo usando el `.env` de runtime:
 
 Sin `set -a`, variables como `TENANT_SECRETS_FILE` pueden no exportarse y producir falsos negativos en auditorías tenant.
 
+## Regla previa crítica 2: backup antes de mutar datos tenant
+
+Antes de modificar datos de cualquier tenant en:
+
+- `development`
+- `staging`
+- `production`
+
+se debe tomar un backup PostgreSQL del tenant afectado.
+
+Aplica antes de:
+
+- imports
+- backfills
+- seeds correctivos
+- repairs
+- scripts manuales
+- SQL directo
+- recreación o repoblado de la DB tenant
+
+Regla de cierre:
+
+- si el cambio reemplaza o recrea datos, el cierre exige restaurar los datos desde el backup inmediato previo y recién después reaplicar la modificación que se quería dejar
+- si el cambio es in-place y no destructivo, no se restaura por reflejo; se conserva el backup y se valida que los datos previos sigan intactos
+
+Caso especial:
+
+- `ieris-ltda` debe tratarse como tenant sensible; cualquier mutación exige backup previo explícito y verificación posterior contra ese punto de control
+
 ## Paso 1. Distinguir el tipo de incidente
 
 Antes de tocar código, clasifica el problema:
@@ -30,6 +59,11 @@ Antes de tocar código, clasifica el problema:
 - `schema tenant`
 - `credenciales DB tenant`
 - `defaults o convergencia`
+
+Y antes de ejecutar la mutación correctiva:
+
+- generar backup técnico del tenant afectado
+- registrar el archivo usado como punto de control
 
 No asumir que el error vive en repo.
 
@@ -112,6 +146,7 @@ Después:
 
 Orden oficial:
 
+0. backup PostgreSQL del tenant afectado
 1. `repair_tenant_operational_drift.py --tenant-slug <slug> --audit-only`
 2. si el tenant falla por credencial inválida o drift tenant-local, usar `repair_tenant_operational_drift.py --tenant-slug <slug> --auto-rotate-if-invalid-credentials`
 3. si se trabaja manualmente o de forma masiva, seguir esta secuencia:
@@ -176,6 +211,7 @@ No dar el incidente por cerrado sin:
 
 - ambiente afectado
 - tenant realmente roto
+- backup previo usado como punto de control
 - causa real
 - comando o reparación aplicada
 - resultado final de auditoría
