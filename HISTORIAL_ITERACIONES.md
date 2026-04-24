@@ -1,5 +1,47 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - restauración selectiva de `ieris-ltda` al snapshot útil del día
+
+Contexto:
+
+- se reportó que datos recientes del tenant `ieris-ltda` habían quedado pisados
+- el requisito era restaurar el estado del tenant al `23-04-2026` sin retroceder a snapshots más antiguos que eliminaran información válida posterior
+- el snapshot útil identificado fue:
+  - `/opt/platform_paas/storage/tenant_data_exports/ieris-ltda/job_26`
+
+Cambios:
+
+- se comparó el snapshot `job_26` contra el estado vivo actual de `tenant_ieris_ltda`
+- el diff semántico confirmó que ya coincidían exactamente:
+  - `business_organizations`
+  - `social_community_groups`
+  - `business_contacts`
+  - `business_clients`
+  - `business_sites`
+  - `maintenance_installations`
+  - `maintenance_schedules`
+  - `maintenance_due_items`
+  - `maintenance_work_orders`
+  - `finance_accounts`
+  - `finance_transactions`
+- el único drift real restante estaba en:
+  - `finance_categories.parent_category_id`
+- se aplicó restauración selectiva desde el snapshot del `23-04-2026`
+  - filas corregidas: `71`
+
+Validación:
+
+- verificación final snapshot vs vivo:
+  - `0 diferencias` en todas las tablas comparadas del paquete `job_26`
+- resultado operativo:
+  - las OT quedan exactamente como estaban al `23-04-2026`
+  - no fue necesario retroceder el tenant completo ni borrar datos posteriores válidos
+
+Resultado:
+
+- `ieris-ltda` queda nuevamente alineado con el snapshot útil del `23-04-2026`
+- el incidente no requirió rollback global; se resolvió con restauración selectiva y verificación tabla por tabla
+
 ## 2026-04-23 - hotfix contractual para múltiples add-ons tenant
 
 Contexto:

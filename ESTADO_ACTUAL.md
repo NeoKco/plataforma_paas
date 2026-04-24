@@ -3,6 +3,19 @@
 ## Última actualización
 
 - fecha: 2026-04-23
+- incidente `ieris-ltda` ya restaurado al snapshot útil del `23-04-2026`:
+  - el objetivo era recuperar el tenant sin retroceder a snapshots anteriores que hubieran borrado trabajo válido posterior
+  - se contrastó el estado vivo actual del tenant `tenant_ieris_ltda` contra el paquete:
+    - `/opt/platform_paas/storage/tenant_data_exports/ieris-ltda/job_26`
+  - resultado del diff semántico:
+    - `business_organizations`, `social_community_groups`, `business_contacts`, `business_clients`, `business_sites`, `maintenance_installations`, `maintenance_schedules`, `maintenance_due_items`, `maintenance_work_orders`, `finance_accounts` y `finance_transactions` ya coincidían exactamente con el snapshot del `23-04-2026`
+    - el único drift real estaba en `finance_categories.parent_category_id`
+  - corrección aplicada:
+    - restauración selectiva de `finance_categories.parent_category_id` desde `job_26`
+    - filas corregidas: `71`
+  - verificación final:
+    - diff snapshot vs estado vivo actual -> `0 diferencias` en todas las tablas comparadas del paquete `job_26`
+    - las OT ya quedaron validadas exactamente como estaban al `23-04-2026`
 - hotfix contractual cerrado en `platform-core`:
   - el error `subscription-contract: Internal server error` al contratar `maintenance + crm` no se debía al modelo comercial ni a la combinación de módulos
   - la causa real estaba en PostgreSQL: las tablas contractuales/runtime de `platform_control` creadas por `v0027` y `v0028` tenían `id INTEGER PRIMARY KEY` sin `DEFAULT nextval(...)`
