@@ -620,8 +620,9 @@ Orden sugerido:
 1. tomar `finance` como modulo base ya cerrado y referencia para los siguientes slices
 2. abrir `crm` comercial como primer bloque de expansión post-cierre
 3. cerrar `taskops` como segundo módulo transversal de operación interna
-4. luego `condos`
-5. despues `iot`
+4. cerrar `techdocs` como bloque de expediente técnico transversal
+5. luego `condos`
+6. despues `iot`
 
 La razon de este orden es simple:
 
@@ -661,11 +662,18 @@ Resultado actual:
   - adjuntos con descarga
   - trazabilidad de cambios de estado
   - resumen operativo visible
+- `techdocs` ya quedó cerrado para su alcance operativo actual:
+  - dossiers técnicos con referencias cruzadas a cliente, sitio, instalación, OT, oportunidad y tarea
+  - secciones técnicas
+  - mediciones
+  - evidencias con descarga
+  - auditoría de cambios
+  - resumen operativo visible
 
 Resultado de cierre:
 
 - la PaaS ya no es solo base técnica: ya opera módulos de negocio reales y visibles
-- `finance`, `business-core`, `maintenance`, `crm` y `taskops` ya cubren el cierre del alcance base de producto por dominio
+- `finance`, `business-core`, `maintenance`, `crm`, `taskops` y `techdocs` ya cubren el cierre del alcance base de producto por dominio
 - módulos como `condos` o `iot` pasan a tratarse como expansión posterior, no como deuda del cierre base de la `Etapa 14`
 
 ## Etapa 15. Registro y Activacion de Modulos
@@ -982,7 +990,7 @@ Documento de referencia para esta decision:
 Si el equipo quiere avanzar con buen retorno tecnico, el orden recomendado es:
 
 1. considerar cerrado el roadmap base actual
-2. tratar `crm` y `taskops` como módulos ya cerrados para su alcance actual
+2. tratar `crm`, `taskops` y `techdocs` como módulos ya cerrados para su alcance actual
 3. después elegir el siguiente frente de expansion o endurecimiento extra
 4. abrir ese frente nuevo con spec, ownership y evidencia desde el inicio
 5. ajustar backend/frontend solo cuando ese frente nuevo descubra un hueco real de contrato o uso

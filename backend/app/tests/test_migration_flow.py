@@ -42,6 +42,7 @@ from migrations.tenant import v0039_social_community_groups
 from migrations.tenant import v0040_crm_base
 from migrations.tenant import v0041_crm_expansion
 from migrations.tenant import v0042_taskops_base
+from migrations.tenant import v0043_techdocs_base
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -222,6 +223,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0040_crm_base",
                 "0041_crm_expansion",
                 "0042_taskops_base",
+                "0043_techdocs_base",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -280,6 +282,11 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("taskops_task_comments", tables)
         self.assertIn("taskops_task_attachments", tables)
         self.assertIn("taskops_task_status_events", tables)
+        self.assertIn("techdocs_dossiers", tables)
+        self.assertIn("techdocs_sections", tables)
+        self.assertIn("techdocs_measurements", tables)
+        self.assertIn("techdocs_evidences", tables)
+        self.assertIn("techdocs_audit_events", tables)
         maintenance_cost_line_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_cost_lines")
         }
@@ -434,6 +441,21 @@ class MigrationFlowTestCase(unittest.TestCase):
         crm_quote_template_item_columns = {
             column["name"] for column in inspect(engine).get_columns("crm_quote_template_items")
         }
+        techdocs_dossier_columns = {
+            column["name"] for column in inspect(engine).get_columns("techdocs_dossiers")
+        }
+        techdocs_section_columns = {
+            column["name"] for column in inspect(engine).get_columns("techdocs_sections")
+        }
+        techdocs_measurement_columns = {
+            column["name"] for column in inspect(engine).get_columns("techdocs_measurements")
+        }
+        techdocs_evidence_columns = {
+            column["name"] for column in inspect(engine).get_columns("techdocs_evidences")
+        }
+        techdocs_audit_columns = {
+            column["name"] for column in inspect(engine).get_columns("techdocs_audit_events")
+        }
         maintenance_status_log_columns = {
             column["name"]
             for column in inspect(engine).get_columns("maintenance_status_logs")
@@ -484,6 +506,13 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("name", crm_quote_template_columns)
         self.assertIn("template_id", crm_quote_template_section_columns)
         self.assertIn("section_id", crm_quote_template_item_columns)
+        self.assertIn("dossier_type", techdocs_dossier_columns)
+        self.assertIn("installation_id", techdocs_dossier_columns)
+        self.assertIn("task_id", techdocs_dossier_columns)
+        self.assertIn("section_kind", techdocs_section_columns)
+        self.assertIn("expected_range", techdocs_measurement_columns)
+        self.assertIn("storage_key", techdocs_evidence_columns)
+        self.assertIn("event_type", techdocs_audit_columns)
         self.assertIn("timezone", tenant_user_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
@@ -610,6 +639,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0040_crm_base",
                 "0041_crm_expansion",
                 "0042_taskops_base",
+                "0043_techdocs_base",
             ],
         )
 
@@ -916,6 +946,25 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("crm_opportunities", tables)
         self.assertIn("crm_quotes", tables)
         self.assertIn("crm_quote_lines", tables)
+
+    def test_techdocs_base_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            MigrationRunner(
+                engine=engine,
+                package_name="migrations.tenant",
+                table_name="tenant_schema_migrations",
+            ).apply_pending()
+            v0043_techdocs_base.upgrade(conn)
+            v0043_techdocs_base.upgrade(conn)
+
+        tables = set(inspect(engine).get_table_names())
+        self.assertIn("techdocs_dossiers", tables)
+        self.assertIn("techdocs_sections", tables)
+        self.assertIn("techdocs_measurements", tables)
+        self.assertIn("techdocs_evidences", tables)
+        self.assertIn("techdocs_audit_events", tables)
 
 
 if __name__ == "__main__":

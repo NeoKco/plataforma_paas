@@ -45,6 +45,12 @@ export function TenantSidebarNav() {
       visible: isTenantPortalSectionVisible(tenantInfo, "taskops"),
     },
     {
+      to: "/tenant-portal/techdocs",
+      label: language === "es" ? "Expediente técnico" : "Technical dossier",
+      icon: "techdocs" as AppIconName,
+      visible: isTenantPortalSectionVisible(tenantInfo, "techdocs"),
+    },
+    {
       to: "/tenant-portal/agenda",
       label: language === "es" ? "Agenda" : "Agenda",
       icon: "planning" as AppIconName,

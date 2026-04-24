@@ -3,6 +3,27 @@
 ## Última actualización
 
 - fecha: 2026-04-24
+- foco operativo nuevo ya cerrado en repo y pendiente de publish/runtime:
+  - `techdocs` ya queda terminado para su alcance operativo actual como tercer módulo de expansión post-cierre
+  - backend tenant ya expone:
+    - `/tenant/techdocs/overview`
+    - `/tenant/techdocs/dossiers`
+    - `/tenant/techdocs/audit`
+  - frontend tenant ya publica:
+    - `Resumen`
+    - `Expedientes`
+    - `Auditoría`
+  - el módulo ya soporta:
+    - dossiers técnicos
+    - secciones
+    - mediciones
+    - evidencias con descarga
+    - auditoría por dossier
+    - referencias cruzadas a cliente, sitio, instalación, OT, oportunidad y tarea
+  - el módulo ya entra al catálogo contractual como add-on `techdocs`
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_techdocs_services backend.app.tests.test_migration_flow backend.app.tests.test_platform_flow -v` -> `262 tests OK`
+    - `cd frontend && npm run build` -> `OK`
 - foco operativo nuevo ya cerrado en repo y runtime fuera del roadmap base:
   - `taskops` ya queda terminado para su alcance operativo actual como segundo módulo de expansión post-cierre
   - backend tenant ya expone:

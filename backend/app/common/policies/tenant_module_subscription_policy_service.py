@@ -103,6 +103,13 @@ class TenantModuleSubscriptionPolicyService:
             activation_kind="addon",
             billing_cycles=VALID_BILLING_CYCLES,
         ),
+        ModuleSubscriptionCatalogEntry(
+            module_key="techdocs",
+            display_name="Expediente técnico",
+            description="Dossier técnico con mediciones, evidencias y auditoría reusable.",
+            activation_kind="addon",
+            billing_cycles=VALID_BILLING_CYCLES,
+        ),
     )
 
     LEGACY_PLAN_CODE_TO_BILLING_CYCLE = {

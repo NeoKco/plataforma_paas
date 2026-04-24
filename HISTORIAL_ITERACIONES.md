@@ -1,5 +1,41 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `techdocs` queda cerrado para el alcance operativo actual en repo
+
+Contexto:
+
+- después de cerrar `taskops`, el siguiente módulo faltante de `ieris_app` con mejor retorno operativo era `Expediente técnico`
+- el objetivo era abrirlo con el mismo estándar del PaaS y cerrarlo completo en backend, frontend, catálogo contractual y documentación canónica
+
+Cambios:
+
+- backend nuevo en [backend/app/apps/tenant_modules/techdocs](/home/felipe/platform_paas/backend/app/apps/tenant_modules/techdocs)
+- migración tenant nueva en [v0043_techdocs_base.py](/home/felipe/platform_paas/backend/migrations/tenant/v0043_techdocs_base.py)
+- frontend nuevo en [frontend/src/apps/tenant_portal/modules/techdocs](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/techdocs)
+- documentación canónica del módulo en [docs/modules/techdocs/README.md](/home/felipe/platform_paas/docs/modules/techdocs/README.md)
+- el módulo queda operativo con:
+  - `Resumen`
+  - `Expedientes`
+  - `Auditoría`
+  - dossiers técnicos
+  - secciones
+  - mediciones
+  - evidencias con descarga
+  - auditoría por dossier
+  - referencias cruzadas a cliente, sitio, instalación, OT, oportunidad y tarea
+- el módulo entra al catálogo contractual como add-on `techdocs`
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_techdocs_services + backend.app.tests.test_migration_flow + backend.app.tests.test_platform_flow` -> `262 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+
+Resultado:
+
+- `techdocs` deja de ser propuesta y pasa a módulo tenant cerrado para su alcance actual a nivel repo
+- el siguiente paso ya no es “terminar Expediente técnico”, sino publicarlo con backup previo por carril y luego elegir el siguiente módulo faltante
+
 ## 2026-04-24 - `taskops` queda cerrado para el alcance operativo actual
 
 Contexto:

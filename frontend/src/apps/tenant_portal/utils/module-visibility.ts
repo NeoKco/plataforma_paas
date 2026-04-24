@@ -6,19 +6,21 @@ export type TenantPortalModuleSection =
   | "business-core"
   | "crm"
   | "taskops"
+  | "techdocs"
   | "finance"
   | "agenda"
   | "maintenance";
 
 const SECTION_MODULE_KEYS: Record<
   TenantPortalModuleSection,
-  Array<"all" | "core" | "users" | "finance" | "maintenance" | "crm" | "taskops">
+  Array<"all" | "core" | "users" | "finance" | "maintenance" | "crm" | "taskops" | "techdocs">
 > = {
   overview: ["all", "core", "users", "finance"],
   users: ["all", "users"],
   "business-core": ["all", "core"],
   crm: ["all", "crm"],
   taskops: ["all", "taskops"],
+  techdocs: ["all", "techdocs"],
   finance: ["all", "finance"],
   agenda: ["all", "maintenance"],
   "maintenance": ["all", "maintenance"],

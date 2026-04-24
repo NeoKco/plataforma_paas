@@ -147,6 +147,9 @@ class Settings(BaseSettings):
     TASKOPS_ATTACHMENTS_DIR: str = str(
         BASE_DIR / "storage" / "taskops_attachments"
     )
+    TECHDOCS_ATTACHMENTS_DIR: str = str(
+        BASE_DIR / "storage" / "techdocs_attachments"
+    )
     MAINTENANCE_EVIDENCE_DIR: str = str(
         BASE_DIR / "storage" / "maintenance_evidence"
     )
