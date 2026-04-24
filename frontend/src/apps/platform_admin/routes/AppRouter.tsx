@@ -7,6 +7,7 @@ import { businessCoreTenantPortalRoutes } from "../../tenant_portal/modules/busi
 import { crmTenantPortalRoutes } from "../../tenant_portal/modules/crm";
 import { financeTenantPortalRoutes } from "../../tenant_portal/modules/finance";
 import { maintenanceTenantPortalRoutes } from "../../tenant_portal/modules/maintenance";
+import { taskopsTenantPortalRoutes } from "../../tenant_portal/modules/taskops";
 import { RequireTenantAuth } from "../../tenant_portal/routes/RequireTenantAuth";
 import { LoadingBlock } from "../../../components/feedback/LoadingBlock";
 import { useAuth } from "../../../store/auth-context";
@@ -184,6 +185,10 @@ const router = createBrowserRouter([
       {
         path: "crm",
         children: crmTenantPortalRoutes,
+      },
+      {
+        path: "taskops",
+        children: taskopsTenantPortalRoutes,
       },
       {
         path: "agenda",

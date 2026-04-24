@@ -41,6 +41,7 @@ from migrations.tenant import v0038_maintenance_work_order_task_type
 from migrations.tenant import v0039_social_community_groups
 from migrations.tenant import v0040_crm_base
 from migrations.tenant import v0041_crm_expansion
+from migrations.tenant import v0042_taskops_base
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -220,6 +221,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0039_social_community_groups",
                 "0040_crm_base",
                 "0041_crm_expansion",
+                "0042_taskops_base",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -274,6 +276,10 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("crm_quote_templates", tables)
         self.assertIn("crm_quote_template_sections", tables)
         self.assertIn("crm_quote_template_items", tables)
+        self.assertIn("taskops_tasks", tables)
+        self.assertIn("taskops_task_comments", tables)
+        self.assertIn("taskops_task_attachments", tables)
+        self.assertIn("taskops_task_status_events", tables)
         maintenance_cost_line_columns = {
             column["name"] for column in inspect(engine).get_columns("maintenance_cost_lines")
         }
@@ -603,6 +609,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0039_social_community_groups",
                 "0040_crm_base",
                 "0041_crm_expansion",
+                "0042_taskops_base",
             ],
         )
 

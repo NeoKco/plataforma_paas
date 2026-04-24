@@ -1,0 +1,1 @@
+export { taskopsTenantPortalRoutes } from "./routes";

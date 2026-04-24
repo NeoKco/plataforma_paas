@@ -48,5 +48,7 @@ La idea no es duplicar toda la documentación técnica existente, sino:
   Modulo operativo de mantenciones, redefinido para apoyarse sobre `business-core`.
 - [platform-core](/home/felipe/platform_paas/docs/modules/platform-core/README.md)
   Bloque central de instalación, `platform_admin`, tenants, provisioning, billing y ciclo operativo base.
+- [taskops](/home/felipe/platform_paas/docs/modules/taskops/README.md)
+  Módulo tenant para tareas internas con kanban, comentarios, adjuntos e histórico apoyado sobre `business-core`, `crm` y `maintenance`.
 - [improvements](/home/felipe/platform_paas/docs/modules/improvements/README.md)
   Backlog transversal de mejoras sugeridas para todos los modulos existentes.

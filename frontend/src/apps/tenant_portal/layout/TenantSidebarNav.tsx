@@ -39,6 +39,12 @@ export function TenantSidebarNav() {
       visible: isTenantPortalSectionVisible(tenantInfo, "crm"),
     },
     {
+      to: "/tenant-portal/taskops",
+      label: language === "es" ? "TaskOps" : "TaskOps",
+      icon: "taskops" as AppIconName,
+      visible: isTenantPortalSectionVisible(tenantInfo, "taskops"),
+    },
+    {
       to: "/tenant-portal/agenda",
       label: language === "es" ? "Agenda" : "Agenda",
       icon: "planning" as AppIconName,

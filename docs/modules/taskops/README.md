@@ -1,0 +1,113 @@
+# TaskOps Module
+
+Documentación canónica del módulo `taskops`.
+
+Nombre funcional visible:
+
+- `TaskOps`
+
+Estado actual:
+
+- módulo tenant ya operativo dentro del PaaS
+- backend tenant ya expone:
+  - tareas internas
+  - kanban por estado
+  - histórico cerrado
+  - comentarios
+  - adjuntos
+  - trazabilidad de cambios de estado
+- frontend tenant ya entrega lectura y captura para:
+  - `Resumen`
+  - `Tareas`
+  - `Kanban`
+  - `Histórico`
+- el módulo reutiliza `business-core` para clientes y grupos de trabajo
+- el módulo puede referenciar también:
+  - oportunidades de `crm`
+  - OT de `maintenance`
+- el módulo ya entra al catálogo contractual como add-on tenant (`taskops`)
+
+Objetivo del módulo:
+
+- cubrir el frente faltante de tareas internas respecto de `ieris_app`
+- unificar seguimiento operativo interno sin mezclarlo con:
+  - `maintenance`
+  - `crm`
+  - identidad base de `business-core`
+- dejar una base reusable para comentarios, adjuntos e histórico operativo
+
+## Alcance actual
+
+El módulo hoy incluye:
+
+- tareas internas con:
+  - cliente opcional
+  - oportunidad CRM opcional
+  - OT de maintenance opcional
+  - usuario asignado opcional
+  - grupo de trabajo opcional
+  - prioridad
+  - fecha compromiso
+  - estado operativo
+  - orden manual
+- kanban visible sobre estados abiertos:
+  - `backlog`
+  - `todo`
+  - `in_progress`
+  - `blocked`
+  - `done`
+- histórico de tareas cerradas:
+  - `done`
+  - `cancelled`
+- comentarios por tarea
+- adjuntos por tarea con descarga
+- eventos de estado con trazabilidad mínima
+- resumen con métricas visibles de:
+  - abiertas
+  - en progreso
+  - bloqueadas
+  - por vencer
+  - cerradas
+
+Queda fuera por ahora:
+
+- subtareas
+- dependencias entre tareas
+- automatizaciones por reglas
+- tableros múltiples o swimlanes
+- SLA formal
+- notificaciones push o chat embebido
+
+## Mapa de documentos
+
+- [USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/taskops/USER_GUIDE.md)
+  Guía operativa para usuario tenant y soporte funcional.
+- [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/taskops/DEV_GUIDE.md)
+  Estructura, contratos y criterios de extensión del módulo.
+- [API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/taskops/API_REFERENCE.md)
+  Referencia resumida de endpoints del módulo.
+- [ROADMAP.md](/home/felipe/platform_paas/docs/modules/taskops/ROADMAP.md)
+  Estado del módulo y backlog posterior al cierre del alcance actual.
+- [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/taskops/CHANGELOG.md)
+  Hitos funcionales y técnicos del módulo.
+- [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
+  Backlog transversal de mejoras sugeridas por módulo.
+
+## Código principal
+
+- Backend: [taskops](/home/felipe/platform_paas/backend/app/apps/tenant_modules/taskops)
+- Frontend: [taskops](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops)
+
+## Criterio de uso
+
+Si necesitas operar el módulo:
+
+- parte por [USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/taskops/USER_GUIDE.md)
+
+Si necesitas modificar o extender el módulo:
+
+- parte por [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/taskops/DEV_GUIDE.md)
+
+Si necesitas revisar estado y backlog posterior:
+
+- parte por [ROADMAP.md](/home/felipe/platform_paas/docs/modules/taskops/ROADMAP.md)

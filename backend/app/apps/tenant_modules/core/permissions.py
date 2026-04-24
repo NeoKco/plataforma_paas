@@ -13,6 +13,8 @@ TENANT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "tenant.crm.manage",
         "tenant.maintenance.read",
         "tenant.maintenance.manage",
+        "tenant.taskops.read",
+        "tenant.taskops.manage",
     },
     "manager": {
         "tenant.users.read",
@@ -24,12 +26,15 @@ TENANT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "tenant.crm.manage",
         "tenant.maintenance.read",
         "tenant.maintenance.manage",
+        "tenant.taskops.read",
+        "tenant.taskops.manage",
     },
     "operator": {
         "tenant.finance.read",
         "tenant.business_core.read",
         "tenant.crm.read",
         "tenant.maintenance.read",
+        "tenant.taskops.read",
     },
 }
 

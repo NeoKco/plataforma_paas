@@ -3549,6 +3549,7 @@ class PlatformServicesTestCase(unittest.TestCase):
             {
                 "crm": ("core",),
                 "maintenance": ("core",),
+                "taskops": ("core",),
             },
         )
         self.assertEqual(
@@ -3563,6 +3564,11 @@ class PlatformServicesTestCase(unittest.TestCase):
                     "module_key": "maintenance",
                     "requires_modules": ["core"],
                     "reason": "Maintenance depende de business-core y no debe duplicarlo.",
+                },
+                {
+                    "module_key": "taskops",
+                    "requires_modules": ["core"],
+                    "reason": "TaskOps depende de business-core para reutilizar clientes y grupos de trabajo.",
                 },
             ],
         )
@@ -3592,7 +3598,7 @@ class PlatformServicesTestCase(unittest.TestCase):
         )
         self.assertEqual(
             service.list_module_subscription_catalog()[-1]["module_key"],
-            "crm",
+            "taskops",
         )
         self.assertEqual(
             service.list_module_subscription_catalog()[-1]["billing_cycles"],
@@ -3651,6 +3657,10 @@ class PlatformServicesTestCase(unittest.TestCase):
             "maintenance",
         )
         self.assertEqual(
+            catalog["module_dependency_catalog"][2]["module_key"],
+            "taskops",
+        )
+        self.assertEqual(
             catalog["subscription_activation_model"],
             "base_plan_plus_module_subscriptions",
         )
@@ -3665,10 +3675,14 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("compatibility_policy_code", catalog["base_plan_catalog"][0])
         self.assertEqual(
             catalog["module_subscription_catalog"][-1]["module_key"],
-            "crm",
+            "taskops",
         )
         self.assertEqual(
             catalog["module_subscription_catalog"][-2]["module_key"],
+            "crm",
+        )
+        self.assertEqual(
+            catalog["module_subscription_catalog"][-3]["module_key"],
             "maintenance",
         )
         self.assertIn("maintenance", catalog["maintenance_scopes"])
@@ -3676,6 +3690,7 @@ class PlatformServicesTestCase(unittest.TestCase):
         self.assertIn("all", catalog["plan_modules"])
         self.assertIn("maintenance", catalog["plan_modules"])
         self.assertIn("crm", catalog["plan_modules"])
+        self.assertIn("taskops", catalog["plan_modules"])
         self.assertIn("legacy_plan_fallback_available", catalog)
         self.assertIn("legacy_plan_catalog", catalog)
         self.assertIn(
@@ -5050,6 +5065,7 @@ class PlatformRoutesTestCase(unittest.TestCase):
             ["core"],
         )
         self.assertEqual(response.module_dependency_catalog[1].module_key, "maintenance")
+        self.assertEqual(response.module_dependency_catalog[2].module_key, "taskops")
         self.assertEqual(
             response.subscription_activation_model,
             "base_plan_plus_module_subscriptions",
@@ -5061,10 +5077,14 @@ class PlatformRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.base_plan_catalog[0].plan_code, "base_finance")
         self.assertEqual(
             response.module_subscription_catalog[-1].module_key,
-            "crm",
+            "taskops",
         )
         self.assertEqual(
             response.module_subscription_catalog[-2].module_key,
+            "crm",
+        )
+        self.assertEqual(
+            response.module_subscription_catalog[-3].module_key,
             "maintenance",
         )
         self.assertEqual(response.ui_label_catalog["modules"]["finance"]["es"], "Finanzas")
