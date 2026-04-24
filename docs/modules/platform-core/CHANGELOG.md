@@ -1624,3 +1624,22 @@ Resumen curado del bloque central.
 - validación:
   - `bash -n scripts/dev/run_broker_dlq_playwright_target.sh scripts/dev/run_local_broker_dlq_baseline.sh scripts/dev/run_staging_published_broker_dlq_smoke.sh` -> `OK`
   - `TARGET=matrix scripts/dev/run_broker_dlq_playwright_target.sh --list` -> `OK`
+- 2026-04-23
+  - hotfix contractual en `platform-core`: se corrige el carril `PATCH /platform/tenants/{tenant_id}/subscription` cuando agrega múltiples add-ons sobre tenants contract-managed
+  - causa real corregida:
+    - las tablas control creadas por `v0027_tenant_module_subscription_model` y `v0028_tenant_runtime_secret_campaigns` en PostgreSQL nacían con `id INTEGER PRIMARY KEY` sin `DEFAULT nextval(...)`
+    - eso hacía que inserts ORM en `tenant_subscription_items` y tablas relacionadas intentaran persistir `id=NULL`
+  - corrección aplicada:
+    - se endurecen [v0027_tenant_module_subscription_model.py](/home/felipe/platform_paas/backend/migrations/control/v0027_tenant_module_subscription_model.py) y [v0028_tenant_runtime_secret_campaigns.py](/home/felipe/platform_paas/backend/migrations/control/v0028_tenant_runtime_secret_campaigns.py) para crear PKs con identidad correcta en PostgreSQL desde instalaciones nuevas
+    - se agrega [v0030_contract_tables_postgres_identity_fix.py](/home/felipe/platform_paas/backend/migrations/control/v0030_contract_tables_postgres_identity_fix.py) para reparar entornos ya existentes
+    - se agrega regresión sobre contrato con múltiples add-ons en [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py)
+  - validación:
+    - `backend.app.tests.test_migration_flow + backend.app.tests.test_platform_flow` -> `256 tests OK`
+    - `staging` backend redeploy -> `582 tests OK`
+    - `production` backend redeploy -> `582 tests OK`
+    - verificación directa en `platform_control`:
+      - `tenant_subscriptions.id`
+      - `tenant_subscription_items.id`
+      - `tenant_runtime_secret_campaigns.id`
+      - `tenant_runtime_secret_campaign_items.id`
+      ya quedan con `nextval(...::regclass)`

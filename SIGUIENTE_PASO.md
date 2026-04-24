@@ -2,6 +2,9 @@
 
 ## Prioridad vigente
 
+- hotfix contractual recién cerrado:
+  - `Tenants -> Plan y módulos` ya no debería fallar al contratar `maintenance + crm` sobre tenants contract-managed
+  - si reaparece otro error en el mismo carril, ya no se espera un fallo estructural de PK/sequence en `platform_control`; tocaría revisar un caso de datos puntual
 - primer frente de expansión ya abierto:
   - `crm` ya queda cerrado para el alcance comercial actual también en runtime
   - no conviene reabrirlo por inercia salvo para expansión explícita como:

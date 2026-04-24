@@ -1,5 +1,47 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-23 - hotfix contractual para múltiples add-ons tenant
+
+Contexto:
+
+- al intentar contratar `maintenance + crm` sobre un tenant contract-managed, la consola devolvía `subscription-contract: Internal server error`
+- el fallo no estaba en el payload ni en las dependencias técnicas del contrato
+- el stack trace real mostró `psycopg2.errors.NotNullViolation` en `tenant_subscription_items.id`
+
+Cambios:
+
+- se corrigen las migraciones base control:
+  - [v0027_tenant_module_subscription_model.py](/home/felipe/platform_paas/backend/migrations/control/v0027_tenant_module_subscription_model.py)
+  - [v0028_tenant_runtime_secret_campaigns.py](/home/felipe/platform_paas/backend/migrations/control/v0028_tenant_runtime_secret_campaigns.py)
+- ambas ya crean PKs con identidad válida en PostgreSQL para instalaciones nuevas
+- se agrega la migración correctiva:
+  - [v0030_contract_tables_postgres_identity_fix.py](/home/felipe/platform_paas/backend/migrations/control/v0030_contract_tables_postgres_identity_fix.py)
+- esa migración repara entornos ya existentes y fija `DEFAULT nextval(...)` en:
+  - `tenant_subscriptions`
+  - `tenant_subscription_items`
+  - `tenant_runtime_secret_campaigns`
+  - `tenant_runtime_secret_campaign_items`
+  - además de los catálogos contractuales creados por el mismo slice
+- se agrega regresión mínima en [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py) para el guardado con múltiples add-ons
+
+Validación:
+
+- local:
+  - `backend.app.tests.test_migration_flow + backend.app.tests.test_platform_flow` -> `256 tests OK`
+- `staging`:
+  - backend redeploy -> `582 tests OK`
+- `production`:
+  - backend redeploy -> `582 tests OK`
+  - verificación directa en `platform_control`:
+    - `tenant_subscriptions.id` -> `nextval(...)`
+    - `tenant_subscription_items.id` -> `nextval(...)`
+    - `tenant_runtime_secret_campaigns.id` -> `nextval(...)`
+    - `tenant_runtime_secret_campaign_items.id` -> `nextval(...)`
+
+Resultado:
+
+- el carril `Tenants -> Plan y módulos` ya no debería fallar por PK nula al contratar múltiples add-ons sobre tenants contract-managed
+
 ## 2026-04-23 - `crm` queda cerrado para el alcance comercial actual
 
 Contexto:

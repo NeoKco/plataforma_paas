@@ -3,6 +3,27 @@
 ## Última actualización
 
 - fecha: 2026-04-23
+- hotfix contractual cerrado en `platform-core`:
+  - el error `subscription-contract: Internal server error` al contratar `maintenance + crm` no se debía al modelo comercial ni a la combinación de módulos
+  - la causa real estaba en PostgreSQL: las tablas contractuales/runtime de `platform_control` creadas por `v0027` y `v0028` tenían `id INTEGER PRIMARY KEY` sin `DEFAULT nextval(...)`
+  - eso hacía que inserts ORM en `tenant_subscription_items` intentaran persistir `id=NULL` al agregar nuevos add-ons
+  - se corrigió en tres capas:
+    - migraciones base endurecidas:
+      - [v0027_tenant_module_subscription_model.py](/home/felipe/platform_paas/backend/migrations/control/v0027_tenant_module_subscription_model.py)
+      - [v0028_tenant_runtime_secret_campaigns.py](/home/felipe/platform_paas/backend/migrations/control/v0028_tenant_runtime_secret_campaigns.py)
+    - migración correctiva nueva para entornos ya vivos:
+      - [v0030_contract_tables_postgres_identity_fix.py](/home/felipe/platform_paas/backend/migrations/control/v0030_contract_tables_postgres_identity_fix.py)
+    - regresión mínima añadida en [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py)
+  - validación:
+    - `backend.app.tests.test_migration_flow + backend.app.tests.test_platform_flow` -> `256 tests OK`
+    - `staging` backend redeploy -> `582 tests OK`
+    - `production` backend redeploy -> `582 tests OK`
+    - verificación directa en `platform_control` producción:
+      - `tenant_subscriptions.id`
+      - `tenant_subscription_items.id`
+      - `tenant_runtime_secret_campaigns.id`
+      - `tenant_runtime_secret_campaign_items.id`
+      ya quedaron con `nextval(...::regclass)`
 - foco operativo nuevo ya cerrado en repo fuera del roadmap base:
   - `crm` ya queda cerrado para su alcance comercial actual como primer módulo nuevo de expansión
   - backend tenant ya expone:
