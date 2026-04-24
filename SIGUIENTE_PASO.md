@@ -4,22 +4,23 @@
 
 - expansión reciente ya cerrada:
   - `crm` ya queda cerrado para su alcance comercial actual en runtime
+  - `crm ingestion` ya queda cerrada como expansión sobre `crm`
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
   - `techdocs` ya queda cerrado para su alcance operativo actual en runtime
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
-  - no conviene reabrir ninguno de los cuatro por inercia salvo expansión explícita
+  - no conviene reabrir ninguno de los cinco por inercia salvo expansión explícita
 - siguiente frente recomendado:
   - abrir el próximo frente faltante desde `ieris_app`
   - recomendación actual:
-    - `scraping de productos` sobre `crm`
+    - profundizar `crm ingestion` desde captura asistida hacia scraping automático multi-fuente
   - por qué este orden:
-    - `crm` ya absorbió productos, oportunidades, plantillas y cotizaciones, pero todavía falta el frente de captura asistida desde fuentes externas
+    - `crm` ya absorbió productos, oportunidades, plantillas, cotizaciones e ingesta asistida, pero todavía falta el frente de captura automática desde fuentes externas
     - `taskops`, `techdocs` y `chat` ya cubren los bloques internos transversales que faltaban
     - evita reabrir por inercia módulos ya cerrados cuando el hueco real restante está en la entrada de catálogo
   - alcance sugerido del primer slice:
-    - ingesta/scraping asistido de productos
-    - normalización mínima al catálogo `crm_products`
-    - revisión humana antes de publicar en catálogo operativo
+    - scraping automático multi-fuente
+    - enriquecimiento y deduplicación sugerida
+    - misma revisión humana antes de publicar en catálogo operativo
 - el roadmap base actual ya queda formalmente cerrado:
   - las `Etapas 9`, `10`, `11`, `12`, `13`, `14`, `15`, `16` y `17` ya quedaron cerradas para el alcance actual
   - la base PaaS ya no necesita más cierres estructurales para operar

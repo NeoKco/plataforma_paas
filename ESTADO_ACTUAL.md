@@ -4,6 +4,25 @@
 
 - fecha: 2026-04-24
 - foco operativo nuevo ya cerrado en repo y runtime:
+  - `crm ingestion` ya queda terminado como expansión del módulo `crm`
+  - backend tenant ya expone:
+    - `/tenant/crm/product-ingestion/overview`
+    - `/tenant/crm/product-ingestion/drafts`
+    - `/tenant/crm/product-ingestion/drafts/{draft_id}/approve`
+  - frontend tenant ya publica:
+    - `Ingesta`
+    - resumen de ingesta dentro de `CRM > Resumen`
+  - el frente ya soporta:
+    - borradores manuales o por URL de referencia
+    - normalización mínima previa
+    - características por borrador
+    - descarte y reapertura
+    - aprobación al catálogo `crm_products`
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_crm_services backend.app.tests.test_migration_flow backend.app.tests.test_platform_flow -v` -> `268 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/crm/api/*.py backend/app/apps/tenant_modules/crm/models/*.py backend/app/apps/tenant_modules/crm/schemas/*.py backend/app/apps/tenant_modules/crm/services/*.py backend/migrations/tenant/v0045_crm_product_ingestion.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+- foco operativo nuevo ya cerrado en repo y runtime:
   - `chat` ya queda terminado para su alcance operativo actual como cuarto módulo de expansión post-cierre
   - backend tenant ya expone:
     - `/tenant/chat/overview`

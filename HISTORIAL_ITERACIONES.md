@@ -1,5 +1,38 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `crm ingestion` queda cerrada para el alcance asistido actual
+
+Contexto:
+
+- después de cerrar `chat`, el siguiente frente faltante de `ieris_app` con mejor retorno era `scraping de productos` sobre `crm`
+- por decisión de alcance, el primer cierre se modela como `ingesta asistida de productos` dentro de `crm`, no como módulo top-level nuevo
+
+Cambios:
+
+- nueva migración tenant en [v0045_crm_product_ingestion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0045_crm_product_ingestion.py)
+- backend nuevo para:
+  - `overview` de ingesta
+  - borradores de captura
+  - cambio de estado
+  - aprobación al catálogo `crm_products`
+- frontend nuevo con la vista `CRM > Ingesta`
+- el overview de `crm` ahora refleja:
+  - `ingestion_total`
+  - `ingestion_draft`
+  - `recent_product_drafts`
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_crm_services + backend.app.tests.test_migration_flow + backend.app.tests.test_platform_flow` -> `268 tests OK`
+  - `python3 -m py_compile backend/app/apps/tenant_modules/crm/api/*.py backend/app/apps/tenant_modules/crm/models/*.py backend/app/apps/tenant_modules/crm/schemas/*.py backend/app/apps/tenant_modules/crm/services/*.py backend/migrations/tenant/v0045_crm_product_ingestion.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+
+Resultado:
+
+- `crm` deja de estar limitado a catálogo/pipeline/cotización y ahora también cubre ingesta asistida previa a publicación
+- el siguiente paso ya no es “abrir scraping de productos desde cero”, sino publicar este slice en runtime y luego decidir la siguiente profundización automática
+
 ## 2026-04-24 - `chat` queda cerrado también en runtime
 
 Contexto:

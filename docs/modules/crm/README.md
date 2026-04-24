@@ -17,6 +17,7 @@ Estado actual:
   - cotizaciones estructuradas con líneas libres y secciones
 - frontend tenant ya entrega lectura y captura para:
   - `Resumen`
+  - `Ingesta`
   - `Oportunidades`
   - `Histórico`
   - `Cotizaciones`
@@ -63,16 +64,23 @@ El módulo hoy incluye:
   - totales recalculados
 - resumen comercial con métricas de:
   - productos
+  - ingesta asistida
   - pipeline
   - históricas
   - cotizaciones
   - plantillas
+- ingesta asistida de productos con:
+  - borradores manuales o por referencia URL
+  - normalización mínima previa
+  - características
+  - aprobación al catálogo `crm_products`
+  - descarte y reapertura de borradores
 
 Queda fuera por ahora:
 
 - render visual avanzado de cotización
 - PDF formal/export comercial
-- scraping de productos
+- scraping automático multi-fuente
 - IA comercial local
 
 ## Mapa de documentos

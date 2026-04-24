@@ -6,6 +6,8 @@ from app.apps.tenant_modules.crm.schemas import (
     CRMOpportunityNoteItemResponse,
     CRMOpportunityStageEventItemResponse,
     CRMProductCharacteristicItemResponse,
+    CRMProductIngestionCharacteristicItemResponse,
+    CRMProductIngestionDraftItemResponse,
     CRMProductItemResponse,
     CRMQuoteItemResponse,
     CRMQuoteLineItemResponse,
@@ -33,6 +35,53 @@ def build_product_item(item, *, characteristics: list | None = None) -> CRMProdu
             CRMProductCharacteristicItemResponse(
                 id=characteristic.id,
                 product_id=characteristic.product_id,
+                label=characteristic.label,
+                value=characteristic.value,
+                sort_order=characteristic.sort_order,
+                created_at=characteristic.created_at,
+            )
+            for characteristic in (characteristics or [])
+        ],
+    )
+
+
+def build_product_ingestion_draft_item(
+    item,
+    *,
+    characteristics: list | None = None,
+    published_product_name: str | None = None,
+) -> CRMProductIngestionDraftItemResponse:
+    return CRMProductIngestionDraftItemResponse(
+        id=item.id,
+        source_kind=item.source_kind,
+        source_label=item.source_label,
+        source_url=item.source_url,
+        external_reference=item.external_reference,
+        capture_status=item.capture_status,
+        sku=item.sku,
+        name=item.name,
+        brand=item.brand,
+        category_label=item.category_label,
+        product_type=item.product_type,
+        unit_label=item.unit_label,
+        unit_price=item.unit_price,
+        currency_code=item.currency_code,
+        description=item.description,
+        source_excerpt=item.source_excerpt,
+        extraction_notes=item.extraction_notes,
+        review_notes=item.review_notes,
+        created_by_user_id=item.created_by_user_id,
+        reviewed_by_user_id=item.reviewed_by_user_id,
+        published_product_id=item.published_product_id,
+        published_product_name=published_product_name,
+        published_at=item.published_at,
+        discarded_at=item.discarded_at,
+        created_at=item.created_at,
+        updated_at=item.updated_at,
+        characteristics=[
+            CRMProductIngestionCharacteristicItemResponse(
+                id=characteristic.id,
+                draft_id=characteristic.draft_id,
                 label=characteristic.label,
                 value=characteristic.value,
                 sort_order=characteristic.sort_order,

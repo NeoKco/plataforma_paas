@@ -29,6 +29,7 @@ La frontera correcta es:
 - Migraciones tenant:
   - [v0040_crm_base.py](/home/felipe/platform_paas/backend/migrations/tenant/v0040_crm_base.py)
   - [v0041_crm_expansion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0041_crm_expansion.py)
+  - [v0045_crm_product_ingestion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0045_crm_product_ingestion.py)
 
 ## Modelo actual
 
@@ -48,6 +49,8 @@ Entidades activas del módulo:
 - `crm_quote_templates`
 - `crm_quote_template_sections`
 - `crm_quote_template_items`
+- `crm_product_ingestion_drafts`
+- `crm_product_ingestion_characteristics`
 
 ## Relaciones clave
 
@@ -62,6 +65,8 @@ Entidades activas del módulo:
 - `crm_quote_template_sections.template_id -> crm_quote_templates.id`
 - `crm_quote_template_items.section_id -> crm_quote_template_sections.id`
 - `crm_quote_template_items.product_id -> crm_products.id`
+- `crm_product_ingestion_drafts.published_product_id -> crm_products.id`
+- `crm_product_ingestion_characteristics.draft_id -> crm_product_ingestion_drafts.id`
 
 ## Contrato funcional actual
 
@@ -110,6 +115,20 @@ Entidades activas del módulo:
 - estructura por secciones
 - ítems base ligados o no al catálogo
 
+### Ingesta asistida
+
+- borradores de captura con `source_kind`:
+  - `manual_capture`
+  - `url_reference`
+- estados controlados:
+  - `draft`
+  - `approved`
+  - `discarded`
+- aprobación server-side mediante `approve_draft(...)`
+- publicación al catálogo usando `CRMProductService.create_product(...)`
+- características del borrador persistidas aparte y promovidas al producto final
+- resumen propio de ingesta para overview y página dedicada
+
 ## API tenant actual
 
 Prefijo:
@@ -123,6 +142,7 @@ Routers visibles:
 - `opportunities`
 - `quotes`
 - `templates`
+- `product-ingestion`
 
 Endpoints relevantes extra:
 
@@ -143,6 +163,7 @@ Rutas:
 - `/tenant-portal/crm`
 - `/tenant-portal/crm/opportunities`
 - `/tenant-portal/crm/history`
+- `/tenant-portal/crm/ingestion`
 - `/tenant-portal/crm/quotes`
 - `/tenant-portal/crm/templates`
 - `/tenant-portal/crm/products`
@@ -163,9 +184,9 @@ Piezas relevantes:
 ## Cobertura de regresión actual
 
 - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
-  - reglas de productos, oportunidades, cotizaciones estructuradas y plantillas
+  - reglas de productos, ingesta, oportunidades, cotizaciones estructuradas y plantillas
 - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
-  - presencia e idempotencia de `0040_crm_base` y `0041_crm_expansion`
+  - presencia e idempotencia de `0040_crm_base`, `0041_crm_expansion` y `0045_crm_product_ingestion`
 
 ## Regla de evolución
 
@@ -182,5 +203,5 @@ La siguiente evolución razonable del módulo ya no es “cerrar lo básico”, 
 
 - render/PDF
 - plantillas visuales
-- scraping de catálogo
+- scraping automático multi-fuente
 - IA comercial

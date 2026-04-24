@@ -77,6 +77,121 @@ class CRMProductMutationResponse(BaseModel):
     data: CRMProductItemResponse
 
 
+class CRMProductIngestionCharacteristicWriteRequest(BaseModel):
+    id: int | None = None
+    label: str
+    value: str
+    sort_order: int = 100
+
+
+class CRMProductIngestionCharacteristicItemResponse(BaseModel):
+    id: int
+    draft_id: int
+    label: str
+    value: str
+    sort_order: int
+    created_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class CRMProductIngestionDraftCreateRequest(BaseModel):
+    source_kind: str = "manual_capture"
+    source_label: str | None = None
+    source_url: str | None = None
+    external_reference: str | None = None
+    sku: str | None = None
+    name: str | None = None
+    brand: str | None = None
+    category_label: str | None = None
+    product_type: str = "service"
+    unit_label: str | None = None
+    unit_price: float = 0
+    currency_code: str = "CLP"
+    description: str | None = None
+    source_excerpt: str | None = None
+    extraction_notes: str | None = None
+    characteristics: list[CRMProductIngestionCharacteristicWriteRequest] = Field(default_factory=list)
+
+
+class CRMProductIngestionDraftUpdateRequest(CRMProductIngestionDraftCreateRequest):
+    pass
+
+
+class CRMProductIngestionStatusRequest(BaseModel):
+    capture_status: str
+    review_notes: str | None = None
+
+
+class CRMProductIngestionApproveRequest(BaseModel):
+    review_notes: str | None = None
+
+
+class CRMProductIngestionDraftItemResponse(BaseModel):
+    id: int
+    source_kind: str
+    source_label: str | None = None
+    source_url: str | None = None
+    external_reference: str | None = None
+    capture_status: str
+    sku: str | None = None
+    name: str | None = None
+    brand: str | None = None
+    category_label: str | None = None
+    product_type: str
+    unit_label: str | None = None
+    unit_price: float
+    currency_code: str
+    description: str | None = None
+    source_excerpt: str | None = None
+    extraction_notes: str | None = None
+    review_notes: str | None = None
+    created_by_user_id: int | None = None
+    reviewed_by_user_id: int | None = None
+    published_product_id: int | None = None
+    published_product_name: str | None = None
+    published_at: datetime | None = None
+    discarded_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    characteristics: list[CRMProductIngestionCharacteristicItemResponse] = Field(default_factory=list)
+
+    class Config:
+        from_attributes = True
+
+
+class CRMProductIngestionOverviewResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    metrics: dict
+    recent_drafts: list[CRMProductIngestionDraftItemResponse]
+
+
+class CRMProductIngestionDraftsResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    total: int
+    data: list[CRMProductIngestionDraftItemResponse]
+
+
+class CRMProductIngestionDraftMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: CRMProductIngestionDraftItemResponse
+
+
+class CRMProductIngestionApprovalResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: CRMProductIngestionDraftItemResponse
+    published_product: CRMProductItemResponse
+
+
 class CRMOpportunityCreateRequest(BaseModel):
     client_id: int | None = None
     title: str
@@ -486,3 +601,4 @@ class CRMModuleOverviewResponse(BaseModel):
     metrics: dict
     recent_opportunities: list[CRMOpportunityItemResponse]
     recent_quotes: list[CRMQuoteItemResponse]
+    recent_product_drafts: list[CRMProductIngestionDraftItemResponse] = Field(default_factory=list)

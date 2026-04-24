@@ -137,10 +137,25 @@ export function CRMOverviewPage() {
               hint={language === "es" ? "Bases comerciales reutilizables" : "Reusable commercial bases"}
             />
             <MetricCard
+              icon="products"
+              label={language === "es" ? "Borradores ingesta" : "Ingestion drafts"}
+              value={metrics.ingestion_draft}
+              hint={language === "es" ? "Pendientes de revisar y publicar" : "Pending review and publish"}
+            />
+          </div>
+
+          <div className="tenant-portal-metrics">
+            <MetricCard
               icon="focus"
               label={language === "es" ? "Salud pipeline" : "Pipeline health"}
               value={`${pipelineHealth}%`}
               hint={language === "es" ? "Proporción abierta del total" : "Open share of total"}
+            />
+            <MetricCard
+              icon="catalogs"
+              label={language === "es" ? "Ingesta total" : "Total ingestion"}
+              value={metrics.ingestion_total}
+              hint={language === "es" ? "Capturas comerciales registradas" : "Registered commercial captures"}
             />
           </div>
 
@@ -183,6 +198,16 @@ export function CRMOverviewPage() {
                     : "Products and services enriched with technical/commercial characteristics."}
                 </div>
               </div>
+              <div className="crm-detail-card">
+                <div className="crm-detail-card__header">
+                  <strong>{language === "es" ? "Ingesta asistida" : "Assisted ingestion"}</strong>
+                </div>
+                <div className="text-muted small">
+                  {language === "es"
+                    ? "Borradores revisables para capturar productos desde referencias externas antes de publicarlos al catálogo."
+                    : "Reviewable drafts to capture products from external references before publishing them to the catalog."}
+                </div>
+              </div>
             </div>
           </PanelCard>
 
@@ -215,6 +240,43 @@ export function CRMOverviewPage() {
                 key: "amount",
                 header: language === "es" ? "Valor esperado" : "Expected value",
                 render: (row) => formatMoney(row.expected_value || 0, language),
+              },
+            ]}
+          />
+
+          <DataTableCard
+            title={language === "es" ? "Borradores recientes de ingesta" : "Recent ingestion drafts"}
+            subtitle={
+              language === "es"
+                ? "Capturas pendientes o recién publicadas al catálogo."
+                : "Captures pending review or just published to the catalog."
+            }
+            rows={data?.recent_product_drafts || []}
+            columns={[
+              {
+                key: "name",
+                header: language === "es" ? "Borrador" : "Draft",
+                render: (row) => (
+                  <div>
+                    <strong>{row.name || row.source_label || "—"}</strong>
+                    <div className="text-muted small">{row.source_url || row.brand || "—"}</div>
+                  </div>
+                ),
+              },
+              {
+                key: "status",
+                header: language === "es" ? "Estado" : "Status",
+                render: (row) => row.capture_status,
+              },
+              {
+                key: "type",
+                header: language === "es" ? "Tipo" : "Type",
+                render: (row) => row.product_type,
+              },
+              {
+                key: "published",
+                header: language === "es" ? "Producto final" : "Published product",
+                render: (row) => row.published_product_name || "—",
               },
             ]}
           />

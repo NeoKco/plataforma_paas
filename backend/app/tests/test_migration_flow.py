@@ -44,6 +44,7 @@ from migrations.tenant import v0041_crm_expansion
 from migrations.tenant import v0042_taskops_base
 from migrations.tenant import v0043_techdocs_base
 from migrations.tenant import v0044_chat_base
+from migrations.tenant import v0045_crm_product_ingestion
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -226,6 +227,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0042_taskops_base",
                 "0043_techdocs_base",
                 "0044_chat_base",
+                "0045_crm_product_ingestion",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -290,6 +292,8 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("techdocs_evidences", tables)
         self.assertIn("techdocs_audit_events", tables)
         self.assertIn("chat_conversations", tables)
+        self.assertIn("crm_product_ingestion_drafts", tables)
+        self.assertIn("crm_product_ingestion_characteristics", tables)
         self.assertIn("chat_conversation_participants", tables)
         self.assertIn("chat_messages", tables)
         maintenance_cost_line_columns = {
@@ -464,6 +468,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         chat_conversation_columns = {
             column["name"] for column in inspect(engine).get_columns("chat_conversations")
         }
+        crm_ingestion_draft_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_product_ingestion_drafts")
+        }
+        crm_ingestion_characteristic_columns = {
+            column["name"] for column in inspect(engine).get_columns("crm_product_ingestion_characteristics")
+        }
         chat_participant_columns = {
             column["name"] for column in inspect(engine).get_columns("chat_conversation_participants")
         }
@@ -529,6 +539,11 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("event_type", techdocs_audit_columns)
         self.assertIn("conversation_kind", chat_conversation_columns)
         self.assertIn("context_type", chat_conversation_columns)
+        self.assertIn("capture_status", crm_ingestion_draft_columns)
+        self.assertIn("published_product_id", crm_ingestion_draft_columns)
+        self.assertIn("source_url", crm_ingestion_draft_columns)
+        self.assertIn("draft_id", crm_ingestion_characteristic_columns)
+        self.assertIn("label", crm_ingestion_characteristic_columns)
         self.assertIn("user_id", chat_participant_columns)
         self.assertIn("last_read_message_id", chat_participant_columns)
         self.assertIn("sender_user_id", chat_message_columns)
@@ -661,6 +676,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0042_taskops_base",
                 "0043_techdocs_base",
                 "0044_chat_base",
+                "0045_crm_product_ingestion",
             ],
         )
 
@@ -1002,6 +1018,62 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("chat_conversations", tables)
         self.assertIn("chat_conversation_participants", tables)
         self.assertIn("chat_messages", tables)
+
+    def test_crm_product_ingestion_migration_is_idempotent(self) -> None:
+        engine = self._build_engine()
+
+        with engine.begin() as conn:
+            v0001 = __import__("migrations.tenant.v0001_core", fromlist=["upgrade"])
+            v0002 = __import__("migrations.tenant.v0002_finance_entries", fromlist=["upgrade"])
+            v0001.upgrade(conn)
+            v0002.upgrade(conn)
+            v0003_finance_catalogs.upgrade(conn)
+            v0004_finance_seed_clp.upgrade(conn)
+            v0005_finance_transactions.upgrade(conn)
+            v0006_finance_budgets.upgrade(conn)
+            v0007_finance_loans.upgrade(conn)
+            v0008_finance_loan_installments.upgrade(conn)
+            v0009_finance_loan_installment_payment_split.upgrade(conn)
+            v0010_finance_loan_installment_reversal_reason.upgrade(conn)
+            v0011_finance_loan_source_account.upgrade(conn)
+            v0012_finance_transaction_voids.upgrade(conn)
+            v0013_finance_transaction_voids_repair.upgrade(conn)
+            v0014_finance_default_category_catalog.upgrade(conn)
+            v0015_business_core_base.upgrade(conn)
+            v0016_maintenance_base.upgrade(conn)
+            v0017_business_core_taxonomy.upgrade(conn)
+            v0018_business_core_site_commune.upgrade(conn)
+            v0019_core_user_timezones.upgrade(conn)
+            v0020_work_group_members_and_maintenance_assignments.upgrade(conn)
+            v0021_maintenance_schedules_and_due_items.upgrade(conn)
+            v0022_maintenance_costing_and_finance_sync.upgrade(conn)
+            v0023_maintenance_cost_lines.upgrade(conn)
+            v0024_maintenance_finance_sync_policy.upgrade(conn)
+            v0025_maintenance_schedule_estimate_defaults.upgrade(conn)
+            v0026_maintenance_cost_templates.upgrade(conn)
+            v0027_maintenance_schedule_template_links.upgrade(conn)
+            v0028_maintenance_field_reports.upgrade(conn)
+            __import__("migrations.tenant.v0029_business_task_type_function_profiles", fromlist=["upgrade"]).upgrade(conn)
+            __import__("migrations.tenant.v0030_business_core_merge_audits", fromlist=["upgrade"]).upgrade(conn)
+            __import__("migrations.tenant.v0032_business_core_assets", fromlist=["upgrade"]).upgrade(conn)
+            __import__("migrations.tenant.v0033_business_organization_addresses", fromlist=["upgrade"]).upgrade(conn)
+            v0034_maintenance_actual_template_trace.upgrade(conn)
+            v0035_maintenance_visit_type.upgrade(conn)
+            v0036_maintenance_visit_result.upgrade(conn)
+            __import__("migrations.tenant.v0037_maintenance_cost_line_expense_flag", fromlist=["upgrade"]).upgrade(conn)
+            v0038_maintenance_work_order_task_type.upgrade(conn)
+            v0039_social_community_groups.upgrade(conn)
+            v0040_crm_base.upgrade(conn)
+            v0041_crm_expansion.upgrade(conn)
+            v0042_taskops_base.upgrade(conn)
+            v0043_techdocs_base.upgrade(conn)
+            v0044_chat_base.upgrade(conn)
+            v0045_crm_product_ingestion.upgrade(conn)
+            v0045_crm_product_ingestion.upgrade(conn)
+
+        tables = set(inspect(engine).get_table_names())
+        self.assertIn("crm_product_ingestion_drafts", tables)
+        self.assertIn("crm_product_ingestion_characteristics", tables)
 
 
 if __name__ == "__main__":

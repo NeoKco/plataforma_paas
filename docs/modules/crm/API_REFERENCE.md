@@ -22,6 +22,25 @@ Notas:
 
 - cada producto puede traer `characteristics[]`
 
+## Product Ingestion
+
+- `GET /tenant/crm/product-ingestion/overview`
+- `GET /tenant/crm/product-ingestion/drafts`
+- `POST /tenant/crm/product-ingestion/drafts`
+- `GET /tenant/crm/product-ingestion/drafts/{draft_id}`
+- `PUT /tenant/crm/product-ingestion/drafts/{draft_id}`
+- `PATCH /tenant/crm/product-ingestion/drafts/{draft_id}/status`
+- `POST /tenant/crm/product-ingestion/drafts/{draft_id}/approve`
+
+Notas:
+
+- la ingesta no crea productos automáticamente por solo capturar el borrador
+- la publicación al catálogo ocurre recién en `approve`
+- los estados válidos de borrador son:
+  - `draft`
+  - `approved`
+  - `discarded`
+
 ## Opportunities
 
 - `GET /tenant/crm/opportunities`

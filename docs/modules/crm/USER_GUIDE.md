@@ -25,6 +25,9 @@ Base esperada:
   - métricas rápidas del frente comercial
   - oportunidades recientes
   - cotizaciones recientes
+- `Ingesta`
+  - borradores de captura asistida de productos
+  - revisión humana antes de publicar al catálogo
 - `Oportunidades`
   - tabla operativa
   - kanban por etapa
@@ -42,12 +45,13 @@ Base esperada:
 
 1. crear o validar el cliente en `Core de negocio`
 2. cargar productos o servicios reutilizables en `Productos`
-3. si el tipo de propuesta se repite, crear una `Plantilla`
-4. abrir una `Oportunidad`
-5. usar contactos, notas, actividades y adjuntos para seguir la negociación
-6. si ya hay propuesta, crear la `Cotización`
-7. cerrar la oportunidad como `won` o `lost` cuando corresponda
-8. revisar el resultado luego en `Histórico`
+3. si el catálogo todavía no existe o viene desordenado, usar `Ingesta`
+4. si el tipo de propuesta se repite, crear una `Plantilla`
+5. abrir una `Oportunidad`
+6. usar contactos, notas, actividades y adjuntos para seguir la negociación
+7. si ya hay propuesta, crear la `Cotización`
+8. cerrar la oportunidad como `won` o `lost` cuando corresponda
+9. revisar el resultado luego en `Histórico`
 
 ## Cómo usar cada frente
 
@@ -93,6 +97,38 @@ Además, dentro del detalle puedes manejar:
 - actividades
 - adjuntos
 - historial de cambios de etapa
+
+### Ingesta
+
+Úsala cuando el producto todavía no está listo para entrar directo al catálogo.
+
+Cada borrador puede guardar:
+
+- origen manual o por URL de referencia
+- nombre normalizado
+- SKU
+- marca
+- categoría
+- tipo
+- unidad
+- precio referencial
+- descripción
+- extracto de origen
+- notas de extracción/revisión
+- características
+
+El flujo recomendado es:
+
+1. capturar el borrador
+2. revisar y normalizar
+3. aprobar cuando ya pueda entrar al catálogo operativo
+4. descartar si la fuente no sirve o es duplicada
+
+Cuando apruebas:
+
+- se crea el producto en `Productos`
+- el borrador queda marcado como `Aprobado`
+- queda trazabilidad del producto publicado
 
 ### Histórico
 
@@ -144,7 +180,7 @@ Por ahora este módulo no incluye:
 - render visual avanzado de cotizaciones
 - PDF comercial final
 - workflow formal de aprobación
-- scraping de catálogo
+- scraping automático multi-fuente
 - IA comercial local
 
 ## Dependencias visibles

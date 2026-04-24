@@ -3,6 +3,7 @@ from sqlalchemy import func
 from app.apps.tenant_modules.crm.models import (
     CRMOpportunity,
     CRMProduct,
+    CRMProductIngestionDraft,
     CRMQuote,
     CRMQuoteTemplate,
 )
@@ -44,6 +45,13 @@ class CRMOverviewService:
             or 0
         )
         template_total = tenant_db.query(func.count(CRMQuoteTemplate.id)).scalar() or 0
+        ingestion_total = tenant_db.query(func.count(CRMProductIngestionDraft.id)).scalar() or 0
+        ingestion_draft = (
+            tenant_db.query(func.count(CRMProductIngestionDraft.id))
+            .filter(CRMProductIngestionDraft.capture_status == "draft")
+            .scalar()
+            or 0
+        )
         return {
             "products_total": int(product_total),
             "products_active": int(product_active),
@@ -54,4 +62,6 @@ class CRMOverviewService:
             "quotes_total": int(quote_total),
             "quoted_amount": float(quote_amount),
             "templates_total": int(template_total),
+            "ingestion_total": int(ingestion_total),
+            "ingestion_draft": int(ingestion_draft),
         }

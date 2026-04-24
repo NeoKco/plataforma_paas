@@ -51,3 +51,21 @@
   - `production` backend redeployado con `581 tests OK`, convergencia `processed=4, synced=4, failed=0`
   - `staging` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`
   - `production` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`
+
+## 2026-04-24
+
+- se abre y cierra el slice `ingesta asistida de productos` dentro de `crm`
+- nueva migración tenant en [v0045_crm_product_ingestion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0045_crm_product_ingestion.py)
+- backend tenant nuevo para:
+  - `overview` de ingesta
+  - borradores de captura
+  - cambio de estado `draft/discarded`
+  - aprobación al catálogo `crm_products`
+- frontend tenant nuevo con la vista `Ingesta`
+- el overview comercial ahora también expone:
+  - `ingestion_total`
+  - `ingestion_draft`
+  - `recent_product_drafts`
+- regresión ampliada en:
+  - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
+  - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)

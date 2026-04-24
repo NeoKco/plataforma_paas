@@ -5,6 +5,10 @@ from app.apps.tenant_modules.crm.models.opportunity import CRMOpportunity
 from app.apps.tenant_modules.crm.models.opportunity_note import CRMOpportunityNote
 from app.apps.tenant_modules.crm.models.opportunity_stage_event import CRMOpportunityStageEvent
 from app.apps.tenant_modules.crm.models.product import CRMProduct
+from app.apps.tenant_modules.crm.models.product_ingestion_characteristic import (
+    CRMProductIngestionCharacteristic,
+)
+from app.apps.tenant_modules.crm.models.product_ingestion_draft import CRMProductIngestionDraft
 from app.apps.tenant_modules.crm.models.product_characteristic import CRMProductCharacteristic
 from app.apps.tenant_modules.crm.models.quote import CRMQuote
 from app.apps.tenant_modules.crm.models.quote_line import CRMQuoteLine
@@ -21,6 +25,8 @@ __all__ = [
     "CRMOpportunityNote",
     "CRMOpportunityStageEvent",
     "CRMProduct",
+    "CRMProductIngestionCharacteristic",
+    "CRMProductIngestionDraft",
     "CRMProductCharacteristic",
     "CRMQuote",
     "CRMQuoteLine",

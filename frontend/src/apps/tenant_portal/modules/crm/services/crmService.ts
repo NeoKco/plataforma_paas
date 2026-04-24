@@ -44,6 +44,64 @@ export type CRMProductWriteRequest = {
   characteristics: CRMProductCharacteristic[];
 };
 
+export type CRMProductIngestionCharacteristic = {
+  id: number | null;
+  draft_id?: number;
+  label: string;
+  value: string;
+  sort_order: number;
+  created_at?: string | null;
+};
+
+export type CRMProductIngestionDraft = {
+  id: number;
+  source_kind: string;
+  source_label: string | null;
+  source_url: string | null;
+  external_reference: string | null;
+  capture_status: string;
+  sku: string | null;
+  name: string | null;
+  brand: string | null;
+  category_label: string | null;
+  product_type: string;
+  unit_label: string | null;
+  unit_price: number;
+  currency_code: string;
+  description: string | null;
+  source_excerpt: string | null;
+  extraction_notes: string | null;
+  review_notes: string | null;
+  created_by_user_id: number | null;
+  reviewed_by_user_id: number | null;
+  published_product_id: number | null;
+  published_product_name: string | null;
+  published_at: string | null;
+  discarded_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  characteristics: CRMProductIngestionCharacteristic[];
+};
+
+export type CRMProductIngestionDraftWriteRequest = {
+  source_kind: string;
+  source_label: string | null;
+  source_url: string | null;
+  external_reference: string | null;
+  sku: string | null;
+  name: string | null;
+  brand: string | null;
+  category_label: string | null;
+  product_type: string;
+  unit_label: string | null;
+  unit_price: number;
+  currency_code: string;
+  description: string | null;
+  source_excerpt: string | null;
+  extraction_notes: string | null;
+  characteristics: CRMProductIngestionCharacteristic[];
+};
+
 export type CRMOpportunity = {
   id: number;
   client_id: number | null;
@@ -303,6 +361,43 @@ type CRMProductMutationResponse = {
   data: CRMProduct;
 };
 
+type CRMProductIngestionDraftsResponse = {
+  success: boolean;
+  message: string;
+  requested_by: CRMRequestedBy;
+  total: number;
+  data: CRMProductIngestionDraft[];
+};
+
+type CRMProductIngestionDraftMutationResponse = {
+  success: boolean;
+  message: string;
+  requested_by: CRMRequestedBy;
+  data: CRMProductIngestionDraft;
+};
+
+type CRMProductIngestionApprovalResponse = {
+  success: boolean;
+  message: string;
+  requested_by: CRMRequestedBy;
+  data: CRMProductIngestionDraft;
+  published_product: CRMProduct;
+};
+
+export type CRMProductIngestionOverviewResponse = {
+  success: boolean;
+  message: string;
+  requested_by: CRMRequestedBy;
+  metrics: {
+    ingestion_total: number;
+    ingestion_draft: number;
+    ingestion_approved: number;
+    ingestion_discarded: number;
+    ingestion_with_url: number;
+  };
+  recent_drafts: CRMProductIngestionDraft[];
+};
+
 type CRMOpportunitiesResponse = {
   success: boolean;
   message: string;
@@ -385,9 +480,12 @@ export type CRMOverviewResponse = {
     quotes_total: number;
     quoted_amount: number;
     templates_total: number;
+    ingestion_total: number;
+    ingestion_draft: number;
   };
   recent_opportunities: CRMOpportunity[];
   recent_quotes: CRMQuote[];
+  recent_product_drafts: CRMProductIngestionDraft[];
 };
 
 export function getCRMOverview(accessToken: string) {
@@ -399,6 +497,74 @@ export function getCRMOverview(accessToken: string) {
 export function getCRMProducts(accessToken: string) {
   return apiRequest<CRMProductsResponse>("/tenant/crm/products", {
     token: accessToken,
+  });
+}
+
+export function getCRMProductIngestionOverview(accessToken: string) {
+  return apiRequest<CRMProductIngestionOverviewResponse>("/tenant/crm/product-ingestion/overview", {
+    token: accessToken,
+  });
+}
+
+export function getCRMProductIngestionDrafts(
+  accessToken: string,
+  params?: { capture_status?: string | null; q?: string | null },
+) {
+  const search = new URLSearchParams();
+  if (params?.capture_status) {
+    search.set("capture_status", params.capture_status);
+  }
+  if (params?.q) {
+    search.set("q", params.q);
+  }
+  const suffix = search.toString() ? `?${search.toString()}` : "";
+  return apiRequest<CRMProductIngestionDraftsResponse>(`/tenant/crm/product-ingestion/drafts${suffix}`, {
+    token: accessToken,
+  });
+}
+
+export function createCRMProductIngestionDraft(accessToken: string, payload: CRMProductIngestionDraftWriteRequest) {
+  return apiRequest<CRMProductIngestionDraftMutationResponse>("/tenant/crm/product-ingestion/drafts", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function updateCRMProductIngestionDraft(
+  accessToken: string,
+  draftId: number,
+  payload: CRMProductIngestionDraftWriteRequest,
+) {
+  return apiRequest<CRMProductIngestionDraftMutationResponse>(`/tenant/crm/product-ingestion/drafts/${draftId}`, {
+    method: "PUT",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function updateCRMProductIngestionDraftStatus(
+  accessToken: string,
+  draftId: number,
+  captureStatus: string,
+  reviewNotes: string | null,
+) {
+  return apiRequest<CRMProductIngestionDraftMutationResponse>(`/tenant/crm/product-ingestion/drafts/${draftId}/status`, {
+    method: "PATCH",
+    token: accessToken,
+    body: { capture_status: captureStatus, review_notes: reviewNotes },
+  });
+}
+
+export function approveCRMProductIngestionDraft(
+  accessToken: string,
+  draftId: number,
+  reviewNotes: string | null,
+) {
+  return apiRequest<CRMProductIngestionApprovalResponse>(`/tenant/crm/product-ingestion/drafts/${draftId}/approve`, {
+    method: "POST",
+    token: accessToken,
+    body: { review_notes: reviewNotes },
   });
 }
 

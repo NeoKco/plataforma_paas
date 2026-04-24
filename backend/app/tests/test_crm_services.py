@@ -10,6 +10,8 @@ from app.apps.tenant_modules.business_core.models import BusinessClient  # noqa:
 from app.apps.tenant_modules.crm.models import (  # noqa: E402
     CRMOpportunity,
     CRMProduct,
+    CRMProductIngestionCharacteristic,
+    CRMProductIngestionDraft,
     CRMProductCharacteristic,
     CRMQuote,
     CRMQuoteLine,
@@ -20,6 +22,8 @@ from app.apps.tenant_modules.crm.schemas import (  # noqa: E402
     CRMOpportunityCloseRequest,
     CRMOpportunityCreateRequest,
     CRMProductCreateRequest,
+    CRMProductIngestionDraftCreateRequest,
+    CRMProductIngestionCharacteristicWriteRequest,
     CRMProductCharacteristicWriteRequest,
     CRMQuoteCreateRequest,
     CRMQuoteLineWriteRequest,
@@ -31,6 +35,9 @@ from app.apps.tenant_modules.crm.schemas import (  # noqa: E402
 from app.apps.tenant_modules.crm.services.opportunity_service import (  # noqa: E402
     CRMOpportunityService,
 )
+from app.apps.tenant_modules.crm.services.product_ingestion_service import (  # noqa: E402
+    CRMProductIngestionService,
+)
 from app.apps.tenant_modules.crm.services.product_service import CRMProductService  # noqa: E402
 from app.apps.tenant_modules.crm.services.quote_service import CRMQuoteService  # noqa: E402
 from app.apps.tenant_modules.crm.services.template_service import (  # noqa: E402
@@ -39,6 +46,157 @@ from app.apps.tenant_modules.crm.services.template_service import (  # noqa: E40
 
 
 class CRMServicesTestCase(unittest.TestCase):
+    def test_product_ingestion_create_persists_draft_and_characteristics(self) -> None:
+        characteristic_query = Mock()
+        characteristic_query.filter.return_value.delete.return_value = None
+
+        tenant_db = Mock()
+        tenant_db.query.side_effect = lambda model: (
+            characteristic_query if model is CRMProductIngestionCharacteristic else Mock()
+        )
+
+        added_items: list[object] = []
+
+        def add_side_effect(item) -> None:
+            added_items.append(item)
+
+        def flush_side_effect() -> None:
+            for item in added_items:
+                if isinstance(item, CRMProductIngestionDraft) and getattr(item, "id", None) is None:
+                    item.id = 41
+
+        tenant_db.add.side_effect = add_side_effect
+        tenant_db.flush.side_effect = flush_side_effect
+
+        service = CRMProductIngestionService()
+        created = service.create_draft(
+            tenant_db,
+            CRMProductIngestionDraftCreateRequest(
+                source_kind="url_reference",
+                source_label="Proveedor A",
+                source_url="https://proveedor-a.local/producto",
+                external_reference="ref-100",
+                sku="SKU-100",
+                name="Panel térmico",
+                brand="Marca Uno",
+                category_label="Solar",
+                product_type="product",
+                unit_label="unidad",
+                unit_price=450000,
+                currency_code="CLP",
+                description="Panel base",
+                source_excerpt="Panel 150L",
+                extraction_notes="captura manual",
+                characteristics=[
+                    CRMProductIngestionCharacteristicWriteRequest(
+                        label="Capacidad",
+                        value="150L",
+                        sort_order=10,
+                    )
+                ],
+            ),
+            actor_user_id=7,
+        )
+
+        characteristic_rows = [item for item in added_items if isinstance(item, CRMProductIngestionCharacteristic)]
+        self.assertEqual(created.id, 41)
+        self.assertEqual(created.capture_status, "draft")
+        self.assertEqual(created.created_by_user_id, 7)
+        self.assertEqual(len(characteristic_rows), 1)
+        self.assertEqual(characteristic_rows[0].draft_id, 41)
+        self.assertEqual(characteristic_rows[0].label, "Capacidad")
+
+    def test_product_ingestion_approve_creates_catalog_product(self) -> None:
+        draft = CRMProductIngestionDraft(
+            id=31,
+            source_kind="url_reference",
+            source_label="Proveedor B",
+            source_url="https://proveedor-b.local/p-1",
+            external_reference=None,
+            capture_status="draft",
+            sku="KIT-31",
+            name="Kit solar premium",
+            brand="SolarPro",
+            category_label="Solar",
+            product_type="product",
+            unit_label="kit",
+            unit_price=990000,
+            currency_code="CLP",
+            description="Kit comercial",
+            source_excerpt=None,
+            extraction_notes=None,
+            review_notes=None,
+            created_by_user_id=5,
+            reviewed_by_user_id=None,
+            published_product_id=None,
+            published_at=None,
+            discarded_at=None,
+        )
+        draft_query = Mock()
+        draft_query.filter.return_value.delete.return_value = None
+        product_query = Mock()
+        product_query.all.return_value = []
+        characteristic_query = Mock()
+        characteristic_query.filter.return_value.delete.return_value = None
+        characteristic_query.filter.return_value.order_by.return_value.all.return_value = [
+            SimpleNamespace(
+                id=1,
+                draft_id=31,
+                label="Potencia",
+                value="150L",
+                sort_order=10,
+                created_at=None,
+            )
+        ]
+        tenant_db = Mock()
+        tenant_db.get.side_effect = lambda model, item_id: (
+            draft
+            if model is CRMProductIngestionDraft and item_id == 31
+            else None
+        )
+        tenant_db.query.side_effect = lambda model: (
+            product_query
+            if model is CRMProduct
+            else characteristic_query
+            if model is CRMProductIngestionCharacteristic
+            else draft_query
+            if model is CRMProductCharacteristic
+            else Mock()
+        )
+
+        added_items: list[object] = []
+
+        def add_side_effect(item) -> None:
+            added_items.append(item)
+
+        def flush_side_effect() -> None:
+            for item in added_items:
+                if isinstance(item, CRMProduct) and getattr(item, "id", None) is None:
+                    item.id = 88
+
+        tenant_db.add.side_effect = add_side_effect
+        tenant_db.flush.side_effect = flush_side_effect
+
+        service = CRMProductIngestionService()
+        updated_draft, product = service.approve_draft(
+            tenant_db,
+            31,
+            actor_user_id=9,
+            review_notes="Listo para catálogo",
+        )
+
+        self.assertEqual(product.id, 88)
+        self.assertEqual(product.name, "Kit solar premium")
+        self.assertEqual(updated_draft.capture_status, "approved")
+        self.assertEqual(updated_draft.published_product_id, 88)
+        self.assertEqual(updated_draft.reviewed_by_user_id, 9)
+        product_characteristics = [
+            item for item in added_items if isinstance(item, CRMProductCharacteristic)
+        ]
+        self.assertGreaterEqual(len(product_characteristics), 3)
+        self.assertIn("Marca", {item.label for item in product_characteristics})
+        self.assertIn("Categoría", {item.label for item in product_characteristics})
+
     def test_product_rejects_duplicate_sku_case_insensitive(self) -> None:
         tenant_db = Mock()
         tenant_db.query.return_value.all.return_value = [

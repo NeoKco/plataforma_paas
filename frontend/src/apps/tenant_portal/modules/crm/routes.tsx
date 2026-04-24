@@ -10,6 +10,13 @@ export const crmTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "ingestion",
+    lazy: async () => {
+      const module = await import("./pages/CRMProductIngestionPage");
+      return { Component: module.CRMProductIngestionPage };
+    },
+  },
+  {
     path: "opportunities",
     lazy: async () => {
       const module = await import("./pages/CRMOpportunitiesPage");

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.crm.api.serializers import (
     build_opportunity_item,
+    build_product_ingestion_draft_item,
     build_quote_item,
 )
 from app.apps.tenant_modules.crm.dependencies import (
@@ -13,6 +14,7 @@ from app.apps.tenant_modules.crm.schemas import CRMModuleOverviewResponse
 from app.apps.tenant_modules.crm.services import (
     CRMOpportunityService,
     CRMOverviewService,
+    CRMProductIngestionService,
     CRMQuoteService,
 )
 from app.common.db.session_manager import get_tenant_db
@@ -21,6 +23,7 @@ router = APIRouter(prefix="/tenant/crm", tags=["Tenant CRM"])
 overview_service = CRMOverviewService()
 opportunity_service = CRMOpportunityService()
 quote_service = CRMQuoteService()
+product_ingestion_service = CRMProductIngestionService()
 
 
 @router.get("/overview", response_model=CRMModuleOverviewResponse)
@@ -67,6 +70,15 @@ def get_crm_module_overview(
             if line.product_id
         ],
     )
+    recent_draft_rows = product_ingestion_service.list_drafts(tenant_db, capture_status="draft")[:5]
+    recent_draft_characteristic_map = product_ingestion_service.get_characteristics_map(
+        tenant_db,
+        [item.id for item in recent_draft_rows],
+    )
+    published_product_name_map = quote_service.get_product_name_map(
+        tenant_db,
+        [item.published_product_id for item in recent_draft_rows if item.published_product_id],
+    )
     return CRMModuleOverviewResponse(
         success=True,
         message="Resumen CRM recuperado correctamente",
@@ -90,5 +102,13 @@ def get_crm_module_overview(
                 product_name_map=product_name_map,
             )
             for item in quote_rows
+        ],
+        recent_product_drafts=[
+            build_product_ingestion_draft_item(
+                item,
+                characteristics=recent_draft_characteristic_map.get(item.id, []),
+                published_product_name=published_product_name_map.get(item.published_product_id),
+            )
+            for item in recent_draft_rows
         ],
     )
