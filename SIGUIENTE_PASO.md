@@ -5,10 +5,10 @@
 - expansión reciente ya cerrada:
   - `crm` ya queda cerrado para su alcance comercial actual en runtime
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
-  - `techdocs` ya queda cerrado para su alcance operativo actual en repo
+  - `techdocs` ya queda cerrado para su alcance operativo actual en runtime
   - no conviene reabrir ninguno de los tres por inercia salvo expansión explícita
 - siguiente frente recomendado:
-  - cerrar publish/runtime de `techdocs` con backup previo obligatorio por carril y luego abrir el próximo módulo faltante desde `ieris_app`
+  - abrir el próximo módulo faltante desde `ieris_app`
   - recomendación actual:
     - `chat interno`
   - por qué este orden:
@@ -42,7 +42,7 @@
   - deploy reproducible, rollback, backups, restore drills y evidencia operativa ya están institucionalizados
   - worker, cuotas, alertas, DLQ, rate limiting y billing operativo ya dejan el hardening suficientemente cerrado para esta base
 - siguiente frente recomendado del proyecto:
-  - publicar y converger `techdocs` en runtime y después abrir `chat interno` como siguiente módulo faltante
+  - abrir `chat interno` como siguiente módulo faltante
   - después recién decidir si conviene abrir otro módulo real (`iot`, `condos`, `projects`, `chat interno`)
   - endurecimiento adicional opcional, por ejemplo:
     - stack externa de observabilidad/alerting

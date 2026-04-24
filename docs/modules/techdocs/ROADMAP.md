@@ -32,6 +32,7 @@ El módulo ya cubre:
 - regresión de servicios, migración y catálogo de plataforma
 - publicación y validación runtime en `staging` y `production`
 - convergencia tenant confirmada en los 4 tenants activos de ambos carriles
+- backup PostgreSQL tenant previo ejecutado por carril antes de mutar esquemas, incluyendo `ieris-ltda` en `production`
 
 ## Backlog posterior al cierre
 

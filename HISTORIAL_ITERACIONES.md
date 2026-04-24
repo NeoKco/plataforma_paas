@@ -1,5 +1,33 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `techdocs` queda cerrado también en runtime
+
+Contexto:
+
+- el módulo ya estaba cerrado a nivel repo, pero todavía faltaba completarlo en `staging` y `production`
+- por regla operativa vigente, antes de mutar esquemas tenant había que ejecutar backup PostgreSQL previo por carril
+
+Cambios:
+
+- se ejecuta backup PostgreSQL tenant previo en `staging` antes de converger `0043_techdocs_base`
+- se ejecuta backup PostgreSQL tenant previo en `production`, incluyendo `ieris-ltda`, antes de converger `0043_techdocs_base`
+- backend redeployado en ambos carriles y convergencia tenant completada
+- frontend publicado en ambos carriles con las pantallas y servicio de `techdocs`
+
+Validación:
+
+- runtime:
+  - `staging` backend redeploy -> `583 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeploy -> `583 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado con `TechDocsAuditPage-Q2dSXmUO.js`, `techdocsService-CAK4Mack.js`, `TechDocsOverviewPage-DND6CEQw.js`, `TechDocsDossiersPage-Cp3Qsd53.js` e `index-CWMe3h3Z.js`
+  - `production` frontend publicado con `TechDocsAuditPage-D1piog8w.js`, `techdocsService-BnycfeUu.js`, `TechDocsOverviewPage-Dh78pDD-.js`, `TechDocsDossiersPage-B3QJqAFE.js` e `index-HTzRcALh.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+Resultado:
+
+- `techdocs` deja de estar “pendiente de publish” y pasa a módulo tenant completamente cerrado para su alcance actual en repo y runtime
+- el siguiente módulo recomendado desde `ieris_app` pasa a ser `chat interno`
+
 ## 2026-04-24 - `techdocs` queda cerrado para el alcance operativo actual en repo
 
 Contexto:

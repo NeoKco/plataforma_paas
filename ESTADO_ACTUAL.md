@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-24
-- foco operativo nuevo ya cerrado en repo y pendiente de publish/runtime:
+- foco operativo nuevo ya cerrado en repo y runtime:
   - `techdocs` ya queda terminado para su alcance operativo actual como tercer módulo de expansión post-cierre
   - backend tenant ya expone:
     - `/tenant/techdocs/overview`
@@ -24,6 +24,14 @@
   - validación repo:
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_techdocs_services backend.app.tests.test_migration_flow backend.app.tests.test_platform_flow -v` -> `262 tests OK`
     - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - backup PostgreSQL tenant previo ejecutado en `staging` y `production` antes de converger `0043_techdocs_base`
+    - `production` incluye backup previo explícito de `ieris-ltda`
+    - `staging` backend redeployado con `583 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `production` backend redeployado con `583 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `staging` publicado con `TechDocsAuditPage-Q2dSXmUO.js`, `techdocsService-CAK4Mack.js`, `TechDocsOverviewPage-DND6CEQw.js`, `TechDocsDossiersPage-Cp3Qsd53.js`, `SettingsPage-BhJtF0yp.js`, `TenantsPage-DSfF5vqS.js`, `TenantOverviewPage-DDyQD8uA.js` e `index-CWMe3h3Z.js`
+    - `production` publicado con `TechDocsAuditPage-D1piog8w.js`, `techdocsService-BnycfeUu.js`, `TechDocsOverviewPage-Dh78pDD-.js`, `TechDocsDossiersPage-B3QJqAFE.js`, `SettingsPage-CkSUArmA.js`, `TenantsPage-BFNEmK7i.js`, `TenantOverviewPage-BVMq50_6.js` e `index-HTzRcALh.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco operativo nuevo ya cerrado en repo y runtime fuera del roadmap base:
   - `taskops` ya queda terminado para su alcance operativo actual como segundo módulo de expansión post-cierre
   - backend tenant ya expone:

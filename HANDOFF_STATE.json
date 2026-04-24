@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-24T12:05:00-04:00",
+  "updated_at": "2026-04-24T15:29:44-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya deja `crm`, `taskops` y `techdocs` cerrados para su alcance actual en repo, el hotfix contractual de `platform-core` ya evita el fallo al contratar múltiples add-ons (`maintenance + crm`), `ieris-ltda` ya fue restaurado selectivamente al snapshot útil del 23-04-2026, y además queda formalizada la regla de backup PostgreSQL obligatorio antes de mutar datos tenant en development, staging o production.",
-  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada, con `crm`, `taskops` y `techdocs` institucionalizados en repo y el siguiente salto recomendado moviéndose a `chat interno` como próximo módulo faltante después del publish runtime de `techdocs`.",
+  "current_focus": "La PaaS ya deja `crm`, `taskops` y `techdocs` cerrados para su alcance actual en repo y runtime, con `techdocs` ya convergido en staging y production bajo backup tenant previo obligatorio por carril, el hotfix contractual de `platform-core` ya evita el fallo al contratar múltiples add-ons (`maintenance + crm`), `ieris-ltda` ya fue restaurado selectivamente al snapshot útil del 23-04-2026, y la regla de backup PostgreSQL obligatorio antes de mutar datos tenant en development, staging o production ya queda formalizada.",
+  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada, con `crm`, `taskops` y `techdocs` institucionalizados en runtime y el siguiente salto recomendado moviéndose a `chat interno` como próximo módulo faltante desde `ieris_app`.",
   "active_modules": [
     "platform-core",
     "finance",
@@ -14,9 +14,9 @@
     "techdocs"
   ],
   "module_in_focus": [
+    "chat-interno",
     "techdocs",
-    "platform-core",
-    "business-core"
+    "platform-core"
   ],
   "decisions_closed": [
     "antes de modificar datos de cualquier tenant en development, staging o production ya es obligatorio tomar backup PostgreSQL del tenant afectado",
@@ -442,7 +442,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "publicar y converger techdocs en staging y production con backup previo por carril; después de eso, abrir chat interno como siguiente módulo faltante desde ieris_app",
+  "next_decision_required": "abrir chat interno como siguiente módulo faltante desde ieris_app, ahora que techdocs ya quedó publicado y convergido en staging y production con backup tenant previo por carril",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",
