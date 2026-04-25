@@ -1,12 +1,15 @@
 from app.apps.tenant_modules.products.schemas import (
     ProductCatalogDuplicateCandidateResponse,
     ProductCatalogDuplicateSummaryResponse,
+    ProductCatalogConnectorItemResponse,
     ProductCatalogEnrichmentStateResponse,
     ProductCatalogIngestionCharacteristicItemResponse,
     ProductCatalogIngestionDraftItemResponse,
     ProductCatalogIngestionRunItemResponse,
     ProductCatalogIngestionRunResponse,
     ProductCatalogItemResponse,
+    ProductCatalogPriceHistoryItemResponse,
+    ProductCatalogProductSourceItemResponse,
     ProductCatalogProductCharacteristicItemResponse,
 )
 
@@ -35,6 +38,83 @@ def build_product_catalog_item(item, *, characteristics: list | None = None) -> 
             )
             for characteristic in (characteristics or [])
         ],
+    )
+
+
+def build_product_connector_item(
+    item,
+    *,
+    source_total: int = 0,
+    price_event_total: int = 0,
+) -> ProductCatalogConnectorItemResponse:
+    return ProductCatalogConnectorItemResponse(
+        id=item.id,
+        name=item.name,
+        connector_kind=item.connector_kind,
+        base_url=item.base_url,
+        default_currency_code=item.default_currency_code,
+        supports_batch=bool(item.supports_batch),
+        supports_price_tracking=bool(item.supports_price_tracking),
+        is_active=bool(item.is_active),
+        config_notes=item.config_notes,
+        last_sync_at=item.last_sync_at,
+        last_sync_status=item.last_sync_status,
+        source_total=int(source_total or 0),
+        price_event_total=int(price_event_total or 0),
+        created_at=item.created_at,
+        updated_at=getattr(item, "updated_at", None),
+    )
+
+
+def build_product_source_item(
+    item,
+    *,
+    connector_name: str | None = None,
+) -> ProductCatalogProductSourceItemResponse:
+    return ProductCatalogProductSourceItemResponse(
+        id=item.id,
+        product_id=item.product_id,
+        connector_id=item.connector_id,
+        connector_name=connector_name,
+        draft_id=item.draft_id,
+        run_item_id=item.run_item_id,
+        source_kind=item.source_kind,
+        source_label=item.source_label,
+        source_url=item.source_url,
+        external_reference=item.external_reference,
+        source_status=item.source_status,
+        latest_unit_price=float(item.latest_unit_price or 0),
+        currency_code=item.currency_code,
+        source_summary=item.source_summary,
+        captured_at=item.captured_at,
+        last_seen_at=item.last_seen_at,
+        created_at=item.created_at,
+        updated_at=getattr(item, "updated_at", None),
+    )
+
+
+def build_product_price_history_item(
+    item,
+    *,
+    product_name: str | None = None,
+    connector_name: str | None = None,
+) -> ProductCatalogPriceHistoryItemResponse:
+    return ProductCatalogPriceHistoryItemResponse(
+        id=item.id,
+        product_id=item.product_id,
+        product_name=product_name,
+        product_source_id=item.product_source_id,
+        connector_id=item.connector_id,
+        connector_name=connector_name,
+        draft_id=item.draft_id,
+        price_kind=item.price_kind,
+        unit_price=float(item.unit_price or 0),
+        currency_code=item.currency_code,
+        source_label=item.source_label,
+        source_url=item.source_url,
+        notes=item.notes,
+        captured_at=item.captured_at,
+        created_at=item.created_at,
     )
 
 

@@ -1,6 +1,7 @@
 from sqlalchemy import func
 
 from app.apps.tenant_modules.crm.models import CRMProduct, CRMProductIngestionDraft, CRMProductIngestionRun
+from app.apps.tenant_modules.products.models import ProductConnector, ProductPriceHistory, ProductSource
 
 
 class ProductCatalogOverviewService:
@@ -44,6 +45,21 @@ class ProductCatalogOverviewService:
             .scalar()
             or 0
         )
+        source_total = tenant_db.query(func.count(ProductSource.id)).scalar() or 0
+        source_active = (
+            tenant_db.query(func.count(ProductSource.id))
+            .filter(ProductSource.source_status == "active")
+            .scalar()
+            or 0
+        )
+        price_event_total = tenant_db.query(func.count(ProductPriceHistory.id)).scalar() or 0
+        connector_total = tenant_db.query(func.count(ProductConnector.id)).scalar() or 0
+        connector_active = (
+            tenant_db.query(func.count(ProductConnector.id))
+            .filter(ProductConnector.is_active.is_(True))
+            .scalar()
+            or 0
+        )
         return {
             "products_total": int(product_total),
             "products_active": int(product_active),
@@ -54,4 +70,9 @@ class ProductCatalogOverviewService:
             "url_source_total": int(url_source_total),
             "run_total": int(run_total),
             "run_active": int(run_active),
+            "source_total": int(source_total),
+            "source_active": int(source_active),
+            "price_event_total": int(price_event_total),
+            "connector_total": int(connector_total),
+            "connector_active": int(connector_active),
         }

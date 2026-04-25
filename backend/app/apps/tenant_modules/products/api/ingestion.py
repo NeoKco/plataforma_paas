@@ -32,6 +32,7 @@ from app.apps.tenant_modules.products.services import (
     ProductCatalogIngestionRunService,
     ProductCatalogIngestionService,
     ProductCatalogService,
+    ProductSourceService,
 )
 from app.common.db.session_manager import get_tenant_db
 
@@ -40,18 +41,35 @@ service = ProductCatalogIngestionService()
 run_service = ProductCatalogIngestionRunService()
 product_service = ProductCatalogService()
 enrichment_service = ProductCatalogEnrichmentService()
+source_service = ProductSourceService()
 
 
-def _build_runs_payload(rows: list, *, include_items: bool = False):
+def _build_runs_payload(tenant_db: Session, rows: list, *, include_items: bool = False):
     run_items_map = (
-        run_service.get_run_items_map_for_runs(rows)
+        run_service.get_run_item_map(tenant_db, [item.id for item in rows])
         if include_items and rows
         else {}
+    )
+    connector_ids = [item.connector_id for item in rows if getattr(item, "connector_id", None)]
+    item_connector_ids = [
+        run_item.connector_id
+        for run_items in run_items_map.values()
+        for run_item in run_items
+        if getattr(run_item, "connector_id", None)
+    ]
+    connector_map, _ = source_service.build_maps(
+        tenant_db,
+        connector_ids=connector_ids + item_connector_ids,
     )
     return [
         build_product_catalog_ingestion_run(
             row,
             items=run_items_map.get(row.id, []) if include_items else [],
+            connector_name=connector_map.get(getattr(row, "connector_id", None)),
+            item_connector_names={
+                run_item.id: connector_map.get(getattr(run_item, "connector_id", None), "")
+                for run_item in run_items_map.get(row.id, [])
+            },
         )
         for row in rows
     ]
@@ -67,11 +85,16 @@ def _build_draft_payloads(
         [item.published_product_id for item in rows if item.published_product_id],
     )
     duplicate_analysis_map = enrichment_service.build_duplicate_analysis_map(tenant_db, rows)
+    connector_map, _ = source_service.build_maps(
+        tenant_db,
+        connector_ids=[item.connector_id for item in rows if getattr(item, "connector_id", None)],
+    )
     return [
         build_product_catalog_ingestion_draft_item(
             item,
             characteristics=characteristic_map.get(item.id, []),
             published_product_name=published_name_map.get(item.published_product_id),
+            connector_name=connector_map.get(getattr(item, "connector_id", None)),
             duplicate_analysis=duplicate_analysis_map.get(item.id),
             enrichment_state=enrichment_service.build_enrichment_state(item),
         )
@@ -89,7 +112,7 @@ def get_product_catalog_ingestion_overview(
         success=True,
         message="Resumen de ingesta recuperado correctamente",
         requested_by=build_products_requested_by(current_user),
-        metrics=service.build_overview_metrics(tenant_db),
+        metrics=service.build_overview(tenant_db),
         recent_drafts=_build_draft_payloads(tenant_db, recent_rows),
     )
 
@@ -159,7 +182,7 @@ def list_product_catalog_ingestion_runs(
         message="Corridas de ingesta recuperadas correctamente",
         requested_by=build_products_requested_by(current_user),
         total=len(rows),
-        data=_build_runs_payload(rows, include_items=True),
+        data=_build_runs_payload(tenant_db, rows, include_items=True),
     )
 
 
@@ -176,8 +199,8 @@ def create_product_catalog_ingestion_run(
             payload,
             actor_user_id=current_user["user_id"],
         )
-        run_service.process_run_background(
-            background_tasks,
+        background_tasks.add_task(
+            run_service.process_run_background,
             tenant_slug=current_user["tenant_slug"],
             run_id=run.id,
         )
@@ -187,7 +210,7 @@ def create_product_catalog_ingestion_run(
         success=True,
         message="Corrida de ingesta creada correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_ingestion_run(run, items=[]),
+        data=_build_runs_payload(tenant_db, [run], include_items=True)[0],
     )
 
 
@@ -205,7 +228,7 @@ def get_product_catalog_ingestion_run(
         success=True,
         message="Corrida de ingesta recuperada correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_ingestion_run(run, items=run_service.get_run_items(tenant_db, run_id)),
+        data=_build_runs_payload(tenant_db, [run], include_items=True)[0],
     )
 
 
@@ -223,7 +246,7 @@ def cancel_product_catalog_ingestion_run(
         success=True,
         message="Corrida cancelada correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_ingestion_run(run, items=run_service.get_run_items(tenant_db, run_id)),
+        data=_build_runs_payload(tenant_db, [run], include_items=True)[0],
     )
 
 
