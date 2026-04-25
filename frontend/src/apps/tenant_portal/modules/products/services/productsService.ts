@@ -99,6 +99,8 @@ export type ProductCatalogEnrichmentState = {
   ai_available: boolean;
 };
 
+export type ProductCatalogDuplicateResolutionMode = "update_existing" | "link_existing";
+
 export type ProductCatalogIngestionDraftWriteRequest = {
   source_kind: string;
   source_label: string | null;
@@ -388,5 +390,23 @@ export function approveProductCatalogIngestionDraft(accessToken: string, draftId
     method: "POST",
     token: accessToken,
     body: { review_notes: reviewNotes },
+  });
+}
+
+export function resolveProductCatalogDuplicate(
+  accessToken: string,
+  draftId: number,
+  targetProductId: number,
+  resolutionMode: ProductCatalogDuplicateResolutionMode,
+  reviewNotes: string | null,
+) {
+  return apiRequest<ProductCatalogIngestionApprovalResponse>(`/tenant/products/ingestion/drafts/${draftId}/resolve-duplicate`, {
+    method: "POST",
+    token: accessToken,
+    body: {
+      target_product_id: targetProductId,
+      resolution_mode: resolutionMode,
+      review_notes: reviewNotes,
+    },
   });
 }

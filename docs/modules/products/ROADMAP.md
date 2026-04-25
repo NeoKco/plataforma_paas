@@ -29,24 +29,25 @@ El módulo ya cubre:
 - publicación y validación runtime en `staging` y `production`
 - scoring heurístico visible por `SKU`, nombre, marca y referencias
 - enriquecimiento por borrador visible en `Products > Ingesta`
+- deduplicación accionable contra catálogo publicado:
+  - `Actualizar existente`
+  - `Vincular existente`
+- extracción técnica más profunda para atributos útiles en cotizaciones y proyectos
 
 ## Backlog posterior al cierre
 
 1. conectores multi-fuente más ricos
 2. historial de precios por fuente y vigencia
 3. normalización/categorización más profunda
-4. deduplicación con merge sugerido o actualización del existente
-5. enriquecimiento IA más profundo con atributos técnicos especializados
+4. trazabilidad de versiones/fuentes por producto
+5. integración más profunda del catálogo con `projects`
 
 ## Siguiente slice recomendado
 
 - profundizar `products` con:
-  - deduplicación accionable:
-    - fusionar
-    - actualizar existente
-    - descartar como repetido
-  - enriquecimiento IA más profundo sobre atributos técnicos y clasificación
-  - mejor soporte para productos reutilizables en cotizaciones y proyectos
+  - conectores multi-fuente
+  - historial de precio/fuente y vigencia
+  - mejor soporte para consumo del catálogo en cotizaciones y proyectos
 - mantener la regla de dominio:
   - `products` sigue siendo módulo independiente
   - `crm` y futuros módulos como `projects` consumen el catálogo, pero no lo renombran ni lo absorben

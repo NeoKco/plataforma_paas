@@ -160,6 +160,116 @@ class ProductCatalogEnrichmentServiceTestCase(unittest.TestCase):
         self.assertEqual(enriched.unit_label, "kit")
         self.assertEqual(enriched.reviewed_by_user_id, 8)
         self.assertIn("[products-enrichment:heuristic]", enriched.extraction_notes or "")
+        added_labels = [
+            getattr(call.args[0], "label", None)
+            for call in tenant_db.add.call_args_list
+            if getattr(call.args[0], "label", None)
+        ]
+        self.assertIn("Potencia", added_labels)
+
+
+class ProductCatalogDuplicateResolutionTestCase(unittest.TestCase):
+    def test_resolve_duplicate_updates_existing_product_and_links_draft(self) -> None:
+        from app.apps.tenant_modules.crm.models import CRMProductCharacteristic  # noqa: E402
+        from app.apps.tenant_modules.crm.services.product_ingestion_service import (  # noqa: E402
+            CRMProductIngestionService,
+        )
+
+        service = CRMProductIngestionService()
+        draft = CRMProductIngestionDraft(
+            id=30,
+            source_kind="url_reference",
+            source_label="Proveedor Solar",
+            source_url="https://proveedor.local/panel-200",
+            external_reference="PANEL-200X",
+            capture_status="draft",
+            sku="PNL-200",
+            name="Panel Solar 200W",
+            brand="Sun Corp",
+            category_label="Solar",
+            product_type="product",
+            unit_label="unidad",
+            unit_price=219990,
+            currency_code="CLP",
+            description="Panel solar 200W 24V 12A",
+            source_excerpt=None,
+            extraction_notes=None,
+            review_notes=None,
+            created_by_user_id=1,
+            reviewed_by_user_id=None,
+            published_product_id=None,
+            published_at=None,
+            discarded_at=None,
+        )
+        product = CRMProduct(
+            id=7,
+            sku="PNL-200",
+            name="Panel Solar 200W Legacy",
+            product_type="product",
+            unit_label="unidad",
+            unit_price=150000,
+            description="Producto anterior",
+            is_active=True,
+            sort_order=100,
+        )
+        draft_characteristic = CRMProductIngestionCharacteristic(
+            id=1,
+            draft_id=30,
+            label="Potencia",
+            value="200 W",
+            sort_order=10,
+        )
+
+        tenant_db = Mock()
+
+        def get_side_effect(model, item_id):
+            if model is CRMProductIngestionDraft and item_id == 30:
+                return draft
+            if model is CRMProduct and item_id == 7:
+                return product
+            return None
+
+        tenant_db.get.side_effect = get_side_effect
+        tenant_db.add.return_value = None
+        tenant_db.flush.return_value = None
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        draft_characteristics_filter = Mock()
+        draft_characteristics_filter.order_by.return_value.all.return_value = [draft_characteristic]
+        product_characteristics_filter = Mock()
+        product_characteristics_filter.order_by.return_value.all.return_value = []
+        product_characteristics_filter.delete.return_value = None
+
+        def query_side_effect(model):
+            query = Mock()
+            query.all.return_value = []
+            if model is CRMProductIngestionCharacteristic:
+                query.filter.return_value = draft_characteristics_filter
+                return query
+            if model is CRMProductCharacteristic:
+                query.filter.return_value = product_characteristics_filter
+                return query
+            if model is CRMProduct:
+                return query
+            return query
+
+        tenant_db.query.side_effect = query_side_effect
+
+        resolved_draft, resolved_product = service.resolve_duplicate_to_existing_product(
+            tenant_db,
+            30,
+            target_product_id=7,
+            resolution_mode="update_existing",
+            actor_user_id=9,
+            review_notes="merge desde ingesta",
+        )
+
+        self.assertEqual(resolved_product.name, "Panel Solar 200W")
+        self.assertEqual(resolved_product.unit_price, 219990)
+        self.assertEqual(resolved_draft.capture_status, "approved")
+        self.assertEqual(resolved_draft.published_product_id, 7)
+        self.assertEqual(resolved_draft.reviewed_by_user_id, 9)
 
 
 if __name__ == "__main__":

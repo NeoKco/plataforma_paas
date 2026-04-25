@@ -60,3 +60,16 @@ Ya quedó incluido además:
 - enriquecimiento controlado del borrador:
   - normalización heurística base
   - uso opcional de la API IA existente si el entorno runtime la configura
+- deduplicación accionable sobre catálogo ya publicado:
+  - `Actualizar existente`
+  - `Vincular existente`
+- extracción técnica más profunda desde texto y scraping para atributos útiles en cotizaciones y proyectos:
+  - `Potencia`
+  - `Voltaje`
+  - `Corriente`
+  - `Capacidad`
+  - `Presión`
+  - `Temperatura`
+  - `Peso`
+  - `Dimensiones`
+  - `Modelo`

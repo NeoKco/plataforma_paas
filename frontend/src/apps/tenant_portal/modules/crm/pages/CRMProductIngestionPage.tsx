@@ -20,7 +20,9 @@ import {
   getProductCatalogIngestionDrafts,
   getProductCatalogIngestionOverview,
   getProductCatalogIngestionRuns,
+  resolveProductCatalogDuplicate,
   type ProductCatalogIngestionCharacteristic,
+  type ProductCatalogDuplicateCandidate,
   type ProductCatalogIngestionDraft,
   type ProductCatalogIngestionDraftWriteRequest,
   type ProductCatalogIngestionRun,
@@ -65,6 +67,10 @@ function buildBatchText(entries: ProductCatalogIngestionRun[]): string {
     .map((item) => item.source_url)
     .filter(Boolean)
     .join("\n");
+}
+
+function getPreferredCatalogCandidate(row: ProductCatalogIngestionDraft): ProductCatalogDuplicateCandidate | null {
+  return row.duplicate_candidates.find((candidate) => candidate.candidate_kind === "catalog_product") || null;
 }
 
 export function CRMProductIngestionPage() {
@@ -294,6 +300,33 @@ export function CRMProductIngestionPage() {
         session.accessToken,
         item.id,
         item.enrichment_state?.ai_available ?? true,
+      );
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleResolveDuplicate(
+    item: ProductCatalogIngestionDraft,
+    resolutionMode: "update_existing" | "link_existing",
+  ) {
+    if (!session?.accessToken) return;
+    const candidate = getPreferredCatalogCandidate(item);
+    if (!candidate) return;
+    setIsSubmitting(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      const response = await resolveProductCatalogDuplicate(
+        session.accessToken,
+        item.id,
+        candidate.candidate_id,
+        resolutionMode,
+        reviewNotes || null,
       );
       setFeedback(response.message);
       await loadData();
@@ -704,6 +737,12 @@ export function CRMProductIngestionPage() {
                     {row.duplicate_summary.top_reason ? ` · ${row.duplicate_summary.top_reason}` : ""}
                   </div>
                 ) : null}
+                {getPreferredCatalogCandidate(row) ? (
+                  <div className="small text-muted">
+                    {language === "es" ? "Catálogo sugerido" : "Suggested catalog match"} ·{" "}
+                    {getPreferredCatalogCandidate(row)?.label}
+                  </div>
+                ) : null}
                 {row.enrichment_state && row.enrichment_state.status === "ready" ? (
                   <div className="small text-success">
                     {language === "es" ? "Enriquecido" : "Enriched"}
@@ -763,6 +802,24 @@ export function CRMProductIngestionPage() {
                     <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => void handleEnrich(row)}>
                       {language === "es" ? "Enriquecer" : "Enrich"}
                     </button>
+                    {getPreferredCatalogCandidate(row) ? (
+                      <>
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          type="button"
+                          onClick={() => void handleResolveDuplicate(row, "update_existing")}
+                        >
+                          {language === "es" ? "Actualizar existente" : "Update existing"}
+                        </button>
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          type="button"
+                          onClick={() => void handleResolveDuplicate(row, "link_existing")}
+                        >
+                          {language === "es" ? "Vincular existente" : "Link existing"}
+                        </button>
+                      </>
+                    ) : null}
                     <button className="btn btn-primary btn-sm" type="button" onClick={() => void handleApprove(row)}>
                       {language === "es" ? "Aprobar" : "Approve"}
                     </button>

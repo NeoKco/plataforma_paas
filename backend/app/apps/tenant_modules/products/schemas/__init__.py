@@ -1,5 +1,6 @@
 from app.apps.tenant_modules.products.schemas.products import (
     ProductCatalogApproveRequest,
+    ProductCatalogDuplicateResolutionRequest,
     ProductCatalogDuplicateCandidateResponse,
     ProductCatalogDuplicateSummaryResponse,
     ProductCatalogEnrichmentStateResponse,
@@ -34,6 +35,7 @@ from app.apps.tenant_modules.products.schemas.products import (
 
 __all__ = [
     "ProductCatalogApproveRequest",
+    "ProductCatalogDuplicateResolutionRequest",
     "ProductCatalogDuplicateCandidateResponse",
     "ProductCatalogDuplicateSummaryResponse",
     "ProductCatalogEnrichmentStateResponse",

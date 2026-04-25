@@ -19,6 +19,7 @@
 - `POST /tenant/products/ingestion/drafts`
 - `PUT /tenant/products/ingestion/drafts/{draft_id}`
 - `POST /tenant/products/ingestion/drafts/{draft_id}/enrich`
+- `POST /tenant/products/ingestion/drafts/{draft_id}/resolve-duplicate`
 - `PATCH /tenant/products/ingestion/drafts/{draft_id}/status`
 - `POST /tenant/products/ingestion/drafts/{draft_id}/approve`
 - `POST /tenant/products/ingestion/extract-url`
@@ -35,3 +36,11 @@ Notas del contrato actual:
 - `POST /tenant/products/ingestion/drafts/{draft_id}/enrich`
   - usa heurística base siempre
   - intenta IA solo si el runtime expone `API_IA_URL`
+- `POST /tenant/products/ingestion/drafts/{draft_id}/resolve-duplicate`
+  - request:
+    - `target_product_id`
+    - `resolution_mode`
+    - `review_notes`
+  - `resolution_mode` soportado:
+    - `update_existing`
+    - `link_existing`

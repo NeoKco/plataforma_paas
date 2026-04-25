@@ -45,13 +45,6 @@ Esa compatibilidad interna no cambia la regla pública:
 - `products` es el dueño funcional del catálogo e ingesta
 - `crm` solo consume ese catálogo
 
-## Criterio de evolución
-
-Las siguientes profundizaciones deben abrirse aquí:
-
-- conectores multi-fuente
-- historial de precios/fuentes
-
 ## Slice nuevo ya cerrado
 
 La ingesta ahora ya expone:
@@ -60,7 +53,26 @@ La ingesta ahora ya expone:
   - catálogo publicado
   - otros borradores
 - endpoint de enriquecimiento por borrador
+- endpoint de resolución accionable contra catálogo:
+  - `POST /tenant/products/ingestion/drafts/{draft_id}/resolve-duplicate`
 - fallback heurístico seguro si la API IA no está configurada o falla
+- extracción técnica más profunda desde texto libre y scraping:
+  - `Potencia`
+  - `Voltaje`
+  - `Corriente`
+  - `Capacidad`
+  - `Presión`
+  - `Temperatura`
+  - `Peso`
+  - `Dimensiones`
+  - `Modelo`
+
+La resolución accionable hoy soporta:
+
+- `update_existing`
+  actualiza el producto ya publicado con la mejor información del borrador y lo vincula como resuelto
+- `link_existing`
+  resuelve el borrador contra un producto ya publicado sin modificar el catálogo
 
 Variables runtime compatibles con el carril IA existente:
 
@@ -75,3 +87,12 @@ Regla de implementación:
 
 - `products` sigue siendo dueño funcional del catálogo e ingesta
 - la persistencia interna reutilizada no cambia el contrato público del módulo
+
+## Criterio de evolución
+
+Las siguientes profundizaciones deben abrirse aquí:
+
+- conectores multi-fuente reales
+- historial de precios/fuentes y vigencia
+- mejor reutilización del catálogo en `projects`
+- clasificación/categorización más profunda por IA

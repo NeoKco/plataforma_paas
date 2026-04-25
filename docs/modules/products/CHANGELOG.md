@@ -2,6 +2,54 @@
 
 ## 2026-04-24
 
+- `products` cierra deduplicación accionable y enriquecimiento técnico más profundo:
+  - se publica `POST /tenant/products/ingestion/drafts/{draft_id}/resolve-duplicate`
+  - la UI `Products > Ingesta` ya expone:
+    - `Actualizar existente`
+    - `Vincular existente`
+  - el enriquecimiento ya intenta extraer/normalizar:
+    - `Potencia`
+    - `Voltaje`
+    - `Corriente`
+    - `Capacidad`
+    - `Presión`
+    - `Temperatura`
+    - `Peso`
+    - `Dimensiones`
+    - `Modelo`
+  - validación repo:
+    - `backend.app.tests.test_products_services` -> `3 tests OK`
+    - `backend.app.tests.test_platform_flow + test_tenant_flow` -> `335 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/ingestion.py backend/app/apps/tenant_modules/products/services/enrichment_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_service.py backend/app/apps/tenant_modules/products/schemas/products.py` -> `OK`
+    - `npm run build` -> `OK`
+  - cierre runtime confirmado:
+    - backup PostgreSQL tenant previo completado con `4` backups en `staging`
+    - backup PostgreSQL tenant previo completado con `4` backups en `production`, incluyendo `ieris-ltda`
+    - `staging` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `production` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `staging` frontend publicado con:
+      - `ProductsModuleNav-XC2Hl0hO.js`
+      - `productsService-BB86rL64.js`
+      - `ProductsOverviewPage-DAm3pf16.js`
+      - `ProductsCatalogPage-BxeL5tId.js`
+      - `ProductsIngestionPage-c8MX2OzS.js`
+      - `CRMOverviewPage-BilW-BL-.js`
+      - `crmService-Ck9V4u7h.js`
+      - `SettingsPage-C-3knr5S.js`
+      - `TenantsPage-CCsYOaZ4.js`
+      - `index-Cg_ZI8Ar.js`
+    - `production` frontend publicado con:
+      - `ProductsModuleNav-Cso7IMgf.js`
+      - `productsService-BOKsTDMl.js`
+      - `ProductsOverviewPage-htxkghas.js`
+      - `ProductsCatalogPage-Mqef-82g.js`
+      - `ProductsIngestionPage-2z12tgYm.js`
+      - `CRMOverviewPage-VMmh-4Bu.js`
+      - `crmService-DYPpblvN.js`
+      - `SettingsPage-DyqF1ejk.js`
+      - `TenantsPage-BBRqIWhd.js`
+      - `index-DpJO7cOK.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - `products` profundiza la ingesta con deduplicación y enriquecimiento controlado:
   - los borradores ya devuelven:
     - `duplicate_summary`

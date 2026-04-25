@@ -5,25 +5,27 @@
 - expansión reciente ya cerrada:
   - `crm` ya queda cerrado para su alcance comercial actual en runtime
   - `products` ya queda cerrado como módulo independiente de catálogo e ingesta
-  - `products` ya cierra también su primer slice de deduplicación y enriquecimiento controlado
+  - `products` ya cierra también:
+    - deduplicación sugerida
+    - deduplicación accionable
+    - enriquecimiento técnico más profundo
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
   - `techdocs` ya queda cerrado para su alcance operativo actual en runtime
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
   - no conviene reabrir `taskops`, `techdocs` ni `chat` por inercia salvo expansión explícita
 - siguiente frente recomendado:
-  - decidir si la siguiente profundización sigue sobre `products` o si ya abrimos el próximo frente faltante desde `ieris_app`
+  - decidir si la siguiente profundización sigue sobre `products` o si ya abrimos `projects` como siguiente módulo consumidor fuerte
   - recomendación actual:
-    - profundizar `products` con deduplicación accionable y enriquecimiento IA más profundo
+    - abrir `projects` o, si se mantiene foco en `products`, priorizar:
+      - historial de precio/fuente
+      - conectores multi-fuente
+      - integración más profunda con cotizaciones y proyectos
   - por qué este orden:
-    - `products` ya concentra catálogo e ingesta, que es donde hoy está el hueco real de calidad
+    - `products` ya cubre el hueco inmediato de calidad en captura, deduplicación y enriquecimiento
     - `crm` ya queda mejor acotado como consumidor comercial de ese catálogo
-    - el hueco inmediato ya no es “capturar URLs”, sino filtrar duplicados y enriquecer mejor antes de publicar catálogo
+    - el siguiente retorno fuerte está en reutilización transversal, no en seguir limando el mismo slice recién cerrado
     - `taskops`, `techdocs` y `chat` ya cubren los bloques internos transversales que faltaban
-    - evita reabrir por inercia módulos ya cerrados cuando el hueco real restante está en la entrada de catálogo
-  - alcance sugerido del primer slice:
-    - merge o actualización del existente desde coincidencias sugeridas
-    - enriquecimiento IA más profundo sobre atributos técnicos
-    - mejor soporte para productos reutilizables en cotizaciones y proyectos
+    - evita reabrir por inercia módulos ya cerrados cuando ya quedó lista la base para `projects`
 - el roadmap base actual ya queda formalmente cerrado:
   - las `Etapas 9`, `10`, `11`, `12`, `13`, `14`, `15`, `16` y `17` ya quedaron cerradas para el alcance actual
   - la base PaaS ya no necesita más cierres estructurales para operar

@@ -13,6 +13,7 @@ from app.apps.tenant_modules.products.dependencies import (
 )
 from app.apps.tenant_modules.products.schemas import (
     ProductCatalogApproveRequest,
+    ProductCatalogDuplicateResolutionRequest,
     ProductCatalogIngestionApprovalResponse,
     ProductCatalogIngestionDraftCreateRequest,
     ProductCatalogIngestionEnrichRequest,
@@ -309,6 +310,36 @@ def enrich_product_catalog_ingestion_draft(
         message="Borrador enriquecido correctamente",
         requested_by=build_products_requested_by(current_user),
         data=_build_draft_payloads(tenant_db, [item])[0],
+    )
+
+
+@router.post("/drafts/{draft_id}/resolve-duplicate", response_model=ProductCatalogIngestionApprovalResponse)
+def resolve_product_catalog_duplicate(
+    draft_id: int,
+    payload: ProductCatalogDuplicateResolutionRequest,
+    current_user=Depends(require_products_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> ProductCatalogIngestionApprovalResponse:
+    try:
+        item, product = service.resolve_duplicate_to_existing_product(
+            tenant_db,
+            draft_id,
+            target_product_id=payload.target_product_id,
+            resolution_mode=payload.resolution_mode,
+            actor_user_id=current_user["user_id"],
+            review_notes=payload.review_notes,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ProductCatalogIngestionApprovalResponse(
+        success=True,
+        message="Duplicado resuelto correctamente",
+        requested_by=build_products_requested_by(current_user),
+        data=_build_draft_payloads(tenant_db, [item])[0],
+        published_product=build_product_catalog_item(
+            product,
+            characteristics=product_service.get_characteristics_map(tenant_db, [product.id]).get(product.id, []),
+        ),
     )
 
 

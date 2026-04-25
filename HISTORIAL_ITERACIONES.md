@@ -1,5 +1,55 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `products` cierra deduplicación accionable y enriquecimiento técnico más profundo
+
+Contexto:
+
+- `products` ya había quedado cerrado como módulo independiente y ya mostraba deduplicación sugerida más enriquecimiento controlado
+- el siguiente hueco real ya no era detectar posibles repetidos, sino resolverlos contra catálogo y extraer mejores atributos técnicos antes de publicar
+
+Cambios:
+
+- backend nuevo para:
+  - `POST /tenant/products/ingestion/drafts/{draft_id}/resolve-duplicate`
+  - actualización controlada del producto existente desde un borrador aprobado
+  - vinculación del borrador a un producto existente sin mutar catálogo
+- enriquecimiento nuevo con extracción técnica heurística y pedido IA más estricto para:
+  - `Potencia`
+  - `Voltaje`
+  - `Corriente`
+  - `Capacidad`
+  - `Presión`
+  - `Temperatura`
+  - `Peso`
+  - `Dimensiones`
+  - `Modelo`
+- frontend `Products > Ingesta` ahora muestra y permite:
+  - `Actualizar existente`
+  - `Vincular existente`
+  - preferencia visible por coincidencia de catálogo publicada
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_products_services` -> `3 tests OK`
+  - `backend.app.tests.test_platform_flow + test_tenant_flow` -> `335 tests OK`
+  - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/ingestion.py backend/app/apps/tenant_modules/products/services/enrichment_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_service.py backend/app/apps/tenant_modules/products/schemas/products.py` -> `OK`
+  - `npm run build` -> `OK`
+- runtime:
+  - backup PostgreSQL tenant previo completado con `4` backups en `staging`
+  - backup PostgreSQL tenant previo completado con `4` backups en `production`, incluyendo `ieris-ltda`
+  - `staging` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado con `ProductsModuleNav-XC2Hl0hO.js`, `productsService-BB86rL64.js`, `ProductsOverviewPage-DAm3pf16.js`, `ProductsCatalogPage-BxeL5tId.js`, `ProductsIngestionPage-c8MX2OzS.js` e `index-Cg_ZI8Ar.js`
+  - `production` frontend publicado con `ProductsModuleNav-Cso7IMgf.js`, `productsService-BOKsTDMl.js`, `ProductsOverviewPage-htxkghas.js`, `ProductsCatalogPage-Mqef-82g.js`, `ProductsIngestionPage-2z12tgYm.js` e `index-DpJO7cOK.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+Resultado:
+
+- `products` deja de quedarse en “sugerir duplicados” y ya permite resolverlos contra catálogo real
+- el enriquecimiento ya prepara mejor el catálogo para cotizaciones y futuros proyectos
+- el siguiente salto deja de estar en deduplicación/enriquecimiento básico y pasa a reutilización transversal, fuentes y precio vigente
+
 ## 2026-04-24 - `products` cierra deduplicación sugerida y enriquecimiento controlado
 
 Contexto:

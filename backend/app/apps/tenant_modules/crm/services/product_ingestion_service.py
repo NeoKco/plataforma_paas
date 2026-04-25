@@ -193,6 +193,36 @@ class CRMProductIngestionService:
         tenant_db.refresh(draft)
         return draft, product
 
+    def resolve_duplicate_to_existing_product(
+        self,
+        tenant_db,
+        draft_id: int,
+        *,
+        target_product_id: int,
+        resolution_mode: str,
+        actor_user_id: int | None = None,
+        review_notes: str | None = None,
+    ) -> tuple[CRMProductIngestionDraft, CRMProduct]:
+        draft = self.get_draft(tenant_db, draft_id)
+        product = self._product_service.get_product(tenant_db, target_product_id)
+        normalized_mode = (resolution_mode or "update_existing").strip().lower()
+        if normalized_mode not in {"update_existing", "link_existing"}:
+            raise ValueError("Modo de resolución inválido")
+        if normalized_mode == "update_existing":
+            self._apply_draft_to_existing_product(tenant_db, draft, product)
+        draft.capture_status = "approved"
+        draft.review_notes = self._normalize_optional(review_notes)
+        draft.reviewed_by_user_id = actor_user_id
+        draft.published_product_id = product.id
+        draft.published_at = self._now()
+        draft.discarded_at = None
+        draft.updated_at = self._now()
+        tenant_db.add(draft)
+        tenant_db.commit()
+        tenant_db.refresh(draft)
+        tenant_db.refresh(product)
+        return draft, product
+
     def get_characteristics_map(
         self,
         tenant_db,
@@ -287,6 +317,85 @@ class CRMProductIngestionService:
                 sort_order=(len(target) + 1) * 10,
             )
         )
+
+    def _apply_draft_to_existing_product(
+        self,
+        tenant_db,
+        draft: CRMProductIngestionDraft,
+        product: CRMProduct,
+    ) -> CRMProduct:
+        next_name = self._normalize_optional(draft.name) or product.name
+        next_name = self._normalize_required_name(next_name)
+        next_sku = self._normalize_optional(draft.sku) or product.sku
+        if self._product_service._has_duplicate_name(tenant_db, next_name, exclude_id=product.id):
+            raise ValueError("Ya existe otro producto/servicio con ese nombre")
+        if next_sku and self._product_service._has_duplicate_sku(tenant_db, next_sku, exclude_id=product.id):
+            raise ValueError("Ya existe otro producto/servicio con ese SKU")
+
+        product.sku = next_sku
+        product.name = next_name
+        product.product_type = self._product_service._validate_type(draft.product_type or product.product_type)
+        product.unit_label = self._normalize_optional(draft.unit_label) or product.unit_label
+        product.unit_price = max(float(draft.unit_price or 0), 0) or max(float(product.unit_price or 0), 0)
+        product.description = self._normalize_optional(draft.description) or product.description
+        product.is_active = True
+        tenant_db.add(product)
+        tenant_db.flush()
+
+        existing_characteristics = self._product_service.get_characteristics_map(tenant_db, [product.id]).get(product.id, [])
+        draft_characteristics = self.get_characteristics_map(tenant_db, [draft.id]).get(draft.id, [])
+        merged_characteristics = self._merge_product_characteristics(
+            draft_characteristics=draft_characteristics,
+            existing_characteristics=existing_characteristics,
+            brand=draft.brand,
+            category_label=draft.category_label,
+            source_label=draft.source_label,
+        )
+        self._product_service._replace_characteristics(tenant_db, product.id, merged_characteristics)
+        tenant_db.flush()
+        return product
+
+    def _merge_product_characteristics(
+        self,
+        *,
+        draft_characteristics: list,
+        existing_characteristics: list,
+        brand: str | None,
+        category_label: str | None,
+        source_label: str | None,
+    ) -> list[CRMProductCharacteristicWriteRequest]:
+        ordered: list[CRMProductCharacteristicWriteRequest] = []
+        by_label: dict[str, CRMProductCharacteristicWriteRequest] = {}
+
+        def add_or_update(label: str | None, value: str | None, *, prefer_new: bool) -> None:
+            normalized_label = self._normalize_optional(label)
+            normalized_value = self._normalize_optional(value)
+            if not normalized_label or not normalized_value:
+                return
+            key = normalized_label.strip().lower()
+            current = by_label.get(key)
+            if current is None:
+                item = CRMProductCharacteristicWriteRequest(
+                    label=normalized_label,
+                    value=normalized_value,
+                    sort_order=(len(ordered) + 1) * 10,
+                )
+                by_label[key] = item
+                ordered.append(item)
+                return
+            if prefer_new:
+                current.value = normalized_value
+
+        for row in existing_characteristics or []:
+            add_or_update(getattr(row, "label", None), getattr(row, "value", None), prefer_new=False)
+        for row in draft_characteristics or []:
+            add_or_update(getattr(row, "label", None), getattr(row, "value", None), prefer_new=True)
+        self._append_auto_characteristic(ordered, label="Marca", value=brand)
+        self._append_auto_characteristic(ordered, label="Categoría", value=category_label)
+        self._append_auto_characteristic(ordered, label="Origen", value=source_label)
+        for index, item in enumerate(ordered):
+            item.sort_order = (index + 1) * 10
+        return ordered
 
     @staticmethod
     def _normalize_required_name(value: str | None) -> str:

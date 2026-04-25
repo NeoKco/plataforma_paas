@@ -132,6 +132,12 @@ class ProductCatalogIngestionEnrichRequest(BaseModel):
     prefer_ai: bool = True
 
 
+class ProductCatalogDuplicateResolutionRequest(BaseModel):
+    target_product_id: int
+    resolution_mode: str = "update_existing"
+    review_notes: str | None = None
+
+
 class ProductCatalogIngestionExtractUrlRequest(BaseModel):
     source_url: str
     source_label: str | None = None

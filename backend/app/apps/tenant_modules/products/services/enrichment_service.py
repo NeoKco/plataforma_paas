@@ -287,7 +287,12 @@ class ProductCatalogEnrichmentService:
         description = self._normalize_description(draft.description, draft.source_excerpt)
         source_excerpt = self._normalize_source_excerpt(draft.source_excerpt, description, characteristics)
         product_type = self._normalize_product_type(draft.product_type, description, category_label)
-        characteristics_payload = self._normalize_characteristics(characteristics, brand, category_label)
+        characteristics_payload = self._normalize_characteristics(
+            characteristics,
+            brand,
+            category_label,
+            draft=draft,
+        )
         summary_parts = []
         if name and name != (draft.name or ""):
             summary_parts.append("nombre normalizado")
@@ -382,6 +387,7 @@ class ProductCatalogEnrichmentService:
             parsed.get("characteristics") or characteristics,
             parsed["brand"],
             parsed["category_label"],
+            draft=draft,
         )
         return parsed
 
@@ -400,6 +406,10 @@ class ProductCatalogEnrichmentService:
             "name, sku, brand, category_label, product_type, unit_label, "
             "unit_price, description, characteristics, summary. "
             "No inventes precios si no hay señal; conserva el valor original. "
+            "Extrae también atributos técnicos útiles para cotizaciones y proyectos "
+            "como potencia, voltaje, corriente, capacidad, presión, temperatura, "
+            "peso, dimensiones y modelo cuando existan. "
+            "Normaliza labels en español y evita duplicados. "
             "No agregues texto fuera del JSON."
         )
         return {
@@ -521,6 +531,8 @@ class ProductCatalogEnrichmentService:
         characteristics: list[Any],
         brand: str | None,
         category_label: str | None,
+        *,
+        draft: CRMProductIngestionDraft | None = None,
     ) -> list[CRMProductIngestionCharacteristicWriteRequest]:
         normalized: list[CRMProductIngestionCharacteristicWriteRequest] = []
         seen: set[tuple[str, str]] = set()
@@ -549,9 +561,78 @@ class ProductCatalogEnrichmentService:
                     else (index + 1) * 10,
                 )
             )
+        for label, value in self._extract_technical_characteristics(
+            draft=draft,
+            characteristics=characteristics,
+        ):
+            key = (label.lower(), value.lower())
+            if key in seen:
+                continue
+            seen.add(key)
+            normalized.append(
+                CRMProductIngestionCharacteristicWriteRequest(
+                    label=label,
+                    value=value,
+                    sort_order=(len(normalized) + 1) * 10,
+                )
+            )
         self._append_characteristic(normalized, "Marca", brand)
         self._append_characteristic(normalized, "Categoría", category_label)
         return normalized[:40]
+
+    def _extract_technical_characteristics(
+        self,
+        *,
+        draft: CRMProductIngestionDraft | None,
+        characteristics: list[Any],
+    ) -> list[tuple[str, str]]:
+        haystack_parts = [
+            self._normalize_plain(getattr(draft, "name", None) if draft is not None else None),
+            self._normalize_plain(getattr(draft, "description", None) if draft is not None else None),
+            self._normalize_plain(getattr(draft, "source_excerpt", None) if draft is not None else None),
+            self._normalize_plain(getattr(draft, "external_reference", None) if draft is not None else None),
+        ]
+        for item in characteristics or []:
+            haystack_parts.append(
+                self._normalize_plain(
+                    getattr(item, "label", None) if not isinstance(item, dict) else item.get("label")
+                )
+            )
+            haystack_parts.append(
+                self._normalize_plain(
+                    getattr(item, "value", None) if not isinstance(item, dict) else item.get("value")
+                )
+            )
+        haystack = " | ".join(part for part in haystack_parts if part)
+        if not haystack:
+            return []
+
+        extracted: list[tuple[str, str]] = []
+
+        def capture(label: str, pattern: str, flags: int = re.I) -> None:
+            match = re.search(pattern, haystack, flags)
+            if not match:
+                return
+            value = " ".join(part for part in match.groups() if part)
+            normalized_value = self._normalize_plain(value)
+            if normalized_value:
+                extracted.append((label, normalized_value))
+
+        capture("Potencia", r"(\d+(?:[.,]\d+)?)\s*(kwh|kwp|kw|w)\b")
+        capture("Voltaje", r"(\d+(?:[.,]\d+)?)\s*(vdc|vac|v)\b")
+        capture("Corriente", r"(\d+(?:[.,]\d+)?)\s*(a)\b")
+        capture("Capacidad", r"(\d+(?:[.,]\d+)?)\s*(ah|l|lt|litros?)\b")
+        capture("Presión", r"(\d+(?:[.,]\d+)?)\s*(bar|psi)\b")
+        capture("Temperatura", r"(\d+(?:[.,]\d+)?)\s*(°c|grados c|c)\b")
+        capture("Peso", r"(\d+(?:[.,]\d+)?)\s*(kg|g)\b")
+        capture(
+            "Dimensiones",
+            r"(\d+(?:[.,]\d+)?\s*[x×]\s*\d+(?:[.,]\d+)?(?:\s*[x×]\s*\d+(?:[.,]\d+)?)?\s*(?:mm|cm|m))",
+        )
+        model = self._normalize_plain(getattr(draft, "external_reference", None) if draft is not None else None)
+        if model and len(model) <= 120:
+            extracted.append(("Modelo", model))
+        return extracted
 
     def _append_characteristic(
         self,
