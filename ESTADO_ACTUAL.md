@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-25
-- foco operativo nuevo ya cerrado en repo:
+- foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya suma scheduler formal por tenant para `due_sources` y presets de conectores por proveedor
   - backend tenant ya expone además:
     - `/tenant/products/connectors/{connector_id}/schedule/run`
@@ -25,6 +25,19 @@
     - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `29 tests OK`
     - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/connectors.py backend/app/apps/tenant_modules/products/api/serializers.py backend/app/apps/tenant_modules/products/schemas/products.py backend/app/apps/tenant_modules/products/services/connector_service.py backend/app/apps/tenant_modules/products/services/connector_scheduler_service.py backend/app/apps/tenant_modules/products/services/connector_sync_service.py backend/app/apps/tenant_modules/products/services/ingestion_run_service.py backend/app/apps/tenant_modules/products/services/overview_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py backend/app/scripts/run_products_refresh_scheduler.py` -> `OK`
     - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsRefreshPage-DoL9uhtt.js`, `ProductsOverviewPage-CK0i5J3_.js`, `ProductsSourcesPage-CHkH_PVI.js`, `ProductsConnectorsPage-zftMG4ch.js`, `ProductsIngestionPage-C8g8O93P.js`, `productsService-Cfkl_cYB.js` e `index-TqCUb73v.js`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsRefreshPage-w0bC4tBh.js`, `ProductsOverviewPage-Cfccsr1b.js`, `ProductsSourcesPage-Cdvxi72J.js`, `ProductsConnectorsPage-NkCpI0sV.js`, `ProductsIngestionPage-BvWe9oVt.js`, `productsService-eFOFSHvb.js` e `index-DlEump78.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya se alinea mejor a la lógica histórica de `ieris_app` como catálogo vivo técnico-comercial
   - backend tenant ya expone además:
