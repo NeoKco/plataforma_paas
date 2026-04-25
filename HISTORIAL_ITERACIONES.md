@@ -1,5 +1,44 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `products` cierra historial de fuentes/precios y conectores configurables
+
+Contexto:
+
+- `products` ya había quedado cerrado como módulo independiente y ya resolvía deduplicación accionable más enriquecimiento técnico profundo
+- el siguiente hueco real era dejar trazabilidad útil por producto: de dónde salió, con qué conector se capturó y qué precio se observó
+
+Cambios:
+
+- nueva migración tenant:
+  - `v0047_products_sources_and_connectors`
+- backend nuevo para:
+  - CRUD de `connectors`
+  - CRUD de `sources`
+  - registro manual de `price-history`
+- `Products > Ingesta` ahora soporta `connector_id` en:
+  - borradores
+  - extracción rápida por URL
+  - corridas batch
+- al aprobar o vincular un borrador se registra automáticamente:
+  - fuente del producto
+  - evento de precio
+- frontend `products` ahora suma:
+  - `Fuentes/precios`
+  - `Conectores`
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_products_services + test_migration_flow` -> `23 tests OK`
+  - `backend.app.tests.test_platform_flow` -> `239 tests OK`
+  - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/models/product_ingestion_*.py backend/migrations/tenant/v0047_products_sources_and_connectors.py` -> `OK`
+  - `npm run build` -> `OK`
+
+Resultado:
+
+- `products` deja de ser solo catálogo + ingesta y ya pasa a guardar trazabilidad útil de fuente y precio
+- el siguiente salto natural deja de ser “tener historial” y pasa a conectores automáticos reales, comparación multi-fuente y consumo fuerte desde `projects`
+
 ## 2026-04-24 - `products` cierra deduplicación accionable y enriquecimiento técnico más profundo
 
 Contexto:

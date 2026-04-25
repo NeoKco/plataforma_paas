@@ -9,6 +9,9 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 - mantener el catálogo reusable de productos y servicios
 - capturar productos desde URLs o carga manual
 - revisar borradores antes de publicarlos
+- mantener fuentes vigentes por producto
+- registrar y revisar historial de precios
+- configurar conectores de ingesta
 - dejar base estable para cotizaciones y futuros proyectos
 
 ## Vistas principales
@@ -19,6 +22,10 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
   CRUD del catálogo base
 - `Ingesta`
   captura manual, extracción por URL y corridas batch
+- `Fuentes/precios`
+  fuentes activas por producto e historial de eventos de precio
+- `Conectores`
+  perfiles de origen para la ingesta
 
 ## Qué agrega este cierre
 
@@ -42,6 +49,39 @@ Además, el operador ya puede usar:
   publica el producto al catálogo final
 - `Descartar` / `Reabrir`
   controla el carril revisable sin borrar historial operativo
+
+## Fuentes y precios
+
+`Fuentes/precios` sirve para:
+
+- revisar desde dónde se obtuvo el producto
+- registrar proveedor, URL y referencia externa
+- guardar precio referencial o vigente
+- dejar trazabilidad manual cuando el scraping no cubre toda la información
+
+Flujo recomendado:
+
+1. capturar o enriquecer un borrador en `Ingesta`
+2. aprobarlo al catálogo
+3. revisar en `Fuentes/precios` si quedó asociada la fuente correcta
+4. registrar un nuevo evento de precio si necesitas dejar un valor más actualizado o más formal
+
+## Conectores
+
+`Conectores` sirve para mantener perfiles operativos de origen.
+
+Cada conector puede representar, por ejemplo:
+
+- un proveedor
+- un marketplace
+- un sitio técnico recurrente
+- una familia de scraping/manual ingest
+
+Uso recomendado:
+
+1. crear conectores antes de iniciar corridas batch relevantes
+2. elegir el conector al crear borradores o corridas por URL
+3. usar ese contexto luego para leer fuente/precio y revisar calidad de captura
 
 ## Flujo recomendado
 

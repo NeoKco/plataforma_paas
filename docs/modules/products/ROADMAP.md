@@ -13,6 +13,9 @@ El módulo ya cubre:
 - ingesta asistida con borradores manuales
 - extracción rápida por URL
 - corridas batch por múltiples URLs
+- conectores multi-fuente configurables
+- fuentes persistidas por producto
+- historial de eventos de precio
 - aprobación al catálogo central
 - descarte y reapertura
 - deduplicación sugerida entre borradores y catálogo
@@ -33,20 +36,27 @@ El módulo ya cubre:
   - `Actualizar existente`
   - `Vincular existente`
 - extracción técnica más profunda para atributos útiles en cotizaciones y proyectos
+- vista `Fuentes/precios`
+- vista `Conectores`
+- persistencia automática de fuente/precio al aprobar o vincular borradores
+- overview con métricas y lecturas recientes de:
+  - fuentes
+  - precios
+  - conectores
 
 ## Backlog posterior al cierre
 
-1. conectores multi-fuente más ricos
-2. historial de precios por fuente y vigencia
+1. conectores automáticos reales por proveedor/fuente
+2. comparación y recomendación de mejor precio vigente entre múltiples fuentes
 3. normalización/categorización más profunda
-4. trazabilidad de versiones/fuentes por producto
+4. trazabilidad/versionado más rico de atributos técnicos por fuente
 5. integración más profunda del catálogo con `projects`
 
 ## Siguiente slice recomendado
 
 - profundizar `products` con:
-  - conectores multi-fuente
-  - historial de precio/fuente y vigencia
+  - conectores automáticos reales
+  - comparación multi-fuente
   - mejor soporte para consumo del catálogo en cotizaciones y proyectos
 - mantener la regla de dominio:
   - `products` sigue siendo módulo independiente

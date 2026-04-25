@@ -14,6 +14,9 @@ Estado actual:
   - scraping/ingesta asistida
   - extracción por URL
   - corridas batch
+  - conectores multi-fuente configurables
+  - historial de fuentes por producto
+  - historial de eventos de precio por producto
   - revisión previa a publicación
 - otros módulos lo consumen, pero no lo poseen:
   - `crm`
@@ -39,15 +42,35 @@ El módulo hoy incluye:
   - borradores manuales
   - extracción por URL
   - corridas batch por URLs
+  - selección opcional de conector
   - normalización mínima previa
   - descarte y reapertura
   - aprobación al catálogo central
+- conectores de fuente con:
+  - nombre
+  - tipo
+  - estado activo/inactivo
+  - configuración operativa breve
+  - métricas de uso visibles
+- fuentes por producto con:
+  - URL/ref externa
+  - proveedor
+  - moneda
+  - precio más reciente
+  - vigencia
+- historial de precio con:
+  - monto
+  - moneda
+  - fecha efectiva
+  - observación
+  - fuente asociada cuando aplica
 - resumen operativo con métricas de catálogo e ingesta
 
 Queda fuera por ahora:
 
-- conectores multi-fuente más ricos
-- tracking histórico de precios por fuente
+- conectores automáticos reales por marketplace/proveedor
+- versionado más profundo de atributos técnicos por fuente
+- comparación avanzada entre múltiples fuentes para sugerir mejor precio vigente
 
 Ya quedó incluido además:
 
@@ -63,6 +86,7 @@ Ya quedó incluido además:
 - deduplicación accionable sobre catálogo ya publicado:
   - `Actualizar existente`
   - `Vincular existente`
+- persistencia automática de fuente/precio al aprobar o vincular borradores
 - extracción técnica más profunda desde texto y scraping para atributos útiles en cotizaciones y proyectos:
   - `Potencia`
   - `Voltaje`

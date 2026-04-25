@@ -3,6 +3,24 @@
 ## Última actualización
 
 - fecha: 2026-04-24
+- foco operativo nuevo ya cerrado en repo:
+  - `products` ya cierra historial de fuentes/precios y conectores multi-fuente configurables
+  - backend tenant ya expone además:
+    - `/tenant/products/sources`
+    - `/tenant/products/price-history`
+    - `/tenant/products/connectors`
+  - frontend tenant ya publica:
+    - `Fuentes/precios`
+    - `Conectores`
+  - `Products > Ingesta` ya deja elegir `conector` en borradores, extracción rápida y corridas batch
+  - al aprobar o vincular borradores ya se persiste:
+    - fuente asociada
+    - evento de precio asociado
+  - validación repo nueva:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `23 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `239 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/models/product_ingestion_*.py backend/migrations/tenant/v0047_products_sources_and_connectors.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya cierra deduplicación accionable y enriquecimiento técnico más profundo
   - backend tenant ya expone además:

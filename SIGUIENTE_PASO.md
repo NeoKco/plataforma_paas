@@ -9,6 +9,8 @@
     - deduplicación sugerida
     - deduplicación accionable
     - enriquecimiento técnico más profundo
+    - historial de fuentes/precios
+    - conectores multi-fuente configurables
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
   - `taskops` ya consolida además:
     - nombre visible `Tareas`
@@ -24,8 +26,8 @@
   - decidir si la siguiente profundización sigue sobre `products` o si ya abrimos `projects` como siguiente módulo consumidor fuerte
   - recomendación actual:
     - abrir `projects` o, si se mantiene foco en `products`, priorizar:
-      - historial de precio/fuente
-      - conectores multi-fuente
+      - conectores automáticos reales
+      - comparación multi-fuente
       - integración más profunda con cotizaciones y proyectos
   - por qué este orden:
     - `products` ya cubre el hueco inmediato de calidad en captura, deduplicación y enriquecimiento

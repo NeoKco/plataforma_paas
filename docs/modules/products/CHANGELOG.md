@@ -2,6 +2,40 @@
 
 ## 2026-04-24
 
+- `products` cierra historial de fuentes/precios y conectores multi-fuente configurables:
+  - nueva migración tenant:
+    - `v0047_products_sources_and_connectors`
+  - backend nuevo para:
+    - `GET /tenant/products/sources`
+    - `POST /tenant/products/catalog/{product_id}/sources`
+    - `PUT /tenant/products/sources/{source_id}`
+    - `GET /tenant/products/price-history`
+    - `POST /tenant/products/catalog/{product_id}/price-history`
+    - `GET /tenant/products/connectors`
+    - `POST /tenant/products/connectors`
+    - `PUT /tenant/products/connectors/{connector_id}`
+    - `PATCH /tenant/products/connectors/{connector_id}/status`
+    - `DELETE /tenant/products/connectors/{connector_id}`
+  - `Products > Ingesta` ya deja elegir `conector` en:
+    - borradores manuales
+    - extracción rápida por URL
+    - corridas batch
+  - al aprobar o vincular borradores ya se persiste:
+    - fuente asociada al producto
+    - evento de precio asociado
+  - el frontend `products` suma:
+    - `Fuentes/precios`
+    - `Conectores`
+  - el `Resumen` ya muestra además métricas y lecturas recientes de:
+    - fuentes
+    - precios
+    - conectores
+  - validación repo:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `23 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `239 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/models/product_ingestion_*.py backend/migrations/tenant/v0047_products_sources_and_connectors.py` -> `OK`
+    - `npm run build` -> `OK`
+
 - `products` cierra deduplicación accionable y enriquecimiento técnico más profundo:
   - se publica `POST /tenant/products/ingestion/drafts/{draft_id}/resolve-duplicate`
   - la UI `Products > Ingesta` ya expone:

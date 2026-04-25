@@ -25,6 +25,9 @@ Rutas públicas del módulo:
 - `/tenant/products/overview`
 - `/tenant/products/catalog`
 - `/tenant/products/ingestion/*`
+- `/tenant/products/sources`
+- `/tenant/products/price-history`
+- `/tenant/products/connectors`
 
 Permisos:
 
@@ -44,6 +47,12 @@ Esa compatibilidad interna no cambia la regla pública:
 
 - `products` es el dueño funcional del catálogo e ingesta
 - `crm` solo consume ese catálogo
+
+En este slice el módulo también pasa a ser dueño funcional de:
+
+- conectores de ingesta
+- fuentes por producto
+- eventos de precio por producto
 
 ## Slice nuevo ya cerrado
 
@@ -74,6 +83,19 @@ La resolución accionable hoy soporta:
 - `link_existing`
   resuelve el borrador contra un producto ya publicado sin modificar el catálogo
 
+Además, este cierre suma:
+
+- conectores multi-fuente persistidos
+- borradores y corridas con `connector_id`
+- persistencia automática de fuentes y eventos de precio al aprobar o vincular borradores
+- CRUD visible de conectores
+- CRUD visible de fuentes manuales
+- registro manual de eventos de precio
+- overview con:
+  - fuentes recientes
+  - precios recientes
+  - conectores recientes
+
 Variables runtime compatibles con el carril IA existente:
 
 - `API_IA_URL`
@@ -92,7 +114,8 @@ Regla de implementación:
 
 Las siguientes profundizaciones deben abrirse aquí:
 
-- conectores multi-fuente reales
-- historial de precios/fuentes y vigencia
+- conectores automáticos reales por proveedor/fuente
+- comparación entre múltiples fuentes para sugerir mejor precio vigente
 - mejor reutilización del catálogo en `projects`
 - clasificación/categorización más profunda por IA
+- versionado más rico de atributos técnicos por fuente
