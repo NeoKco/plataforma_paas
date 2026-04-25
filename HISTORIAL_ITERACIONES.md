@@ -34,6 +34,22 @@ Validación:
 - repo:
   - `backend.app.tests.test_products_services + test_migration_flow + test_platform_flow` -> `264 tests OK`
   - `npm run build` -> `OK`
+- runtime:
+  - `staging`:
+    - backup PostgreSQL tenant previo completado con `4` backups
+    - reparación técnica controlada de `ieris-ltda` por `invalid_db_credentials`
+    - backend redeploy -> `585 tests OK`
+    - convergencia tenant -> `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado con `ProductsComparisonsPage-CAKT8eeD.js`, `ProductsConnectorsPage-BajC475a.js`, `ProductsOverviewPage-BFkDbRHK.js`, `ProductsSourcesPage-DY_P2icK.js` e `index-BgJXivHz.js`
+  - `production`:
+    - backup PostgreSQL tenant previo completado con `4` backups
+    - backup adicional explícito de `ieris-ltda`
+    - reparación técnica controlada de `ieris-ltda` por `invalid_db_credentials`
+    - backend redeploy -> `585 tests OK`
+    - convergencia tenant -> `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado con `ProductsComparisonsPage-D-TGL7yL.js`, `ProductsConnectorsPage-BYaIC1IG.js`, `ProductsOverviewPage-DXKyQJmV.js`, `ProductsSourcesPage-2MmnAyLS.js` e `index-ChkiiS2F.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - `bash deploy/check_release_governance.sh` -> `OK`
 
 Resultado:
 

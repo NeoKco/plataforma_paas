@@ -25,6 +25,21 @@
   - validación repo nueva:
     - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow + backend.app.tests.test_platform_flow` -> `264 tests OK`
     - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - reparación técnica controlada de `ieris-ltda` por `invalid_db_credentials`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsComparisonsPage-CAKT8eeD.js`, `ProductsConnectorsPage-BajC475a.js`, `ProductsOverviewPage-BFkDbRHK.js`, `ProductsSourcesPage-DY_P2icK.js`, `productsService-CnA0DjVj.js`, `ProductsModuleNav-DrLb9Mk_.js` e `index-BgJXivHz.js`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backup adicional explícito de `ieris-ltda`
+      - reparación técnica controlada de `ieris-ltda` por `invalid_db_credentials`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsComparisonsPage-D-TGL7yL.js`, `ProductsConnectorsPage-BYaIC1IG.js`, `ProductsOverviewPage-DXKyQJmV.js`, `ProductsSourcesPage-2MmnAyLS.js`, `productsService-BiYr4b0w.js`, `ProductsModuleNav-CmBg8ePv.js` e `index-ChkiiS2F.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya cierra historial de fuentes/precios y conectores multi-fuente configurables
   - backend tenant ya expone además:
