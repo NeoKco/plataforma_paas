@@ -50,6 +50,7 @@ from migrations.tenant import v0047_products_sources_and_connectors
 from migrations.tenant import v0048_products_connector_automation
 from migrations.tenant import v0049_products_live_refresh
 from migrations.tenant import v0050_products_connector_scheduler_and_provider_profiles
+from migrations.tenant import v0051_products_connector_runtime_profiles
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -238,6 +239,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0048_products_connector_automation",
                 "0049_products_live_refresh",
                 "0050_products_connector_scheduler_and_provider_profiles",
+                "0051_products_connector_runtime_profiles",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -589,6 +591,15 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("last_scheduled_run_at", product_connector_columns)
         self.assertIn("last_schedule_status", product_connector_columns)
         self.assertIn("last_schedule_summary", product_connector_columns)
+        self.assertIn("provider_profile", product_connector_columns)
+        self.assertIn("auth_mode", product_connector_columns)
+        self.assertIn("auth_reference", product_connector_columns)
+        self.assertIn("request_timeout_seconds", product_connector_columns)
+        self.assertIn("retry_limit", product_connector_columns)
+        self.assertIn("retry_backoff_seconds", product_connector_columns)
+        self.assertIn("last_validation_at", product_connector_columns)
+        self.assertIn("last_validation_status", product_connector_columns)
+        self.assertIn("last_validation_summary", product_connector_columns)
         self.assertIn("last_sync_summary", product_connector_columns)
         self.assertIn("sync_status", product_source_columns)
         self.assertIn("last_sync_attempt_at", product_source_columns)
@@ -737,6 +748,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0048_products_connector_automation",
                 "0049_products_live_refresh",
                 "0050_products_connector_scheduler_and_provider_profiles",
+                "0051_products_connector_runtime_profiles",
             ],
         )
 

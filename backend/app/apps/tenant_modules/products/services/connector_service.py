@@ -11,9 +11,18 @@ class ProductConnectorService:
     VALID_SYNC_MODES = {"manual", "connector_sync"}
     VALID_FETCH_STRATEGIES = {"html_generic", "html_vendor", "json_feed", "html_ai"}
     VALID_PROVIDER_KEYS = {"generic", "mercadolibre", "sodimac", "easy", "json_feed"}
+    VALID_PROVIDER_PROFILES = {
+        "generic_v1",
+        "mercadolibre_v1",
+        "sodimac_v1",
+        "easy_v1",
+        "json_feed_v1",
+    }
+    VALID_AUTH_MODES = {"none", "bearer_token", "basic"}
     VALID_SCHEDULE_STATUSES = {"idle", "scheduled", "running", "warning", "error"}
     VALID_SCHEDULE_SCOPES = {"due_sources"}
     VALID_SCHEDULE_FREQUENCIES = {"hourly", "daily", "weekly"}
+    VALID_VALIDATION_STATUSES = {"idle", "validated", "warning", "error"}
 
     def list_connectors(self, tenant_db, *, include_inactive: bool = True) -> list[ProductConnector]:
         query = tenant_db.query(ProductConnector)
@@ -38,6 +47,19 @@ class ProductConnectorService:
             supports_price_tracking=bool(payload.supports_price_tracking),
             is_active=bool(payload.is_active),
             provider_key=self._normalize_provider_key(getattr(payload, "provider_key", "generic")),
+            provider_profile=self._normalize_provider_profile(
+                getattr(payload, "provider_profile", "generic_v1"),
+                provider_key=getattr(payload, "provider_key", "generic"),
+            ),
+            auth_mode=self._normalize_auth_mode(getattr(payload, "auth_mode", "none")),
+            auth_reference=self._normalize_optional(getattr(payload, "auth_reference", None)),
+            request_timeout_seconds=self._normalize_request_timeout_seconds(
+                getattr(payload, "request_timeout_seconds", 25)
+            ),
+            retry_limit=self._normalize_retry_limit(getattr(payload, "retry_limit", 2)),
+            retry_backoff_seconds=self._normalize_retry_backoff_seconds(
+                getattr(payload, "retry_backoff_seconds", 3)
+            ),
             sync_mode=self._normalize_sync_mode(getattr(payload, "sync_mode", "manual")),
             fetch_strategy=self._normalize_fetch_strategy(
                 getattr(payload, "fetch_strategy", "html_generic")
@@ -66,6 +88,9 @@ class ProductConnectorService:
             else "idle",
             last_schedule_summary=None,
             config_notes=self._normalize_optional(payload.config_notes),
+            last_validation_at=None,
+            last_validation_status="idle",
+            last_validation_summary=None,
             last_sync_at=None,
             last_sync_status="ready" if payload.is_active else "idle",
             last_sync_summary=None,
@@ -85,6 +110,19 @@ class ProductConnectorService:
         item.supports_price_tracking = bool(payload.supports_price_tracking)
         item.is_active = bool(payload.is_active)
         item.provider_key = self._normalize_provider_key(getattr(payload, "provider_key", "generic"))
+        item.provider_profile = self._normalize_provider_profile(
+            getattr(payload, "provider_profile", "generic_v1"),
+            provider_key=item.provider_key,
+        )
+        item.auth_mode = self._normalize_auth_mode(getattr(payload, "auth_mode", "none"))
+        item.auth_reference = self._normalize_optional(getattr(payload, "auth_reference", None))
+        item.request_timeout_seconds = self._normalize_request_timeout_seconds(
+            getattr(payload, "request_timeout_seconds", 25)
+        )
+        item.retry_limit = self._normalize_retry_limit(getattr(payload, "retry_limit", 2))
+        item.retry_backoff_seconds = self._normalize_retry_backoff_seconds(
+            getattr(payload, "retry_backoff_seconds", 3)
+        )
         item.sync_mode = self._normalize_sync_mode(getattr(payload, "sync_mode", "manual"))
         item.fetch_strategy = self._normalize_fetch_strategy(
             getattr(payload, "fetch_strategy", "html_generic")
@@ -115,6 +153,31 @@ class ProductConnectorService:
         tenant_db.commit()
         tenant_db.refresh(item)
         return item
+
+    def touch_connector_validation(
+        self,
+        tenant_db,
+        connector_id: int | None,
+        *,
+        status: str = "validated",
+        summary: str | None = None,
+        reference: datetime | None = None,
+    ) -> None:
+        if not connector_id:
+            return
+        item = tenant_db.get(ProductConnector, connector_id)
+        if item is None:
+            return
+        now = reference or self._now()
+        item.last_validation_at = now
+        item.last_validation_status = (
+            status if status in self.VALID_VALIDATION_STATUSES else "validated"
+        )
+        if summary is not None:
+            item.last_validation_summary = self._normalize_optional(summary)
+        item.updated_at = now
+        tenant_db.add(item)
+        tenant_db.flush()
 
     def set_connector_active(self, tenant_db, connector_id: int, *, is_active: bool) -> ProductConnector:
         item = self.get_connector(tenant_db, connector_id)
@@ -237,6 +300,20 @@ class ProductConnectorService:
             raise ValueError("Proveedor/preset inválido")
         return normalized
 
+    def _normalize_provider_profile(self, value: str | None, *, provider_key: str | None = None) -> str:
+        normalized = (value or "").strip().lower()
+        if not normalized:
+            normalized = f"{(provider_key or 'generic').strip().lower() or 'generic'}_v1"
+        if normalized not in self.VALID_PROVIDER_PROFILES:
+            raise ValueError("Perfil runtime del proveedor inválido")
+        return normalized
+
+    def _normalize_auth_mode(self, value: str | None) -> str:
+        normalized = (value or "none").strip().lower()
+        if normalized not in self.VALID_AUTH_MODES:
+            raise ValueError("Modo de autenticación inválido")
+        return normalized
+
     def _normalize_sync_mode(self, value: str | None) -> str:
         normalized = (value or "manual").strip().lower()
         if normalized not in self.VALID_SYNC_MODES:
@@ -265,6 +342,21 @@ class ProductConnectorService:
     def _normalize_schedule_batch_limit(value: int | None) -> int:
         normalized = int(value or 50)
         return max(min(normalized, 500), 1)
+
+    @staticmethod
+    def _normalize_request_timeout_seconds(value: int | None) -> int:
+        normalized = int(value or 25)
+        return max(min(normalized, 120), 5)
+
+    @staticmethod
+    def _normalize_retry_limit(value: int | None) -> int:
+        normalized = int(value or 2)
+        return max(min(normalized, 5), 0)
+
+    @staticmethod
+    def _normalize_retry_backoff_seconds(value: int | None) -> int:
+        normalized = int(value or 3)
+        return max(min(normalized, 60), 0)
 
     @staticmethod
     def _normalize_currency(value: str | None) -> str:

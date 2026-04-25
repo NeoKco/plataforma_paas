@@ -16,6 +16,7 @@ import {
   getProductCatalogConnectors,
   runProductCatalogConnectorSchedule,
   syncProductCatalogConnector,
+  validateProductCatalogConnector,
   type ProductCatalogConnector,
   type ProductCatalogConnectorWriteRequest,
   updateProductCatalogConnector,
@@ -29,11 +30,16 @@ const CONNECTOR_PROVIDER_PRESETS: Record<
   generic: {
     label: "Genérico",
     connector_kind: "generic_url",
+    provider_profile: "generic_v1",
+    auth_mode: "none",
     fetch_strategy: "html_generic",
     sync_mode: "manual",
     run_ai_enrichment: false,
     supports_batch: true,
     supports_price_tracking: true,
+    request_timeout_seconds: 25,
+    retry_limit: 2,
+    retry_backoff_seconds: 3,
     schedule_scope: "due_sources",
     schedule_frequency: "daily",
     schedule_batch_limit: 25,
@@ -41,11 +47,16 @@ const CONNECTOR_PROVIDER_PRESETS: Record<
   mercadolibre: {
     label: "Mercado Libre",
     connector_kind: "vendor_site",
+    provider_profile: "mercadolibre_v1",
+    auth_mode: "none",
     fetch_strategy: "html_ai",
     sync_mode: "connector_sync",
     run_ai_enrichment: true,
     supports_batch: true,
     supports_price_tracking: true,
+    request_timeout_seconds: 20,
+    retry_limit: 2,
+    retry_backoff_seconds: 3,
     schedule_scope: "due_sources",
     schedule_frequency: "daily",
     schedule_batch_limit: 25,
@@ -53,11 +64,16 @@ const CONNECTOR_PROVIDER_PRESETS: Record<
   sodimac: {
     label: "Sodimac",
     connector_kind: "vendor_site",
+    provider_profile: "sodimac_v1",
+    auth_mode: "none",
     fetch_strategy: "html_vendor",
     sync_mode: "connector_sync",
     run_ai_enrichment: true,
     supports_batch: true,
     supports_price_tracking: true,
+    request_timeout_seconds: 25,
+    retry_limit: 2,
+    retry_backoff_seconds: 3,
     schedule_scope: "due_sources",
     schedule_frequency: "daily",
     schedule_batch_limit: 25,
@@ -65,11 +81,16 @@ const CONNECTOR_PROVIDER_PRESETS: Record<
   easy: {
     label: "Easy",
     connector_kind: "vendor_site",
+    provider_profile: "easy_v1",
+    auth_mode: "none",
     fetch_strategy: "html_vendor",
     sync_mode: "connector_sync",
     run_ai_enrichment: true,
     supports_batch: true,
     supports_price_tracking: true,
+    request_timeout_seconds: 25,
+    retry_limit: 2,
+    retry_backoff_seconds: 3,
     schedule_scope: "due_sources",
     schedule_frequency: "daily",
     schedule_batch_limit: 25,
@@ -77,11 +98,16 @@ const CONNECTOR_PROVIDER_PRESETS: Record<
   json_feed: {
     label: "Feed JSON",
     connector_kind: "vendor_feed",
+    provider_profile: "json_feed_v1",
+    auth_mode: "none",
     fetch_strategy: "json_feed",
     sync_mode: "connector_sync",
     run_ai_enrichment: false,
     supports_batch: true,
     supports_price_tracking: true,
+    request_timeout_seconds: 20,
+    retry_limit: 1,
+    retry_backoff_seconds: 1,
     schedule_scope: "due_sources",
     schedule_frequency: "hourly",
     schedule_batch_limit: 50,
@@ -93,11 +119,17 @@ function buildDefaultForm(): ProductCatalogConnectorWriteRequest {
     name: "",
     connector_kind: "generic_url",
     provider_key: "generic",
+    provider_profile: "generic_v1",
     base_url: "",
     default_currency_code: "CLP",
     supports_batch: true,
     supports_price_tracking: true,
     is_active: true,
+    auth_mode: "none",
+    auth_reference: "",
+    request_timeout_seconds: 25,
+    retry_limit: 2,
+    retry_backoff_seconds: 3,
     sync_mode: "manual",
     fetch_strategy: "html_generic",
     run_ai_enrichment: false,
@@ -161,11 +193,17 @@ export function ProductsConnectorsPage() {
       name: item.name,
       connector_kind: item.connector_kind,
       provider_key: item.provider_key,
+      provider_profile: item.provider_profile,
       base_url: item.base_url || "",
       default_currency_code: item.default_currency_code,
       supports_batch: item.supports_batch,
       supports_price_tracking: item.supports_price_tracking,
       is_active: item.is_active,
+      auth_mode: item.auth_mode,
+      auth_reference: item.auth_reference || "",
+      request_timeout_seconds: item.request_timeout_seconds,
+      retry_limit: item.retry_limit,
+      retry_backoff_seconds: item.retry_backoff_seconds,
       sync_mode: item.sync_mode,
       fetch_strategy: item.fetch_strategy,
       run_ai_enrichment: item.run_ai_enrichment,
@@ -182,12 +220,17 @@ export function ProductsConnectorsPage() {
     setForm((current) => ({
       ...current,
       provider_key: providerKey,
+      provider_profile: preset.provider_profile || current.provider_profile,
       connector_kind: preset.connector_kind || current.connector_kind,
+      auth_mode: preset.auth_mode || current.auth_mode,
       fetch_strategy: preset.fetch_strategy || current.fetch_strategy,
       sync_mode: preset.sync_mode || current.sync_mode,
       run_ai_enrichment: preset.run_ai_enrichment ?? current.run_ai_enrichment,
       supports_batch: preset.supports_batch ?? current.supports_batch,
       supports_price_tracking: preset.supports_price_tracking ?? current.supports_price_tracking,
+      request_timeout_seconds: preset.request_timeout_seconds || current.request_timeout_seconds,
+      retry_limit: preset.retry_limit || current.retry_limit,
+      retry_backoff_seconds: preset.retry_backoff_seconds || current.retry_backoff_seconds,
       schedule_scope: preset.schedule_scope || current.schedule_scope,
       schedule_frequency: preset.schedule_frequency || current.schedule_frequency,
       schedule_batch_limit: preset.schedule_batch_limit || current.schedule_batch_limit,
@@ -204,6 +247,7 @@ export function ProductsConnectorsPage() {
       const payload: ProductCatalogConnectorWriteRequest = {
         ...form,
         base_url: form.base_url || null,
+        auth_reference: form.auth_reference || null,
         config_notes: form.config_notes || null,
       };
       const response = editingId
@@ -265,6 +309,20 @@ export function ProductsConnectorsPage() {
           language === "es" ? "completadas" : "completed"
         })`,
       );
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
+  async function handleValidate(item: ProductCatalogConnector) {
+    if (!session?.accessToken) return;
+    try {
+      const response = await validateProductCatalogConnector(session.accessToken, item.id);
+      const preview = response.preview
+        ? ` · ${response.preview.name || "n/a"} · ${response.preview.unit_price} ${response.preview.currency_code || ""}`.trim()
+        : "";
+      setFeedback(`${response.message} (${item.name}: ${response.status}${preview ? ` ${preview}` : ""})`);
       await loadData();
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -345,8 +403,36 @@ export function ProductsConnectorsPage() {
             <input value={form.base_url || ""} onChange={(event) => setForm((current) => ({ ...current, base_url: event.target.value }))} />
           </label>
           <label>
+            <span>{language === "es" ? "Perfil runtime" : "Runtime profile"}</span>
+            <select
+              value={form.provider_profile}
+              onChange={(event) => setForm((current) => ({ ...current, provider_profile: event.target.value }))}
+            >
+              <option value="generic_v1">generic_v1</option>
+              <option value="mercadolibre_v1">mercadolibre_v1</option>
+              <option value="sodimac_v1">sodimac_v1</option>
+              <option value="easy_v1">easy_v1</option>
+              <option value="json_feed_v1">json_feed_v1</option>
+            </select>
+          </label>
+          <label>
             <span>{language === "es" ? "Moneda por defecto" : "Default currency"}</span>
             <input value={form.default_currency_code} onChange={(event) => setForm((current) => ({ ...current, default_currency_code: event.target.value }))} />
+          </label>
+          <label>
+            <span>{language === "es" ? "Autenticación" : "Authentication"}</span>
+            <select value={form.auth_mode} onChange={(event) => setForm((current) => ({ ...current, auth_mode: event.target.value }))}>
+              <option value="none">{language === "es" ? "Sin auth" : "No auth"}</option>
+              <option value="bearer_token">Bearer token</option>
+              <option value="basic">Basic</option>
+            </select>
+          </label>
+          <label>
+            <span>{language === "es" ? "Referencia credencial" : "Credential reference"}</span>
+            <input
+              value={form.auth_reference || ""}
+              onChange={(event) => setForm((current) => ({ ...current, auth_reference: event.target.value }))}
+            />
           </label>
           <label>
             <span>{language === "es" ? "Modo sync" : "Sync mode"}</span>
@@ -363,6 +449,51 @@ export function ProductsConnectorsPage() {
               <option value="json_feed">{language === "es" ? "Feed JSON" : "JSON feed"}</option>
               <option value="html_ai">{language === "es" ? "HTML + IA" : "HTML + AI"}</option>
             </select>
+          </label>
+          <label>
+            <span>{language === "es" ? "Timeout request" : "Request timeout"}</span>
+            <input
+              type="number"
+              min={5}
+              max={120}
+              value={form.request_timeout_seconds}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  request_timeout_seconds: Number.parseInt(event.target.value || "25", 10),
+                }))
+              }
+            />
+          </label>
+          <label>
+            <span>{language === "es" ? "Reintentos" : "Retry limit"}</span>
+            <input
+              type="number"
+              min={0}
+              max={5}
+              value={form.retry_limit}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  retry_limit: Number.parseInt(event.target.value || "2", 10),
+                }))
+              }
+            />
+          </label>
+          <label>
+            <span>{language === "es" ? "Backoff (s)" : "Backoff (s)"}</span>
+            <input
+              type="number"
+              min={0}
+              max={60}
+              value={form.retry_backoff_seconds}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  retry_backoff_seconds: Number.parseInt(event.target.value || "3", 10),
+                }))
+              }
+            />
           </label>
           <label>
             <span>{language === "es" ? "Frecuencia scheduler" : "Scheduler frequency"}</span>
@@ -444,7 +575,7 @@ export function ProductsConnectorsPage() {
             render: (row) => (
               <div>
                 <strong>{row.name}</strong>
-                <div className="text-muted small">{row.provider_key} · {row.connector_kind}</div>
+                <div className="text-muted small">{row.provider_key} · {row.provider_profile} · {row.connector_kind}</div>
               </div>
             ),
           },
@@ -478,6 +609,10 @@ export function ProductsConnectorsPage() {
                 <div className="text-muted small">
                   {language === "es" ? "Próxima corrida" : "Next run"}: {formatDateTime(row.next_scheduled_run_at, language)}
                 </div>
+                <div className="text-muted small">
+                  {language === "es" ? "Validación" : "Validation"}: {row.last_validation_status} · {formatDateTime(row.last_validation_at, language)}
+                </div>
+                <div className="text-muted small">{row.last_validation_summary || "—"}</div>
               </div>
             ),
           },
@@ -507,6 +642,14 @@ export function ProductsConnectorsPage() {
                   disabled={!row.is_active || !row.schedule_enabled}
                 >
                   {language === "es" ? "Correr scheduler" : "Run scheduler"}
+                </button>
+                <button
+                  className="btn btn-outline-dark btn-sm"
+                  type="button"
+                  onClick={() => void handleValidate(row)}
+                  disabled={!row.is_active}
+                >
+                  {language === "es" ? "Validar" : "Validate"}
                 </button>
                 <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => void handleDelete(row)}>
                   {language === "es" ? "Eliminar" : "Delete"}

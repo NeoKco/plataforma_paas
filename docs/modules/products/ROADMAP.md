@@ -15,6 +15,8 @@ El módulo ya cubre:
 - corridas batch por múltiples URLs
 - conectores multi-fuente configurables
 - presets de conectores por proveedor
+- perfiles runtime por proveedor
+- validación operativa por conector
 - actualización viva por artículo
 - scheduler formal por tenant para `due_sources`
 - corridas batch de refresh con progreso
@@ -81,19 +83,39 @@ El módulo ya cubre:
   - `last_schedule_status`
 - runner formal cross-tenant disponible:
   - `backend/app/scripts/run_products_refresh_scheduler.py`
+- migración `0051_products_connector_runtime_profiles`
+- conectores ya muestran y persisten además:
+  - `provider_profile`
+  - `auth_mode`
+  - `auth_reference`
+  - `request_timeout_seconds`
+  - `retry_limit`
+  - `retry_backoff_seconds`
+  - `last_validation_at`
+  - `last_validation_status`
+  - `last_validation_summary`
+- validación explícita desde:
+  - `POST /tenant/products/connectors/{connector_id}/validate`
+- primer conector patrón profundizado:
+  - `mercadolibre`
+  - referencia externa desde URL
+  - prioridad a JSON-LD + metadata + hints
+  - características extra operativas
 
 ## Backlog posterior al cierre
 
-1. conectores específicos por proveedor/fuente con autenticación propietaria
-2. comparación multi-moneda/unidad más profunda
-3. trazabilidad/versionado más rico de atributos técnicos por fuente
-4. integración más profunda del catálogo con `projects`
-5. scheduler con campañas/historial operativo más rico si el runner actual deja de bastar
+1. scheduler automático gobernado por worker/cron del entorno
+2. conectores específicos por proveedor/fuente con autenticación propietaria más profunda
+3. comparación multi-moneda/unidad más profunda
+4. trazabilidad/versionado más rico de atributos técnicos por fuente
+5. integración más profunda del catálogo con `projects`
+6. scheduler con campañas/historial operativo más rico si el runner actual deja de bastar
 
 ## Siguiente slice recomendado
 
 - abrir `projects` como consumidor fuerte del catálogo `products`
 - si se mantiene foco en `products`, priorizar:
+  - scheduler automático gobernado por entorno
   - conectores concretos por marketplace/proveedor con autenticación propia
   - mejor conciliación de moneda/unidad
   - versionado más rico de atributos por fuente

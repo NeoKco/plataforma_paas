@@ -40,8 +40,28 @@ class CRMProductIngestionExtractionService:
             ".priceValue",
         ],
     }
+    PROVIDER_SPECIFIC_DESCRIPTION_SELECTORS = {
+        "mercadolibre": [
+            ".ui-pdp-description__content",
+            "meta[property='og:description']",
+        ],
+        "sodimac": [
+            ".product-description",
+            "meta[property='og:description']",
+        ],
+        "easy": [
+            ".vtex-store-components-3-x-productDescriptionText",
+            "meta[property='og:description']",
+        ],
+    }
 
-    def extract_from_url(self, url: str, *, provider_key: str | None = None) -> dict[str, Any]:
+    def extract_from_url(
+        self,
+        url: str,
+        *,
+        provider_key: str | None = None,
+        timeout_seconds: int | None = None,
+    ) -> dict[str, Any]:
         try:
             import requests
             from bs4 import BeautifulSoup
@@ -57,7 +77,7 @@ class CRMProductIngestionExtractionService:
         response = requests.get(
             normalized_url,
             headers={"User-Agent": self.USER_AGENT},
-            timeout=25,
+            timeout=max(int(timeout_seconds or 25), 5),
         )
         response.raise_for_status()
 
@@ -75,20 +95,39 @@ class CRMProductIngestionExtractionService:
             provider_key=normalized_provider,
             source_url=normalized_url,
         )
+        provider_payload = self._extract_provider_payload(
+            soup,
+            provider_key=normalized_provider,
+            source_url=normalized_url,
+        )
         for tag in soup(["script", "style", "noscript", "svg"]):
             tag.decompose()
 
-        title = structured_payload.get("name") or self._extract_title(soup, provider_key=normalized_provider)
-        description = structured_payload.get("description") or self._extract_description(soup)
-        brand = structured_payload.get("brand") or self._extract_brand(soup)
-        sku = structured_payload.get("sku") or self._extract_sku(soup)
+        title = (
+            structured_payload.get("name")
+            or provider_payload.get("name")
+            or self._extract_title(soup, provider_key=normalized_provider)
+        )
+        description = (
+            structured_payload.get("description")
+            or provider_payload.get("description")
+            or self._extract_description(soup, provider_key=normalized_provider)
+        )
+        brand = structured_payload.get("brand") or provider_payload.get("brand") or self._extract_brand(soup)
+        sku = structured_payload.get("sku") or provider_payload.get("sku") or self._extract_sku(soup)
         price = self._coalesce_price(
             structured_payload.get("unit_price"),
+            provider_payload.get("unit_price"),
             self._extract_price(soup, provider_key=normalized_provider),
         )
-        category = structured_payload.get("category_label") or self._extract_category(soup)
+        category = (
+            structured_payload.get("category_label")
+            or provider_payload.get("category_label")
+            or self._extract_category(soup)
+        )
         characteristics = self._merge_characteristics(
             structured_payload.get("characteristics") or [],
+            provider_payload.get("characteristics") or [],
             self._extract_characteristics(soup),
         )
         source_excerpt = self._build_source_excerpt(description, characteristics)
@@ -99,17 +138,29 @@ class CRMProductIngestionExtractionService:
             "sku": sku,
             "brand": brand,
             "category_label": category,
-            "product_type": structured_payload.get("product_type") or "product",
+            "product_type": (
+                structured_payload.get("product_type")
+                or provider_payload.get("product_type")
+                or "product"
+            ),
             "unit_label": None,
             "unit_price": price,
-            "currency_code": structured_payload.get("currency_code") or "CLP",
+            "currency_code": (
+                structured_payload.get("currency_code")
+                or provider_payload.get("currency_code")
+                or "CLP"
+            ),
             "description": description,
             "source_excerpt": source_excerpt,
             "extraction_notes": (
                 structured_payload.get("extraction_notes")
+                or provider_payload.get("extraction_notes")
                 or f"Extracción automática desde URL ({normalized_provider})"
             ),
-            "external_reference": structured_payload.get("external_reference"),
+            "external_reference": (
+                structured_payload.get("external_reference")
+                or provider_payload.get("external_reference")
+            ),
             "characteristics": characteristics,
         }
 
@@ -131,7 +182,12 @@ class CRMProductIngestionExtractionService:
                 return text
         raise ValueError("No se pudo detectar un nombre útil del producto")
 
-    def _extract_description(self, soup: Any) -> str | None:
+    def _extract_description(self, soup: Any, *, provider_key: str = "generic") -> str | None:
+        for selector in self.PROVIDER_SPECIFIC_DESCRIPTION_SELECTORS.get(provider_key, []):
+            candidate = soup.select_one(selector)
+            text = self._content_or_text(candidate)
+            if text and len(text) > 20:
+                return text[:4000]
         candidates = [
             soup.select_one('meta[name="description"]'),
             soup.select_one('meta[property="og:description"]'),
@@ -151,6 +207,90 @@ class CRMProductIngestionExtractionService:
         if paragraphs:
             return paragraphs[0][:4000]
         return None
+
+    def _extract_provider_payload(
+        self,
+        soup: Any,
+        *,
+        provider_key: str,
+        source_url: str,
+    ) -> dict[str, Any]:
+        if provider_key == "mercadolibre":
+            return self._extract_mercadolibre_payload(soup, source_url=source_url)
+        return {}
+
+    def _extract_mercadolibre_payload(self, soup: Any, *, source_url: str) -> dict[str, Any]:
+        script_blob = "\n".join(
+            (script.string or script.get_text() or "")
+            for script in soup.find_all("script")
+        )
+        external_reference = self._extract_mercadolibre_reference_from_url(source_url)
+        currency_code = self._search_script_value(
+            script_blob,
+            [
+                r'"currency_id"\s*:\s*"([A-Z]{3})"',
+                r'"priceCurrency"\s*:\s*"([A-Z]{3})"',
+            ],
+        )
+        seller_name = self._search_script_value(
+            script_blob,
+            [
+                r'"seller_name"\s*:\s*"([^"]+)"',
+                r'"nickname"\s*:\s*"([^"]+)"',
+            ],
+        )
+        condition = self._search_script_value(
+            script_blob,
+            [
+                r'"condition"\s*:\s*"([^"]+)"',
+            ],
+        )
+        available_quantity = self._search_script_value(
+            script_blob,
+            [
+                r'"available_quantity"\s*:\s*(\d+)',
+            ],
+        )
+        shipping_mode = self._search_script_value(
+            script_blob,
+            [
+                r'"shipping_mode"\s*:\s*"([^"]+)"',
+            ],
+        )
+        characteristics: list[dict[str, Any]] = []
+        if seller_name:
+            characteristics.append({"label": "Vendedor", "value": seller_name, "sort_order": 10})
+        if condition:
+            characteristics.append(
+                {
+                    "label": "Condición",
+                    "value": self._normalize_mercadolibre_condition(condition),
+                    "sort_order": 20,
+                }
+            )
+        if available_quantity:
+            characteristics.append(
+                {
+                    "label": "Disponibilidad",
+                    "value": f"{available_quantity} unidades",
+                    "sort_order": 30,
+                }
+            )
+        if shipping_mode:
+            characteristics.append(
+                {
+                    "label": "Despacho",
+                    "value": shipping_mode.replace("_", " ").strip(),
+                    "sort_order": 40,
+                }
+            )
+        return {
+            "currency_code": currency_code,
+            "external_reference": external_reference,
+            "category_label": self._extract_category(soup),
+            "characteristics": characteristics,
+            "extraction_notes": "Extracción automática dedicada para Mercado Libre",
+        }
 
     def _extract_brand(self, soup: Any) -> str | None:
         candidates = [
@@ -388,10 +528,11 @@ class CRMProductIngestionExtractionService:
         self,
         primary: list[dict[str, Any]],
         secondary: list[dict[str, Any]],
+        tertiary: list[dict[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         merged: list[dict[str, Any]] = []
         seen: set[tuple[str, str]] = set()
-        for item in [*(primary or []), *(secondary or [])]:
+        for item in [*(primary or []), *(secondary or []), *((tertiary or []))]:
             label = self._normalize_text(item.get("label"))
             value = self._normalize_text(item.get("value"))
             if not label or not value:
@@ -473,3 +614,27 @@ class CRMProductIngestionExtractionService:
             if amount > 0:
                 return amount
         return 0.0
+
+    @staticmethod
+    def _extract_mercadolibre_reference_from_url(source_url: str) -> str | None:
+        match = re.search(r"/([A-Z]{3}-?\d+)(?:[#/?]|$)", (source_url or "").upper())
+        if match:
+            return match.group(1).replace("--", "-")
+        return None
+
+    @staticmethod
+    def _search_script_value(script_blob: str, patterns: list[str]) -> str | None:
+        for pattern in patterns:
+            match = re.search(pattern, script_blob or "", re.I)
+            if match:
+                return CRMProductIngestionExtractionService._normalize_text(match.group(1))
+        return None
+
+    @staticmethod
+    def _normalize_mercadolibre_condition(value: str) -> str:
+        normalized = (value or "").strip().lower()
+        if normalized == "new":
+            return "Nuevo"
+        if normalized == "used":
+            return "Usado"
+        return value

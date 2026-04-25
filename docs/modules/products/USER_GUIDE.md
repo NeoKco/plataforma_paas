@@ -12,6 +12,7 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 - mantener fuentes vigentes por producto
 - registrar y revisar historial de precios
 - configurar conectores de ingesta
+- validar conectores antes de usarlos como origen estable
 - programar conectores para refresh tenant automático
 - refrescar artículos ya existentes desde sus URLs fuente
 - correr campañas batch de actualización con progreso
@@ -84,6 +85,7 @@ Cada conector puede representar, por ejemplo:
 - un sitio técnico recurrente
 - una familia de scraping/manual ingest
 - un proveedor concreto con preset técnico visible
+- un proveedor con perfil runtime técnico validable, por ejemplo `mercadolibre_v1`
 
 Uso recomendado:
 
@@ -102,8 +104,20 @@ Ahora cada conector también puede definir:
 
 - `Modo sync`
   `manual` o `connector_sync`
+- `Perfil runtime`
+  perfil técnico que identifica cómo se comporta el conector en runtime
+- `Autenticación`
+  hoy puede quedar en `Sin auth`, `Bearer token` o `Basic`
+- `Referencia credencial`
+  campo para apuntar a la credencial si el proveedor requiere autenticación propia
 - `Estrategia fetch`
   `HTML genérico`, `HTML proveedor`, `Feed JSON` o `HTML + IA`
+- `Timeout request`
+  cuánto espera el conector antes de considerar fallida la lectura
+- `Reintentos`
+  cuántas veces vuelve a intentar antes de marcar error
+- `Backoff`
+  pausa corta entre intentos
 - `Enriquecimiento IA`
   activa el enriquecimiento al sincronizar fuentes persistidas
 - `Scheduler tenant`
@@ -127,6 +141,17 @@ Si además el conector tiene `Scheduler tenant`, la vista permite:
 - ver próxima corrida programada
 - ver último estado del scheduler
 - lanzar `Correr scheduler` manualmente sin esperar la ejecución automática
+- lanzar `Validar` para probar el conector contra `base_url` o su fuente activa más reciente
+
+La validación muestra:
+
+- estado:
+  - `validated`
+  - `warning`
+  - `error`
+- último timestamp de validación
+- resumen corto de lo detectado
+- preview resumido cuando la extracción fue exitosa
 
 Uso recomendado del scheduler:
 
@@ -134,6 +159,19 @@ Uso recomendado del scheduler:
 2. usar `daily` para sitios HTML normales
 3. usar `hourly` solo para fuentes más estables o feeds JSON
 4. mantener un `batch limit` prudente para no saturar scraping ni IA
+
+Uso recomendado del validador:
+
+1. crear o editar el conector
+2. dejar `base_url` si quieres validar una URL patrón
+3. pulsar `Validar`
+4. revisar si detectó:
+   - nombre
+   - SKU/referencia
+   - precio
+   - moneda
+   - cantidad de características
+5. recién después dejar el conector como referencia operativa para refresh
 
 ## Comparación multi-fuente
 
@@ -211,6 +249,27 @@ Este módulo ya soporta un carril formal para `due_sources`:
   - `Resumen`
 
 Eso permite mantener vigente el catálogo sin depender solo de corridas manuales.
+
+## Conector patrón actual: Mercado Libre
+
+El primer conector específico profundizado es `Mercado Libre`.
+
+Hoy ese preset ya hace mejor lectura que el scraping genérico porque:
+
+- prioriza JSON-LD si la publicación lo expone
+- rescata referencia externa desde la URL del artículo
+- detecta mejor:
+  - nombre
+  - precio
+  - moneda
+  - categoría
+  - marca
+  - SKU/referencia
+- intenta agregar características útiles como:
+  - `Condición`
+  - `Vendedor`
+  - `Disponibilidad`
+  - `Despacho`
 
 ## Flujo recomendado
 

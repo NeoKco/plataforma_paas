@@ -16,6 +16,7 @@ from app.apps.tenant_modules.products.schemas import (
     ProductCatalogConnectorScheduleRunResponse,
     ProductCatalogConnectorSyncRequest,
     ProductCatalogConnectorSyncResponse,
+    ProductCatalogConnectorValidationResponse,
     ProductCatalogConnectorsResponse,
     ProductCatalogConnectorStatusUpdateRequest,
     ProductCatalogConnectorUpdateRequest,
@@ -25,6 +26,7 @@ from app.apps.tenant_modules.products.services import (
     ProductConnectorSchedulerService,
     ProductConnectorService,
     ProductConnectorSyncService,
+    ProductConnectorValidationService,
 )
 from app.common.db.session_manager import get_tenant_db
 
@@ -33,6 +35,7 @@ service = ProductConnectorService()
 sync_service = ProductConnectorSyncService()
 scheduler_service = ProductConnectorSchedulerService()
 refresh_run_service = ProductCatalogRefreshRunService()
+validation_service = ProductConnectorValidationService()
 
 
 def _serialize_connectors(tenant_db: Session, rows: list):
@@ -197,4 +200,26 @@ def run_product_connector_schedule(
             items=item_map.get(run.id, []),
             connector_name=connector_name,
         ),
+    )
+
+
+@router.post("/{connector_id}/validate", response_model=ProductCatalogConnectorValidationResponse)
+def validate_product_connector(
+    connector_id: int,
+    current_user=Depends(require_products_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> ProductCatalogConnectorValidationResponse:
+    try:
+        result = validation_service.validate_connector(tenant_db, connector_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ProductCatalogConnectorValidationResponse(
+        success=True,
+        message="Validación del conector ejecutada correctamente",
+        requested_by=build_products_requested_by(current_user),
+        connector_id=result["connector_id"],
+        connector_name=result["connector_name"],
+        status=result["status"],
+        detail=result.get("detail"),
+        preview=result.get("preview"),
     )

@@ -45,6 +45,7 @@
 - `DELETE /tenant/products/connectors/{connector_id}`
 - `POST /tenant/products/connectors/{connector_id}/sync`
 - `POST /tenant/products/connectors/{connector_id}/schedule/run`
+- `POST /tenant/products/connectors/{connector_id}/validate`
 
 ## Live Refresh
 
@@ -96,6 +97,12 @@ Notas del contrato actual:
 - `POST /tenant/products/connectors`
   - ya acepta además:
     - `provider_key`
+    - `provider_profile`
+    - `auth_mode`
+    - `auth_reference`
+    - `request_timeout_seconds`
+    - `retry_limit`
+    - `retry_backoff_seconds`
     - `schedule_enabled`
     - `schedule_scope`
     - `schedule_frequency`
@@ -103,8 +110,27 @@ Notas del contrato actual:
 - `PUT /tenant/products/connectors/{connector_id}`
   - ya permite actualizar:
     - preset/proveedor
+    - perfil runtime
+    - auth/reference
+    - timeout y reintentos
     - scheduler del conector
     - parámetros de sync/extracción
+- `POST /tenant/products/connectors/{connector_id}/validate`
+  - intenta validar el conector usando:
+    - `base_url` si existe
+    - o la última fuente activa del conector
+  - actualiza:
+    - `last_validation_at`
+    - `last_validation_status`
+    - `last_validation_summary`
+  - devuelve un preview corto con:
+    - `name`
+    - `sku`
+    - `brand`
+    - `category_label`
+    - `unit_price`
+    - `currency_code`
+    - `characteristic_count`
 - `POST /tenant/products/catalog/{product_id}/refresh`
   - request:
     - `prefer_ai`

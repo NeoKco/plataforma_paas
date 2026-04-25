@@ -14,11 +14,14 @@ Estado actual:
   - scraping/ingesta asistida
   - actualización viva por artículo desde URL
   - scheduler formal por tenant para `due_sources`
+  - conectores runtime con perfil técnico explícito
+  - validación operativa por conector
   - corridas batch de refresh con progreso
   - extracción por URL
   - corridas batch
   - conectores multi-fuente configurables
   - conectores específicos por proveedor con presets operativos
+  - conector patrón profundizado para `mercadolibre`
   - sincronización automática real por conector
   - comparación multi-fuente por producto
   - historial de fuentes por producto
@@ -34,6 +37,7 @@ Objetivo del módulo:
 - usar scraping y más adelante IA para traer/normalizar información actualizada
 - refrescar artículos ya existentes desde sus fuentes activas o vencidas
 - programar refresh por tenant desde conectores con política `due_sources`
+- validar conectores antes de dejarlos como origen operativo
 - dejar una base reusable para cotizaciones, proyectos y otros dominios sin amarrarla a CRM
 
 ## Alcance actual
@@ -57,8 +61,14 @@ El módulo hoy incluye:
 - conectores de fuente con:
   - nombre
   - proveedor lógico
+  - perfil runtime del proveedor
   - tipo
   - estado activo/inactivo
+  - modo de autenticación
+  - referencia credencial
+  - timeout
+  - reintentos
+  - backoff
   - modo de sincronización
   - estrategia de extracción
   - enriquecimiento IA opcional
@@ -69,6 +79,7 @@ El módulo hoy incluye:
     - próxima corrida
     - último resultado
   - configuración operativa breve
+  - validación del conector
   - métricas de uso visibles
 - comparación multi-fuente con:
   - mejor referencia sugerida
@@ -143,11 +154,30 @@ Ya quedó incluido además:
   - `sodimac`
   - `easy`
   - `json_feed`
+- perfil runtime visible por conector:
+  - `generic_v1`
+  - `mercadolibre_v1`
+  - `sodimac_v1`
+  - `easy_v1`
+  - `json_feed_v1`
+- validación visible por conector:
+  - `last_validation_at`
+  - `last_validation_status`
+  - `last_validation_summary`
+- endpoint operativo nuevo:
+  - `POST /tenant/products/connectors/{connector_id}/validate`
+- primer conector patrón profundizado:
+  - `mercadolibre`
+  - referencia externa desde URL
+  - prioridad a JSON-LD + metadata + hints específicos
+  - características extra como `Condición`, `Vendedor` y `Disponibilidad` cuando la fuente lo expone
 
 ## Cómo reconstruir este slice
 
 Piezas canónicas de este cierre:
 
+- migración tenant:
+  - `backend/migrations/tenant/v0051_products_connector_runtime_profiles.py`
 - migración tenant:
   - `backend/migrations/tenant/v0050_products_connector_scheduler_and_provider_profiles.py`
 - scheduler cross-tenant:
@@ -158,6 +188,7 @@ Piezas canónicas de este cierre:
   - `services/connector_service.py`
   - `services/connector_scheduler_service.py`
   - `services/connector_sync_service.py`
+  - `services/connector_validation_service.py`
   - `services/refresh_run_service.py`
   - `services/ingestion_run_service.py`
 - frontend:
@@ -167,10 +198,11 @@ Piezas canónicas de este cierre:
 
 Regla de recreación:
 
-1. aplicar migración tenant `0050`
-2. exponer provider/scheduler en schemas + serializers
-3. exponer ejecución manual del scheduler desde API
+1. aplicar migraciones tenant `0050` y `0051`
+2. exponer provider/scheduler/runtime profile en schemas + serializers
+3. exponer ejecución manual del scheduler y validación del conector desde API
 4. dejar runner cross-tenant para corridas automáticas
-5. publicar presets por proveedor en UI
-6. validar repo
-7. hacer backup PostgreSQL tenant previo antes de mutar `staging` o `production`
+5. publicar presets por proveedor y perfil runtime en UI
+6. profundizar el extractor del proveedor patrón (`mercadolibre`)
+7. validar repo
+8. hacer backup PostgreSQL tenant previo antes de mutar `staging` o `production`

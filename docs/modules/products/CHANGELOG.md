@@ -2,6 +2,38 @@
 
 ## 2026-04-25
 
+- `products` abre el primer conector específico real del módulo usando `mercadolibre` como patrón:
+  - nueva migración tenant:
+    - `v0051_products_connector_runtime_profiles`
+  - cada conector ya persiste además:
+    - `provider_profile`
+    - `auth_mode`
+    - `auth_reference`
+    - `request_timeout_seconds`
+    - `retry_limit`
+    - `retry_backoff_seconds`
+    - `last_validation_at`
+    - `last_validation_status`
+    - `last_validation_summary`
+  - backend nuevo para:
+    - `POST /tenant/products/connectors/{connector_id}/validate`
+  - `mercadolibre` ya deja de vivir solo como preset visual:
+    - ahora tiene extracción más dedicada
+    - referencia externa desde URL
+    - prioridad a JSON-LD + metadata + hints
+    - características operativas extra como `Condición`, `Vendedor` y `Disponibilidad`
+  - frontend `Conectores` ya suma:
+    - perfil runtime
+    - auth/reference
+    - timeout/reintentos/backoff
+    - acción `Validar`
+    - estado visible de validación
+  - validación repo:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `30 tests OK`
+    - `backend.app.tests.test_platform_flow` -> `239 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/connectors.py backend/app/apps/tenant_modules/products/api/serializers.py backend/app/apps/tenant_modules/products/schemas/products.py backend/app/apps/tenant_modules/products/services/connector_service.py backend/app/apps/tenant_modules/products/services/connector_sync_service.py backend/app/apps/tenant_modules/products/services/connector_validation_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py backend/migrations/tenant/v0051_products_connector_runtime_profiles.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - `products` cierra scheduler formal por tenant para `due_sources` y presets de conectores por proveedor:
   - nueva migración tenant:
     - `v0050_products_connector_scheduler_and_provider_profiles`

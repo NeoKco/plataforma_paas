@@ -28,6 +28,9 @@ from app.apps.tenant_modules.products.services.comparison_service import (  # no
 from app.apps.tenant_modules.products.services.connector_scheduler_service import (  # noqa: E402
     ProductConnectorSchedulerService,
 )
+from app.apps.tenant_modules.products.services.connector_validation_service import (  # noqa: E402
+    ProductConnectorValidationService,
+)
 from app.apps.tenant_modules.products.services.refresh_run_service import (  # noqa: E402
     ProductCatalogRefreshRunService,
 )
@@ -59,6 +62,12 @@ class ProductsServicesTestCase(unittest.TestCase):
                 supports_price_tracking=True,
                 is_active=True,
                 provider_key="mercadolibre",
+                provider_profile="mercadolibre_v1",
+                auth_mode="none",
+                auth_reference=None,
+                request_timeout_seconds=20,
+                retry_limit=2,
+                retry_backoff_seconds=3,
                 sync_mode="connector_sync",
                 fetch_strategy="html_ai",
                 run_ai_enrichment=True,
@@ -73,6 +82,9 @@ class ProductsServicesTestCase(unittest.TestCase):
         self.assertEqual(created.name, "Proveedor Solar")
         self.assertEqual(created.connector_kind, "vendor_site")
         self.assertEqual(created.provider_key, "mercadolibre")
+        self.assertEqual(created.provider_profile, "mercadolibre_v1")
+        self.assertEqual(created.request_timeout_seconds, 20)
+        self.assertEqual(created.retry_limit, 2)
         self.assertTrue(created.schedule_enabled)
         self.assertEqual(created.schedule_frequency, "daily")
         self.assertEqual(created.schedule_batch_limit, 30)
@@ -273,9 +285,46 @@ class ProductsServicesTestCase(unittest.TestCase):
         service._extraction_service.extract_from_url.assert_called_once_with(
             "https://articulo.mercadolibre.cl/demo",
             provider_key="mercadolibre",
+            timeout_seconds=25,
         )
         self.assertEqual(payload["source_kind"], "marketplace_product")
         self.assertEqual(payload["source_label"], "Mercado Libre")
+
+    def test_connector_validation_uses_base_url_preview(self) -> None:
+        tenant_db = Mock()
+        connector = ProductConnector(
+            id=12,
+            name="Mercado Libre CL",
+            base_url="https://articulo.mercadolibre.cl/MLC-123",
+            provider_key="mercadolibre",
+            provider_profile="mercadolibre_v1",
+            is_active=True,
+        )
+        service = ProductConnectorValidationService()
+        service._connector_service.get_connector = Mock(return_value=connector)
+        service._connector_service.touch_connector_validation = Mock()
+        service._connector_sync_service.extract_capture_payload = Mock(
+            return_value={
+                "source_kind": "marketplace_product",
+                "source_label": "Mercado Libre CL",
+                "name": "Inversor Solar",
+                "sku": "MLC-123",
+                "brand": "Demo",
+                "category_label": "Energía",
+                "product_type": "product",
+                "unit_price": 129990,
+                "currency_code": "CLP",
+                "characteristics": [{"label": "Potencia", "value": "5kW"}],
+                "extraction_notes": "Extracción automática dedicada para Mercado Libre",
+            }
+        )
+
+        result = service.validate_connector(tenant_db, connector.id)
+
+        self.assertEqual(result["status"], "validated")
+        self.assertEqual(result["preview"]["sku"], "MLC-123")
+        service._connector_sync_service.extract_capture_payload.assert_called_once()
+        tenant_db.commit.assert_called_once()
 
     def test_comparison_service_prefers_best_active_price(self) -> None:
         source_a = ProductSource(

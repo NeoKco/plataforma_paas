@@ -16,6 +16,12 @@ class ProductConnector(TenantBase):
     supports_price_tracking: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
     provider_key: Mapped[str] = mapped_column(String(40), nullable=False, default="generic", index=True)
+    provider_profile: Mapped[str] = mapped_column(String(60), nullable=False, default="generic_v1", index=True)
+    auth_mode: Mapped[str] = mapped_column(String(40), nullable=False, default="none")
+    auth_reference: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    request_timeout_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=25)
+    retry_limit: Mapped[int] = mapped_column(Integer, nullable=False, default=2)
+    retry_backoff_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
     sync_mode: Mapped[str] = mapped_column(String(40), nullable=False, default="manual", index=True)
     fetch_strategy: Mapped[str] = mapped_column(
         String(40),
@@ -45,6 +51,12 @@ class ProductConnector(TenantBase):
     )
     last_schedule_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     config_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_validation_at: Mapped[DateTime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    last_validation_status: Mapped[str] = mapped_column(String(40), nullable=False, default="idle", index=True)
+    last_validation_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     last_sync_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     last_sync_status: Mapped[str] = mapped_column(String(40), nullable=False, default="idle", index=True)
     last_sync_summary: Mapped[str | None] = mapped_column(Text, nullable=True)

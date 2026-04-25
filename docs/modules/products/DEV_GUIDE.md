@@ -11,6 +11,7 @@ Responsabilidades:
 - actualización viva por artículo desde sus fuentes
 - corridas batch con progreso para refresh del catálogo
 - scheduler formal por tenant para corridas `due_sources`
+- perfil runtime del conector y validación operativa
 - revisión previa a publicación
 - base de consumo para `crm` y futuros `projects`
 
@@ -34,6 +35,7 @@ Rutas públicas del módulo:
 - `/tenant/products/refresh-runs`
 - `/tenant/products/comparisons`
 - `/tenant/products/connectors/{connector_id}/schedule/run`
+- `/tenant/products/connectors/{connector_id}/validate`
 
 Permisos:
 
@@ -113,6 +115,18 @@ Además, este cierre suma:
   - `last_schedule_summary`
 - ejecución manual del scheduler:
   - `POST /tenant/products/connectors/{connector_id}/schedule/run`
+- perfil runtime/validación por conector:
+  - `provider_profile`
+  - `auth_mode`
+  - `auth_reference`
+  - `request_timeout_seconds`
+  - `retry_limit`
+  - `retry_backoff_seconds`
+  - `last_validation_at`
+  - `last_validation_status`
+  - `last_validation_summary`
+- validación explícita del conector:
+  - `POST /tenant/products/connectors/{connector_id}/validate`
 - comparación multi-fuente por producto:
   - `GET /tenant/products/comparisons`
 - actualización viva del catálogo:
@@ -155,16 +169,18 @@ Regla de implementación:
 - la persistencia interna reutilizada no cambia el contrato público del módulo
 - la actualización viva ya no debe tratarse como “enriquecimiento accesorio”; es el carril que mantiene vigente el catálogo consumido por cotizaciones y futuros proyectos
 
-## Reconstrucción del slice `0050`
+## Reconstrucción de los slices `0050` y `0051`
 
 Artefactos mínimos:
 
 - migración:
   - `v0050_products_connector_scheduler_and_provider_profiles`
+  - `v0051_products_connector_runtime_profiles`
 - servicios:
   - `connector_service.py`
   - `connector_scheduler_service.py`
   - `connector_sync_service.py`
+  - `connector_validation_service.py`
   - `ingestion_run_service.py`
 - runner:
   - `backend/app/scripts/run_products_refresh_scheduler.py`
@@ -176,12 +192,14 @@ Artefactos mínimos:
 Secuencia de reconstrucción:
 
 1. agregar campos provider/scheduler al modelo `products_connectors`
-2. exponerlos en schemas, serializers y API
-3. agregar ejecución manual del scheduler desde `connectors.py`
-4. mantener runner cross-tenant separado del request path normal
-5. cablear presets por proveedor en UI
-6. hacer que la extracción priorice JSON-LD y luego aplique hints por proveedor
-7. revalidar tests + build + deploy con backup tenant previo
+2. agregar campos runtime/validación al mismo modelo
+3. exponerlos en schemas, serializers y API
+4. agregar ejecución manual del scheduler desde `connectors.py`
+5. agregar validación explícita del conector desde `connectors.py`
+6. mantener runner cross-tenant separado del request path normal
+7. cablear presets por proveedor y perfil runtime en UI
+8. profundizar el extractor del proveedor patrón (`mercadolibre`) con prioridad JSON-LD + metadata + hints
+9. revalidar tests + build + deploy con backup tenant previo
 
 ## Operación programada
 
@@ -206,6 +224,7 @@ La regla operativa sigue siendo:
 Las siguientes profundizaciones deben abrirse aquí:
 
 - conectores específicos por marketplace/proveedor con autenticación propietaria
+- scheduler automático gobernado por worker/cron del entorno
 - comparación multi-moneda/unidad más profunda
 - mejor reutilización del catálogo en `projects`
 - clasificación/categorización más profunda por IA

@@ -48,11 +48,17 @@ class ProductCatalogConnectorCreateRequest(BaseModel):
     name: str
     connector_kind: str = "generic_url"
     provider_key: str = "generic"
+    provider_profile: str = "generic_v1"
     base_url: str | None = None
     default_currency_code: str = "CLP"
     supports_batch: bool = True
     supports_price_tracking: bool = True
     is_active: bool = True
+    auth_mode: str = "none"
+    auth_reference: str | None = None
+    request_timeout_seconds: int = 25
+    retry_limit: int = 2
+    retry_backoff_seconds: int = 3
     sync_mode: str = "manual"
     fetch_strategy: str = "html_generic"
     run_ai_enrichment: bool = False
@@ -76,11 +82,17 @@ class ProductCatalogConnectorItemResponse(BaseModel):
     name: str
     connector_kind: str
     provider_key: str
+    provider_profile: str
     base_url: str | None = None
     default_currency_code: str
     supports_batch: bool
     supports_price_tracking: bool
     is_active: bool
+    auth_mode: str
+    auth_reference: str | None = None
+    request_timeout_seconds: int
+    retry_limit: int
+    retry_backoff_seconds: int
     sync_mode: str
     fetch_strategy: str
     run_ai_enrichment: bool
@@ -93,6 +105,9 @@ class ProductCatalogConnectorItemResponse(BaseModel):
     last_schedule_status: str
     last_schedule_summary: str | None = None
     config_notes: str | None = None
+    last_validation_at: datetime | None = None
+    last_validation_status: str
+    last_validation_summary: str | None = None
     last_sync_at: datetime | None = None
     last_sync_status: str
     last_sync_summary: str | None = None
@@ -118,6 +133,32 @@ class ProductCatalogConnectorMutationResponse(BaseModel):
     message: str
     requested_by: TenantUserContextResponse
     data: ProductCatalogConnectorItemResponse
+
+
+class ProductCatalogConnectorValidationPreviewResponse(BaseModel):
+    source_url: str
+    source_kind: str
+    source_label: str | None = None
+    name: str | None = None
+    sku: str | None = None
+    brand: str | None = None
+    category_label: str | None = None
+    product_type: str | None = None
+    unit_price: float = 0
+    currency_code: str | None = None
+    characteristic_count: int = 0
+    extraction_notes: str | None = None
+
+
+class ProductCatalogConnectorValidationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    connector_id: int
+    connector_name: str
+    status: str
+    detail: str | None = None
+    preview: ProductCatalogConnectorValidationPreviewResponse | None = None
 
 
 class ProductCatalogItemResponse(BaseModel):

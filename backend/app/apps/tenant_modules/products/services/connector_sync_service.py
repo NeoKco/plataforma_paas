@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from datetime import datetime, timezone
 from typing import Any
 
@@ -204,13 +205,11 @@ class ProductConnectorSyncService:
         strategy = (connector.fetch_strategy or "html_generic").strip().lower()
         if strategy not in self.VALID_FETCH_STRATEGIES:
             raise ValueError("Estrategia de extracción inválida")
-        if strategy == "json_feed":
-            payload = self._extract_from_json_feed(url)
-        else:
-            payload = self._extraction_service.extract_from_url(
-                url,
-                provider_key=getattr(connector, "provider_key", "generic"),
-            )
+        payload = self._extract_with_runtime_profile(
+            connector=connector,
+            url=url,
+            strategy=strategy,
+        )
         payload["source_url"] = url
         payload["source_label"] = source_label or payload.get("source_label") or connector.name
         payload["source_kind"] = (
@@ -220,9 +219,35 @@ class ProductConnectorSyncService:
             if getattr(connector, "provider_key", "generic") == "mercadolibre"
             else "vendor_site"
         )
+        notes = payload.get("extraction_notes")
+        profile = getattr(connector, "provider_profile", None)
+        if profile:
+            payload["extraction_notes"] = f"{notes} · profile={profile}" if notes else f"profile={profile}"
         return payload
 
-    def _extract_from_json_feed(self, url: str) -> dict[str, Any]:
+    def _extract_with_runtime_profile(self, *, connector, url: str, strategy: str) -> dict[str, Any]:
+        attempts = max(int(getattr(connector, "retry_limit", 2) or 0), 0) + 1
+        backoff_seconds = max(int(getattr(connector, "retry_backoff_seconds", 3) or 0), 0)
+        timeout_seconds = max(int(getattr(connector, "request_timeout_seconds", 25) or 25), 5)
+        last_error = None
+        for attempt in range(attempts):
+            try:
+                if strategy == "json_feed":
+                    return self._extract_from_json_feed(url, timeout_seconds=timeout_seconds)
+                return self._extraction_service.extract_from_url(
+                    url,
+                    provider_key=getattr(connector, "provider_key", "generic"),
+                    timeout_seconds=timeout_seconds,
+                )
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+                if attempt + 1 < attempts and backoff_seconds > 0:
+                    time.sleep(min(backoff_seconds, 2))
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("No fue posible extraer el payload del conector")
+
+    def _extract_from_json_feed(self, url: str, *, timeout_seconds: int = 25) -> dict[str, Any]:
         try:
             import requests
         except ModuleNotFoundError as exc:  # pragma: no cover - runtime dependency
@@ -231,7 +256,7 @@ class ProductConnectorSyncService:
         response = requests.get(
             url,
             headers={"User-Agent": self._extraction_service.USER_AGENT},
-            timeout=25,
+            timeout=max(int(timeout_seconds or 25), 5),
         )
         response.raise_for_status()
         payload = response.json()

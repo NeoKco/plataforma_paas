@@ -2,6 +2,22 @@
 
 ## Prioridad vigente
 
+- expansión reciente ya cerrada en repo:
+  - `products` ya abre el primer conector específico real con `mercadolibre` como patrón
+  - `Conectores` ya deja visible y operable además:
+    - perfil runtime
+    - auth/reference
+    - timeout
+    - reintentos
+    - backoff
+    - validación explícita del conector
+  - el backend ya expone:
+    - `POST /tenant/products/connectors/{connector_id}/validate`
+  - lo pendiente de este frente ya es runtime:
+    - backup PostgreSQL tenant previo por carril
+    - deploy backend/frontend a `staging`
+    - backup PostgreSQL tenant previo por carril con backup explícito de `ieris-ltda`
+    - deploy backend/frontend a `production`
 - expansión reciente ya cerrada en repo y runtime:
   - `products` ya suma scheduler formal por tenant para `due_sources`
   - `Conectores` ya deja visible y operable:
@@ -59,6 +75,7 @@
 - siguiente frente recomendado:
   - decidir si ya abrimos `projects` como siguiente módulo consumidor fuerte
   - o, si se mantiene foco en `products`, priorizar:
+    - promover primero a runtime el slice `0051_products_connector_runtime_profiles`
     - conectores específicos por proveedor/marketplace con autenticación propia
     - scheduler automático gobernado por worker/cron operativo del entorno
     - integración más profunda con cotizaciones y proyectos

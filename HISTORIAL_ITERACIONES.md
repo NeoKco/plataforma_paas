@@ -1,5 +1,52 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-25 - `products` abre el primer conector específico real con `mercadolibre`
+
+Contexto:
+
+- `products` ya había cerrado scheduler por tenant y presets por proveedor
+- el siguiente corte natural era pasar de preset visual a conector específico real reutilizable
+
+Cambios:
+
+- nueva migración tenant:
+  - `v0051_products_connector_runtime_profiles`
+- backend nuevo para:
+  - `POST /tenant/products/connectors/{connector_id}/validate`
+- cada conector ahora persiste además:
+  - `provider_profile`
+  - `auth_mode`
+  - `auth_reference`
+  - `request_timeout_seconds`
+  - `retry_limit`
+  - `retry_backoff_seconds`
+  - `last_validation_at`
+  - `last_validation_status`
+  - `last_validation_summary`
+- `mercadolibre` ya deja de ser solo preset:
+  - referencia externa desde URL
+  - prioridad a JSON-LD + metadata + hints
+  - características extra como `Condición`, `Vendedor` y `Disponibilidad`
+- frontend `Conectores` ahora suma:
+  - perfil runtime
+  - auth/reference
+  - timeout/reintentos/backoff
+  - acción `Validar`
+  - estado visible de validación
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_products_services + test_migration_flow` -> `30 tests OK`
+  - `backend.app.tests.test_platform_flow` -> `239 tests OK`
+  - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/connectors.py backend/app/apps/tenant_modules/products/api/serializers.py backend/app/apps/tenant_modules/products/schemas/products.py backend/app/apps/tenant_modules/products/services/connector_service.py backend/app/apps/tenant_modules/products/services/connector_sync_service.py backend/app/apps/tenant_modules/products/services/connector_validation_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py backend/migrations/tenant/v0051_products_connector_runtime_profiles.py` -> `OK`
+  - `npm run build` -> `OK`
+
+Resultado:
+
+- `products` ya tiene un primer conector patrón reutilizable y no solo presets de proveedor
+- el siguiente paso de este frente pasa a runtime y luego a scheduler automático gobernado o más proveedores específicos
+
 ## 2026-04-25 - `products` cierra scheduler formal por tenant y presets por proveedor
 
 Contexto:

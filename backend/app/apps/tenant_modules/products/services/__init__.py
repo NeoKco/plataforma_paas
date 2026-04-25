@@ -10,6 +10,9 @@ from app.apps.tenant_modules.products.services.connector_scheduler_service impor
 from app.apps.tenant_modules.products.services.connector_sync_service import (
     ProductConnectorSyncService,
 )
+from app.apps.tenant_modules.products.services.connector_validation_service import (
+    ProductConnectorValidationService,
+)
 from app.apps.tenant_modules.products.services.ingestion_extraction_service import (
     ProductCatalogIngestionExtractionService,
 )
@@ -51,5 +54,6 @@ __all__ = [
     "ProductConnectorService",
     "ProductConnectorSchedulerService",
     "ProductConnectorSyncService",
+    "ProductConnectorValidationService",
     "ProductSourceService",
 ]

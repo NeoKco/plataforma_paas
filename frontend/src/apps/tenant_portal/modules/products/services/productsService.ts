@@ -32,11 +32,17 @@ export type ProductCatalogConnector = {
   name: string;
   connector_kind: string;
   provider_key: string;
+  provider_profile: string;
   base_url: string | null;
   default_currency_code: string;
   supports_batch: boolean;
   supports_price_tracking: boolean;
   is_active: boolean;
+  auth_mode: string;
+  auth_reference: string | null;
+  request_timeout_seconds: number;
+  retry_limit: number;
+  retry_backoff_seconds: number;
   sync_mode: string;
   fetch_strategy: string;
   run_ai_enrichment: boolean;
@@ -49,6 +55,9 @@ export type ProductCatalogConnector = {
   last_schedule_status: string;
   last_schedule_summary: string | null;
   config_notes: string | null;
+  last_validation_at: string | null;
+  last_validation_status: string;
+  last_validation_summary: string | null;
   last_sync_at: string | null;
   last_sync_status: string;
   last_sync_summary: string | null;
@@ -62,11 +71,17 @@ export type ProductCatalogConnectorWriteRequest = {
   name: string;
   connector_kind: string;
   provider_key: string;
+  provider_profile: string;
   base_url: string | null;
   default_currency_code: string;
   supports_batch: boolean;
   supports_price_tracking: boolean;
   is_active: boolean;
+  auth_mode: string;
+  auth_reference: string | null;
+  request_timeout_seconds: number;
+  retry_limit: number;
+  retry_backoff_seconds: number;
   sync_mode: string;
   fetch_strategy: string;
   run_ai_enrichment: boolean;
@@ -339,6 +354,31 @@ type ProductCatalogConnectorScheduleRunResponse = {
   success: boolean;
   message: string;
   data: ProductCatalogRefreshRun;
+};
+
+export type ProductCatalogConnectorValidationPreview = {
+  source_url: string;
+  source_kind: string;
+  source_label: string | null;
+  name: string | null;
+  sku: string | null;
+  brand: string | null;
+  category_label: string | null;
+  product_type: string | null;
+  unit_price: number;
+  currency_code: string | null;
+  characteristic_count: number;
+  extraction_notes: string | null;
+};
+
+export type ProductCatalogConnectorValidationResponse = {
+  success: boolean;
+  message: string;
+  connector_id: number;
+  connector_name: string;
+  status: string;
+  detail: string | null;
+  preview: ProductCatalogConnectorValidationPreview | null;
 };
 
 type ProductCatalogSourcesResponse = {
@@ -681,6 +721,13 @@ export function syncProductCatalogConnector(
 
 export function runProductCatalogConnectorSchedule(accessToken: string, connectorId: number) {
   return apiRequest<ProductCatalogConnectorScheduleRunResponse>(`/tenant/products/connectors/${connectorId}/schedule/run`, {
+    method: "POST",
+    token: accessToken,
+  });
+}
+
+export function validateProductCatalogConnector(accessToken: string, connectorId: number) {
+  return apiRequest<ProductCatalogConnectorValidationResponse>(`/tenant/products/connectors/${connectorId}/validate`, {
     method: "POST",
     token: accessToken,
   });
