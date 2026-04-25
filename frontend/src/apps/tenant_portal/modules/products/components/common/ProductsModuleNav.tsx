@@ -30,6 +30,11 @@ export function ProductsModuleNav() {
       label: language === "es" ? "Conectores" : "Connectors",
       icon: "settings" as const,
     },
+    {
+      to: "/tenant-portal/products/comparisons",
+      label: language === "es" ? "Comparación" : "Comparison",
+      icon: "reports" as const,
+    },
   ];
 
   return (

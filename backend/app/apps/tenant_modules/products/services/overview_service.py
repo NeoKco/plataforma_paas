@@ -60,6 +60,21 @@ class ProductCatalogOverviewService:
             .scalar()
             or 0
         )
+        products_with_source = (
+            tenant_db.query(func.count(func.distinct(ProductSource.product_id))).scalar() or 0
+        )
+        multi_source_subquery = (
+            tenant_db.query(ProductSource.product_id)
+            .group_by(ProductSource.product_id)
+            .having(func.count(ProductSource.id) >= 2)
+            .subquery()
+        )
+        products_with_multi_source = (
+            tenant_db.query(func.count())
+            .select_from(multi_source_subquery)
+            .scalar()
+            or 0
+        )
         return {
             "products_total": int(product_total),
             "products_active": int(product_active),
@@ -75,4 +90,6 @@ class ProductCatalogOverviewService:
             "price_event_total": int(price_event_total),
             "connector_total": int(connector_total),
             "connector_active": int(connector_active),
+            "products_with_source": int(products_with_source),
+            "products_with_multi_source": int(products_with_multi_source),
         }

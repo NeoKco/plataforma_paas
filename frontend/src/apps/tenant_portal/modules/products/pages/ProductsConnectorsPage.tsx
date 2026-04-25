@@ -14,6 +14,7 @@ import {
   createProductCatalogConnector,
   deleteProductCatalogConnector,
   getProductCatalogConnectors,
+  syncProductCatalogConnector,
   type ProductCatalogConnector,
   type ProductCatalogConnectorWriteRequest,
   updateProductCatalogConnector,
@@ -29,6 +30,9 @@ function buildDefaultForm(): ProductCatalogConnectorWriteRequest {
     supports_batch: true,
     supports_price_tracking: true,
     is_active: true,
+    sync_mode: "manual",
+    fetch_strategy: "html_generic",
+    run_ai_enrichment: false,
     config_notes: "",
   };
 }
@@ -77,6 +81,9 @@ export function ProductsConnectorsPage() {
       supports_batch: item.supports_batch,
       supports_price_tracking: item.supports_price_tracking,
       is_active: item.is_active,
+      sync_mode: item.sync_mode,
+      fetch_strategy: item.fetch_strategy,
+      run_ai_enrichment: item.run_ai_enrichment,
       config_notes: item.config_notes || "",
     });
   }
@@ -122,6 +129,21 @@ export function ProductsConnectorsPage() {
     try {
       const response = await deleteProductCatalogConnector(session.accessToken, item.id);
       setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
+  async function handleSync(item: ProductCatalogConnector) {
+    if (!session?.accessToken) return;
+    try {
+      const response = await syncProductCatalogConnector(session.accessToken, item.id, { limit: 25 });
+      setFeedback(
+        `${response.message} (${response.connector_name}: ${response.synced}/${response.processed} ${
+          language === "es" ? "sincronizadas" : "synced"
+        }, ${response.price_updates} ${language === "es" ? "precios actualizados" : "price updates"})`,
+      );
       await loadData();
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -192,6 +214,22 @@ export function ProductsConnectorsPage() {
             <span>{language === "es" ? "Moneda por defecto" : "Default currency"}</span>
             <input value={form.default_currency_code} onChange={(event) => setForm((current) => ({ ...current, default_currency_code: event.target.value }))} />
           </label>
+          <label>
+            <span>{language === "es" ? "Modo sync" : "Sync mode"}</span>
+            <select value={form.sync_mode} onChange={(event) => setForm((current) => ({ ...current, sync_mode: event.target.value }))}>
+              <option value="manual">{language === "es" ? "Manual" : "Manual"}</option>
+              <option value="connector_sync">{language === "es" ? "Sync automático" : "Automatic sync"}</option>
+            </select>
+          </label>
+          <label>
+            <span>{language === "es" ? "Estrategia fetch" : "Fetch strategy"}</span>
+            <select value={form.fetch_strategy} onChange={(event) => setForm((current) => ({ ...current, fetch_strategy: event.target.value }))}>
+              <option value="html_generic">{language === "es" ? "HTML genérico" : "Generic HTML"}</option>
+              <option value="html_vendor">{language === "es" ? "HTML proveedor" : "Vendor HTML"}</option>
+              <option value="json_feed">{language === "es" ? "Feed JSON" : "JSON feed"}</option>
+              <option value="html_ai">{language === "es" ? "HTML + IA" : "HTML + AI"}</option>
+            </select>
+          </label>
           <label className="crm-form-grid__full">
             <span>{language === "es" ? "Notas de configuración" : "Configuration notes"}</span>
             <textarea rows={4} value={form.config_notes || ""} onChange={(event) => setForm((current) => ({ ...current, config_notes: event.target.value }))} />
@@ -209,6 +247,10 @@ export function ProductsConnectorsPage() {
             <span className="d-inline-flex gap-2 align-items-center">
               <input type="checkbox" checked={form.is_active} onChange={(event) => setForm((current) => ({ ...current, is_active: event.target.checked }))} />
               {language === "es" ? "Activo" : "Active"}
+            </span>
+            <span className="d-inline-flex gap-2 align-items-center">
+              <input type="checkbox" checked={form.run_ai_enrichment} onChange={(event) => setForm((current) => ({ ...current, run_ai_enrichment: event.target.checked }))} />
+              {language === "es" ? "Enriquecimiento IA" : "AI enrichment"}
             </span>
           </label>
           <div className="crm-form-actions crm-form-grid__full">
@@ -254,7 +296,10 @@ export function ProductsConnectorsPage() {
             render: (row) => (
               <div>
                 <strong>{row.is_active ? (language === "es" ? "Activo" : "Active") : (language === "es" ? "Inactivo" : "Inactive")}</strong>
-                <div className="text-muted small">{row.last_sync_status}</div>
+                <div className="text-muted small">
+                  {row.sync_mode} · {row.fetch_strategy} · {row.last_sync_status}
+                </div>
+                <div className="text-muted small">{row.last_sync_summary || "—"}</div>
               </div>
             ),
           },
@@ -268,6 +313,14 @@ export function ProductsConnectorsPage() {
                 </button>
                 <button className="btn btn-outline-primary btn-sm" type="button" onClick={() => void handleToggle(row)}>
                   {row.is_active ? (language === "es" ? "Desactivar" : "Disable") : (language === "es" ? "Activar" : "Enable")}
+                </button>
+                <button
+                  className="btn btn-outline-success btn-sm"
+                  type="button"
+                  onClick={() => void handleSync(row)}
+                  disabled={!row.is_active || row.sync_mode !== "connector_sync"}
+                >
+                  {language === "es" ? "Sincronizar" : "Sync"}
                 </button>
                 <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => void handleDelete(row)}>
                   {language === "es" ? "Eliminar" : "Delete"}

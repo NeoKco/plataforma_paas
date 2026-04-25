@@ -47,6 +47,7 @@ from migrations.tenant import v0044_chat_base
 from migrations.tenant import v0045_crm_product_ingestion
 from migrations.tenant import v0046_crm_product_ingestion_runs
 from migrations.tenant import v0047_products_sources_and_connectors
+from migrations.tenant import v0048_products_connector_automation
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -232,6 +233,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0045_crm_product_ingestion",
                 "0046_crm_product_ingestion_runs",
                 "0047_products_sources_and_connectors",
+                "0048_products_connector_automation",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -489,6 +491,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         chat_message_columns = {
             column["name"] for column in inspect(engine).get_columns("chat_messages")
         }
+        product_connector_columns = {
+            column["name"] for column in inspect(engine).get_columns("products_connectors")
+        }
+        product_source_columns = {
+            column["name"] for column in inspect(engine).get_columns("products_product_sources")
+        }
         maintenance_status_log_columns = {
             column["name"]
             for column in inspect(engine).get_columns("maintenance_status_logs")
@@ -557,6 +565,13 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("last_read_message_id", chat_participant_columns)
         self.assertIn("sender_user_id", chat_message_columns)
         self.assertIn("message_kind", chat_message_columns)
+        self.assertIn("sync_mode", product_connector_columns)
+        self.assertIn("fetch_strategy", product_connector_columns)
+        self.assertIn("run_ai_enrichment", product_connector_columns)
+        self.assertIn("last_sync_summary", product_connector_columns)
+        self.assertIn("sync_status", product_source_columns)
+        self.assertIn("last_sync_attempt_at", product_source_columns)
+        self.assertIn("last_sync_error", product_source_columns)
         self.assertIn("timezone", tenant_user_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
@@ -688,6 +703,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0045_crm_product_ingestion",
                 "0046_crm_product_ingestion_runs",
                 "0047_products_sources_and_connectors",
+                "0048_products_connector_automation",
             ],
         )
 

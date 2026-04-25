@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.apps.tenant_modules.products.api.serializers import (
+    build_product_comparison_item,
     build_product_connector_item,
     build_product_catalog_ingestion_draft_item,
     build_product_catalog_item,
@@ -17,6 +18,7 @@ from app.apps.tenant_modules.products.services import (
     ProductCatalogIngestionService,
     ProductCatalogOverviewService,
     ProductCatalogService,
+    ProductCatalogComparisonService,
     ProductConnectorService,
     ProductSourceService,
 )
@@ -28,6 +30,7 @@ product_service = ProductCatalogService()
 ingestion_service = ProductCatalogIngestionService()
 source_service = ProductSourceService()
 connector_service = ProductConnectorService()
+comparison_service = ProductCatalogComparisonService()
 
 
 @router.get("/overview", response_model=ProductCatalogModuleOverviewResponse)
@@ -56,6 +59,7 @@ def get_product_catalog_overview(
     recent_sources = source_service.list_sources(tenant_db)[:5]
     recent_prices = source_service.list_price_history(tenant_db, limit=5)
     recent_connectors = connector_service.list_connectors(tenant_db)[:5]
+    recent_comparisons = comparison_service.list_comparisons(tenant_db, limit=5)
     source_connector_map, _ = source_service.build_maps(
         tenant_db,
         connector_ids=[item.connector_id for item in recent_sources if item.connector_id],
@@ -109,5 +113,9 @@ def get_product_catalog_overview(
                 price_event_total=connector_usage_price_map.get(item.id, 0),
             )
             for item in recent_connectors
+        ],
+        recent_comparisons=[
+            build_product_comparison_item(item)
+            for item in recent_comparisons
         ],
     )

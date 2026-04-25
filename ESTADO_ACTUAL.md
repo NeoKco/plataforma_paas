@@ -4,6 +4,28 @@
 
 - fecha: 2026-04-24
 - foco operativo nuevo ya cerrado en repo y runtime:
+  - `products` ya cierra conectores automáticos reales y comparación multi-fuente
+  - backend tenant ya expone además:
+    - `/tenant/products/connectors/{connector_id}/sync`
+    - `/tenant/products/comparisons`
+  - cada conector ya persiste:
+    - `sync_mode`
+    - `fetch_strategy`
+    - `run_ai_enrichment`
+    - `last_sync_summary`
+  - cada fuente ya persiste:
+    - `sync_status`
+    - `last_sync_attempt_at`
+    - `last_sync_error`
+  - frontend tenant ya publica además:
+    - `Comparación`
+    - sync manual visible desde `Conectores`
+    - lectura visible de sync en `Fuentes/precios`
+    - overview con comparaciones recientes y productos multi-fuente
+  - validación repo nueva:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow + backend.app.tests.test_platform_flow` -> `264 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+- foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya cierra historial de fuentes/precios y conectores multi-fuente configurables
   - backend tenant ya expone además:
     - `/tenant/products/sources`

@@ -26,6 +26,8 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
   fuentes activas por producto e historial de eventos de precio
 - `Conectores`
   perfiles de origen para la ingesta
+- `Comparación`
+  lectura multi-fuente por producto con precio recomendado
 
 ## Qué agrega este cierre
 
@@ -82,6 +84,42 @@ Uso recomendado:
 1. crear conectores antes de iniciar corridas batch relevantes
 2. elegir el conector al crear borradores o corridas por URL
 3. usar ese contexto luego para leer fuente/precio y revisar calidad de captura
+
+Ahora cada conector también puede definir:
+
+- `Modo sync`
+  `manual` o `connector_sync`
+- `Estrategia fetch`
+  `HTML genérico`, `HTML proveedor`, `Feed JSON` o `HTML + IA`
+- `Enriquecimiento IA`
+  activa el enriquecimiento al sincronizar fuentes persistidas
+
+Si el conector está en `connector_sync`, la vista permite ejecutar `Sincronizar` y refrescar:
+
+- precio más reciente
+- estado de sync de cada fuente
+- error visible cuando la extracción falla
+- historial de precio cuando cambia el valor capturado
+
+## Comparación multi-fuente
+
+`Comparación` sirve para:
+
+- revisar qué productos ya tienen dos o más fuentes útiles
+- ver cuál fuente queda recomendada
+- comparar brecha de precios antes de cotizar
+- detectar fuentes activas pero con sync degradado
+
+Lectura principal:
+
+- `Cobertura`
+  cuántas fuentes activas vs totales tiene el producto
+- `Mejor referencia`
+  precio recomendado y razón operativa
+- `Brecha`
+  diferencia entre precio menor y mayor visibles
+- `Fuentes`
+  ranking corto de conectores/fuentes por producto
 
 ## Flujo recomendado
 

@@ -10,15 +10,18 @@ from app.apps.tenant_modules.products.dependencies import (
 from app.apps.tenant_modules.products.schemas import (
     ProductCatalogConnectorCreateRequest,
     ProductCatalogConnectorMutationResponse,
+    ProductCatalogConnectorSyncRequest,
+    ProductCatalogConnectorSyncResponse,
     ProductCatalogConnectorsResponse,
     ProductCatalogConnectorStatusUpdateRequest,
     ProductCatalogConnectorUpdateRequest,
 )
-from app.apps.tenant_modules.products.services import ProductConnectorService
+from app.apps.tenant_modules.products.services import ProductConnectorService, ProductConnectorSyncService
 from app.common.db.session_manager import get_tenant_db
 
 router = APIRouter(prefix="/tenant/products/connectors", tags=["Tenant Products"])
 service = ProductConnectorService()
+sync_service = ProductConnectorSyncService()
 
 
 def _serialize_connectors(tenant_db: Session, rows: list):
@@ -120,4 +123,37 @@ def delete_product_connector(
         message="Conector eliminado correctamente",
         requested_by=build_products_requested_by(current_user),
         data=build_product_connector_item(item),
+    )
+
+
+@router.post("/{connector_id}/sync", response_model=ProductCatalogConnectorSyncResponse)
+def sync_product_connector(
+    connector_id: int,
+    payload: ProductCatalogConnectorSyncRequest,
+    current_user=Depends(require_products_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> ProductCatalogConnectorSyncResponse:
+    try:
+        result = sync_service.sync_connector(
+            tenant_db,
+            connector_id,
+            product_id=payload.product_id,
+            limit=payload.limit,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    from app.apps.tenant_modules.products.api.serializers import build_product_connector_sync_item
+
+    return ProductCatalogConnectorSyncResponse(
+        success=True,
+        message="Sincronización del conector ejecutada correctamente",
+        requested_by=build_products_requested_by(current_user),
+        connector_id=result["connector_id"],
+        connector_name=result["connector_name"],
+        processed=result["processed"],
+        synced=result["synced"],
+        failed=result["failed"],
+        skipped=result["skipped"],
+        price_updates=result["price_updates"],
+        data=[build_product_connector_sync_item(item) for item in result["items"]],
     )

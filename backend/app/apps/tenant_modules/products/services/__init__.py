@@ -1,5 +1,11 @@
+from app.apps.tenant_modules.products.services.comparison_service import (
+    ProductCatalogComparisonService,
+)
 from app.apps.tenant_modules.products.services.connector_service import (
     ProductConnectorService,
+)
+from app.apps.tenant_modules.products.services.connector_sync_service import (
+    ProductConnectorSyncService,
 )
 from app.apps.tenant_modules.products.services.ingestion_extraction_service import (
     ProductCatalogIngestionExtractionService,
@@ -25,11 +31,13 @@ from app.apps.tenant_modules.products.services.source_service import (
 
 __all__ = [
     "ProductCatalogEnrichmentService",
+    "ProductCatalogComparisonService",
     "ProductCatalogIngestionExtractionService",
     "ProductCatalogIngestionRunService",
     "ProductCatalogIngestionService",
     "ProductCatalogOverviewService",
     "ProductCatalogService",
     "ProductConnectorService",
+    "ProductConnectorSyncService",
     "ProductSourceService",
 ]

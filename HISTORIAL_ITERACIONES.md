@@ -1,5 +1,47 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `products` cierra conectores automáticos reales y comparación multi-fuente
+
+Contexto:
+
+- `products` ya había cerrado fuentes/precios y conectores configurables
+- el siguiente hueco real era dejar sync reutilizable por conector y una lectura operacional de mejor precio/fuente por producto
+
+Cambios:
+
+- nueva migración tenant:
+  - `v0048_products_connector_automation`
+- backend nuevo para:
+  - `POST /tenant/products/connectors/{connector_id}/sync`
+  - `GET /tenant/products/comparisons`
+- cada conector ahora persiste:
+  - `sync_mode`
+  - `fetch_strategy`
+  - `run_ai_enrichment`
+  - `last_sync_summary`
+- cada fuente ahora persiste:
+  - `sync_status`
+  - `last_sync_attempt_at`
+  - `last_sync_error`
+- frontend `products` ahora suma:
+  - `Comparación`
+  - sync manual visible desde `Conectores`
+  - lectura visible de sync en `Fuentes/precios`
+  - overview con comparaciones recientes y productos multi-fuente
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_products_services + test_migration_flow + test_platform_flow` -> `264 tests OK`
+  - `npm run build` -> `OK`
+
+Resultado:
+
+- `products` ya no queda solo en registrar fuentes y precios; ahora los usa para sincronizar y recomendar
+- el siguiente salto natural deja de ser “terminar products” y pasa a:
+  - `projects` como consumidor fuerte
+  - o conectores específicos por proveedor/marketplace
+
 ## 2026-04-24 - `products` cierra historial de fuentes/precios y conectores configurables
 
 Contexto:

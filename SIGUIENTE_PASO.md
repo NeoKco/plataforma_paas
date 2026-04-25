@@ -11,6 +11,8 @@
     - enriquecimiento técnico más profundo
     - historial de fuentes/precios
     - conectores multi-fuente configurables
+    - conectores automáticos reales
+    - comparación multi-fuente
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
   - `taskops` ya consolida además:
     - nombre visible `Tareas`
@@ -23,11 +25,11 @@
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
   - no conviene reabrir `taskops`, `techdocs` ni `chat` por inercia salvo expansión explícita
 - siguiente frente recomendado:
-  - decidir si la siguiente profundización sigue sobre `products` o si ya abrimos `projects` como siguiente módulo consumidor fuerte
+  - decidir si ya abrimos `projects` como siguiente módulo consumidor fuerte
   - recomendación actual:
-    - abrir `projects` o, si se mantiene foco en `products`, priorizar:
-      - conectores automáticos reales
-      - comparación multi-fuente
+    - abrir `projects`
+    - o, si se mantiene foco en `products`, priorizar:
+      - conectores específicos por proveedor/marketplace
       - integración más profunda con cotizaciones y proyectos
       - historial/versionado más rico de atributos por fuente
   - por qué este orden:

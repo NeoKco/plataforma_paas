@@ -2,6 +2,30 @@
 
 ## 2026-04-24
 
+- `products` cierra conectores automáticos reales y comparación multi-fuente:
+  - nueva migración tenant:
+    - `v0048_products_connector_automation`
+  - backend nuevo para:
+    - `POST /tenant/products/connectors/{connector_id}/sync`
+    - `GET /tenant/products/comparisons`
+  - cada conector ya persiste:
+    - `sync_mode`
+    - `fetch_strategy`
+    - `run_ai_enrichment`
+    - `last_sync_summary`
+  - cada fuente ya persiste:
+    - `sync_status`
+    - `last_sync_attempt_at`
+    - `last_sync_error`
+  - el frontend `products` ya suma:
+    - `Comparación`
+    - sync manual por conector
+    - lectura visible de sync en `Fuentes/precios`
+    - resumen con productos multi-fuente y comparaciones recientes
+  - validación repo:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow + backend.app.tests.test_platform_flow` -> `264 tests OK`
+    - `npm run build` -> `OK`
+
 - `products` cierra historial de fuentes/precios y conectores multi-fuente configurables:
   - nueva migración tenant:
     - `v0047_products_sources_and_connectors`

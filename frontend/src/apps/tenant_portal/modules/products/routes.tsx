@@ -37,4 +37,11 @@ export const productsTenantPortalRoutes: RouteObject[] = [
       return { Component: module.ProductsConnectorsPage };
     },
   },
+  {
+    path: "comparisons",
+    lazy: async () => {
+      const module = await import("./pages/ProductsComparisonsPage");
+      return { Component: module.ProductsComparisonsPage };
+    },
+  },
 ];

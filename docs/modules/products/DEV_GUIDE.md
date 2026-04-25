@@ -28,6 +28,7 @@ Rutas públicas del módulo:
 - `/tenant/products/sources`
 - `/tenant/products/price-history`
 - `/tenant/products/connectors`
+- `/tenant/products/comparisons`
 
 Permisos:
 
@@ -86,8 +87,21 @@ La resolución accionable hoy soporta:
 Además, este cierre suma:
 
 - conectores multi-fuente persistidos
+- metadatos de automatización por conector:
+  - `sync_mode`
+  - `fetch_strategy`
+  - `run_ai_enrichment`
+  - `last_sync_summary`
 - borradores y corridas con `connector_id`
 - persistencia automática de fuentes y eventos de precio al aprobar o vincular borradores
+- sincronización automática runtime por conector:
+  - `POST /tenant/products/connectors/{connector_id}/sync`
+- comparación multi-fuente por producto:
+  - `GET /tenant/products/comparisons`
+- estado de sync por fuente:
+  - `sync_status`
+  - `last_sync_attempt_at`
+  - `last_sync_error`
 - CRUD visible de conectores
 - CRUD visible de fuentes manuales
 - registro manual de eventos de precio
@@ -95,6 +109,7 @@ Además, este cierre suma:
   - fuentes recientes
   - precios recientes
   - conectores recientes
+  - comparaciones recientes
 
 Variables runtime compatibles con el carril IA existente:
 
@@ -114,8 +129,8 @@ Regla de implementación:
 
 Las siguientes profundizaciones deben abrirse aquí:
 
-- conectores automáticos reales por proveedor/fuente
-- comparación entre múltiples fuentes para sugerir mejor precio vigente
+- conectores específicos por marketplace/proveedor con autenticación propietaria
+- comparación multi-moneda/unidad más profunda
 - mejor reutilización del catálogo en `projects`
 - clasificación/categorización más profunda por IA
 - versionado más rico de atributos técnicos por fuente

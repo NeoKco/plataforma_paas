@@ -31,9 +31,13 @@ export type ProductCatalogConnector = {
   supports_batch: boolean;
   supports_price_tracking: boolean;
   is_active: boolean;
+  sync_mode: string;
+  fetch_strategy: string;
+  run_ai_enrichment: boolean;
   config_notes: string | null;
   last_sync_at: string | null;
   last_sync_status: string;
+  last_sync_summary: string | null;
   source_total: number;
   price_event_total: number;
   created_at: string | null;
@@ -48,6 +52,9 @@ export type ProductCatalogConnectorWriteRequest = {
   supports_batch: boolean;
   supports_price_tracking: boolean;
   is_active: boolean;
+  sync_mode: string;
+  fetch_strategy: string;
+  run_ai_enrichment: boolean;
   config_notes: string | null;
 };
 
@@ -63,11 +70,14 @@ export type ProductCatalogProductSource = {
   source_url: string | null;
   external_reference: string | null;
   source_status: string;
+  sync_status: string;
   latest_unit_price: number;
   currency_code: string;
   source_summary: string | null;
   captured_at: string | null;
   last_seen_at: string | null;
+  last_sync_attempt_at: string | null;
+  last_sync_error: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -369,12 +379,78 @@ export type ProductCatalogOverviewResponse = {
     price_event_total: number;
     connector_total: number;
     connector_active: number;
+    products_with_source: number;
+    products_with_multi_source: number;
   };
   recent_products: ProductCatalogItem[];
   recent_drafts: ProductCatalogIngestionDraft[];
   recent_sources: ProductCatalogProductSource[];
   recent_prices: ProductCatalogPriceHistoryItem[];
   recent_connectors: ProductCatalogConnector[];
+  recent_comparisons: ProductCatalogComparisonItem[];
+};
+
+export type ProductCatalogConnectorSyncItem = {
+  source_id: number;
+  product_id: number;
+  connector_id: number | null;
+  source_label: string | null;
+  source_url: string | null;
+  sync_status: string;
+  unit_price: number;
+  currency_code: string;
+  detail: string | null;
+};
+
+export type ProductCatalogConnectorSyncResponse = {
+  success: boolean;
+  message: string;
+  connector_id: number;
+  connector_name: string;
+  processed: number;
+  synced: number;
+  failed: number;
+  skipped: number;
+  price_updates: number;
+  data: ProductCatalogConnectorSyncItem[];
+};
+
+export type ProductCatalogComparisonSource = {
+  source_id: number;
+  connector_id: number | null;
+  connector_name: string | null;
+  source_label: string | null;
+  source_url: string | null;
+  source_status: string;
+  sync_status: string;
+  latest_unit_price: number;
+  currency_code: string;
+  last_seen_at: string | null;
+};
+
+export type ProductCatalogComparisonItem = {
+  product_id: number;
+  product_name: string;
+  product_sku: string | null;
+  source_count: number;
+  active_source_count: number;
+  recommended_source_id: number | null;
+  recommended_reason: string | null;
+  recommended_price: number | null;
+  recommended_currency_code: string | null;
+  lowest_price: number | null;
+  highest_price: number | null;
+  price_spread: number | null;
+  price_spread_percent: number | null;
+  latest_seen_at: string | null;
+  sources: ProductCatalogComparisonSource[];
+};
+
+type ProductCatalogComparisonsResponse = {
+  success: boolean;
+  message: string;
+  total: number;
+  data: ProductCatalogComparisonItem[];
 };
 
 type ProductCatalogIngestionOverviewResponse = {
@@ -471,6 +547,18 @@ export function deleteProductCatalogConnector(accessToken: string, connectorId: 
   });
 }
 
+export function syncProductCatalogConnector(
+  accessToken: string,
+  connectorId: number,
+  payload: { product_id?: number | null; limit?: number },
+) {
+  return apiRequest<ProductCatalogConnectorSyncResponse>(`/tenant/products/connectors/${connectorId}/sync`, {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
 export function getProductCatalogSources(
   accessToken: string,
   params: { product_id?: number | null; connector_id?: number | null; source_status?: string | null } = {},
@@ -531,6 +619,20 @@ export function createProductCatalogPriceHistory(
     method: "POST",
     token: accessToken,
     body: payload,
+  });
+}
+
+export function getProductCatalogComparisons(
+  accessToken: string,
+  params: { product_id?: number | null; connector_id?: number | null; limit?: number | null } = {},
+) {
+  const search = new URLSearchParams();
+  if (params.product_id) search.set("product_id", String(params.product_id));
+  if (params.connector_id) search.set("connector_id", String(params.connector_id));
+  if (params.limit) search.set("limit", String(params.limit));
+  const suffix = search.size > 0 ? `?${search.toString()}` : "";
+  return apiRequest<ProductCatalogComparisonsResponse>(`/tenant/products/comparisons${suffix}`, {
+    token: accessToken,
   });
 }
 

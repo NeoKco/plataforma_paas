@@ -1,7 +1,7 @@
 import os
 import unittest
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
@@ -17,6 +17,12 @@ from app.apps.tenant_modules.products.schemas import (  # noqa: E402
 )
 from app.apps.tenant_modules.products.services.connector_service import (  # noqa: E402
     ProductConnectorService,
+)
+from app.apps.tenant_modules.products.services.connector_sync_service import (  # noqa: E402
+    ProductConnectorSyncService,
+)
+from app.apps.tenant_modules.products.services.comparison_service import (  # noqa: E402
+    ProductCatalogComparisonService,
 )
 from app.apps.tenant_modules.products.services.source_service import (  # noqa: E402
     ProductSourceService,
@@ -156,3 +162,111 @@ class ProductsServicesTestCase(unittest.TestCase):
             )
 
         self.assertIn("Producto no encontrado", str(exc.exception))
+
+    def test_connector_sync_updates_price_history_from_active_source(self) -> None:
+        tenant_db = Mock()
+        connector = ProductConnector(
+            id=9,
+            name="Feed JSON Demo",
+            connector_kind="vendor_feed",
+            default_currency_code="CLP",
+            is_active=True,
+            fetch_strategy="json_feed",
+            run_ai_enrichment=False,
+        )
+        source = ProductSource(
+            id=31,
+            product_id=14,
+            connector_id=9,
+            source_kind="vendor_feed",
+            source_label="Demo JSON",
+            source_url="https://vendor.local/product.json",
+            source_status="active",
+            sync_status="idle",
+            latest_unit_price=1000,
+            currency_code="CLP",
+        )
+
+        service = ProductConnectorSyncService()
+        service._connector_service.get_connector = Mock(return_value=connector)
+        service._source_service.mark_source_sync_attempt = Mock()
+        service._source_service.register_price_event = Mock()
+        service._connector_service.touch_connector_sync = Mock()
+
+        with patch.object(service, "_list_sync_sources", return_value=[source]):
+            with patch.object(
+                service,
+                "_extract_for_connector",
+                return_value={
+                    "name": "Panel 550W",
+                    "unit_price": 1250,
+                    "currency_code": "CLP",
+                    "source_excerpt": "actualizado",
+                    "source_kind": "vendor_feed",
+                },
+            ):
+                with patch.object(
+                    service._enrichment_service,
+                    "enrich_capture_payload",
+                    return_value={
+                        "name": "Panel 550W",
+                        "unit_price": 1250,
+                        "currency_code": "CLP",
+                        "source_excerpt": "actualizado",
+                        "source_kind": "vendor_feed",
+                    },
+                ):
+                    result = service.sync_connector(tenant_db, connector_id=9, limit=10)
+
+        self.assertEqual(result["processed"], 1)
+        self.assertEqual(result["synced"], 1)
+        self.assertEqual(result["price_updates"], 1)
+        self.assertEqual(result["items"][0]["sync_status"], "synced")
+        service._source_service.register_price_event.assert_called_once()
+        tenant_db.commit.assert_called_once()
+
+    def test_comparison_service_prefers_best_active_price(self) -> None:
+        source_a = ProductSource(
+            id=10,
+            product_id=14,
+            connector_id=1,
+            source_label="Proveedor A",
+            source_status="active",
+            sync_status="synced",
+            latest_unit_price=1200,
+            currency_code="CLP",
+        )
+        source_b = ProductSource(
+            id=11,
+            product_id=14,
+            connector_id=2,
+            source_label="Proveedor B",
+            source_status="active",
+            sync_status="synced",
+            latest_unit_price=900,
+            currency_code="CLP",
+        )
+
+        source_query = Mock()
+        filtered_query = Mock()
+        ordered_query = Mock()
+        product_query = Mock()
+        product_filter = Mock()
+        tenant_db = Mock()
+        tenant_db.query.side_effect = [source_query, product_query]
+        source_query.filter.return_value = filtered_query
+        filtered_query.order_by.return_value = ordered_query
+        ordered_query.all.return_value = [source_a, source_b]
+        product_query.filter.return_value = product_filter
+        product_filter.all.return_value = [CRMProduct(id=14, name="Inversor 5kW", sku="INV-5K")]
+
+        service = ProductCatalogComparisonService()
+        service._source_service.build_maps = Mock(return_value=({1: "Proveedor A", 2: "Proveedor B"}, {}))
+
+        rows = service.list_comparisons(tenant_db, limit=10)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["product_id"], 14)
+        self.assertEqual(rows[0]["recommended_source_id"], 11)
+        self.assertEqual(rows[0]["recommended_price"], 900.0)
+        self.assertEqual(rows[0]["source_count"], 2)

@@ -42,6 +42,11 @@
 - `PUT /tenant/products/connectors/{connector_id}`
 - `PATCH /tenant/products/connectors/{connector_id}/status`
 - `DELETE /tenant/products/connectors/{connector_id}`
+- `POST /tenant/products/connectors/{connector_id}/sync`
+
+## Comparison
+
+- `GET /tenant/products/comparisons`
 
 Notas del contrato actual:
 
@@ -68,3 +73,23 @@ Notas del contrato actual:
   - acepta opcionalmente `connector_id`
 - `POST /tenant/products/ingestion/runs`
   - acepta opcionalmente `connector_id`
+- `POST /tenant/products/connectors/{connector_id}/sync`
+  - request:
+    - `product_id` opcional
+    - `limit`
+  - ejecuta sync real sobre fuentes persistidas del conector
+  - registra eventos `connector_sync` cuando cambia el precio observado
+- `GET /tenant/products/comparisons`
+  - acepta filtros:
+    - `product_id`
+    - `connector_id`
+    - `limit`
+  - devuelve:
+    - `recommended_source_id`
+    - `recommended_price`
+    - `recommended_reason`
+    - `lowest_price`
+    - `highest_price`
+    - `price_spread`
+    - `price_spread_percent`
+    - ranking de `sources`

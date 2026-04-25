@@ -361,6 +361,7 @@ export function ProductsSourcesPage() {
                 <option value="quoted">{language === "es" ? "Cotizado" : "Quoted"}</option>
                 <option value="list_price">{language === "es" ? "Lista" : "List price"}</option>
                 <option value="offer">{language === "es" ? "Oferta" : "Offer"}</option>
+                <option value="connector_sync">{language === "es" ? "Sync conector" : "Connector sync"}</option>
               </select>
             </label>
             <label>
@@ -420,7 +421,10 @@ export function ProductsSourcesPage() {
             render: (row) => (
               <div>
                 <strong>{row.source_label || row.source_url || "—"}</strong>
-                <div className="text-muted small">{row.external_reference || row.source_status}</div>
+                <div className="text-muted small">
+                  {row.external_reference || row.source_status} · {row.sync_status}
+                </div>
+                {row.last_sync_error ? <div className="text-danger small">{row.last_sync_error}</div> : null}
               </div>
             ),
           },
@@ -431,8 +435,8 @@ export function ProductsSourcesPage() {
           },
           {
             key: "seen",
-            header: language === "es" ? "Última vista" : "Last seen",
-            render: (row) => row.last_seen_at || "—",
+            header: language === "es" ? "Última sync" : "Last sync",
+            render: (row) => row.last_sync_attempt_at || row.last_seen_at || "—",
           },
         ]}
       />

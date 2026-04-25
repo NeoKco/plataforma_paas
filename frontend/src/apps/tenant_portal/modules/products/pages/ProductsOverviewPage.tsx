@@ -132,6 +132,12 @@ export function ProductsOverviewPage() {
               value={metrics.connector_active}
               hint={language === "es" ? "Perfiles multi-fuente vigentes" : "Current multi-source profiles"}
             />
+            <MetricCard
+              icon="reports"
+              label={language === "es" ? "Productos multi-fuente" : "Multi-source products"}
+              value={metrics.products_with_multi_source}
+              hint={language === "es" ? "Listos para comparación y precio recomendado" : "Ready for comparison and recommended pricing"}
+            />
           </div>
 
           <PanelCard
@@ -171,6 +177,16 @@ export function ProductsOverviewPage() {
                   {language === "es"
                     ? "Base adecuada para enriquecer descripción, atributos y clasificación con tu API de IA."
                     : "Suitable base to enrich description, attributes, and classification with your AI API."}
+                </div>
+              </div>
+              <div className="crm-detail-card">
+                <div className="crm-detail-card__header">
+                  <strong>{language === "es" ? "Comparación multi-fuente" : "Multi-source comparison"}</strong>
+                </div>
+                <div className="text-muted small">
+                  {language === "es"
+                    ? "Permite contrastar varias fuentes por producto y recomendar la mejor referencia vigente."
+                    : "Lets you compare multiple sources per product and recommend the best current reference."}
                 </div>
               </div>
             </div>
@@ -292,6 +308,49 @@ export function ProductsOverviewPage() {
                 key: "captured",
                 header: language === "es" ? "Capturado" : "Captured",
                 render: (row) => row.captured_at || "—",
+              },
+            ]}
+          />
+
+          <DataTableCard
+            title={language === "es" ? "Comparaciones recientes" : "Recent comparisons"}
+            subtitle={
+              language === "es"
+                ? "Lectura rápida del mejor precio/fuente recomendada por producto."
+                : "Quick read of the best recommended source/price per product."
+            }
+            rows={data?.recent_comparisons || []}
+            columns={[
+              {
+                key: "product",
+                header: language === "es" ? "Producto" : "Product",
+                render: (row) => (
+                  <div>
+                    <strong>{row.product_name}</strong>
+                    <div className="text-muted small">{row.product_sku || "—"}</div>
+                  </div>
+                ),
+              },
+              {
+                key: "coverage",
+                header: language === "es" ? "Cobertura" : "Coverage",
+                render: (row) => `${row.active_source_count}/${row.source_count}`,
+              },
+              {
+                key: "recommended",
+                header: language === "es" ? "Recomendado" : "Recommended",
+                render: (row) =>
+                  row.recommended_price !== null
+                    ? formatMoney(row.recommended_price, language, row.recommended_currency_code || "CLP")
+                    : "—",
+              },
+              {
+                key: "spread",
+                header: language === "es" ? "Brecha" : "Spread",
+                render: (row) =>
+                  row.price_spread !== null
+                    ? `${formatMoney(row.price_spread, language, row.recommended_currency_code || "CLP")} · ${Math.round(row.price_spread_percent || 0)}%`
+                    : "—",
               },
             ]}
           />

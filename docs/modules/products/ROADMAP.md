@@ -43,22 +43,26 @@ El módulo ya cubre:
   - fuentes
   - precios
   - conectores
+- sincronización automática real por conector sobre fuentes persistidas
+- vista `Comparación` con recomendación multi-fuente por producto
+- overview con comparaciones recientes y métricas de productos multi-fuente
 - publicación y validación runtime de este slice en `staging` y `production`
 
 ## Backlog posterior al cierre
 
-1. conectores automáticos reales por proveedor/fuente
-2. comparación y recomendación de mejor precio vigente entre múltiples fuentes
+1. conectores específicos por proveedor/fuente con autenticación propietaria
+2. comparación multi-moneda/unidad más profunda
 3. normalización/categorización más profunda
 4. trazabilidad/versionado más rico de atributos técnicos por fuente
 5. integración más profunda del catálogo con `projects`
 
 ## Siguiente slice recomendado
 
-- profundizar `products` con:
-  - conectores automáticos reales
-  - comparación multi-fuente
-  - mejor soporte para consumo del catálogo en cotizaciones y proyectos
+- abrir `projects` como consumidor fuerte del catálogo `products`
+- si se mantiene foco en `products`, priorizar:
+  - conectores concretos por marketplace/proveedor
+  - mejor conciliación de moneda/unidad
+  - versionado más rico de atributos por fuente
 - mantener la regla de dominio:
   - `products` sigue siendo módulo independiente
   - `crm` y futuros módulos como `projects` consumen el catálogo, pero no lo renombran ni lo absorben
