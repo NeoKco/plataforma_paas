@@ -65,6 +65,26 @@ class ProductCatalogOverviewService:
             .scalar()
             or 0
         )
+        connector_scheduled = (
+            tenant_db.query(func.count(ProductConnector.id))
+            .filter(
+                ProductConnector.is_active.is_(True),
+                ProductConnector.schedule_enabled.is_(True),
+            )
+            .scalar()
+            or 0
+        )
+        connector_schedule_due = (
+            tenant_db.query(func.count(ProductConnector.id))
+            .filter(
+                ProductConnector.is_active.is_(True),
+                ProductConnector.schedule_enabled.is_(True),
+                ProductConnector.next_scheduled_run_at.isnot(None),
+                ProductConnector.next_scheduled_run_at <= func.now(),
+            )
+            .scalar()
+            or 0
+        )
         products_with_source = (
             tenant_db.query(func.count(func.distinct(ProductSource.product_id))).scalar() or 0
         )
@@ -118,6 +138,8 @@ class ProductCatalogOverviewService:
             "price_event_total": int(price_event_total),
             "connector_total": int(connector_total),
             "connector_active": int(connector_active),
+            "connector_scheduled": int(connector_scheduled),
+            "connector_schedule_due": int(connector_schedule_due),
             "products_with_source": int(products_with_source),
             "products_with_multi_source": int(products_with_multi_source),
             "refresh_run_total": int(refresh_run_total),

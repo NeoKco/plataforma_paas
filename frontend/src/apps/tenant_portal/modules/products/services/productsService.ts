@@ -31,6 +31,7 @@ export type ProductCatalogConnector = {
   id: number;
   name: string;
   connector_kind: string;
+  provider_key: string;
   base_url: string | null;
   default_currency_code: string;
   supports_batch: boolean;
@@ -39,6 +40,14 @@ export type ProductCatalogConnector = {
   sync_mode: string;
   fetch_strategy: string;
   run_ai_enrichment: boolean;
+  schedule_enabled: boolean;
+  schedule_scope: string;
+  schedule_frequency: string;
+  schedule_batch_limit: number;
+  next_scheduled_run_at: string | null;
+  last_scheduled_run_at: string | null;
+  last_schedule_status: string;
+  last_schedule_summary: string | null;
   config_notes: string | null;
   last_sync_at: string | null;
   last_sync_status: string;
@@ -52,6 +61,7 @@ export type ProductCatalogConnector = {
 export type ProductCatalogConnectorWriteRequest = {
   name: string;
   connector_kind: string;
+  provider_key: string;
   base_url: string | null;
   default_currency_code: string;
   supports_batch: boolean;
@@ -60,6 +70,10 @@ export type ProductCatalogConnectorWriteRequest = {
   sync_mode: string;
   fetch_strategy: string;
   run_ai_enrichment: boolean;
+  schedule_enabled: boolean;
+  schedule_scope: string;
+  schedule_frequency: string;
+  schedule_batch_limit: number;
   config_notes: string | null;
 };
 
@@ -321,6 +335,12 @@ type ProductCatalogConnectorMutationResponse = {
   data: ProductCatalogConnector;
 };
 
+type ProductCatalogConnectorScheduleRunResponse = {
+  success: boolean;
+  message: string;
+  data: ProductCatalogRefreshRun;
+};
+
 type ProductCatalogSourcesResponse = {
   success: boolean;
   message: string;
@@ -392,6 +412,8 @@ export type ProductCatalogOverviewResponse = {
     price_event_total: number;
     connector_total: number;
     connector_active: number;
+    connector_scheduled: number;
+    connector_schedule_due: number;
     products_with_source: number;
     products_with_multi_source: number;
     refresh_run_total: number;
@@ -654,6 +676,13 @@ export function syncProductCatalogConnector(
     method: "POST",
     token: accessToken,
     body: payload,
+  });
+}
+
+export function runProductCatalogConnectorSchedule(accessToken: string, connectorId: number) {
+  return apiRequest<ProductCatalogConnectorScheduleRunResponse>(`/tenant/products/connectors/${connectorId}/schedule/run`, {
+    method: "POST",
+    token: accessToken,
   });
 }
 

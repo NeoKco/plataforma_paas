@@ -10,6 +10,10 @@ class ProductConnectorService:
     VALID_SYNC_STATUSES = {"idle", "ready", "warning", "error"}
     VALID_SYNC_MODES = {"manual", "connector_sync"}
     VALID_FETCH_STRATEGIES = {"html_generic", "html_vendor", "json_feed", "html_ai"}
+    VALID_PROVIDER_KEYS = {"generic", "mercadolibre", "sodimac", "easy", "json_feed"}
+    VALID_SCHEDULE_STATUSES = {"idle", "scheduled", "running", "warning", "error"}
+    VALID_SCHEDULE_SCOPES = {"due_sources"}
+    VALID_SCHEDULE_FREQUENCIES = {"hourly", "daily", "weekly"}
 
     def list_connectors(self, tenant_db, *, include_inactive: bool = True) -> list[ProductConnector]:
         query = tenant_db.query(ProductConnector)
@@ -33,11 +37,34 @@ class ProductConnectorService:
             supports_batch=bool(payload.supports_batch),
             supports_price_tracking=bool(payload.supports_price_tracking),
             is_active=bool(payload.is_active),
+            provider_key=self._normalize_provider_key(getattr(payload, "provider_key", "generic")),
             sync_mode=self._normalize_sync_mode(getattr(payload, "sync_mode", "manual")),
             fetch_strategy=self._normalize_fetch_strategy(
                 getattr(payload, "fetch_strategy", "html_generic")
             ),
             run_ai_enrichment=bool(getattr(payload, "run_ai_enrichment", False)),
+            schedule_enabled=bool(getattr(payload, "schedule_enabled", False)),
+            schedule_scope=self._normalize_schedule_scope(
+                getattr(payload, "schedule_scope", "due_sources")
+            ),
+            schedule_frequency=self._normalize_schedule_frequency(
+                getattr(payload, "schedule_frequency", "daily")
+            ),
+            schedule_batch_limit=self._normalize_schedule_batch_limit(
+                getattr(payload, "schedule_batch_limit", 50)
+            ),
+            next_scheduled_run_at=self._build_next_scheduled_run_at(
+                enabled=bool(getattr(payload, "schedule_enabled", False)),
+                frequency=self._normalize_schedule_frequency(
+                    getattr(payload, "schedule_frequency", "daily")
+                ),
+                reference=self._now(),
+            ),
+            last_scheduled_run_at=None,
+            last_schedule_status="scheduled"
+            if bool(getattr(payload, "schedule_enabled", False))
+            else "idle",
+            last_schedule_summary=None,
             config_notes=self._normalize_optional(payload.config_notes),
             last_sync_at=None,
             last_sync_status="ready" if payload.is_active else "idle",
@@ -57,11 +84,31 @@ class ProductConnectorService:
         item.supports_batch = bool(payload.supports_batch)
         item.supports_price_tracking = bool(payload.supports_price_tracking)
         item.is_active = bool(payload.is_active)
+        item.provider_key = self._normalize_provider_key(getattr(payload, "provider_key", "generic"))
         item.sync_mode = self._normalize_sync_mode(getattr(payload, "sync_mode", "manual"))
         item.fetch_strategy = self._normalize_fetch_strategy(
             getattr(payload, "fetch_strategy", "html_generic")
         )
         item.run_ai_enrichment = bool(getattr(payload, "run_ai_enrichment", False))
+        item.schedule_enabled = bool(getattr(payload, "schedule_enabled", False))
+        item.schedule_scope = self._normalize_schedule_scope(
+            getattr(payload, "schedule_scope", "due_sources")
+        )
+        item.schedule_frequency = self._normalize_schedule_frequency(
+            getattr(payload, "schedule_frequency", "daily")
+        )
+        item.schedule_batch_limit = self._normalize_schedule_batch_limit(
+            getattr(payload, "schedule_batch_limit", 50)
+        )
+        item.next_scheduled_run_at = self._build_next_scheduled_run_at(
+            enabled=item.schedule_enabled,
+            frequency=item.schedule_frequency,
+            reference=self._now(),
+        )
+        if not item.schedule_enabled:
+            item.last_schedule_status = "idle"
+        elif item.last_schedule_status == "idle":
+            item.last_schedule_status = "scheduled"
         item.config_notes = self._normalize_optional(payload.config_notes)
         item.updated_at = self._now()
         tenant_db.add(item)
@@ -73,6 +120,8 @@ class ProductConnectorService:
         item = self.get_connector(tenant_db, connector_id)
         item.is_active = bool(is_active)
         item.last_sync_status = "ready" if item.is_active else "idle"
+        if not item.is_active:
+            item.last_schedule_status = "idle"
         item.updated_at = self._now()
         tenant_db.add(item)
         tenant_db.commit()
@@ -103,6 +152,36 @@ class ProductConnectorService:
         if summary is not None:
             item.last_sync_summary = self._normalize_optional(summary)
         item.updated_at = self._now()
+        tenant_db.add(item)
+        tenant_db.flush()
+
+    def touch_connector_schedule(
+        self,
+        tenant_db,
+        connector_id: int | None,
+        *,
+        status: str = "scheduled",
+        summary: str | None = None,
+        reference: datetime | None = None,
+    ) -> None:
+        if not connector_id:
+            return
+        item = tenant_db.get(ProductConnector, connector_id)
+        if item is None:
+            return
+        now = reference or self._now()
+        item.last_scheduled_run_at = now
+        item.last_schedule_status = (
+            status if status in self.VALID_SCHEDULE_STATUSES else "scheduled"
+        )
+        item.next_scheduled_run_at = self._build_next_scheduled_run_at(
+            enabled=bool(item.schedule_enabled and item.is_active),
+            frequency=item.schedule_frequency,
+            reference=now,
+        )
+        if summary is not None:
+            item.last_schedule_summary = self._normalize_optional(summary)
+        item.updated_at = now
         tenant_db.add(item)
         tenant_db.flush()
 
@@ -152,6 +231,12 @@ class ProductConnectorService:
             raise ValueError("Tipo de conector inválido")
         return normalized
 
+    def _normalize_provider_key(self, value: str | None) -> str:
+        normalized = (value or "generic").strip().lower()
+        if normalized not in self.VALID_PROVIDER_KEYS:
+            raise ValueError("Proveedor/preset inválido")
+        return normalized
+
     def _normalize_sync_mode(self, value: str | None) -> str:
         normalized = (value or "manual").strip().lower()
         if normalized not in self.VALID_SYNC_MODES:
@@ -164,6 +249,23 @@ class ProductConnectorService:
             raise ValueError("Estrategia de extracción inválida")
         return normalized
 
+    def _normalize_schedule_scope(self, value: str | None) -> str:
+        normalized = (value or "due_sources").strip().lower()
+        if normalized not in self.VALID_SCHEDULE_SCOPES:
+            raise ValueError("Alcance de scheduler inválido")
+        return normalized
+
+    def _normalize_schedule_frequency(self, value: str | None) -> str:
+        normalized = (value or "daily").strip().lower()
+        if normalized not in self.VALID_SCHEDULE_FREQUENCIES:
+            raise ValueError("Frecuencia de scheduler inválida")
+        return normalized
+
+    @staticmethod
+    def _normalize_schedule_batch_limit(value: int | None) -> int:
+        normalized = int(value or 50)
+        return max(min(normalized, 500), 1)
+
     @staticmethod
     def _normalize_currency(value: str | None) -> str:
         normalized = ((value or "CLP").strip().upper())[:12]
@@ -172,3 +274,20 @@ class ProductConnectorService:
     @staticmethod
     def _now() -> datetime:
         return datetime.now(timezone.utc)
+
+    def _build_next_scheduled_run_at(
+        self,
+        *,
+        enabled: bool,
+        frequency: str,
+        reference: datetime,
+    ) -> datetime | None:
+        from datetime import timedelta
+
+        if not enabled:
+            return None
+        if frequency == "hourly":
+            return reference + timedelta(hours=1)
+        if frequency == "weekly":
+            return reference + timedelta(days=7)
+        return reference + timedelta(days=1)

@@ -115,7 +115,10 @@ class ProductCatalogRefreshService:
                 url=source.source_url,
                 source_label=source.source_label,
             )
-        payload = self._connector_sync_service._extraction_service.extract_from_url(source.source_url)
+        payload = self._connector_sync_service._extraction_service.extract_from_url(
+            source.source_url,
+            provider_key="generic",
+        )
         payload["source_label"] = source.source_label or payload.get("source_label")
         payload["source_kind"] = source.source_kind or payload.get("source_kind") or "url_reference"
         return payload

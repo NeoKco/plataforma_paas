@@ -47,6 +47,7 @@ class ProductCatalogProductUpdateRequest(ProductCatalogProductCreateRequest):
 class ProductCatalogConnectorCreateRequest(BaseModel):
     name: str
     connector_kind: str = "generic_url"
+    provider_key: str = "generic"
     base_url: str | None = None
     default_currency_code: str = "CLP"
     supports_batch: bool = True
@@ -55,6 +56,10 @@ class ProductCatalogConnectorCreateRequest(BaseModel):
     sync_mode: str = "manual"
     fetch_strategy: str = "html_generic"
     run_ai_enrichment: bool = False
+    schedule_enabled: bool = False
+    schedule_scope: str = "due_sources"
+    schedule_frequency: str = "daily"
+    schedule_batch_limit: int = 25
     config_notes: str | None = None
 
 
@@ -70,6 +75,7 @@ class ProductCatalogConnectorItemResponse(BaseModel):
     id: int
     name: str
     connector_kind: str
+    provider_key: str
     base_url: str | None = None
     default_currency_code: str
     supports_batch: bool
@@ -78,6 +84,14 @@ class ProductCatalogConnectorItemResponse(BaseModel):
     sync_mode: str
     fetch_strategy: str
     run_ai_enrichment: bool
+    schedule_enabled: bool
+    schedule_scope: str
+    schedule_frequency: str
+    schedule_batch_limit: int
+    next_scheduled_run_at: datetime | None = None
+    last_scheduled_run_at: datetime | None = None
+    last_schedule_status: str
+    last_schedule_summary: str | None = None
     config_notes: str | None = None
     last_sync_at: datetime | None = None
     last_sync_status: str
@@ -367,6 +381,13 @@ class ProductCatalogRefreshRunsResponse(BaseModel):
 
 
 class ProductCatalogRefreshRunMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: ProductCatalogRefreshRunResponse
+
+
+class ProductCatalogConnectorScheduleRunResponse(BaseModel):
     success: bool
     message: str
     requested_by: TenantUserContextResponse

@@ -14,6 +14,7 @@ import {
   createProductCatalogConnector,
   deleteProductCatalogConnector,
   getProductCatalogConnectors,
+  runProductCatalogConnectorSchedule,
   syncProductCatalogConnector,
   type ProductCatalogConnector,
   type ProductCatalogConnectorWriteRequest,
@@ -21,10 +22,77 @@ import {
   updateProductCatalogConnectorStatus,
 } from "../services/productsService";
 
+const CONNECTOR_PROVIDER_PRESETS: Record<
+  string,
+  Partial<ProductCatalogConnectorWriteRequest> & { label: string }
+> = {
+  generic: {
+    label: "Genérico",
+    connector_kind: "generic_url",
+    fetch_strategy: "html_generic",
+    sync_mode: "manual",
+    run_ai_enrichment: false,
+    supports_batch: true,
+    supports_price_tracking: true,
+    schedule_scope: "due_sources",
+    schedule_frequency: "daily",
+    schedule_batch_limit: 25,
+  },
+  mercadolibre: {
+    label: "Mercado Libre",
+    connector_kind: "vendor_site",
+    fetch_strategy: "html_ai",
+    sync_mode: "connector_sync",
+    run_ai_enrichment: true,
+    supports_batch: true,
+    supports_price_tracking: true,
+    schedule_scope: "due_sources",
+    schedule_frequency: "daily",
+    schedule_batch_limit: 25,
+  },
+  sodimac: {
+    label: "Sodimac",
+    connector_kind: "vendor_site",
+    fetch_strategy: "html_vendor",
+    sync_mode: "connector_sync",
+    run_ai_enrichment: true,
+    supports_batch: true,
+    supports_price_tracking: true,
+    schedule_scope: "due_sources",
+    schedule_frequency: "daily",
+    schedule_batch_limit: 25,
+  },
+  easy: {
+    label: "Easy",
+    connector_kind: "vendor_site",
+    fetch_strategy: "html_vendor",
+    sync_mode: "connector_sync",
+    run_ai_enrichment: true,
+    supports_batch: true,
+    supports_price_tracking: true,
+    schedule_scope: "due_sources",
+    schedule_frequency: "daily",
+    schedule_batch_limit: 25,
+  },
+  json_feed: {
+    label: "Feed JSON",
+    connector_kind: "vendor_feed",
+    fetch_strategy: "json_feed",
+    sync_mode: "connector_sync",
+    run_ai_enrichment: false,
+    supports_batch: true,
+    supports_price_tracking: true,
+    schedule_scope: "due_sources",
+    schedule_frequency: "hourly",
+    schedule_batch_limit: 50,
+  },
+};
+
 function buildDefaultForm(): ProductCatalogConnectorWriteRequest {
   return {
     name: "",
     connector_kind: "generic_url",
+    provider_key: "generic",
     base_url: "",
     default_currency_code: "CLP",
     supports_batch: true,
@@ -33,8 +101,24 @@ function buildDefaultForm(): ProductCatalogConnectorWriteRequest {
     sync_mode: "manual",
     fetch_strategy: "html_generic",
     run_ai_enrichment: false,
+    schedule_enabled: false,
+    schedule_scope: "due_sources",
+    schedule_frequency: "daily",
+    schedule_batch_limit: 25,
     config_notes: "",
   };
+}
+
+function formatDateTime(value: string | null, language: "es" | "en") {
+  if (!value) return "—";
+  try {
+    return new Intl.DateTimeFormat(language === "es" ? "es-CL" : "en-US", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
 }
 
 export function ProductsConnectorsPage() {
@@ -76,6 +160,7 @@ export function ProductsConnectorsPage() {
     setForm({
       name: item.name,
       connector_kind: item.connector_kind,
+      provider_key: item.provider_key,
       base_url: item.base_url || "",
       default_currency_code: item.default_currency_code,
       supports_batch: item.supports_batch,
@@ -84,8 +169,29 @@ export function ProductsConnectorsPage() {
       sync_mode: item.sync_mode,
       fetch_strategy: item.fetch_strategy,
       run_ai_enrichment: item.run_ai_enrichment,
+      schedule_enabled: item.schedule_enabled,
+      schedule_scope: item.schedule_scope,
+      schedule_frequency: item.schedule_frequency,
+      schedule_batch_limit: item.schedule_batch_limit,
       config_notes: item.config_notes || "",
     });
+  }
+
+  function applyProviderPreset(providerKey: string) {
+    const preset = CONNECTOR_PROVIDER_PRESETS[providerKey] || CONNECTOR_PROVIDER_PRESETS.generic;
+    setForm((current) => ({
+      ...current,
+      provider_key: providerKey,
+      connector_kind: preset.connector_kind || current.connector_kind,
+      fetch_strategy: preset.fetch_strategy || current.fetch_strategy,
+      sync_mode: preset.sync_mode || current.sync_mode,
+      run_ai_enrichment: preset.run_ai_enrichment ?? current.run_ai_enrichment,
+      supports_batch: preset.supports_batch ?? current.supports_batch,
+      supports_price_tracking: preset.supports_price_tracking ?? current.supports_price_tracking,
+      schedule_scope: preset.schedule_scope || current.schedule_scope,
+      schedule_frequency: preset.schedule_frequency || current.schedule_frequency,
+      schedule_batch_limit: preset.schedule_batch_limit || current.schedule_batch_limit,
+    }));
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -150,6 +256,21 @@ export function ProductsConnectorsPage() {
     }
   }
 
+  async function handleScheduleRun(item: ProductCatalogConnector) {
+    if (!session?.accessToken) return;
+    try {
+      const response = await runProductCatalogConnectorSchedule(session.accessToken, item.id);
+      setFeedback(
+        `${response.message} (${item.name}: ${response.data.completed_count}/${response.data.requested_count} ${
+          language === "es" ? "completadas" : "completed"
+        })`,
+      );
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
   return (
     <div className="d-grid gap-4">
       <PageHeader
@@ -198,6 +319,19 @@ export function ProductsConnectorsPage() {
             <input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
           </label>
           <label>
+            <span>{language === "es" ? "Proveedor" : "Provider"}</span>
+            <select
+              value={form.provider_key}
+              onChange={(event) => applyProviderPreset(event.target.value)}
+            >
+              {Object.entries(CONNECTOR_PROVIDER_PRESETS).map(([key, preset]) => (
+                <option key={key} value={key}>
+                  {preset.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
             <span>{language === "es" ? "Tipo" : "Kind"}</span>
             <select value={form.connector_kind} onChange={(event) => setForm((current) => ({ ...current, connector_kind: event.target.value }))}>
               <option value="generic_url">{language === "es" ? "URL genérica" : "Generic URL"}</option>
@@ -230,6 +364,32 @@ export function ProductsConnectorsPage() {
               <option value="html_ai">{language === "es" ? "HTML + IA" : "HTML + AI"}</option>
             </select>
           </label>
+          <label>
+            <span>{language === "es" ? "Frecuencia scheduler" : "Scheduler frequency"}</span>
+            <select
+              value={form.schedule_frequency}
+              onChange={(event) => setForm((current) => ({ ...current, schedule_frequency: event.target.value }))}
+            >
+              <option value="hourly">{language === "es" ? "Cada hora" : "Hourly"}</option>
+              <option value="daily">{language === "es" ? "Diaria" : "Daily"}</option>
+              <option value="weekly">{language === "es" ? "Semanal" : "Weekly"}</option>
+            </select>
+          </label>
+          <label>
+            <span>{language === "es" ? "Límite scheduler" : "Scheduler batch limit"}</span>
+            <input
+              type="number"
+              min={1}
+              max={250}
+              value={form.schedule_batch_limit}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  schedule_batch_limit: Number.parseInt(event.target.value || "25", 10),
+                }))
+              }
+            />
+          </label>
           <label className="crm-form-grid__full">
             <span>{language === "es" ? "Notas de configuración" : "Configuration notes"}</span>
             <textarea rows={4} value={form.config_notes || ""} onChange={(event) => setForm((current) => ({ ...current, config_notes: event.target.value }))} />
@@ -251,6 +411,14 @@ export function ProductsConnectorsPage() {
             <span className="d-inline-flex gap-2 align-items-center">
               <input type="checkbox" checked={form.run_ai_enrichment} onChange={(event) => setForm((current) => ({ ...current, run_ai_enrichment: event.target.checked }))} />
               {language === "es" ? "Enriquecimiento IA" : "AI enrichment"}
+            </span>
+            <span className="d-inline-flex gap-2 align-items-center">
+              <input
+                type="checkbox"
+                checked={form.schedule_enabled}
+                onChange={(event) => setForm((current) => ({ ...current, schedule_enabled: event.target.checked }))}
+              />
+              {language === "es" ? "Scheduler tenant" : "Tenant scheduler"}
             </span>
           </label>
           <div className="crm-form-actions crm-form-grid__full">
@@ -276,7 +444,7 @@ export function ProductsConnectorsPage() {
             render: (row) => (
               <div>
                 <strong>{row.name}</strong>
-                <div className="text-muted small">{row.connector_kind}</div>
+                <div className="text-muted small">{row.provider_key} · {row.connector_kind}</div>
               </div>
             ),
           },
@@ -300,6 +468,16 @@ export function ProductsConnectorsPage() {
                   {row.sync_mode} · {row.fetch_strategy} · {row.last_sync_status}
                 </div>
                 <div className="text-muted small">{row.last_sync_summary || "—"}</div>
+                <div className="text-muted small">
+                  {row.schedule_enabled
+                    ? `${language === "es" ? "Scheduler" : "Scheduler"}: ${row.schedule_frequency} · ${row.last_schedule_status}`
+                    : language === "es"
+                      ? "Scheduler desactivado"
+                      : "Scheduler disabled"}
+                </div>
+                <div className="text-muted small">
+                  {language === "es" ? "Próxima corrida" : "Next run"}: {formatDateTime(row.next_scheduled_run_at, language)}
+                </div>
               </div>
             ),
           },
@@ -321,6 +499,14 @@ export function ProductsConnectorsPage() {
                   disabled={!row.is_active || row.sync_mode !== "connector_sync"}
                 >
                   {language === "es" ? "Sincronizar" : "Sync"}
+                </button>
+                <button
+                  className="btn btn-outline-info btn-sm"
+                  type="button"
+                  onClick={() => void handleScheduleRun(row)}
+                  disabled={!row.is_active || !row.schedule_enabled}
+                >
+                  {language === "es" ? "Correr scheduler" : "Run scheduler"}
                 </button>
                 <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => void handleDelete(row)}>
                   {language === "es" ? "Eliminar" : "Delete"}

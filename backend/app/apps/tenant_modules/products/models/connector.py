@@ -15,6 +15,7 @@ class ProductConnector(TenantBase):
     supports_batch: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     supports_price_tracking: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
+    provider_key: Mapped[str] = mapped_column(String(40), nullable=False, default="generic", index=True)
     sync_mode: Mapped[str] = mapped_column(String(40), nullable=False, default="manual", index=True)
     fetch_strategy: Mapped[str] = mapped_column(
         String(40),
@@ -23,6 +24,26 @@ class ProductConnector(TenantBase):
         index=True,
     )
     run_ai_enrichment: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    schedule_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
+    schedule_scope: Mapped[str] = mapped_column(String(40), nullable=False, default="due_sources")
+    schedule_frequency: Mapped[str] = mapped_column(String(40), nullable=False, default="daily")
+    schedule_batch_limit: Mapped[int] = mapped_column(Integer, nullable=False, default=50)
+    next_scheduled_run_at: Mapped[DateTime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
+    last_scheduled_run_at: Mapped[DateTime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    last_schedule_status: Mapped[str] = mapped_column(
+        String(40),
+        nullable=False,
+        default="idle",
+        index=True,
+    )
+    last_schedule_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     config_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     last_sync_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     last_sync_status: Mapped[str] = mapped_column(String(40), nullable=False, default="idle", index=True)

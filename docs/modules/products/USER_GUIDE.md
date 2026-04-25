@@ -12,6 +12,7 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 - mantener fuentes vigentes por producto
 - registrar y revisar historial de precios
 - configurar conectores de ingesta
+- programar conectores para refresh tenant automático
 - refrescar artículos ya existentes desde sus URLs fuente
 - correr campañas batch de actualización con progreso
 - dejar base estable para cotizaciones y futuros proyectos
@@ -82,6 +83,7 @@ Cada conector puede representar, por ejemplo:
 - un marketplace
 - un sitio técnico recurrente
 - una familia de scraping/manual ingest
+- un proveedor concreto con preset técnico visible
 
 Uso recomendado:
 
@@ -91,12 +93,27 @@ Uso recomendado:
 
 Ahora cada conector también puede definir:
 
+- `Proveedor`
+  preset operativo para lectura específica por fuente, por ejemplo:
+  - `Mercado Libre`
+  - `Sodimac`
+  - `Easy`
+  - `Feed JSON`
+
 - `Modo sync`
   `manual` o `connector_sync`
 - `Estrategia fetch`
   `HTML genérico`, `HTML proveedor`, `Feed JSON` o `HTML + IA`
 - `Enriquecimiento IA`
   activa el enriquecimiento al sincronizar fuentes persistidas
+- `Scheduler tenant`
+  habilita corridas automáticas por tenant sobre `due_sources`
+- `Frecuencia scheduler`
+  - `hourly`
+  - `daily`
+  - `weekly`
+- `Límite scheduler`
+  controla cuántas fuentes vencidas puede lanzar el conector por corrida programada
 
 Si el conector está en `connector_sync`, la vista permite ejecutar `Sincronizar` y refrescar:
 
@@ -104,6 +121,19 @@ Si el conector está en `connector_sync`, la vista permite ejecutar `Sincronizar
 - estado de sync de cada fuente
 - error visible cuando la extracción falla
 - historial de precio cuando cambia el valor capturado
+
+Si además el conector tiene `Scheduler tenant`, la vista permite:
+
+- ver próxima corrida programada
+- ver último estado del scheduler
+- lanzar `Correr scheduler` manualmente sin esperar la ejecución automática
+
+Uso recomendado del scheduler:
+
+1. dejar solo conectores realmente operativos con `Scheduler tenant`
+2. usar `daily` para sitios HTML normales
+3. usar `hourly` solo para fuentes más estables o feeds JSON
+4. mantener un `batch limit` prudente para no saturar scraping ni IA
 
 ## Comparación multi-fuente
 
@@ -167,6 +197,20 @@ Flujo recomendado:
 3. usar `Actualizar ahora` cuando quieras revisar un artículo puntual
 4. usar `Actualizar vencidos` como rutina operativa
 5. revisar artículos `stale` o `error` antes de cotizar si dependen de precio vigente
+
+## Scheduler formal por tenant
+
+Este módulo ya soporta un carril formal para `due_sources`:
+
+- cada tenant programa sus conectores dentro de su propia DB
+- el runner central solo inspecciona tenants activos con módulo `products`
+- por conector se ejecutan corridas batch de refresh sobre fuentes vencidas
+- el resultado queda visible en:
+  - `Conectores`
+  - `Actualizaciones`
+  - `Resumen`
+
+Eso permite mantener vigente el catálogo sin depender solo de corridas manuales.
 
 ## Flujo recomendado
 

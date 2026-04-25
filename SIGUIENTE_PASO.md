@@ -2,6 +2,20 @@
 
 ## Prioridad vigente
 
+- expansión reciente ya cerrada en repo:
+  - `products` ya suma scheduler formal por tenant para `due_sources`
+  - `Conectores` ya deja visible y operable:
+    - proveedor lógico
+    - frecuencia scheduler
+    - batch limit
+    - próxima corrida
+    - ejecución manual del scheduler
+  - la extracción ya prioriza JSON-LD y presets por proveedor
+  - lo pendiente de este frente ya es runtime:
+    - backup PostgreSQL tenant previo por carril
+    - deploy backend/frontend a `staging`
+    - backup PostgreSQL tenant previo por carril con backup explícito de `ieris-ltda`
+    - deploy backend/frontend a `production`
 - expansión reciente ya cerrada en repo y runtime:
   - `products` ya suma actualización viva mejor alineada a `ieris_app`
   - ya existen:
@@ -44,8 +58,7 @@
 - siguiente frente recomendado:
   - decidir si ya abrimos `projects` como siguiente módulo consumidor fuerte
   - o, si se mantiene foco en `products`, priorizar:
-    - scheduler formal por tenant para `due_sources`
-    - conectores específicos por proveedor/marketplace
+    - conectores específicos por proveedor/marketplace con autenticación propia
     - integración más profunda con cotizaciones y proyectos
     - historial/versionado más rico de atributos por fuente
   - por qué este orden:

@@ -4,6 +4,9 @@ from app.apps.tenant_modules.products.services.comparison_service import (
 from app.apps.tenant_modules.products.services.connector_service import (
     ProductConnectorService,
 )
+from app.apps.tenant_modules.products.services.connector_scheduler_service import (
+    ProductConnectorSchedulerService,
+)
 from app.apps.tenant_modules.products.services.connector_sync_service import (
     ProductConnectorSyncService,
 )
@@ -46,6 +49,7 @@ __all__ = [
     "ProductCatalogRefreshRunService",
     "ProductCatalogRefreshService",
     "ProductConnectorService",
+    "ProductConnectorSchedulerService",
     "ProductConnectorSyncService",
     "ProductSourceService",
 ]

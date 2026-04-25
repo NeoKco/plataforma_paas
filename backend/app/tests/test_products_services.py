@@ -25,6 +25,9 @@ from app.apps.tenant_modules.products.services.connector_sync_service import (  
 from app.apps.tenant_modules.products.services.comparison_service import (  # noqa: E402
     ProductCatalogComparisonService,
 )
+from app.apps.tenant_modules.products.services.connector_scheduler_service import (  # noqa: E402
+    ProductConnectorSchedulerService,
+)
 from app.apps.tenant_modules.products.services.refresh_run_service import (  # noqa: E402
     ProductCatalogRefreshRunService,
 )
@@ -55,12 +58,24 @@ class ProductsServicesTestCase(unittest.TestCase):
                 supports_batch=True,
                 supports_price_tracking=True,
                 is_active=True,
+                provider_key="mercadolibre",
+                sync_mode="connector_sync",
+                fetch_strategy="html_ai",
+                run_ai_enrichment=True,
+                schedule_enabled=True,
+                schedule_scope="due_sources",
+                schedule_frequency="daily",
+                schedule_batch_limit=30,
                 config_notes="catálogo principal",
             ),
         )
 
         self.assertEqual(created.name, "Proveedor Solar")
         self.assertEqual(created.connector_kind, "vendor_site")
+        self.assertEqual(created.provider_key, "mercadolibre")
+        self.assertTrue(created.schedule_enabled)
+        self.assertEqual(created.schedule_frequency, "daily")
+        self.assertEqual(created.schedule_batch_limit, 30)
         self.assertTrue(any(isinstance(item, ProductConnector) for item in added_items))
 
     def test_record_from_draft_creates_source_and_price_event(self) -> None:
@@ -235,6 +250,33 @@ class ProductsServicesTestCase(unittest.TestCase):
         service._source_service.register_price_event.assert_called_once()
         tenant_db.commit.assert_called_once()
 
+    def test_connector_sync_uses_provider_specific_extraction(self) -> None:
+        service = ProductConnectorSyncService()
+        connector = ProductConnector(
+            id=4,
+            name="ML Demo",
+            connector_kind="vendor_site",
+            provider_key="mercadolibre",
+            fetch_strategy="html_ai",
+            default_currency_code="CLP",
+        )
+        service._extraction_service.extract_from_url = Mock(
+            return_value={"name": "Producto ML", "unit_price": 9990, "currency_code": "CLP"},
+        )
+
+        payload = service.extract_capture_payload(
+            connector=connector,
+            url="https://articulo.mercadolibre.cl/demo",
+            source_label="Mercado Libre",
+        )
+
+        service._extraction_service.extract_from_url.assert_called_once_with(
+            "https://articulo.mercadolibre.cl/demo",
+            provider_key="mercadolibre",
+        )
+        self.assertEqual(payload["source_kind"], "marketplace_product")
+        self.assertEqual(payload["source_label"], "Mercado Libre")
+
     def test_comparison_service_prefers_best_active_price(self) -> None:
         source_a = ProductSource(
             id=10,
@@ -399,3 +441,35 @@ class ProductsServicesTestCase(unittest.TestCase):
 
         self.assertEqual(run.requested_count, 1)
         self.assertTrue(any(isinstance(item, ProductRefreshRunItem) for item in added_items))
+
+    def test_connector_scheduler_runs_due_connector_now(self) -> None:
+        tenant_db = Mock()
+        connector = ProductConnector(
+            id=7,
+            name="Proveedor Programado",
+            is_active=True,
+            schedule_scope="due_sources",
+            schedule_batch_limit=15,
+            run_ai_enrichment=True,
+        )
+        run = SimpleNamespace(
+            id=22,
+            processed_count=15,
+            completed_count=13,
+            error_count=0,
+            cancelled_count=0,
+        )
+
+        service = ProductConnectorSchedulerService()
+        service._connector_service.get_connector = Mock(return_value=connector)
+        service._connector_service.touch_connector_schedule = Mock()
+        service._refresh_run_service.create_run = Mock(return_value=run)
+        service._refresh_run_service._process_run = Mock(return_value=None)  # noqa: SLF001
+        tenant_db.refresh.side_effect = lambda item: None
+
+        result = service.run_connector_schedule_now(tenant_db, connector.id, actor_user_id=12)
+
+        self.assertEqual(result.id, 22)
+        service._refresh_run_service.create_run.assert_called_once()
+        self.assertEqual(service._connector_service.touch_connector_schedule.call_count, 2)
+        tenant_db.commit.assert_called()

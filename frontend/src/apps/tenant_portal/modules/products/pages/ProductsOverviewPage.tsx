@@ -133,6 +133,18 @@ export function ProductsOverviewPage() {
               hint={language === "es" ? "Perfiles multi-fuente vigentes" : "Current multi-source profiles"}
             />
             <MetricCard
+              icon="pulse"
+              label={language === "es" ? "Con scheduler" : "Scheduled connectors"}
+              value={metrics.connector_scheduled}
+              hint={language === "es" ? "Conectores con refresh tenant programado" : "Connectors with tenant scheduled refresh"}
+            />
+            <MetricCard
+              icon="focus"
+              label={language === "es" ? "Schedulers vencidos" : "Due schedulers"}
+              value={metrics.connector_schedule_due}
+              hint={language === "es" ? "Conectores listos para lanzar corridas" : "Connectors ready to launch runs"}
+            />
+            <MetricCard
               icon="reports"
               label={language === "es" ? "Productos multi-fuente" : "Multi-source products"}
               value={metrics.products_with_multi_source}
@@ -213,8 +225,8 @@ export function ProductsOverviewPage() {
                 </div>
                 <div className="text-muted small">
                   {language === "es"
-                    ? "Refresca artículos ya existentes desde sus URLs fuente con IA y reglas de merge controladas."
-                    : "Refreshes existing items from source URLs with AI and controlled merge rules."}
+                    ? "Refresca artículos ya existentes desde sus URLs fuente con IA, merge controlado y scheduler por tenant."
+                    : "Refreshes existing items from source URLs with AI, controlled merge, and tenant scheduler."}
                 </div>
               </div>
             </div>

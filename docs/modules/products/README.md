@@ -13,10 +13,12 @@ Estado actual:
   - catálogo técnico-comercial reusable
   - scraping/ingesta asistida
   - actualización viva por artículo desde URL
+  - scheduler formal por tenant para `due_sources`
   - corridas batch de refresh con progreso
   - extracción por URL
   - corridas batch
   - conectores multi-fuente configurables
+  - conectores específicos por proveedor con presets operativos
   - sincronización automática real por conector
   - comparación multi-fuente por producto
   - historial de fuentes por producto
@@ -31,6 +33,7 @@ Objetivo del módulo:
 - mantener un catálogo vivo de productos y servicios
 - usar scraping y más adelante IA para traer/normalizar información actualizada
 - refrescar artículos ya existentes desde sus fuentes activas o vencidas
+- programar refresh por tenant desde conectores con política `due_sources`
 - dejar una base reusable para cotizaciones, proyectos y otros dominios sin amarrarla a CRM
 
 ## Alcance actual
@@ -53,11 +56,18 @@ El módulo hoy incluye:
   - aprobación al catálogo central
 - conectores de fuente con:
   - nombre
+  - proveedor lógico
   - tipo
   - estado activo/inactivo
   - modo de sincronización
   - estrategia de extracción
   - enriquecimiento IA opcional
+  - scheduler por tenant:
+    - habilitado/no habilitado
+    - frecuencia
+    - batch limit
+    - próxima corrida
+    - último resultado
   - configuración operativa breve
   - métricas de uso visibles
 - comparación multi-fuente con:
@@ -73,6 +83,7 @@ El módulo hoy incluye:
     - `selected_products`
   - historial de corridas
   - estado de salud por artículo
+  - ejecución programable por conector para fuentes vencidas
 - fuentes por producto con:
   - URL/ref externa
   - proveedor
@@ -125,3 +136,41 @@ Ya quedó incluido además:
   - `Peso`
   - `Dimensiones`
   - `Modelo`
+- extracción estructurada priorizando JSON-LD cuando la fuente lo expone
+- presets visibles por proveedor:
+  - `generic`
+  - `mercadolibre`
+  - `sodimac`
+  - `easy`
+  - `json_feed`
+
+## Cómo reconstruir este slice
+
+Piezas canónicas de este cierre:
+
+- migración tenant:
+  - `backend/migrations/tenant/v0050_products_connector_scheduler_and_provider_profiles.py`
+- scheduler cross-tenant:
+  - `backend/app/scripts/run_products_refresh_scheduler.py`
+- API tenant:
+  - `backend/app/apps/tenant_modules/products/api/connectors.py`
+- servicios:
+  - `services/connector_service.py`
+  - `services/connector_scheduler_service.py`
+  - `services/connector_sync_service.py`
+  - `services/refresh_run_service.py`
+  - `services/ingestion_run_service.py`
+- frontend:
+  - `frontend/src/apps/tenant_portal/modules/products/pages/ProductsConnectorsPage.tsx`
+  - `frontend/src/apps/tenant_portal/modules/products/pages/ProductsOverviewPage.tsx`
+  - `frontend/src/apps/tenant_portal/modules/products/services/productsService.ts`
+
+Regla de recreación:
+
+1. aplicar migración tenant `0050`
+2. exponer provider/scheduler en schemas + serializers
+3. exponer ejecución manual del scheduler desde API
+4. dejar runner cross-tenant para corridas automáticas
+5. publicar presets por proveedor en UI
+6. validar repo
+7. hacer backup PostgreSQL tenant previo antes de mutar `staging` o `production`

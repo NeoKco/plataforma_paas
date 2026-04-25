@@ -14,7 +14,9 @@ El módulo ya cubre:
 - extracción rápida por URL
 - corridas batch por múltiples URLs
 - conectores multi-fuente configurables
+- presets de conectores por proveedor
 - actualización viva por artículo
+- scheduler formal por tenant para `due_sources`
 - corridas batch de refresh con progreso
 - fuentes persistidas por producto
 - historial de eventos de precio
@@ -69,21 +71,30 @@ El módulo ya cubre:
   - backup adicional explícito de `ieris-ltda` en `production`
   - convergencia tenant `0049_products_live_refresh`
   - readiness final en verde
+- migración `0050_products_connector_scheduler_and_provider_profiles`
+- conectores ya muestran y persisten:
+  - `provider_key`
+  - `schedule_enabled`
+  - `schedule_frequency`
+  - `schedule_batch_limit`
+  - `next_scheduled_run_at`
+  - `last_schedule_status`
+- runner formal cross-tenant disponible:
+  - `backend/app/scripts/run_products_refresh_scheduler.py`
 
 ## Backlog posterior al cierre
 
 1. conectores específicos por proveedor/fuente con autenticación propietaria
-2. scheduler/cron formal de corridas `due_sources` por tenant
-3. comparación multi-moneda/unidad más profunda
-4. trazabilidad/versionado más rico de atributos técnicos por fuente
-5. integración más profunda del catálogo con `projects`
+2. comparación multi-moneda/unidad más profunda
+3. trazabilidad/versionado más rico de atributos técnicos por fuente
+4. integración más profunda del catálogo con `projects`
+5. scheduler con campañas/historial operativo más rico si el runner actual deja de bastar
 
 ## Siguiente slice recomendado
 
 - abrir `projects` como consumidor fuerte del catálogo `products`
 - si se mantiene foco en `products`, priorizar:
-  - conectores concretos por marketplace/proveedor
-  - scheduler formal por tenant para corridas vencidas
+  - conectores concretos por marketplace/proveedor con autenticación propia
   - mejor conciliación de moneda/unidad
   - versionado más rico de atributos por fuente
 - mantener la regla de dominio:

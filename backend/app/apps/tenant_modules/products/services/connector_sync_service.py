@@ -5,12 +5,12 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.apps.tenant_modules.crm.models import CRMProduct
-from app.apps.tenant_modules.crm.services.product_ingestion_extraction_service import (
-    CRMProductIngestionExtractionService,
-)
 from app.apps.tenant_modules.products.models import ProductSource
 from app.apps.tenant_modules.products.services.connector_service import ProductConnectorService
 from app.apps.tenant_modules.products.services.enrichment_service import ProductCatalogEnrichmentService
+from app.apps.tenant_modules.products.services.ingestion_extraction_service import (
+    ProductCatalogIngestionExtractionService,
+)
 from app.apps.tenant_modules.products.services.source_service import ProductSourceService
 
 
@@ -20,7 +20,7 @@ class ProductConnectorSyncService:
     def __init__(self) -> None:
         self._connector_service = ProductConnectorService()
         self._source_service = ProductSourceService()
-        self._extraction_service = CRMProductIngestionExtractionService()
+        self._extraction_service = ProductCatalogIngestionExtractionService()
         self._enrichment_service = ProductCatalogEnrichmentService()
 
     def sync_connector(
@@ -207,11 +207,18 @@ class ProductConnectorSyncService:
         if strategy == "json_feed":
             payload = self._extract_from_json_feed(url)
         else:
-            payload = self._extraction_service.extract_from_url(url)
+            payload = self._extraction_service.extract_from_url(
+                url,
+                provider_key=getattr(connector, "provider_key", "generic"),
+            )
         payload["source_url"] = url
         payload["source_label"] = source_label or payload.get("source_label") or connector.name
         payload["source_kind"] = (
-            "vendor_feed" if strategy == "json_feed" else "vendor_site"
+            "vendor_feed"
+            if strategy == "json_feed"
+            else "marketplace_product"
+            if getattr(connector, "provider_key", "generic") == "mercadolibre"
+            else "vendor_site"
         )
         return payload
 

@@ -44,6 +44,7 @@
 - `PATCH /tenant/products/connectors/{connector_id}/status`
 - `DELETE /tenant/products/connectors/{connector_id}`
 - `POST /tenant/products/connectors/{connector_id}/sync`
+- `POST /tenant/products/connectors/{connector_id}/schedule/run`
 
 ## Live Refresh
 
@@ -87,6 +88,23 @@ Notas del contrato actual:
     - `limit`
   - ejecuta sync real sobre fuentes persistidas del conector
   - registra eventos `connector_sync` cuando cambia el precio observado
+- `POST /tenant/products/connectors/{connector_id}/schedule/run`
+  - ejecuta inmediatamente la política programada del conector
+  - hoy el alcance formal soportado es:
+    - `due_sources`
+  - devuelve la corrida de refresh creada/ejecutada
+- `POST /tenant/products/connectors`
+  - ya acepta además:
+    - `provider_key`
+    - `schedule_enabled`
+    - `schedule_scope`
+    - `schedule_frequency`
+    - `schedule_batch_limit`
+- `PUT /tenant/products/connectors/{connector_id}`
+  - ya permite actualizar:
+    - preset/proveedor
+    - scheduler del conector
+    - parámetros de sync/extracción
 - `POST /tenant/products/catalog/{product_id}/refresh`
   - request:
     - `prefer_ai`
@@ -104,6 +122,12 @@ Notas del contrato actual:
     - `active_sources`
     - `selected_products`
   - crea corrida batch con progreso visible por item/fuente
+- runner formal fuera del request path:
+  - `backend/app/scripts/run_products_refresh_scheduler.py`
+  - soporta:
+    - `--tenant-slug`
+    - `--tenant-limit`
+    - `--connector-limit`
 - `GET /tenant/products/comparisons`
   - acepta filtros:
     - `product_id`

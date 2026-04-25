@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.apps.tenant_modules.products.api.serializers import build_product_connector_item
+from app.apps.tenant_modules.products.api.serializers import (
+    build_product_connector_item,
+    build_product_refresh_run,
+)
 from app.apps.tenant_modules.products.dependencies import (
     build_products_requested_by,
     require_products_manage,
@@ -10,18 +13,26 @@ from app.apps.tenant_modules.products.dependencies import (
 from app.apps.tenant_modules.products.schemas import (
     ProductCatalogConnectorCreateRequest,
     ProductCatalogConnectorMutationResponse,
+    ProductCatalogConnectorScheduleRunResponse,
     ProductCatalogConnectorSyncRequest,
     ProductCatalogConnectorSyncResponse,
     ProductCatalogConnectorsResponse,
     ProductCatalogConnectorStatusUpdateRequest,
     ProductCatalogConnectorUpdateRequest,
 )
-from app.apps.tenant_modules.products.services import ProductConnectorService, ProductConnectorSyncService
+from app.apps.tenant_modules.products.services import (
+    ProductCatalogRefreshRunService,
+    ProductConnectorSchedulerService,
+    ProductConnectorService,
+    ProductConnectorSyncService,
+)
 from app.common.db.session_manager import get_tenant_db
 
 router = APIRouter(prefix="/tenant/products/connectors", tags=["Tenant Products"])
 service = ProductConnectorService()
 sync_service = ProductConnectorSyncService()
+scheduler_service = ProductConnectorSchedulerService()
+refresh_run_service = ProductCatalogRefreshRunService()
 
 
 def _serialize_connectors(tenant_db: Session, rows: list):
@@ -156,4 +167,34 @@ def sync_product_connector(
         skipped=result["skipped"],
         price_updates=result["price_updates"],
         data=[build_product_connector_sync_item(item) for item in result["items"]],
+    )
+
+
+@router.post("/{connector_id}/schedule/run", response_model=ProductCatalogConnectorScheduleRunResponse)
+def run_product_connector_schedule(
+    connector_id: int,
+    current_user=Depends(require_products_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> ProductCatalogConnectorScheduleRunResponse:
+    try:
+        run = scheduler_service.run_connector_schedule_now(
+            tenant_db,
+            connector_id,
+            actor_user_id=getattr(current_user, "id", None),
+        )
+        item_map = refresh_run_service.get_run_item_map(tenant_db, [run.id])
+        connector_name = None
+        if getattr(run, "connector_id", None):
+            connector_name = service.get_connector(tenant_db, run.connector_id).name
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ProductCatalogConnectorScheduleRunResponse(
+        success=True,
+        message="Scheduler del conector ejecutado correctamente",
+        requested_by=build_products_requested_by(current_user),
+        data=build_product_refresh_run(
+            run,
+            items=item_map.get(run.id, []),
+            connector_name=connector_name,
+        ),
     )

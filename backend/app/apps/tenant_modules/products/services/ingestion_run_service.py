@@ -10,6 +10,7 @@ from app.apps.tenant_modules.products.services.connector_service import (
 from app.apps.tenant_modules.crm.services.product_ingestion_run_service import (
     CRMProductIngestionRunService,
 )
+from app.apps.tenant_modules.crm.schemas import CRMProductIngestionDraftCreateRequest
 
 
 class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
@@ -56,11 +57,34 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
         return run
 
     def extract_url_to_draft(self, tenant_db, payload, *, actor_user_id: int | None = None):
-        draft = super().extract_url_to_draft(tenant_db, payload, actor_user_id=actor_user_id)
-        if payload.connector_id:
-            draft.connector_id = payload.connector_id
+        connector = self._connector_service.get_connector(tenant_db, payload.connector_id) if payload.connector_id else None
+        extraction = self._extraction_service.extract_from_url(
+            payload.source_url,
+            provider_key=getattr(connector, "provider_key", "generic"),
+        )
+        draft_payload = CRMProductIngestionDraftCreateRequest(
+            source_kind="url_reference",
+            source_label=self._normalize_optional(payload.source_label),
+            source_url=payload.source_url.strip(),
+            external_reference=self._normalize_optional(payload.external_reference),
+            sku=extraction.get("sku"),
+            name=extraction.get("name"),
+            brand=extraction.get("brand"),
+            category_label=extraction.get("category_label"),
+            product_type=extraction.get("product_type") or "product",
+            unit_label=extraction.get("unit_label"),
+            unit_price=float(extraction.get("unit_price") or 0),
+            currency_code=extraction.get("currency_code") or "CLP",
+            description=extraction.get("description"),
+            source_excerpt=extraction.get("source_excerpt"),
+            extraction_notes=extraction.get("extraction_notes"),
+            characteristics=extraction.get("characteristics") or [],
+        )
+        draft = self._ingestion_service.create_draft(tenant_db, draft_payload, actor_user_id=actor_user_id)
+        if connector:
+            draft.connector_id = connector.id
             tenant_db.add(draft)
-            self._connector_service.touch_connector_sync(tenant_db, payload.connector_id, status="ready")
+            self._connector_service.touch_connector_sync(tenant_db, connector.id, status="ready")
             tenant_db.commit()
             tenant_db.refresh(draft)
         return draft

@@ -3,6 +3,28 @@
 ## Última actualización
 
 - fecha: 2026-04-25
+- foco operativo nuevo ya cerrado en repo:
+  - `products` ya suma scheduler formal por tenant para `due_sources` y presets de conectores por proveedor
+  - backend tenant ya expone además:
+    - `/tenant/products/connectors/{connector_id}/schedule/run`
+  - runner formal cross-tenant ya disponible:
+    - `backend/app/scripts/run_products_refresh_scheduler.py`
+  - cada conector ya persiste:
+    - `provider_key`
+    - `schedule_enabled`
+    - `schedule_frequency`
+    - `schedule_batch_limit`
+    - `next_scheduled_run_at`
+    - `last_schedule_status`
+  - la extracción ya prioriza JSON-LD y hints por proveedor para:
+    - `mercadolibre`
+    - `sodimac`
+    - `easy`
+    - `json_feed`
+  - validación repo nueva:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `29 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/connectors.py backend/app/apps/tenant_modules/products/api/serializers.py backend/app/apps/tenant_modules/products/schemas/products.py backend/app/apps/tenant_modules/products/services/connector_service.py backend/app/apps/tenant_modules/products/services/connector_scheduler_service.py backend/app/apps/tenant_modules/products/services/connector_sync_service.py backend/app/apps/tenant_modules/products/services/ingestion_run_service.py backend/app/apps/tenant_modules/products/services/overview_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py backend/app/scripts/run_products_refresh_scheduler.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya se alinea mejor a la lógica histórica de `ieris_app` como catálogo vivo técnico-comercial
   - backend tenant ya expone además:

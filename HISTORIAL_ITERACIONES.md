@@ -1,5 +1,60 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-25 - `products` cierra scheduler formal por tenant y presets por proveedor
+
+Contexto:
+
+- `products` ya había cerrado catálogo vivo con refresh individual/masivo
+- el hueco real restante respecto a la operación esperada era:
+  - scheduler formal por tenant para `due_sources`
+  - conectores específicos por proveedor
+
+Cambios:
+
+- nueva migración tenant:
+  - `v0050_products_connector_scheduler_and_provider_profiles`
+- backend nuevo para:
+  - `POST /tenant/products/connectors/{connector_id}/schedule/run`
+- nuevo runner cross-tenant:
+  - `backend/app/scripts/run_products_refresh_scheduler.py`
+- cada conector ahora persiste:
+  - `provider_key`
+  - `schedule_enabled`
+  - `schedule_scope`
+  - `schedule_frequency`
+  - `schedule_batch_limit`
+  - `next_scheduled_run_at`
+  - `last_scheduled_run_at`
+  - `last_schedule_status`
+  - `last_schedule_summary`
+- extracción reforzada:
+  - prioridad a JSON-LD
+  - hints/presets por proveedor:
+    - `mercadolibre`
+    - `sodimac`
+    - `easy`
+    - `json_feed`
+- frontend `Conectores` ahora suma:
+  - proveedor visible
+  - scheduler visible
+  - `Correr scheduler`
+- `Resumen` ahora suma:
+  - conectores programados
+  - schedulers vencidos
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_products_services + test_migration_flow` -> `29 tests OK`
+  - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/connectors.py backend/app/apps/tenant_modules/products/api/serializers.py backend/app/apps/tenant_modules/products/schemas/products.py backend/app/apps/tenant_modules/products/services/connector_service.py backend/app/apps/tenant_modules/products/services/connector_scheduler_service.py backend/app/apps/tenant_modules/products/services/connector_sync_service.py backend/app/apps/tenant_modules/products/services/ingestion_run_service.py backend/app/apps/tenant_modules/products/services/overview_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py backend/app/scripts/run_products_refresh_scheduler.py` -> `OK`
+  - `npm run build` -> `OK`
+
+Resultado:
+
+- `products` ya no depende solo de corridas manuales para `due_sources`
+- el módulo ya queda mejor alineado con la operación esperada para mantener artículos vivos por tenant y por proveedor
+- el siguiente paso de este frente ya es runtime y luego conectores con autenticación propietaria o `projects`
+
 ## 2026-04-25 - `products` se alinea a catálogo vivo con refresh individual/masivo
 
 Contexto:
