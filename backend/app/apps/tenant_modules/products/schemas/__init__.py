@@ -1,5 +1,8 @@
 from app.apps.tenant_modules.products.schemas.products import (
     ProductCatalogApproveRequest,
+    ProductCatalogDuplicateCandidateResponse,
+    ProductCatalogDuplicateSummaryResponse,
+    ProductCatalogEnrichmentStateResponse,
     ProductCatalogIngestionApprovalResponse,
     ProductCatalogIngestionCharacteristicItemResponse,
     ProductCatalogIngestionCharacteristicWriteRequest,
@@ -7,6 +10,7 @@ from app.apps.tenant_modules.products.schemas.products import (
     ProductCatalogIngestionDraftItemResponse,
     ProductCatalogIngestionDraftMutationResponse,
     ProductCatalogIngestionDraftsResponse,
+    ProductCatalogIngestionEnrichRequest,
     ProductCatalogIngestionDraftUpdateRequest,
     ProductCatalogIngestionExtractUrlRequest,
     ProductCatalogIngestionOverviewResponse,
@@ -30,6 +34,9 @@ from app.apps.tenant_modules.products.schemas.products import (
 
 __all__ = [
     "ProductCatalogApproveRequest",
+    "ProductCatalogDuplicateCandidateResponse",
+    "ProductCatalogDuplicateSummaryResponse",
+    "ProductCatalogEnrichmentStateResponse",
     "ProductCatalogIngestionApprovalResponse",
     "ProductCatalogIngestionCharacteristicItemResponse",
     "ProductCatalogIngestionCharacteristicWriteRequest",
@@ -37,6 +44,7 @@ __all__ = [
     "ProductCatalogIngestionDraftItemResponse",
     "ProductCatalogIngestionDraftMutationResponse",
     "ProductCatalogIngestionDraftsResponse",
+    "ProductCatalogIngestionEnrichRequest",
     "ProductCatalogIngestionDraftUpdateRequest",
     "ProductCatalogIngestionExtractUrlRequest",
     "ProductCatalogIngestionOverviewResponse",

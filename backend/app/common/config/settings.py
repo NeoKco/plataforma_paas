@@ -150,6 +150,12 @@ class Settings(BaseSettings):
     TECHDOCS_ATTACHMENTS_DIR: str = str(
         BASE_DIR / "storage" / "techdocs_attachments"
     )
+    API_IA_URL: str = ""
+    MANAGER_API_IA_KEY: str = ""
+    API_IA_MODEL_ID: str = ""
+    API_IA_MAX_TOKENS: int = 1200
+    API_IA_TEMPERATURE: float = 0.1
+    API_IA_TIMEOUT: int = 45
     MAINTENANCE_EVIDENCE_DIR: str = str(
         BASE_DIR / "storage" / "maintenance_evidence"
     )

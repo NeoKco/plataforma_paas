@@ -18,6 +18,7 @@
 - `GET /tenant/products/ingestion/drafts`
 - `POST /tenant/products/ingestion/drafts`
 - `PUT /tenant/products/ingestion/drafts/{draft_id}`
+- `POST /tenant/products/ingestion/drafts/{draft_id}/enrich`
 - `PATCH /tenant/products/ingestion/drafts/{draft_id}/status`
 - `POST /tenant/products/ingestion/drafts/{draft_id}/approve`
 - `POST /tenant/products/ingestion/extract-url`
@@ -25,3 +26,12 @@
 - `POST /tenant/products/ingestion/runs`
 - `POST /tenant/products/ingestion/runs/{run_id}/cancel`
 
+Notas del contrato actual:
+
+- las respuestas de borradores ya incluyen:
+  - `duplicate_summary`
+  - `duplicate_candidates`
+  - `enrichment_state`
+- `POST /tenant/products/ingestion/drafts/{draft_id}/enrich`
+  - usa heurística base siempre
+  - intenta IA solo si el runtime expone `API_IA_URL`

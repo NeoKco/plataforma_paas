@@ -4,6 +4,22 @@
 
 - fecha: 2026-04-24
 - foco operativo nuevo ya cerrado en repo y runtime:
+  - `products` ya profundiza su carril de `Ingesta` con:
+    - deduplicación sugerida entre borradores y catálogo
+    - scoring heurístico por `SKU`, nombre, marca y referencias
+    - enriquecimiento controlado por borrador
+    - fallback heurístico seguro + uso opcional de la API IA existente
+  - backend tenant ya expone además:
+    - `/tenant/products/ingestion/drafts/{draft_id}/enrich`
+  - frontend tenant ya muestra:
+    - señales de duplicado
+    - estado de enriquecimiento
+    - acción `Enriquecer`
+  - validación repo nueva:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_crm_services + backend.app.tests.test_migration_flow` -> `34 tests OK`
+    - `backend.app.tests.test_platform_flow + backend.app.tests.test_tenant_flow` -> `335 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+- foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya queda terminado como módulo tenant independiente
   - backend tenant ya expone:
     - `/tenant/products/overview`

@@ -15,6 +15,7 @@ from app.apps.tenant_modules.products.schemas import (
     ProductCatalogApproveRequest,
     ProductCatalogIngestionApprovalResponse,
     ProductCatalogIngestionDraftCreateRequest,
+    ProductCatalogIngestionEnrichRequest,
     ProductCatalogIngestionDraftMutationResponse,
     ProductCatalogIngestionDraftsResponse,
     ProductCatalogIngestionDraftUpdateRequest,
@@ -26,6 +27,7 @@ from app.apps.tenant_modules.products.schemas import (
     ProductCatalogStatusUpdateDraftRequest,
 )
 from app.apps.tenant_modules.products.services import (
+    ProductCatalogEnrichmentService,
     ProductCatalogIngestionRunService,
     ProductCatalogIngestionService,
     ProductCatalogService,
@@ -36,6 +38,7 @@ router = APIRouter(prefix="/tenant/products/ingestion", tags=["Tenant Products"]
 service = ProductCatalogIngestionService()
 run_service = ProductCatalogIngestionRunService()
 product_service = ProductCatalogService()
+enrichment_service = ProductCatalogEnrichmentService()
 
 
 def _build_runs_payload(rows: list, *, include_items: bool = False):
@@ -53,30 +56,40 @@ def _build_runs_payload(rows: list, *, include_items: bool = False):
     ]
 
 
+def _build_draft_payloads(
+    tenant_db: Session,
+    rows: list,
+):
+    characteristic_map = service.get_characteristics_map(tenant_db, [item.id for item in rows])
+    published_name_map = product_service.get_product_name_map(
+        tenant_db,
+        [item.published_product_id for item in rows if item.published_product_id],
+    )
+    duplicate_analysis_map = enrichment_service.build_duplicate_analysis_map(tenant_db, rows)
+    return [
+        build_product_catalog_ingestion_draft_item(
+            item,
+            characteristics=characteristic_map.get(item.id, []),
+            published_product_name=published_name_map.get(item.published_product_id),
+            duplicate_analysis=duplicate_analysis_map.get(item.id),
+            enrichment_state=enrichment_service.build_enrichment_state(item),
+        )
+        for item in rows
+    ]
+
+
 @router.get("/overview", response_model=ProductCatalogIngestionOverviewResponse)
 def get_product_catalog_ingestion_overview(
     current_user=Depends(require_products_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> ProductCatalogIngestionOverviewResponse:
     recent_rows = service.list_drafts(tenant_db, capture_status=None, q=None)[:5]
-    characteristic_map = service.get_characteristics_map(tenant_db, [item.id for item in recent_rows])
-    published_name_map = product_service.get_product_name_map(
-        tenant_db,
-        [item.published_product_id for item in recent_rows if item.published_product_id],
-    )
     return ProductCatalogIngestionOverviewResponse(
         success=True,
         message="Resumen de ingesta recuperado correctamente",
         requested_by=build_products_requested_by(current_user),
         metrics=service.build_overview_metrics(tenant_db),
-        recent_drafts=[
-            build_product_catalog_ingestion_draft_item(
-                item,
-                characteristics=characteristic_map.get(item.id, []),
-                published_product_name=published_name_map.get(item.published_product_id),
-            )
-            for item in recent_rows
-        ],
+        recent_drafts=_build_draft_payloads(tenant_db, recent_rows),
     )
 
 
@@ -88,24 +101,12 @@ def list_product_catalog_ingestion_drafts(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> ProductCatalogIngestionDraftsResponse:
     rows = service.list_drafts(tenant_db, capture_status=capture_status, q=q)
-    characteristic_map = service.get_characteristics_map(tenant_db, [item.id for item in rows])
-    published_name_map = product_service.get_product_name_map(
-        tenant_db,
-        [item.published_product_id for item in rows if item.published_product_id],
-    )
     return ProductCatalogIngestionDraftsResponse(
         success=True,
         message="Borradores de ingesta recuperados correctamente",
         requested_by=build_products_requested_by(current_user),
         total=len(rows),
-        data=[
-            build_product_catalog_ingestion_draft_item(
-                item,
-                characteristics=characteristic_map.get(item.id, []),
-                published_product_name=published_name_map.get(item.published_product_id),
-            )
-            for item in rows
-        ],
+        data=_build_draft_payloads(tenant_db, rows),
     )
 
 
@@ -116,15 +117,11 @@ def create_product_catalog_ingestion_draft(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> ProductCatalogIngestionDraftMutationResponse:
     item = service.create_draft(tenant_db, payload, actor_user_id=current_user["user_id"])
-    characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
     return ProductCatalogIngestionDraftMutationResponse(
         success=True,
         message="Borrador creado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_ingestion_draft_item(
-            item,
-            characteristics=characteristic_map.get(item.id, []),
-        ),
+        data=_build_draft_payloads(tenant_db, [item])[0],
     )
 
 
@@ -142,15 +139,11 @@ def extract_product_catalog_url_to_draft(
         )
     except (RuntimeError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
     return ProductCatalogIngestionDraftMutationResponse(
         success=True,
         message="Extracción completada y guardada como borrador",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_ingestion_draft_item(
-            item,
-            characteristics=characteristic_map.get(item.id, []),
-        ),
+        data=_build_draft_payloads(tenant_db, [item])[0],
     )
 
 
@@ -243,20 +236,11 @@ def get_product_catalog_ingestion_draft(
         item = service.get_draft(tenant_db, draft_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
-    published_name_map = product_service.get_product_name_map(
-        tenant_db,
-        [item.published_product_id] if item.published_product_id else [],
-    )
     return ProductCatalogIngestionDraftMutationResponse(
         success=True,
         message="Borrador recuperado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_ingestion_draft_item(
-            item,
-            characteristics=characteristic_map.get(item.id, []),
-            published_product_name=published_name_map.get(item.published_product_id),
-        ),
+        data=_build_draft_payloads(tenant_db, [item])[0],
     )
 
 
@@ -271,20 +255,11 @@ def update_product_catalog_ingestion_draft(
         item = service.update_draft(tenant_db, draft_id, payload, actor_user_id=current_user["user_id"])
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
-    published_name_map = product_service.get_product_name_map(
-        tenant_db,
-        [item.published_product_id] if item.published_product_id else [],
-    )
     return ProductCatalogIngestionDraftMutationResponse(
         success=True,
         message="Borrador actualizado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_ingestion_draft_item(
-            item,
-            characteristics=characteristic_map.get(item.id, []),
-            published_product_name=published_name_map.get(item.published_product_id),
-        ),
+        data=_build_draft_payloads(tenant_db, [item])[0],
     )
 
 
@@ -296,29 +271,44 @@ def update_product_catalog_ingestion_draft_status(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> ProductCatalogIngestionDraftMutationResponse:
     try:
-        item = service.update_status(
+        item = service.set_draft_status(
             tenant_db,
             draft_id,
-            payload.capture_status,
+            capture_status=payload.capture_status,
             actor_user_id=current_user["user_id"],
             review_notes=payload.review_notes,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
-    published_name_map = product_service.get_product_name_map(
-        tenant_db,
-        [item.published_product_id] if item.published_product_id else [],
-    )
     return ProductCatalogIngestionDraftMutationResponse(
         success=True,
         message="Estado del borrador actualizado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_ingestion_draft_item(
-            item,
-            characteristics=characteristic_map.get(item.id, []),
-            published_product_name=published_name_map.get(item.published_product_id),
-        ),
+        data=_build_draft_payloads(tenant_db, [item])[0],
+    )
+
+
+@router.post("/drafts/{draft_id}/enrich", response_model=ProductCatalogIngestionDraftMutationResponse)
+def enrich_product_catalog_ingestion_draft(
+    draft_id: int,
+    payload: ProductCatalogIngestionEnrichRequest,
+    current_user=Depends(require_products_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> ProductCatalogIngestionDraftMutationResponse:
+    try:
+        item = enrichment_service.enrich_draft(
+            tenant_db,
+            draft_id,
+            actor_user_id=current_user["user_id"],
+            prefer_ai=payload.prefer_ai,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ProductCatalogIngestionDraftMutationResponse(
+        success=True,
+        message="Borrador enriquecido correctamente",
+        requested_by=build_products_requested_by(current_user),
+        data=_build_draft_payloads(tenant_db, [item])[0],
     )
 
 
@@ -344,11 +334,7 @@ def approve_product_catalog_ingestion_draft(
         success=True,
         message="Borrador aprobado y publicado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_ingestion_draft_item(
-            draft,
-            characteristics=characteristic_map.get(draft.id, []),
-            published_product_name=product.name,
-        ),
+        data=_build_draft_payloads(tenant_db, [draft])[0],
         published_product=build_product_catalog_item(
             product,
             characteristics=product_characteristics.get(product.id, []),

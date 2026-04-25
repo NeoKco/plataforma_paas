@@ -69,6 +69,34 @@ export type ProductCatalogIngestionDraft = {
   created_at: string | null;
   updated_at: string | null;
   characteristics: ProductCatalogIngestionCharacteristic[];
+  duplicate_summary: ProductCatalogDuplicateSummary | null;
+  duplicate_candidates: ProductCatalogDuplicateCandidate[];
+  enrichment_state: ProductCatalogEnrichmentState | null;
+};
+
+export type ProductCatalogDuplicateCandidate = {
+  candidate_kind: string;
+  candidate_id: number;
+  label: string;
+  sku: string | null;
+  brand: string | null;
+  capture_status: string | null;
+  score: number;
+  reasons: string[];
+};
+
+export type ProductCatalogDuplicateSummary = {
+  status: string;
+  top_score: number;
+  candidate_count: number;
+  top_reason: string | null;
+};
+
+export type ProductCatalogEnrichmentState = {
+  status: string;
+  strategy: string | null;
+  summary: string | null;
+  ai_available: boolean;
 };
 
 export type ProductCatalogIngestionDraftWriteRequest = {
@@ -340,6 +368,18 @@ export function updateProductCatalogIngestionDraftStatus(
     method: "PATCH",
     token: accessToken,
     body: { capture_status: captureStatus, review_notes: reviewNotes },
+  });
+}
+
+export function enrichProductCatalogIngestionDraft(
+  accessToken: string,
+  draftId: number,
+  preferAi = true,
+) {
+  return apiRequest<ProductCatalogIngestionDraftMutationResponse>(`/tenant/products/ingestion/drafts/${draftId}/enrich`, {
+    method: "POST",
+    token: accessToken,
+    body: { prefer_ai: preferAi },
   });
 }
 

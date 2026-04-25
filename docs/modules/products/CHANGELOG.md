@@ -2,6 +2,21 @@
 
 ## 2026-04-24
 
+- `products` profundiza la ingesta con deduplicación y enriquecimiento controlado:
+  - los borradores ya devuelven:
+    - `duplicate_summary`
+    - `duplicate_candidates`
+    - `enrichment_state`
+  - se publica `POST /tenant/products/ingestion/drafts/{draft_id}/enrich`
+  - el enriquecimiento corre siempre con heurística base y usa la API IA existente solo si el runtime la configura
+  - el frontend `Products > Ingesta` ya muestra:
+    - señales de duplicado
+    - estado de enriquecimiento
+    - acción `Enriquecer`
+  - validación repo:
+    - `test_products_services + test_crm_services + test_migration_flow` -> `34 tests OK`
+    - `test_platform_flow + test_tenant_flow` -> `335 tests OK`
+    - `npm run build` -> `OK`
 - se abre `products` como módulo tenant independiente para catálogo técnico-comercial
 - se publican rutas propias `/tenant/products/*`
 - se publica frontend propio con:

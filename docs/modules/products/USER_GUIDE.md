@@ -20,6 +20,25 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 - `Ingesta`
   captura manual, extracción por URL y corridas batch
 
+## Qué agrega este cierre
+
+En `Ingesta`, cada borrador ya puede mostrar:
+
+- posibles duplicados contra catálogo o contra otros borradores
+- puntaje de similitud
+- razón principal de la coincidencia
+- estado de enriquecimiento
+- disponibilidad del carril IA
+
+Además, el operador ya puede usar:
+
+- `Enriquecer`
+  normaliza y mejora el borrador antes de aprobarlo
+- `Aprobar`
+  publica el producto al catálogo final
+- `Descartar` / `Reabrir`
+  controla el carril revisable sin borrar historial operativo
+
 ## Flujo recomendado
 
 1. capturar borradores en `Ingesta`
@@ -36,4 +55,3 @@ No debe tratarse como:
 - submódulo de `crm`
 - lista interna de una sola cotización
 - catálogo temporal de un proyecto puntual
-

@@ -15,6 +15,7 @@ import {
   cancelProductCatalogIngestionRun,
   createProductCatalogIngestionDraft,
   createProductCatalogIngestionRun,
+  enrichProductCatalogIngestionDraft,
   extractProductCatalogUrl,
   getProductCatalogIngestionDrafts,
   getProductCatalogIngestionOverview,
@@ -280,6 +281,26 @@ export function CRMProductIngestionPage() {
       await loadData();
     } catch (rawError) {
       setError(rawError as ApiError);
+    }
+  }
+
+  async function handleEnrich(item: ProductCatalogIngestionDraft) {
+    if (!session?.accessToken) return;
+    setIsSubmitting(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      const response = await enrichProductCatalogIngestionDraft(
+        session.accessToken,
+        item.id,
+        item.enrichment_state?.ai_available ?? true,
+      );
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -677,6 +698,19 @@ export function CRMProductIngestionPage() {
               <div>
                 <strong>{row.name || row.source_label || "—"}</strong>
                 <div className="text-muted small">{row.brand || row.category_label || "—"}</div>
+                {row.duplicate_summary && row.duplicate_summary.status !== "none" ? (
+                  <div className="small text-danger">
+                    {language === "es" ? "Posible duplicado" : "Possible duplicate"} · {row.duplicate_summary.top_score}/100
+                    {row.duplicate_summary.top_reason ? ` · ${row.duplicate_summary.top_reason}` : ""}
+                  </div>
+                ) : null}
+                {row.enrichment_state && row.enrichment_state.status === "ready" ? (
+                  <div className="small text-success">
+                    {language === "es" ? "Enriquecido" : "Enriched"}
+                    {row.enrichment_state.strategy ? ` · ${row.enrichment_state.strategy}` : ""}
+                    {row.enrichment_state.summary ? ` · ${row.enrichment_state.summary}` : ""}
+                  </div>
+                ) : null}
               </div>
             ),
           },
@@ -701,6 +735,22 @@ export function CRMProductIngestionPage() {
             render: (row) => row.published_product_name || "—",
           },
           {
+            key: "signals",
+            header: language === "es" ? "Señales" : "Signals",
+            render: (row) => (
+              <div className="small">
+                <div>
+                  {language === "es" ? "Duplicados" : "Duplicates"}:{" "}
+                  {row.duplicate_summary?.candidate_count || 0}
+                </div>
+                <div>
+                  {language === "es" ? "IA disponible" : "AI ready"}:{" "}
+                  {row.enrichment_state?.ai_available ? (language === "es" ? "sí" : "yes") : (language === "es" ? "no" : "no")}
+                </div>
+              </div>
+            ),
+          },
+          {
             key: "actions",
             header: language === "es" ? "Acciones" : "Actions",
             render: (row) => (
@@ -710,6 +760,9 @@ export function CRMProductIngestionPage() {
                 </button>
                 {row.capture_status === "draft" ? (
                   <>
+                    <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => void handleEnrich(row)}>
+                      {language === "es" ? "Enriquecer" : "Enrich"}
+                    </button>
                     <button className="btn btn-primary btn-sm" type="button" onClick={() => void handleApprove(row)}>
                       {language === "es" ? "Aprobar" : "Approve"}
                     </button>

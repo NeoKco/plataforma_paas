@@ -15,6 +15,8 @@ El módulo ya cubre:
 - corridas batch por múltiples URLs
 - aprobación al catálogo central
 - descarte y reapertura
+- deduplicación sugerida entre borradores y catálogo
+- enriquecimiento controlado de borradores con heurística + IA opcional
 
 ## Cerrado en el alcance actual
 
@@ -25,20 +27,25 @@ El módulo ya cubre:
 - integración visible con `crm`
 - documentación canónica completa del módulo
 - publicación y validación runtime en `staging` y `production`
+- scoring heurístico visible por `SKU`, nombre, marca y referencias
+- enriquecimiento por borrador visible en `Products > Ingesta`
 
 ## Backlog posterior al cierre
 
-1. deduplicación entre borradores y catálogo
-2. enriquecimiento con IA sobre scraping y normalización
-3. conectores multi-fuente más ricos
-4. historial de precios por fuente y vigencia
-5. normalización/categorización más profunda
+1. conectores multi-fuente más ricos
+2. historial de precios por fuente y vigencia
+3. normalización/categorización más profunda
+4. deduplicación con merge sugerido o actualización del existente
+5. enriquecimiento IA más profundo con atributos técnicos especializados
 
 ## Siguiente slice recomendado
 
 - profundizar `products` con:
-  - deduplicación sugerida por SKU, marca y nombre
-  - enriquecimiento controlado con la API de IA ya existente
+  - deduplicación accionable:
+    - fusionar
+    - actualizar existente
+    - descartar como repetido
+  - enriquecimiento IA más profundo sobre atributos técnicos y clasificación
   - mejor soporte para productos reutilizables en cotizaciones y proyectos
 - mantener la regla de dominio:
   - `products` sigue siendo módulo independiente

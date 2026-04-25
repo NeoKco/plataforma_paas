@@ -46,8 +46,17 @@ El módulo hoy incluye:
 
 Queda fuera por ahora:
 
-- deduplicación inteligente
-- enriquecimiento con IA
 - conectores multi-fuente más ricos
 - tracking histórico de precios por fuente
 
+Ya quedó incluido además:
+
+- deduplicación sugerida entre borradores y catálogo
+- scoring heurístico por:
+  - `SKU`
+  - nombre
+  - marca
+  - URL/referencia externa
+- enriquecimiento controlado del borrador:
+  - normalización heurística base
+  - uso opcional de la API IA existente si el entorno runtime la configura

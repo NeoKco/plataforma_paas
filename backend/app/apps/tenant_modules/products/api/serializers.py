@@ -1,4 +1,7 @@
 from app.apps.tenant_modules.products.schemas import (
+    ProductCatalogDuplicateCandidateResponse,
+    ProductCatalogDuplicateSummaryResponse,
+    ProductCatalogEnrichmentStateResponse,
     ProductCatalogIngestionCharacteristicItemResponse,
     ProductCatalogIngestionDraftItemResponse,
     ProductCatalogIngestionRunItemResponse,
@@ -40,6 +43,8 @@ def build_product_catalog_ingestion_draft_item(
     *,
     characteristics: list | None = None,
     published_product_name: str | None = None,
+    duplicate_analysis: dict | None = None,
+    enrichment_state: dict | None = None,
 ) -> ProductCatalogIngestionDraftItemResponse:
     return ProductCatalogIngestionDraftItemResponse(
         id=item.id,
@@ -79,6 +84,39 @@ def build_product_catalog_ingestion_draft_item(
             )
             for characteristic in (characteristics or [])
         ],
+        duplicate_summary=(
+            ProductCatalogDuplicateSummaryResponse(
+                status=duplicate_analysis.get("status", "none"),
+                top_score=int(duplicate_analysis.get("top_score", 0) or 0),
+                candidate_count=int(duplicate_analysis.get("candidate_count", 0) or 0),
+                top_reason=duplicate_analysis.get("top_reason"),
+            )
+            if duplicate_analysis
+            else None
+        ),
+        duplicate_candidates=[
+            ProductCatalogDuplicateCandidateResponse(
+                candidate_kind=candidate["candidate_kind"],
+                candidate_id=int(candidate["candidate_id"]),
+                label=candidate["label"],
+                sku=candidate.get("sku"),
+                brand=candidate.get("brand"),
+                capture_status=candidate.get("capture_status"),
+                score=int(candidate.get("score", 0) or 0),
+                reasons=list(candidate.get("reasons") or []),
+            )
+            for candidate in ((duplicate_analysis or {}).get("candidates") or [])
+        ],
+        enrichment_state=(
+            ProductCatalogEnrichmentStateResponse(
+                status=enrichment_state.get("status", "pending"),
+                strategy=enrichment_state.get("strategy"),
+                summary=enrichment_state.get("summary"),
+                ai_available=bool(enrichment_state.get("ai_available")),
+            )
+            if enrichment_state
+            else None
+        ),
     )
 
 

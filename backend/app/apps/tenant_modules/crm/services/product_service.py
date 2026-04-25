@@ -130,6 +130,17 @@ class CRMProductService:
             grouped.setdefault(row.product_id, []).append(row)
         return grouped
 
+    def get_product_name_map(self, tenant_db, product_ids: list[int]) -> dict[int, str]:
+        normalized_ids = [item for item in product_ids if item]
+        if not normalized_ids:
+            return {}
+        rows = (
+            tenant_db.query(CRMProduct)
+            .filter(CRMProduct.id.in_(normalized_ids))
+            .all()
+        )
+        return {row.id: row.name for row in rows}
+
     def _replace_characteristics(self, tenant_db, product_id: int, characteristics_payload: list) -> None:
         tenant_db.query(CRMProductCharacteristic).filter(
             CRMProductCharacteristic.product_id == product_id

@@ -128,6 +128,10 @@ class ProductCatalogApproveRequest(BaseModel):
     review_notes: str | None = None
 
 
+class ProductCatalogIngestionEnrichRequest(BaseModel):
+    prefer_ai: bool = True
+
+
 class ProductCatalogIngestionExtractUrlRequest(BaseModel):
     source_url: str
     source_label: str | None = None
@@ -143,6 +147,31 @@ class ProductCatalogIngestionRunEntryRequest(BaseModel):
 class ProductCatalogIngestionRunCreateRequest(BaseModel):
     source_label: str | None = None
     entries: list[ProductCatalogIngestionRunEntryRequest] = Field(default_factory=list)
+
+
+class ProductCatalogDuplicateCandidateResponse(BaseModel):
+    candidate_kind: str
+    candidate_id: int
+    label: str
+    sku: str | None = None
+    brand: str | None = None
+    capture_status: str | None = None
+    score: int
+    reasons: list[str] = Field(default_factory=list)
+
+
+class ProductCatalogDuplicateSummaryResponse(BaseModel):
+    status: str
+    top_score: int = 0
+    candidate_count: int = 0
+    top_reason: str | None = None
+
+
+class ProductCatalogEnrichmentStateResponse(BaseModel):
+    status: str
+    strategy: str | None = None
+    summary: str | None = None
+    ai_available: bool = False
 
 
 class ProductCatalogIngestionDraftItemResponse(BaseModel):
@@ -173,6 +202,9 @@ class ProductCatalogIngestionDraftItemResponse(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     characteristics: list[ProductCatalogIngestionCharacteristicItemResponse] = Field(default_factory=list)
+    duplicate_summary: ProductCatalogDuplicateSummaryResponse | None = None
+    duplicate_candidates: list[ProductCatalogDuplicateCandidateResponse] = Field(default_factory=list)
+    enrichment_state: ProductCatalogEnrichmentStateResponse | None = None
 
     class Config:
         from_attributes = True

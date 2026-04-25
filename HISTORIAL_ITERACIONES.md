@@ -1,5 +1,38 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `products` cierra deduplicación sugerida y enriquecimiento controlado
+
+Contexto:
+
+- `products` ya estaba cerrado como módulo independiente y publicado en runtime
+- el siguiente hueco real ya no era capturar URLs, sino revisar mejor duplicados y normalizar antes de publicar al catálogo
+
+Cambios:
+
+- backend nuevo para:
+  - análisis de duplicados entre borradores y catálogo
+  - scoring heurístico por `SKU`, nombre, marca, URL y referencia externa
+  - `POST /tenant/products/ingestion/drafts/{draft_id}/enrich`
+- enriquecimiento nuevo con:
+  - heurística base siempre disponible
+  - uso opcional de la API IA existente si el runtime la configura
+- frontend `Products > Ingesta` ahora muestra:
+  - señales de duplicado
+  - estado de enriquecimiento
+  - acción `Enriquecer`
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_products_services + test_crm_services + test_migration_flow` -> `34 tests OK`
+  - `backend.app.tests.test_platform_flow + test_tenant_flow` -> `335 tests OK`
+  - `npm run build` -> `OK`
+
+Resultado:
+
+- `products` ya no queda solo con scraping y revisión manual; ahora también ayuda a filtrar repetidos y limpiar el borrador antes de publicarlo
+- el siguiente slice lógico pasa a ser deduplicación accionable y enriquecimiento IA más profundo
+
 ## 2026-04-24 - `products` independiente queda cerrado también en runtime
 
 Contexto:
