@@ -1,5 +1,37 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `products` independiente queda cerrado también en runtime
+
+Contexto:
+
+- el refactor de dominio ya había separado `products` como módulo independiente de `crm`
+- faltaba completarlo en `staging` y `production` respetando backup PostgreSQL tenant previo por carril
+
+Cambios:
+
+- se ejecuta backup PostgreSQL tenant previo en `staging` antes de converger `0046_crm_product_ingestion_runs`
+- se ejecuta backup PostgreSQL tenant previo en `production`, incluyendo `ieris-ltda`, antes de converger `0046_crm_product_ingestion_runs`
+- backend redeployado en ambos carriles y convergencia tenant completada
+- frontend publicado en ambos carriles con:
+  - `Products > Resumen`
+  - `Products > Catálogo`
+  - `Products > Ingesta`
+- `crm` deja de mostrar rutas públicas de catálogo/ingesta y pasa a consumir `products`
+
+Validación:
+
+- runtime:
+  - `staging` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado con `ProductsModuleNav-BiqpOMpB.js`, `productsService-fgRUAu6H.js`, `ProductsOverviewPage-D7ZuaEsi.js`, `ProductsCatalogPage-D1v_kPRj.js`, `ProductsIngestionPage-DUPLspNo.js` e `index-DQCLoPpU.js`
+  - `production` frontend publicado con `ProductsModuleNav-Dbg3Sv0c.js`, `productsService-C6M0Hbi9.js`, `ProductsOverviewPage-CT-8DIP_.js`, `ProductsCatalogPage-2gPen9yZ.js`, `ProductsIngestionPage-J7eDw7Ge.js` e `index-DYDQGbjH.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+Resultado:
+
+- `products` deja de ser refactor en repo y pasa a módulo tenant independiente también en runtime
+- el siguiente frente recomendado ya no es publicar el módulo, sino profundizarlo con deduplicación/enriquecimiento usando la API de IA y preparando mejor su uso transversal en cotizaciones y proyectos
+
 ## 2026-04-24 - `crm ingestion` automático queda cerrado también en runtime
 
 Contexto:

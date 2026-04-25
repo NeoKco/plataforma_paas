@@ -29,8 +29,17 @@ El módulo ya cubre:
 ## Backlog posterior al cierre
 
 1. deduplicación entre borradores y catálogo
-2. enriquecimiento con IA
+2. enriquecimiento con IA sobre scraping y normalización
 3. conectores multi-fuente más ricos
-4. historial de precios por fuente
+4. historial de precios por fuente y vigencia
 5. normalización/categorización más profunda
 
+## Siguiente slice recomendado
+
+- profundizar `products` con:
+  - deduplicación sugerida por SKU, marca y nombre
+  - enriquecimiento controlado con la API de IA ya existente
+  - mejor soporte para productos reutilizables en cotizaciones y proyectos
+- mantener la regla de dominio:
+  - `products` sigue siendo módulo independiente
+  - `crm` y futuros módulos como `projects` consumen el catálogo, pero no lo renombran ni lo absorben

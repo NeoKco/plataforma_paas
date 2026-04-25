@@ -22,7 +22,8 @@
   - alcance sugerido del primer slice:
     - deduplicación sugerida entre borradores y catálogo
     - heurísticas de coincidencia por SKU, nombre y marca
-    - enriquecimiento controlado sobre el mismo carril revisable
+    - enriquecimiento controlado con la API de IA ya existente sobre el mismo carril revisable
+    - mejor soporte para productos reutilizables en cotizaciones y proyectos
 - el roadmap base actual ya queda formalmente cerrado:
   - las `Etapas 9`, `10`, `11`, `12`, `13`, `14`, `15`, `16` y `17` ya quedaron cerradas para el alcance actual
   - la base PaaS ya no necesita más cierres estructurales para operar
