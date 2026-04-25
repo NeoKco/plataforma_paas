@@ -38,6 +38,13 @@ export const productsTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "refresh",
+    lazy: async () => {
+      const module = await import("./pages/ProductsRefreshPage");
+      return { Component: module.ProductsRefreshPage };
+    },
+  },
+  {
     path: "comparisons",
     lazy: async () => {
       const module = await import("./pages/ProductsComparisonsPage");

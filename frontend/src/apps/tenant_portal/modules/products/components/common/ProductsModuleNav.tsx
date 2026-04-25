@@ -31,6 +31,11 @@ export function ProductsModuleNav() {
       icon: "settings" as const,
     },
     {
+      to: "/tenant-portal/products/refresh",
+      label: language === "es" ? "Actualizaciones" : "Refresh",
+      icon: "pulse" as const,
+    },
+    {
       to: "/tenant-portal/products/comparisons",
       label: language === "es" ? "Comparación" : "Comparison",
       icon: "reports" as const,

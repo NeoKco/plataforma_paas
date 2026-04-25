@@ -49,6 +49,9 @@ export function ProductsSourcesPage() {
     source_url: "",
     external_reference: "",
     source_status: "active",
+    refresh_mode: "manual",
+    refresh_merge_policy: "safe_merge",
+    refresh_prompt: "",
     latest_unit_price: "0",
     currency_code: "CLP",
     source_summary: "",
@@ -115,6 +118,9 @@ export function ProductsSourcesPage() {
         source_url: sourceForm.source_url || null,
         external_reference: sourceForm.external_reference || null,
         source_status: sourceForm.source_status,
+        refresh_mode: sourceForm.refresh_mode,
+        refresh_merge_policy: sourceForm.refresh_merge_policy,
+        refresh_prompt: sourceForm.refresh_prompt || null,
         latest_unit_price: Number(sourceForm.latest_unit_price) || 0,
         currency_code: sourceForm.currency_code || "CLP",
         source_summary: sourceForm.source_summary || null,
@@ -125,6 +131,7 @@ export function ProductsSourcesPage() {
         source_label: "",
         source_url: "",
         external_reference: "",
+        refresh_prompt: "",
         source_summary: "",
         latest_unit_price: "0",
       }));
@@ -292,6 +299,23 @@ export function ProductsSourcesPage() {
               </select>
             </label>
             <label>
+              <span>{language === "es" ? "Modo refresh" : "Refresh mode"}</span>
+              <select value={sourceForm.refresh_mode} onChange={(event) => setSourceForm((current) => ({ ...current, refresh_mode: event.target.value }))}>
+                <option value="manual">{language === "es" ? "Manual" : "Manual"}</option>
+                <option value="daily">{language === "es" ? "Diario" : "Daily"}</option>
+                <option value="weekly">{language === "es" ? "Semanal" : "Weekly"}</option>
+                <option value="monthly">{language === "es" ? "Mensual" : "Monthly"}</option>
+              </select>
+            </label>
+            <label>
+              <span>{language === "es" ? "Merge policy" : "Merge policy"}</span>
+              <select value={sourceForm.refresh_merge_policy} onChange={(event) => setSourceForm((current) => ({ ...current, refresh_merge_policy: event.target.value }))}>
+                <option value="price_only">{language === "es" ? "Solo precio" : "Price only"}</option>
+                <option value="safe_merge">{language === "es" ? "Merge seguro" : "Safe merge"}</option>
+                <option value="overwrite_catalog">{language === "es" ? "Sobrescribir catálogo" : "Overwrite catalog"}</option>
+              </select>
+            </label>
+            <label>
               <span>{language === "es" ? "Etiqueta fuente" : "Source label"}</span>
               <input value={sourceForm.source_label} onChange={(event) => setSourceForm((current) => ({ ...current, source_label: event.target.value }))} />
             </label>
@@ -314,6 +338,10 @@ export function ProductsSourcesPage() {
             <label className="crm-form-grid__full">
               <span>{language === "es" ? "Resumen" : "Summary"}</span>
               <textarea rows={3} value={sourceForm.source_summary} onChange={(event) => setSourceForm((current) => ({ ...current, source_summary: event.target.value }))} />
+            </label>
+            <label className="crm-form-grid__full">
+              <span>{language === "es" ? "Prompt adicional IA" : "Additional AI prompt"}</span>
+              <textarea rows={3} value={sourceForm.refresh_prompt} onChange={(event) => setSourceForm((current) => ({ ...current, refresh_prompt: event.target.value }))} />
             </label>
             <div className="crm-form-actions crm-form-grid__full">
               <button className="btn btn-primary" type="submit" disabled={isSubmitting || !sourceForm.productId}>
@@ -422,8 +450,9 @@ export function ProductsSourcesPage() {
               <div>
                 <strong>{row.source_label || row.source_url || "—"}</strong>
                 <div className="text-muted small">
-                  {row.external_reference || row.source_status} · {row.sync_status}
+                  {row.external_reference || row.source_status} · {row.sync_status} · {row.refresh_mode}
                 </div>
+                <div className="text-muted small">{row.refresh_merge_policy}</div>
                 {row.last_sync_error ? <div className="text-danger small">{row.last_sync_error}</div> : null}
               </div>
             ),
@@ -436,7 +465,12 @@ export function ProductsSourcesPage() {
           {
             key: "seen",
             header: language === "es" ? "Última sync" : "Last sync",
-            render: (row) => row.last_sync_attempt_at || row.last_seen_at || "—",
+            render: (row) => row.last_sync_attempt_at || row.last_refresh_success_at || row.last_seen_at || "—",
+          },
+          {
+            key: "next_refresh",
+            header: language === "es" ? "Próximo refresh" : "Next refresh",
+            render: (row) => row.next_refresh_at || "—",
           },
         ]}
       />

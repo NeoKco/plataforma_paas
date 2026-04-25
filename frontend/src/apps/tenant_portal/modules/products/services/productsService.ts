@@ -17,6 +17,11 @@ export type ProductCatalogItem = {
   description: string | null;
   is_active: boolean;
   sort_order: number;
+  source_count: number;
+  active_source_count: number;
+  health_status: string;
+  last_refresh_at: string | null;
+  next_refresh_at: string | null;
   created_at: string | null;
   updated_at: string | null;
   characteristics: ProductCatalogProductCharacteristic[];
@@ -71,12 +76,17 @@ export type ProductCatalogProductSource = {
   external_reference: string | null;
   source_status: string;
   sync_status: string;
+  refresh_mode: string;
+  refresh_merge_policy: string;
+  refresh_prompt: string | null;
   latest_unit_price: number;
   currency_code: string;
   source_summary: string | null;
   captured_at: string | null;
   last_seen_at: string | null;
   last_sync_attempt_at: string | null;
+  next_refresh_at: string | null;
+  last_refresh_success_at: string | null;
   last_sync_error: string | null;
   created_at: string | null;
   updated_at: string | null;
@@ -89,6 +99,9 @@ export type ProductCatalogProductSourceWriteRequest = {
   source_url: string | null;
   external_reference: string | null;
   source_status: string;
+  refresh_mode: string;
+  refresh_merge_policy: string;
+  refresh_prompt: string | null;
   latest_unit_price: number;
   currency_code: string;
   source_summary: string | null;
@@ -381,6 +394,10 @@ export type ProductCatalogOverviewResponse = {
     connector_active: number;
     products_with_source: number;
     products_with_multi_source: number;
+    refresh_run_total: number;
+    refresh_run_active: number;
+    source_due: number;
+    source_error: number;
   };
   recent_products: ProductCatalogItem[];
   recent_drafts: ProductCatalogIngestionDraft[];
@@ -388,6 +405,74 @@ export type ProductCatalogOverviewResponse = {
   recent_prices: ProductCatalogPriceHistoryItem[];
   recent_connectors: ProductCatalogConnector[];
   recent_comparisons: ProductCatalogComparisonItem[];
+  recent_refresh_runs: ProductCatalogRefreshRun[];
+};
+
+export type ProductCatalogRefreshResult = {
+  product_id: number;
+  product_name: string;
+  refreshed_sources: number;
+  completed_sources: number;
+  error_sources: number;
+  changed_fields: string[];
+  merge_policies: string[];
+  message: string | null;
+};
+
+export type ProductCatalogRefreshMutationResponse = {
+  success: boolean;
+  message: string;
+  product: ProductCatalogItem;
+  result: ProductCatalogRefreshResult;
+};
+
+export type ProductCatalogRefreshRunItem = {
+  id: number;
+  run_id: number;
+  product_id: number;
+  product_name: string | null;
+  product_source_id: number | null;
+  item_status: string;
+  source_url: string | null;
+  source_label: string | null;
+  merge_policy: string;
+  used_ai_enrichment: boolean;
+  changed_fields: string[];
+  error_message: string | null;
+  processed_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type ProductCatalogRefreshRun = {
+  id: number;
+  status: string;
+  scope: string;
+  scope_label: string | null;
+  connector_id: number | null;
+  connector_name: string | null;
+  requested_count: number;
+  processed_count: number;
+  completed_count: number;
+  error_count: number;
+  cancelled_count: number;
+  prefer_ai: boolean;
+  created_by_user_id: number | null;
+  started_at: string | null;
+  finished_at: string | null;
+  cancelled_at: string | null;
+  last_error: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  items: ProductCatalogRefreshRunItem[];
+};
+
+export type ProductCatalogRefreshRunCreateRequest = {
+  scope: "due_sources" | "active_sources" | "selected_products";
+  connector_id: number | null;
+  product_ids: number[];
+  limit: number;
+  prefer_ai: boolean;
 };
 
 export type ProductCatalogConnectorSyncItem = {
@@ -451,6 +536,19 @@ type ProductCatalogComparisonsResponse = {
   message: string;
   total: number;
   data: ProductCatalogComparisonItem[];
+};
+
+type ProductCatalogRefreshRunsResponse = {
+  success: boolean;
+  message: string;
+  total: number;
+  data: ProductCatalogRefreshRun[];
+};
+
+type ProductCatalogRefreshRunMutationResponse = {
+  success: boolean;
+  message: string;
+  data: ProductCatalogRefreshRun;
 };
 
 type ProductCatalogIngestionOverviewResponse = {
@@ -632,6 +730,38 @@ export function getProductCatalogComparisons(
   if (params.limit) search.set("limit", String(params.limit));
   const suffix = search.size > 0 ? `?${search.toString()}` : "";
   return apiRequest<ProductCatalogComparisonsResponse>(`/tenant/products/comparisons${suffix}`, {
+    token: accessToken,
+  });
+}
+
+export function refreshProductCatalogItemNow(accessToken: string, productId: number, preferAi = true) {
+  return apiRequest<ProductCatalogRefreshMutationResponse>(`/tenant/products/catalog/${productId}/refresh`, {
+    method: "POST",
+    token: accessToken,
+    body: { prefer_ai: preferAi },
+  });
+}
+
+export function getProductCatalogRefreshRuns(accessToken: string) {
+  return apiRequest<ProductCatalogRefreshRunsResponse>("/tenant/products/refresh-runs", {
+    token: accessToken,
+  });
+}
+
+export function createProductCatalogRefreshRun(
+  accessToken: string,
+  payload: ProductCatalogRefreshRunCreateRequest,
+) {
+  return apiRequest<ProductCatalogRefreshRunMutationResponse>("/tenant/products/refresh-runs", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function cancelProductCatalogRefreshRun(accessToken: string, runId: number) {
+  return apiRequest<ProductCatalogRefreshRunMutationResponse>(`/tenant/products/refresh-runs/${runId}/cancel`, {
+    method: "POST",
     token: accessToken,
   });
 }

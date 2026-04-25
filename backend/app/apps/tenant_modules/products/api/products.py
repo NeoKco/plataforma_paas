@@ -15,10 +15,12 @@ from app.apps.tenant_modules.products.schemas import (
     ProductCatalogStatusUpdateRequest,
 )
 from app.apps.tenant_modules.products.services import ProductCatalogService
+from app.apps.tenant_modules.products.services import ProductSourceService
 from app.common.db.session_manager import get_tenant_db
 
 router = APIRouter(prefix="/tenant/products/catalog", tags=["Tenant Products"])
 service = ProductCatalogService()
+source_service = ProductSourceService()
 
 
 @router.get("", response_model=ProductCatalogProductsResponse)
@@ -36,13 +38,18 @@ def list_product_catalog_items(
         q=q,
     )
     characteristic_map = service.get_characteristics_map(tenant_db, [item.id for item in rows])
+    health_map = source_service.build_product_health_map(tenant_db, [item.id for item in rows])
     return ProductCatalogProductsResponse(
         success=True,
         message="Catálogo recuperado correctamente",
         requested_by=build_products_requested_by(current_user),
         total=len(rows),
         data=[
-            build_product_catalog_item(item, characteristics=characteristic_map.get(item.id, []))
+            build_product_catalog_item(
+                item,
+                characteristics=characteristic_map.get(item.id, []),
+                health=health_map.get(item.id),
+            )
             for item in rows
         ],
     )
@@ -59,11 +66,16 @@ def create_product_catalog_item(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
+    health_map = source_service.build_product_health_map(tenant_db, [item.id])
     return ProductCatalogMutationResponse(
         success=True,
         message="Producto creado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_item(item, characteristics=characteristic_map.get(item.id, [])),
+        data=build_product_catalog_item(
+            item,
+            characteristics=characteristic_map.get(item.id, []),
+            health=health_map.get(item.id),
+        ),
     )
 
 
@@ -78,11 +90,16 @@ def get_product_catalog_item(
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
+    health_map = source_service.build_product_health_map(tenant_db, [item.id])
     return ProductCatalogMutationResponse(
         success=True,
         message="Producto recuperado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_item(item, characteristics=characteristic_map.get(item.id, [])),
+        data=build_product_catalog_item(
+            item,
+            characteristics=characteristic_map.get(item.id, []),
+            health=health_map.get(item.id),
+        ),
     )
 
 
@@ -98,11 +115,16 @@ def update_product_catalog_item(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
+    health_map = source_service.build_product_health_map(tenant_db, [item.id])
     return ProductCatalogMutationResponse(
         success=True,
         message="Producto actualizado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_item(item, characteristics=characteristic_map.get(item.id, [])),
+        data=build_product_catalog_item(
+            item,
+            characteristics=characteristic_map.get(item.id, []),
+            health=health_map.get(item.id),
+        ),
     )
 
 
@@ -118,11 +140,16 @@ def update_product_catalog_item_status(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     characteristic_map = service.get_characteristics_map(tenant_db, [item.id])
+    health_map = source_service.build_product_health_map(tenant_db, [item.id])
     return ProductCatalogMutationResponse(
         success=True,
         message="Estado del producto actualizado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_item(item, characteristics=characteristic_map.get(item.id, [])),
+        data=build_product_catalog_item(
+            item,
+            characteristics=characteristic_map.get(item.id, []),
+            health=health_map.get(item.id),
+        ),
     )
 
 
@@ -140,5 +167,5 @@ def delete_product_catalog_item(
         success=True,
         message="Producto eliminado correctamente",
         requested_by=build_products_requested_by(current_user),
-        data=build_product_catalog_item(item, characteristics=[]),
+        data=build_product_catalog_item(item, characteristics=[], health=None),
     )

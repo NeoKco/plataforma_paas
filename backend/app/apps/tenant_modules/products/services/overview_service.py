@@ -1,7 +1,12 @@
 from sqlalchemy import func
 
 from app.apps.tenant_modules.crm.models import CRMProduct, CRMProductIngestionDraft, CRMProductIngestionRun
-from app.apps.tenant_modules.products.models import ProductConnector, ProductPriceHistory, ProductSource
+from app.apps.tenant_modules.products.models import (
+    ProductConnector,
+    ProductPriceHistory,
+    ProductRefreshRun,
+    ProductSource,
+)
 
 
 class ProductCatalogOverviewService:
@@ -75,6 +80,29 @@ class ProductCatalogOverviewService:
             .scalar()
             or 0
         )
+        refresh_run_total = tenant_db.query(func.count(ProductRefreshRun.id)).scalar() or 0
+        refresh_run_active = (
+            tenant_db.query(func.count(ProductRefreshRun.id))
+            .filter(ProductRefreshRun.status.in_(("queued", "running")))
+            .scalar()
+            or 0
+        )
+        source_due = (
+            tenant_db.query(func.count(ProductSource.id))
+            .filter(
+                ProductSource.refresh_mode != "manual",
+                ProductSource.next_refresh_at.isnot(None),
+                ProductSource.next_refresh_at <= func.now(),
+            )
+            .scalar()
+            or 0
+        )
+        source_error = (
+            tenant_db.query(func.count(ProductSource.id))
+            .filter(ProductSource.sync_status == "error")
+            .scalar()
+            or 0
+        )
         return {
             "products_total": int(product_total),
             "products_active": int(product_active),
@@ -92,4 +120,8 @@ class ProductCatalogOverviewService:
             "connector_active": int(connector_active),
             "products_with_source": int(products_with_source),
             "products_with_multi_source": int(products_with_multi_source),
+            "refresh_run_total": int(refresh_run_total),
+            "refresh_run_active": int(refresh_run_active),
+            "source_due": int(source_due),
+            "source_error": int(source_error),
         }

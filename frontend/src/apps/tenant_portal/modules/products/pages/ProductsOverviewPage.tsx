@@ -138,6 +138,24 @@ export function ProductsOverviewPage() {
               value={metrics.products_with_multi_source}
               hint={language === "es" ? "Listos para comparación y precio recomendado" : "Ready for comparison and recommended pricing"}
             />
+            <MetricCard
+              icon="pulse"
+              label={language === "es" ? "Refresh activos" : "Active refresh runs"}
+              value={metrics.refresh_run_active}
+              hint={language === "es" ? "Campañas vivas de actualización" : "Live refresh campaigns"}
+            />
+            <MetricCard
+              icon="focus"
+              label={language === "es" ? "Fuentes vencidas" : "Due sources"}
+              value={metrics.source_due}
+              hint={language === "es" ? "Pendientes de actualizar por política" : "Pending refresh by policy"}
+            />
+            <MetricCard
+              icon="reports"
+              label={language === "es" ? "Fuentes con error" : "Sources with error"}
+              value={metrics.source_error}
+              hint={language === "es" ? "Requieren revisión o rescate" : "Require review or rescue"}
+            />
           </div>
 
           <PanelCard
@@ -187,6 +205,16 @@ export function ProductsOverviewPage() {
                   {language === "es"
                     ? "Permite contrastar varias fuentes por producto y recomendar la mejor referencia vigente."
                     : "Lets you compare multiple sources per product and recommend the best current reference."}
+                </div>
+              </div>
+              <div className="crm-detail-card">
+                <div className="crm-detail-card__header">
+                  <strong>{language === "es" ? "Actualización viva" : "Live refresh"}</strong>
+                </div>
+                <div className="text-muted small">
+                  {language === "es"
+                    ? "Refresca artículos ya existentes desde sus URLs fuente con IA y reglas de merge controladas."
+                    : "Refreshes existing items from source URLs with AI and controlled merge rules."}
                 </div>
               </div>
             </div>
@@ -351,6 +379,38 @@ export function ProductsOverviewPage() {
                   row.price_spread !== null
                     ? `${formatMoney(row.price_spread, language, row.recommended_currency_code || "CLP")} · ${Math.round(row.price_spread_percent || 0)}%`
                     : "—",
+              },
+            ]}
+          />
+
+          <DataTableCard
+            title={language === "es" ? "Corridas de refresh recientes" : "Recent refresh runs"}
+            subtitle={
+              language === "es"
+                ? "Actualización viva del catálogo desde fuentes activas y vencidas."
+                : "Live catalog refresh from active and due sources."
+            }
+            rows={data?.recent_refresh_runs || []}
+            columns={[
+              {
+                key: "scope",
+                header: language === "es" ? "Alcance" : "Scope",
+                render: (row) => (
+                  <div>
+                    <strong>{row.scope_label || row.scope}</strong>
+                    <div className="text-muted small">{row.connector_name || "—"}</div>
+                  </div>
+                ),
+              },
+              {
+                key: "status",
+                header: language === "es" ? "Estado" : "Status",
+                render: (row) => `${row.status} · ${row.processed_count}/${row.requested_count}`,
+              },
+              {
+                key: "result",
+                header: language === "es" ? "Resultado" : "Result",
+                render: (row) => `${row.completed_count} ok / ${row.error_count} error`,
               },
             ]}
           />

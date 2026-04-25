@@ -3,6 +3,7 @@ from app.apps.tenant_modules.products.api.connectors import router as connectors
 from app.apps.tenant_modules.products.api.ingestion import router as ingestion_router
 from app.apps.tenant_modules.products.api.overview import router as overview_router
 from app.apps.tenant_modules.products.api.products import router as products_router
+from app.apps.tenant_modules.products.api.refresh import router as refresh_router
 from app.apps.tenant_modules.products.api.sources import router as sources_router
 from fastapi import APIRouter
 
@@ -13,3 +14,4 @@ router.include_router(ingestion_router)
 router.include_router(sources_router)
 router.include_router(comparisons_router)
 router.include_router(connectors_router)
+router.include_router(refresh_router)

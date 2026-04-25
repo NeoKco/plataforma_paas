@@ -7,6 +7,7 @@ from app.apps.tenant_modules.products.api.serializers import (
     build_product_catalog_ingestion_draft_item,
     build_product_catalog_item,
     build_product_price_history_item,
+    build_product_refresh_run,
     build_product_source_item,
 )
 from app.apps.tenant_modules.products.dependencies import (
@@ -17,6 +18,7 @@ from app.apps.tenant_modules.products.schemas import ProductCatalogModuleOvervie
 from app.apps.tenant_modules.products.services import (
     ProductCatalogIngestionService,
     ProductCatalogOverviewService,
+    ProductCatalogRefreshRunService,
     ProductCatalogService,
     ProductCatalogComparisonService,
     ProductConnectorService,
@@ -31,6 +33,7 @@ ingestion_service = ProductCatalogIngestionService()
 source_service = ProductSourceService()
 connector_service = ProductConnectorService()
 comparison_service = ProductCatalogComparisonService()
+refresh_run_service = ProductCatalogRefreshRunService()
 
 
 @router.get("/overview", response_model=ProductCatalogModuleOverviewResponse)
@@ -40,6 +43,10 @@ def get_product_catalog_overview(
 ) -> ProductCatalogModuleOverviewResponse:
     product_rows = product_service.list_products(tenant_db, include_inactive=True)[:5]
     product_characteristics = product_service.get_characteristics_map(
+        tenant_db,
+        [item.id for item in product_rows],
+    )
+    product_health_map = source_service.build_product_health_map(
         tenant_db,
         [item.id for item in product_rows],
     )
@@ -60,6 +67,7 @@ def get_product_catalog_overview(
     recent_prices = source_service.list_price_history(tenant_db, limit=5)
     recent_connectors = connector_service.list_connectors(tenant_db)[:5]
     recent_comparisons = comparison_service.list_comparisons(tenant_db, limit=5)
+    recent_refresh_runs = refresh_run_service.list_runs(tenant_db)[:5]
     source_connector_map, _ = source_service.build_maps(
         tenant_db,
         connector_ids=[item.connector_id for item in recent_sources if item.connector_id],
@@ -73,13 +81,31 @@ def get_product_catalog_overview(
         connector_ids=[item.connector_id for item in recent_prices if item.connector_id],
         product_ids=[item.product_id for item in recent_prices if item.product_id],
     )
+    refresh_run_item_map = refresh_run_service.get_run_item_map(
+        tenant_db,
+        [item.id for item in recent_refresh_runs],
+    )
+    refresh_connector_map, refresh_product_map = source_service.build_maps(
+        tenant_db,
+        connector_ids=[item.connector_id for item in recent_refresh_runs if item.connector_id],
+        product_ids=[
+            run_item.product_id
+            for run_items in refresh_run_item_map.values()
+            for run_item in run_items
+            if run_item.product_id
+        ],
+    )
     return ProductCatalogModuleOverviewResponse(
         success=True,
         message="Resumen del catálogo recuperado correctamente",
         requested_by=build_products_requested_by(current_user),
         metrics=overview_service.build_overview(tenant_db),
         recent_products=[
-            build_product_catalog_item(item, characteristics=product_characteristics.get(item.id, []))
+            build_product_catalog_item(
+                item,
+                characteristics=product_characteristics.get(item.id, []),
+                health=product_health_map.get(item.id),
+            )
             for item in product_rows
         ],
         recent_drafts=[
@@ -117,5 +143,14 @@ def get_product_catalog_overview(
         recent_comparisons=[
             build_product_comparison_item(item)
             for item in recent_comparisons
+        ],
+        recent_refresh_runs=[
+            build_product_refresh_run(
+                item,
+                items=refresh_run_item_map.get(item.id, []),
+                connector_name=refresh_connector_map.get(item.connector_id),
+                product_names=refresh_product_map,
+            )
+            for item in recent_refresh_runs
         ],
     )
