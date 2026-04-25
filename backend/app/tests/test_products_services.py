@@ -10,6 +10,7 @@ from app.apps.tenant_modules.crm.models import CRMProduct, CRMProductIngestionDr
 from app.apps.tenant_modules.products.models import (  # noqa: E402
     ProductConnector,
     ProductPriceHistory,
+    ProductRefreshRunItem,
     ProductSource,
 )
 from app.apps.tenant_modules.products.schemas import (  # noqa: E402
@@ -23,6 +24,12 @@ from app.apps.tenant_modules.products.services.connector_sync_service import (  
 )
 from app.apps.tenant_modules.products.services.comparison_service import (  # noqa: E402
     ProductCatalogComparisonService,
+)
+from app.apps.tenant_modules.products.services.refresh_run_service import (  # noqa: E402
+    ProductCatalogRefreshRunService,
+)
+from app.apps.tenant_modules.products.services.refresh_service import (  # noqa: E402
+    ProductCatalogRefreshService,
 )
 from app.apps.tenant_modules.products.services.source_service import (  # noqa: E402
     ProductSourceService,
@@ -173,6 +180,7 @@ class ProductsServicesTestCase(unittest.TestCase):
             is_active=True,
             fetch_strategy="json_feed",
             run_ai_enrichment=False,
+            config_notes=None,
         )
         source = ProductSource(
             id=31,
@@ -181,8 +189,10 @@ class ProductsServicesTestCase(unittest.TestCase):
             source_kind="vendor_feed",
             source_label="Demo JSON",
             source_url="https://vendor.local/product.json",
+            external_reference=None,
             source_status="active",
             sync_status="idle",
+            refresh_prompt=None,
             latest_unit_price=1000,
             currency_code="CLP",
         )
@@ -196,7 +206,7 @@ class ProductsServicesTestCase(unittest.TestCase):
         with patch.object(service, "_list_sync_sources", return_value=[source]):
             with patch.object(
                 service,
-                "_extract_for_connector",
+                "extract_capture_payload",
                 return_value={
                     "name": "Panel 550W",
                     "unit_price": 1250,
@@ -270,3 +280,122 @@ class ProductsServicesTestCase(unittest.TestCase):
         self.assertEqual(rows[0]["recommended_source_id"], 11)
         self.assertEqual(rows[0]["recommended_price"], 900.0)
         self.assertEqual(rows[0]["source_count"], 2)
+
+    def test_refresh_product_updates_catalog_and_price(self) -> None:
+        tenant_db = Mock()
+        product = CRMProduct(
+            id=14,
+            name="Panel antiguo",
+            sku=None,
+            product_type="service",
+            unit_label=None,
+            unit_price=1000,
+            description=None,
+        )
+        source = ProductSource(
+            id=31,
+            product_id=14,
+            connector_id=None,
+            source_label="Proveedor Demo",
+            source_url="https://proveedor.local/panel",
+            source_status="active",
+            sync_status="idle",
+            refresh_merge_policy="safe_merge",
+            refresh_mode="daily",
+            latest_unit_price=1000,
+            currency_code="CLP",
+        )
+        service = ProductCatalogRefreshService()
+        service._product_service.get_product = Mock(return_value=product)
+        service._source_service.list_sources = Mock(return_value=[source])
+        service._connector_sync_service._extraction_service.extract_from_url = Mock(
+            return_value={
+                "name": "Panel 550W",
+                "product_type": "product",
+                "unit_label": "unidad",
+                "unit_price": 1250,
+                "description": "Panel fotovoltaico",
+                "characteristics": [{"label": "Potencia", "value": "550W", "sort_order": 10}],
+            }
+        )
+        service._connector_sync_service._enrichment_service.enrich_capture_payload = Mock(
+            return_value={
+                "name": "Panel 550W",
+                "product_type": "product",
+                "unit_label": "unidad",
+                "unit_price": 1250,
+                "description": "Panel fotovoltaico",
+                "characteristics": [{"label": "Potencia", "value": "550W", "sort_order": 10}],
+            }
+        )
+        service._product_service.apply_capture_refresh = Mock(
+            side_effect=lambda tenant_db, product_id, capture_payload, merge_policy="safe_merge": (
+                SimpleNamespace(
+                    id=14,
+                    name="Panel antiguo",
+                    sku=None,
+                    product_type="product",
+                    unit_label="unidad",
+                    unit_price=1250,
+                    description="Panel fotovoltaico",
+                ),
+                ["unit_price", "product_type", "unit_label", "description", "characteristics"],
+            )
+        )
+        service._source_service.mark_source_sync_attempt = Mock()
+        service._source_service.register_price_event = Mock()
+
+        refreshed_product, result = service.refresh_product(tenant_db, 14, prefer_ai=True)
+
+        self.assertEqual(refreshed_product.unit_price, 1250)
+        self.assertEqual(refreshed_product.product_type, "product")
+        self.assertEqual(result["completed_sources"], 1)
+        self.assertIn("unit_price", result["changed_fields"])
+        tenant_db.commit.assert_called_once()
+
+    def test_refresh_run_create_builds_items_for_due_sources(self) -> None:
+        tenant_db = Mock()
+        connector = ProductConnector(id=5, name="Proveedor Demo", is_active=True)
+        source = ProductSource(
+            id=31,
+            product_id=14,
+            connector_id=5,
+            source_url="https://proveedor.local/panel",
+            source_label="Proveedor Demo",
+            source_status="active",
+            refresh_mode="daily",
+            refresh_merge_policy="safe_merge",
+        )
+        service = ProductCatalogRefreshRunService()
+        service._connector_service.get_connector = Mock(return_value=connector)
+        service._select_sources = Mock(return_value=[source])
+
+        added_items: list[object] = []
+
+        def add_side_effect(item) -> None:
+            added_items.append(item)
+
+        def flush_side_effect() -> None:
+            for item in added_items:
+                if getattr(item, "id", None) is None and item.__class__.__name__ == "ProductRefreshRun":
+                    item.id = 9
+
+        tenant_db.add.side_effect = add_side_effect
+        tenant_db.flush.side_effect = flush_side_effect
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        run = service.create_run(
+            tenant_db,
+            SimpleNamespace(
+                scope="due_sources",
+                connector_id=5,
+                product_ids=[],
+                limit=50,
+                prefer_ai=True,
+            ),
+            actor_user_id=44,
+        )
+
+        self.assertEqual(run.requested_count, 1)
+        self.assertTrue(any(isinstance(item, ProductRefreshRunItem) for item in added_items))

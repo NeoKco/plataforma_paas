@@ -8,6 +8,8 @@ Responsabilidades:
 
 - catálogo reusable de productos/servicios
 - scraping/ingesta asistida
+- actualización viva por artículo desde sus fuentes
+- corridas batch con progreso para refresh del catálogo
 - revisión previa a publicación
 - base de consumo para `crm` y futuros `projects`
 
@@ -28,6 +30,7 @@ Rutas públicas del módulo:
 - `/tenant/products/sources`
 - `/tenant/products/price-history`
 - `/tenant/products/connectors`
+- `/tenant/products/refresh-runs`
 - `/tenant/products/comparisons`
 
 Permisos:
@@ -98,10 +101,21 @@ Además, este cierre suma:
   - `POST /tenant/products/connectors/{connector_id}/sync`
 - comparación multi-fuente por producto:
   - `GET /tenant/products/comparisons`
+- actualización viva del catálogo:
+  - `POST /tenant/products/catalog/{product_id}/refresh`
+  - `GET /tenant/products/refresh-runs`
+  - `POST /tenant/products/refresh-runs`
+  - `POST /tenant/products/refresh-runs/{run_id}/cancel`
 - estado de sync por fuente:
   - `sync_status`
   - `last_sync_attempt_at`
   - `last_sync_error`
+- metadatos de refresh por fuente:
+  - `refresh_mode`
+  - `refresh_merge_policy`
+  - `refresh_prompt`
+  - `next_refresh_at`
+  - `last_refresh_success_at`
 - CRUD visible de conectores
 - CRUD visible de fuentes manuales
 - registro manual de eventos de precio
@@ -110,6 +124,7 @@ Además, este cierre suma:
   - precios recientes
   - conectores recientes
   - comparaciones recientes
+  - corridas recientes de refresh
 
 Variables runtime compatibles con el carril IA existente:
 
@@ -124,6 +139,7 @@ Regla de implementación:
 
 - `products` sigue siendo dueño funcional del catálogo e ingesta
 - la persistencia interna reutilizada no cambia el contrato público del módulo
+- la actualización viva ya no debe tratarse como “enriquecimiento accesorio”; es el carril que mantiene vigente el catálogo consumido por cotizaciones y futuros proyectos
 
 ## Criterio de evolución
 

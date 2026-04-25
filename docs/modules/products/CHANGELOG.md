@@ -1,5 +1,40 @@
 # Products Changelog
 
+## 2026-04-25
+
+- `products` reorienta el módulo hacia catálogo vivo con actualización individual/masiva mejor alineada a la lógica histórica de `ieris_app`:
+  - nueva migración tenant:
+    - `v0049_products_live_refresh`
+  - backend nuevo para:
+    - `POST /tenant/products/catalog/{product_id}/refresh`
+    - `GET /tenant/products/refresh-runs`
+    - `POST /tenant/products/refresh-runs`
+    - `GET /tenant/products/refresh-runs/{run_id}`
+    - `POST /tenant/products/refresh-runs/{run_id}/cancel`
+  - cada fuente ya persiste además:
+    - `refresh_mode`
+    - `refresh_merge_policy`
+    - `refresh_prompt`
+    - `next_refresh_at`
+    - `last_refresh_success_at`
+  - el refresh ya no actualiza solo fuente/precio:
+    - también aplica cambios al catálogo publicado según merge policy
+  - merge policies visibles:
+    - `price_only`
+    - `safe_merge`
+    - `overwrite_catalog`
+  - el frontend `products` ya suma:
+    - vista `Actualizaciones`
+    - `Actualizar ahora` por artículo
+    - campañas `Actualizar vencidos` y `Actualizar activos`
+    - salud visible por artículo
+    - corridas recientes de refresh en `Resumen`
+    - configuración de refresh/merge/prompt por fuente
+  - validación repo:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `27 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/services/product_service.py backend/migrations/tenant/v0049_products_live_refresh.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-24
 
 - `products` cierra conectores automáticos reales y comparación multi-fuente:

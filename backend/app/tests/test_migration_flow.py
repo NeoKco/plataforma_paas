@@ -48,6 +48,7 @@ from migrations.tenant import v0045_crm_product_ingestion
 from migrations.tenant import v0046_crm_product_ingestion_runs
 from migrations.tenant import v0047_products_sources_and_connectors
 from migrations.tenant import v0048_products_connector_automation
+from migrations.tenant import v0049_products_live_refresh
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -234,6 +235,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0046_crm_product_ingestion_runs",
                 "0047_products_sources_and_connectors",
                 "0048_products_connector_automation",
+                "0049_products_live_refresh",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -262,6 +264,8 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("products_connectors", tables)
         self.assertIn("products_product_sources", tables)
         self.assertIn("products_price_history", tables)
+        self.assertIn("products_refresh_runs", tables)
+        self.assertIn("products_refresh_run_items", tables)
         self.assertIn("business_clients", tables)
         self.assertIn("business_contacts", tables)
         self.assertIn("business_sites", tables)
@@ -497,6 +501,12 @@ class MigrationFlowTestCase(unittest.TestCase):
         product_source_columns = {
             column["name"] for column in inspect(engine).get_columns("products_product_sources")
         }
+        product_refresh_run_columns = {
+            column["name"] for column in inspect(engine).get_columns("products_refresh_runs")
+        }
+        product_refresh_item_columns = {
+            column["name"] for column in inspect(engine).get_columns("products_refresh_run_items")
+        }
         maintenance_status_log_columns = {
             column["name"]
             for column in inspect(engine).get_columns("maintenance_status_logs")
@@ -572,6 +582,16 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("sync_status", product_source_columns)
         self.assertIn("last_sync_attempt_at", product_source_columns)
         self.assertIn("last_sync_error", product_source_columns)
+        self.assertIn("refresh_mode", product_source_columns)
+        self.assertIn("refresh_merge_policy", product_source_columns)
+        self.assertIn("refresh_prompt", product_source_columns)
+        self.assertIn("next_refresh_at", product_source_columns)
+        self.assertIn("last_refresh_success_at", product_source_columns)
+        self.assertIn("scope", product_refresh_run_columns)
+        self.assertIn("prefer_ai", product_refresh_run_columns)
+        self.assertIn("merge_policy", product_refresh_item_columns)
+        self.assertIn("used_ai_enrichment", product_refresh_item_columns)
+        self.assertIn("detected_changes_json", product_refresh_item_columns)
         self.assertIn("timezone", tenant_user_columns)
         self.assertIn("code", business_function_profile_columns)
         self.assertIn("group_kind", business_work_group_columns)
@@ -704,6 +724,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0046_crm_product_ingestion_runs",
                 "0047_products_sources_and_connectors",
                 "0048_products_connector_automation",
+                "0049_products_live_refresh",
             ],
         )
 

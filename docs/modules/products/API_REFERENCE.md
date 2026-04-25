@@ -11,6 +11,7 @@
 - `PUT /tenant/products/catalog/{product_id}`
 - `PATCH /tenant/products/catalog/{product_id}/status`
 - `DELETE /tenant/products/catalog/{product_id}`
+- `POST /tenant/products/catalog/{product_id}/refresh`
 
 ## Ingestion
 
@@ -43,6 +44,13 @@
 - `PATCH /tenant/products/connectors/{connector_id}/status`
 - `DELETE /tenant/products/connectors/{connector_id}`
 - `POST /tenant/products/connectors/{connector_id}/sync`
+
+## Live Refresh
+
+- `GET /tenant/products/refresh-runs`
+- `POST /tenant/products/refresh-runs`
+- `GET /tenant/products/refresh-runs/{run_id}`
+- `POST /tenant/products/refresh-runs/{run_id}/cancel`
 
 ## Comparison
 
@@ -79,6 +87,23 @@ Notas del contrato actual:
     - `limit`
   - ejecuta sync real sobre fuentes persistidas del conector
   - registra eventos `connector_sync` cuando cambia el precio observado
+- `POST /tenant/products/catalog/{product_id}/refresh`
+  - request:
+    - `prefer_ai`
+  - refresca el artículo existente desde sus fuentes activas
+  - aplica merge por `refresh_merge_policy`
+- `POST /tenant/products/refresh-runs`
+  - request:
+    - `scope`
+    - `connector_id`
+    - `product_ids`
+    - `limit`
+    - `prefer_ai`
+  - `scope` soportado:
+    - `due_sources`
+    - `active_sources`
+    - `selected_products`
+  - crea corrida batch con progreso visible por item/fuente
 - `GET /tenant/products/comparisons`
   - acepta filtros:
     - `product_id`

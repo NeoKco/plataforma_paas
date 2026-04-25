@@ -12,6 +12,8 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 - mantener fuentes vigentes por producto
 - registrar y revisar historial de precios
 - configurar conectores de ingesta
+- refrescar artículos ya existentes desde sus URLs fuente
+- correr campañas batch de actualización con progreso
 - dejar base estable para cotizaciones y futuros proyectos
 
 ## Vistas principales
@@ -26,6 +28,8 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
   fuentes activas por producto e historial de eventos de precio
 - `Conectores`
   perfiles de origen para la ingesta
+- `Actualizaciones`
+  refresh vivo por artículo y corridas batch
 - `Comparación`
   lectura multi-fuente por producto con precio recomendado
 
@@ -120,6 +124,49 @@ Lectura principal:
   diferencia entre precio menor y mayor visibles
 - `Fuentes`
   ranking corto de conectores/fuentes por producto
+
+## Actualización viva
+
+`Actualizaciones` ya no trabaja con borradores nuevos, sino con artículos ya existentes del catálogo.
+
+Sirve para:
+
+- refrescar un artículo puntual desde su URL fuente
+- correr actualización batch de artículos vencidos
+- correr actualización batch de todas las fuentes activas
+- ver el progreso de cada corrida
+- distinguir artículos sanos, vencidos o con error
+
+Cada fuente ahora puede definir:
+
+- `Modo refresh`
+  - `manual`
+  - `daily`
+  - `weekly`
+  - `monthly`
+- `Merge policy`
+  - `price_only`
+  - `safe_merge`
+  - `overwrite_catalog`
+- `Prompt adicional IA`
+  instrucción corta para orientar mejor la extracción desde esa URL/fuente
+
+Lectura operativa:
+
+- `price_only`
+  actualiza precio y trazabilidad, sin reescribir el catálogo más allá del valor económico
+- `safe_merge`
+  actualiza precio y completa campos vacíos o características nuevas sin pisar a ciegas
+- `overwrite_catalog`
+  permite que la fuente vuelva a empujar nombre, SKU, descripción, unidad y características
+
+Flujo recomendado:
+
+1. dejar al menos una fuente activa con URL por artículo
+2. definir `Modo refresh` y `Merge policy`
+3. usar `Actualizar ahora` cuando quieras revisar un artículo puntual
+4. usar `Actualizar vencidos` como rutina operativa
+5. revisar artículos `stale` o `error` antes de cotizar si dependen de precio vigente
 
 ## Flujo recomendado
 

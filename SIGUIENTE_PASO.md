@@ -2,6 +2,17 @@
 
 ## Prioridad vigente
 
+- expansión reciente ya cerrada en repo:
+  - `products` ya suma actualización viva mejor alineada a `ieris_app`
+  - ya existen:
+    - refresh por artículo
+    - corridas batch con progreso
+    - merge policy sobre catálogo publicado
+    - prompt adicional por fuente para extracción IA
+    - salud por artículo y corridas recientes visibles
+  - el hueco real restante en este módulo ya no es ingesta básica:
+    - pasa a scheduler formal por tenant para `due_sources`
+    - o conectores específicos por proveedor/marketplace
 - expansión reciente ya cerrada:
   - `crm` ya queda cerrado para su alcance comercial actual en runtime
   - `products` ya queda cerrado como módulo independiente de catálogo e ingesta
@@ -25,10 +36,15 @@
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
   - no conviene reabrir `taskops`, `techdocs` ni `chat` por inercia salvo expansión explícita
 - siguiente frente recomendado:
-  - decidir si ya abrimos `projects` como siguiente módulo consumidor fuerte
-  - recomendación actual:
-    - abrir `projects`
+  - cerrar primero runtime del slice nuevo de `products`:
+    - backup PostgreSQL tenant previo por carril
+    - redeploy backend
+    - publish frontend
+    - readiness final
+  - una vez publicado ese slice:
+    - decidir si ya abrimos `projects` como siguiente módulo consumidor fuerte
     - o, si se mantiene foco en `products`, priorizar:
+      - scheduler formal por tenant para `due_sources`
       - conectores específicos por proveedor/marketplace
       - integración más profunda con cotizaciones y proyectos
       - historial/versionado más rico de atributos por fuente

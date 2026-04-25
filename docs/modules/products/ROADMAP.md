@@ -14,6 +14,8 @@ El módulo ya cubre:
 - extracción rápida por URL
 - corridas batch por múltiples URLs
 - conectores multi-fuente configurables
+- actualización viva por artículo
+- corridas batch de refresh con progreso
 - fuentes persistidas por producto
 - historial de eventos de precio
 - aprobación al catálogo central
@@ -46,13 +48,28 @@ El módulo ya cubre:
 - sincronización automática real por conector sobre fuentes persistidas
 - vista `Comparación` con recomendación multi-fuente por producto
 - overview con comparaciones recientes y métricas de productos multi-fuente
+- vista `Actualizaciones` con:
+  - `Actualizar ahora`
+  - `Actualizar vencidos`
+  - `Actualizar activos`
+  - historial de corridas batch
+- metadatos de refresh por fuente:
+  - `refresh_mode`
+  - `refresh_merge_policy`
+  - `refresh_prompt`
+  - `next_refresh_at`
+  - `last_refresh_success_at`
+- merge controlado de scraping sobre catálogo:
+  - `price_only`
+  - `safe_merge`
+  - `overwrite_catalog`
 - publicación y validación runtime de este slice en `staging` y `production`
 
 ## Backlog posterior al cierre
 
 1. conectores específicos por proveedor/fuente con autenticación propietaria
-2. comparación multi-moneda/unidad más profunda
-3. normalización/categorización más profunda
+2. scheduler/cron formal de corridas `due_sources` por tenant
+3. comparación multi-moneda/unidad más profunda
 4. trazabilidad/versionado más rico de atributos técnicos por fuente
 5. integración más profunda del catálogo con `projects`
 
@@ -61,6 +78,7 @@ El módulo ya cubre:
 - abrir `projects` como consumidor fuerte del catálogo `products`
 - si se mantiene foco en `products`, priorizar:
   - conectores concretos por marketplace/proveedor
+  - scheduler formal por tenant para corridas vencidas
   - mejor conciliación de moneda/unidad
   - versionado más rico de atributos por fuente
 - mantener la regla de dominio:

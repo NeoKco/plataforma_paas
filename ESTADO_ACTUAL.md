@@ -2,7 +2,52 @@
 
 ## Última actualización
 
-- fecha: 2026-04-24
+- fecha: 2026-04-25
+- foco operativo nuevo ya cerrado en repo:
+  - `products` ya se alinea mejor a la lógica histórica de `ieris_app` como catálogo vivo técnico-comercial
+  - backend tenant ya expone además:
+    - `/tenant/products/catalog/{product_id}/refresh`
+    - `/tenant/products/refresh-runs`
+  - cada fuente ya persiste además:
+    - `refresh_mode`
+    - `refresh_merge_policy`
+    - `refresh_prompt`
+    - `next_refresh_at`
+    - `last_refresh_success_at`
+  - el refresh ya no actualiza solo fuente/precio:
+    - también aplica cambios sobre el catálogo publicado según merge policy
+  - frontend tenant ya suma:
+    - `Actualizaciones`
+    - `Actualizar ahora`
+    - `Actualizar vencidos`
+    - `Actualizar activos`
+    - salud por artículo
+    - corridas recientes de refresh
+    - configuración visible de refresh/merge/prompt por fuente
+  - validación repo nueva:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `27 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/services/product_service.py backend/migrations/tenant/v0049_products_live_refresh.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+- foco operativo nuevo ya cerrado en repo:
+  - `products` ya se reorienta a catálogo vivo con actualización individual/masiva por scraping + IA
+  - backend tenant ya expone además:
+    - `/tenant/products/catalog/{product_id}/refresh`
+    - `/tenant/products/refresh-runs`
+  - las fuentes ya persisten:
+    - `refresh_mode`
+    - `refresh_merge_policy`
+    - `refresh_prompt`
+    - `next_refresh_at`
+    - `last_refresh_success_at`
+  - frontend tenant ya suma:
+    - `Actualizaciones`
+    - salud por artículo
+    - corridas batch de refresh
+    - configuración de refresh/merge/prompt por fuente
+  - validación repo nueva:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `27 tests OK`
+    - `python3 -m py_compile ... v0049_products_live_refresh.py` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya cierra conectores automáticos reales y comparación multi-fuente
   - backend tenant ya expone además:

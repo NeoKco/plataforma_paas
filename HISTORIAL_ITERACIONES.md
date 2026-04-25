@@ -1,5 +1,58 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-25 - `products` se alinea a catálogo vivo con refresh individual/masivo
+
+Contexto:
+
+- `products` ya había cerrado conectores automáticos reales y comparación multi-fuente
+- el hueco real respecto de `ieris_app` seguía siendo la actualización viva del catálogo ya publicado:
+  - refrescar un artículo por URL/fuente
+  - correr campañas batch con progreso
+  - aplicar cambios de scraping/IA sobre el producto real, no solo sobre precio/fuente
+
+Cambios:
+
+- nueva migración tenant:
+  - `v0049_products_live_refresh`
+- backend nuevo para:
+  - `POST /tenant/products/catalog/{product_id}/refresh`
+  - `GET /tenant/products/refresh-runs`
+  - `POST /tenant/products/refresh-runs`
+  - `GET /tenant/products/refresh-runs/{run_id}`
+  - `POST /tenant/products/refresh-runs/{run_id}/cancel`
+- cada fuente ahora persiste además:
+  - `refresh_mode`
+  - `refresh_merge_policy`
+  - `refresh_prompt`
+  - `next_refresh_at`
+  - `last_refresh_success_at`
+- el refresh ya puede aplicar cambios al catálogo publicado con merge policy:
+  - `price_only`
+  - `safe_merge`
+  - `overwrite_catalog`
+- frontend `products` ahora suma:
+  - vista `Actualizaciones`
+  - `Actualizar ahora`
+  - `Actualizar vencidos`
+  - `Actualizar activos`
+  - salud visible por artículo
+  - corridas recientes de refresh
+  - configuración visible de refresh/merge/prompt por fuente
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_products_services + test_migration_flow` -> `27 tests OK`
+  - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/services/product_service.py backend/migrations/tenant/v0049_products_live_refresh.py` -> `OK`
+  - `npm run build` -> `OK`
+
+Resultado:
+
+- `products` deja de quedarse en ingesta/revisión y ya pasa a catálogo vivo con refresh gobernado
+- el siguiente cierre operativo natural ya no es “scraping básico”, sino:
+  - scheduler formal por tenant para `due_sources`
+  - o conectores específicos por proveedor/marketplace
+
 ## 2026-04-24 - `products` cierra conectores automáticos reales y comparación multi-fuente
 
 Contexto:

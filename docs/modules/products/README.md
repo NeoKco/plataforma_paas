@@ -12,6 +12,8 @@ Estado actual:
 - concentra:
   - catálogo técnico-comercial reusable
   - scraping/ingesta asistida
+  - actualización viva por artículo desde URL
+  - corridas batch de refresh con progreso
   - extracción por URL
   - corridas batch
   - conectores multi-fuente configurables
@@ -28,6 +30,7 @@ Objetivo del módulo:
 
 - mantener un catálogo vivo de productos y servicios
 - usar scraping y más adelante IA para traer/normalizar información actualizada
+- refrescar artículos ya existentes desde sus fuentes activas o vencidas
 - dejar una base reusable para cotizaciones, proyectos y otros dominios sin amarrarla a CRM
 
 ## Alcance actual
@@ -62,6 +65,14 @@ El módulo hoy incluye:
   - precio recomendado
   - brecha entre precios observados
   - ranking visible de fuentes por producto
+- actualización viva con:
+  - `Actualizar ahora` por artículo
+  - corridas batch por alcance:
+    - `due_sources`
+    - `active_sources`
+    - `selected_products`
+  - historial de corridas
+  - estado de salud por artículo
 - fuentes por producto con:
   - URL/ref externa
   - proveedor
@@ -69,6 +80,10 @@ El módulo hoy incluye:
   - precio más reciente
   - vigencia
   - estado de sincronización
+  - modo de refresh
+  - política de merge
+  - prompt adicional por fuente
+  - próximo refresh
   - último intento
   - último error visible
 - historial de precio con:

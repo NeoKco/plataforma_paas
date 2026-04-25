@@ -76,7 +76,8 @@ class ProductConnectorSyncService:
                     extracted,
                     prefer_ai=bool(connector.run_ai_enrichment)
                     or connector.fetch_strategy == "html_ai",
-                    prompt_override=getattr(source, "refresh_prompt", None) or connector.config_notes,
+                    prompt_override=getattr(source, "refresh_prompt", None)
+                    or getattr(connector, "config_notes", None),
                 )
                 currency_code = enriched.get("currency_code") or connector.default_currency_code or source.currency_code
                 latest_price = max(float(enriched.get("unit_price") or 0), 0)
