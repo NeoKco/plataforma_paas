@@ -90,6 +90,13 @@ class TenantModuleSubscriptionPolicyService:
             billing_cycles=VALID_BILLING_CYCLES,
         ),
         ModuleSubscriptionCatalogEntry(
+            module_key="products",
+            display_name="Catálogo de productos",
+            description="Catálogo técnico-comercial independiente con scraping e ingesta asistida.",
+            activation_kind="addon",
+            billing_cycles=VALID_BILLING_CYCLES,
+        ),
+        ModuleSubscriptionCatalogEntry(
             module_key="chat",
             display_name="Chat interno",
             description="Conversaciones internas entre usuarios e hilos por contexto operativo.",

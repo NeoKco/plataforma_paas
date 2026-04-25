@@ -11,6 +11,7 @@ MODULE_LABELS: dict[str, dict[str, str]] = {
     "users": _entry("Usuarios", "Users"),
     "finance": _entry("Finanzas", "Finance"),
     "maintenance": _entry("Mantenciones", "Maintenance"),
+    "products": _entry("Catálogo de productos", "Product catalog"),
     "chat": _entry("Chat interno", "Internal chat"),
     "crm": _entry("CRM comercial", "Commercial CRM"),
     "taskops": _entry("TaskOps", "TaskOps"),

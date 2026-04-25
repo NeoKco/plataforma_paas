@@ -1,0 +1,1 @@
+export { productsTenantPortalRoutes } from "./routes";

@@ -11,11 +11,6 @@ export function CRMModuleNav() {
       icon: "crm" as const,
     },
     {
-      to: "/tenant-portal/crm/ingestion",
-      label: language === "es" ? "Ingesta" : "Ingestion",
-      icon: "products" as const,
-    },
-    {
       to: "/tenant-portal/crm/opportunities",
       label: language === "es" ? "Oportunidades" : "Opportunities",
       icon: "pipeline" as const,
@@ -34,11 +29,6 @@ export function CRMModuleNav() {
       to: "/tenant-portal/crm/templates",
       label: language === "es" ? "Plantillas" : "Templates",
       icon: "templates" as const,
-    },
-    {
-      to: "/tenant-portal/crm/products",
-      label: language === "es" ? "Productos" : "Products",
-      icon: "products" as const,
     },
   ];
 

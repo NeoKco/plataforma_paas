@@ -674,4 +674,3 @@ class CRMModuleOverviewResponse(BaseModel):
     metrics: dict
     recent_opportunities: list[CRMOpportunityItemResponse]
     recent_quotes: list[CRMQuoteItemResponse]
-    recent_product_drafts: list[CRMProductIngestionDraftItemResponse] = Field(default_factory=list)

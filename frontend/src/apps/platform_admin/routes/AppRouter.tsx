@@ -8,6 +8,7 @@ import { chatTenantPortalRoutes } from "../../tenant_portal/modules/chat";
 import { crmTenantPortalRoutes } from "../../tenant_portal/modules/crm";
 import { financeTenantPortalRoutes } from "../../tenant_portal/modules/finance";
 import { maintenanceTenantPortalRoutes } from "../../tenant_portal/modules/maintenance";
+import { productsTenantPortalRoutes } from "../../tenant_portal/modules/products";
 import { taskopsTenantPortalRoutes } from "../../tenant_portal/modules/taskops";
 import { techdocsTenantPortalRoutes } from "../../tenant_portal/modules/techdocs";
 import { RequireTenantAuth } from "../../tenant_portal/routes/RequireTenantAuth";
@@ -183,6 +184,10 @@ const router = createBrowserRouter([
       {
         path: "finance",
         children: financeTenantPortalRoutes,
+      },
+      {
+        path: "products",
+        children: productsTenantPortalRoutes,
       },
       {
         path: "chat",

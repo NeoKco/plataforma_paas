@@ -30,6 +30,7 @@ from app.apps.tenant_modules.finance.api.routes import router as tenant_finance_
 from app.apps.tenant_modules.maintenance.api.routes import (
     router as tenant_maintenance_router,
 )
+from app.apps.tenant_modules.products.api.routes import router as tenant_products_router
 from app.apps.tenant_modules.taskops.api.routes import router as tenant_taskops_router
 from app.apps.tenant_modules.techdocs.api.router import router as tenant_techdocs_router
 from app.bootstrap.install_checker import is_platform_installed
@@ -127,6 +128,7 @@ def register_installed_routes(app: FastAPI) -> None:
     app.include_router(tenant_crm_router)
     app.include_router(tenant_finance_router)
     app.include_router(tenant_maintenance_router)
+    app.include_router(tenant_products_router)
     app.include_router(tenant_taskops_router)
     app.include_router(tenant_techdocs_router)
 

@@ -63,11 +63,11 @@ export function CRMOverviewPage() {
       <PageHeader
         eyebrow={language === "es" ? "CRM comercial" : "Commercial CRM"}
         icon="crm"
-        title={language === "es" ? "CRM, Cotizaciones y Productos" : "CRM, Quotes, and Products"}
+        title={language === "es" ? "CRM, Pipeline y Cotizaciones" : "CRM, Pipeline, and Quotes"}
         description={
           language === "es"
-            ? "Bloque comercial completo del tenant para oportunidades, catálogo reusable, plantillas y propuestas."
-            : "Complete tenant commercial block for opportunities, reusable catalog, templates, and proposals."
+            ? "Bloque comercial del tenant para oportunidades, plantillas y propuestas estructuradas."
+            : "Tenant commercial block for opportunities, templates, and structured proposals."
         }
         actions={
           <AppToolbar compact>
@@ -91,12 +91,6 @@ export function CRMOverviewPage() {
       {!isLoading && metrics ? (
         <>
           <div className="tenant-portal-metrics">
-            <MetricCard
-              icon="products"
-              label={language === "es" ? "Productos activos" : "Active products"}
-              value={metrics.products_active}
-              hint={language === "es" ? "Catálogo reutilizable disponible" : "Available reusable catalog"}
-            />
             <MetricCard
               icon="pipeline"
               label={language === "es" ? "Oportunidades abiertas" : "Open opportunities"}
@@ -136,12 +130,6 @@ export function CRMOverviewPage() {
               value={metrics.templates_total}
               hint={language === "es" ? "Bases comerciales reutilizables" : "Reusable commercial bases"}
             />
-            <MetricCard
-              icon="products"
-              label={language === "es" ? "Borradores ingesta" : "Ingestion drafts"}
-              value={metrics.ingestion_draft}
-              hint={language === "es" ? "Pendientes de revisar y publicar" : "Pending review and publish"}
-            />
           </div>
 
           <div className="tenant-portal-metrics">
@@ -150,12 +138,6 @@ export function CRMOverviewPage() {
               label={language === "es" ? "Salud pipeline" : "Pipeline health"}
               value={`${pipelineHealth}%`}
               hint={language === "es" ? "Proporción abierta del total" : "Open share of total"}
-            />
-            <MetricCard
-              icon="catalogs"
-              label={language === "es" ? "Ingesta total" : "Total ingestion"}
-              value={metrics.ingestion_total}
-              hint={language === "es" ? "Capturas comerciales registradas" : "Registered commercial captures"}
             />
           </div>
 
@@ -190,22 +172,12 @@ export function CRMOverviewPage() {
               </div>
               <div className="crm-detail-card">
                 <div className="crm-detail-card__header">
-                  <strong>{language === "es" ? "Catálogo" : "Catalog"}</strong>
+                  <strong>{language === "es" ? "Cotizaciones" : "Quotes"}</strong>
                 </div>
                 <div className="text-muted small">
                   {language === "es"
-                    ? "Productos y servicios enriquecidos con características técnicas/comerciales."
-                    : "Products and services enriched with technical/commercial characteristics."}
-                </div>
-              </div>
-              <div className="crm-detail-card">
-                <div className="crm-detail-card__header">
-                  <strong>{language === "es" ? "Ingesta asistida" : "Assisted ingestion"}</strong>
-                </div>
-                <div className="text-muted small">
-                  {language === "es"
-                    ? "Borradores revisables para capturar productos desde referencias externas antes de publicarlos al catálogo."
-                    : "Reviewable drafts to capture products from external references before publishing them to the catalog."}
+                    ? "Propuestas libres o estructuradas que ahora consumen el catálogo de productos como módulo aparte."
+                    : "Free or structured proposals that now consume the product catalog as a separate module."}
                 </div>
               </div>
             </div>
@@ -240,43 +212,6 @@ export function CRMOverviewPage() {
                 key: "amount",
                 header: language === "es" ? "Valor esperado" : "Expected value",
                 render: (row) => formatMoney(row.expected_value || 0, language),
-              },
-            ]}
-          />
-
-          <DataTableCard
-            title={language === "es" ? "Borradores recientes de ingesta" : "Recent ingestion drafts"}
-            subtitle={
-              language === "es"
-                ? "Capturas pendientes o recién publicadas al catálogo."
-                : "Captures pending review or just published to the catalog."
-            }
-            rows={data?.recent_product_drafts || []}
-            columns={[
-              {
-                key: "name",
-                header: language === "es" ? "Borrador" : "Draft",
-                render: (row) => (
-                  <div>
-                    <strong>{row.name || row.source_label || "—"}</strong>
-                    <div className="text-muted small">{row.source_url || row.brand || "—"}</div>
-                  </div>
-                ),
-              },
-              {
-                key: "status",
-                header: language === "es" ? "Estado" : "Status",
-                render: (row) => row.capture_status,
-              },
-              {
-                key: "type",
-                header: language === "es" ? "Tipo" : "Type",
-                render: (row) => row.product_type,
-              },
-              {
-                key: "published",
-                header: language === "es" ? "Producto final" : "Published product",
-                render: (row) => row.published_product_name || "—",
               },
             ]}
           />
