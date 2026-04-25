@@ -221,50 +221,50 @@ type ProductCatalogIngestionOverviewResponse = {
 
 export function getProductCatalogOverview(accessToken: string) {
   return apiRequest<ProductCatalogOverviewResponse>("/tenant/products/overview", {
-    accessToken,
+    token: accessToken,
   });
 }
 
 export function getProductCatalogItems(accessToken: string) {
   return apiRequest<ProductCatalogProductsResponse>("/tenant/products/catalog", {
-    accessToken,
+    token: accessToken,
   });
 }
 
 export function createProductCatalogItem(accessToken: string, payload: ProductCatalogWriteRequest) {
   return apiRequest<ProductCatalogMutationResponse>("/tenant/products/catalog", {
     method: "POST",
-    accessToken,
-    body: JSON.stringify(payload),
+    token: accessToken,
+    body: payload,
   });
 }
 
 export function updateProductCatalogItem(accessToken: string, productId: number, payload: ProductCatalogWriteRequest) {
   return apiRequest<ProductCatalogMutationResponse>(`/tenant/products/catalog/${productId}`, {
     method: "PUT",
-    accessToken,
-    body: JSON.stringify(payload),
+    token: accessToken,
+    body: payload,
   });
 }
 
 export function updateProductCatalogItemStatus(accessToken: string, productId: number, isActive: boolean) {
   return apiRequest<ProductCatalogMutationResponse>(`/tenant/products/catalog/${productId}/status`, {
     method: "PATCH",
-    accessToken,
-    body: JSON.stringify({ is_active: isActive }),
+    token: accessToken,
+    body: { is_active: isActive },
   });
 }
 
 export function deleteProductCatalogItem(accessToken: string, productId: number) {
   return apiRequest<ProductCatalogMutationResponse>(`/tenant/products/catalog/${productId}`, {
     method: "DELETE",
-    accessToken,
+    token: accessToken,
   });
 }
 
 export function getProductCatalogIngestionOverview(accessToken: string) {
   return apiRequest<ProductCatalogIngestionOverviewResponse>("/tenant/products/ingestion/overview", {
-    accessToken,
+    token: accessToken,
   });
 }
 
@@ -277,44 +277,44 @@ export function getProductCatalogIngestionDrafts(
   if (params.q) search.set("q", params.q);
   const suffix = search.size > 0 ? `?${search.toString()}` : "";
   return apiRequest<ProductCatalogIngestionDraftsResponse>(`/tenant/products/ingestion/drafts${suffix}`, {
-    accessToken,
+    token: accessToken,
   });
 }
 
 export function createProductCatalogIngestionDraft(accessToken: string, payload: ProductCatalogIngestionDraftWriteRequest) {
   return apiRequest<ProductCatalogIngestionDraftMutationResponse>("/tenant/products/ingestion/drafts", {
     method: "POST",
-    accessToken,
-    body: JSON.stringify(payload),
+    token: accessToken,
+    body: payload,
   });
 }
 
 export function extractProductCatalogUrl(accessToken: string, payload: ProductCatalogIngestionExtractUrlRequest) {
   return apiRequest<ProductCatalogIngestionDraftMutationResponse>("/tenant/products/ingestion/extract-url", {
     method: "POST",
-    accessToken,
-    body: JSON.stringify(payload),
+    token: accessToken,
+    body: payload,
   });
 }
 
 export function getProductCatalogIngestionRuns(accessToken: string) {
   return apiRequest<ProductCatalogIngestionRunsResponse>("/tenant/products/ingestion/runs", {
-    accessToken,
+    token: accessToken,
   });
 }
 
 export function createProductCatalogIngestionRun(accessToken: string, payload: ProductCatalogIngestionRunCreateRequest) {
   return apiRequest<ProductCatalogIngestionRunMutationResponse>("/tenant/products/ingestion/runs", {
     method: "POST",
-    accessToken,
-    body: JSON.stringify(payload),
+    token: accessToken,
+    body: payload,
   });
 }
 
 export function cancelProductCatalogIngestionRun(accessToken: string, runId: number) {
   return apiRequest<ProductCatalogIngestionRunMutationResponse>(`/tenant/products/ingestion/runs/${runId}/cancel`, {
     method: "POST",
-    accessToken,
+    token: accessToken,
   });
 }
 
@@ -325,8 +325,8 @@ export function updateProductCatalogIngestionDraft(
 ) {
   return apiRequest<ProductCatalogIngestionDraftMutationResponse>(`/tenant/products/ingestion/drafts/${draftId}`, {
     method: "PUT",
-    accessToken,
-    body: JSON.stringify(payload),
+    token: accessToken,
+    body: payload,
   });
 }
 
@@ -338,15 +338,15 @@ export function updateProductCatalogIngestionDraftStatus(
 ) {
   return apiRequest<ProductCatalogIngestionDraftMutationResponse>(`/tenant/products/ingestion/drafts/${draftId}/status`, {
     method: "PATCH",
-    accessToken,
-    body: JSON.stringify({ capture_status: captureStatus, review_notes: reviewNotes }),
+    token: accessToken,
+    body: { capture_status: captureStatus, review_notes: reviewNotes },
   });
 }
 
 export function approveProductCatalogIngestionDraft(accessToken: string, draftId: number, reviewNotes: string | null) {
   return apiRequest<ProductCatalogIngestionApprovalResponse>(`/tenant/products/ingestion/drafts/${draftId}/approve`, {
     method: "POST",
-    accessToken,
-    body: JSON.stringify({ review_notes: reviewNotes }),
+    token: accessToken,
+    body: { review_notes: reviewNotes },
   });
 }

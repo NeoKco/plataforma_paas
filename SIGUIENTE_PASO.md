@@ -4,17 +4,18 @@
 
 - expansión reciente ya cerrada:
   - `crm` ya queda cerrado para su alcance comercial actual en runtime
-  - `crm ingestion` ya queda cerrada también en runtime para la ola automática (`extract-url` + `runs`)
+  - `products` ya queda cerrado como módulo independiente de catálogo e ingesta
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
   - `techdocs` ya queda cerrado para su alcance operativo actual en runtime
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
   - no conviene reabrir `taskops`, `techdocs` ni `chat` por inercia salvo expansión explícita
 - siguiente frente recomendado:
-  - decidir si la siguiente profundización sigue sobre `crm ingestion` o si ya abrimos el próximo frente faltante desde `ieris_app`
+  - decidir si la siguiente profundización sigue sobre `products` o si ya abrimos el próximo frente faltante desde `ieris_app`
   - recomendación actual:
-    - profundizar `crm ingestion` con deduplicación/enriquecimiento sugeridos
+    - profundizar `products` con deduplicación/enriquecimiento sugeridos
   - por qué este orden:
-    - `crm` ya absorbió productos, oportunidades, plantillas, cotizaciones e ingesta asistida y ahora también el frente automático básico desde fuentes externas
+    - `products` ya concentra catálogo e ingesta, que es donde hoy está el hueco real de calidad
+    - `crm` ya queda mejor acotado como consumidor comercial de ese catálogo
     - el hueco inmediato ya no es “capturar URLs”, sino filtrar duplicados y enriquecer mejor antes de publicar catálogo
     - `taskops`, `techdocs` y `chat` ya cubren los bloques internos transversales que faltaban
     - evita reabrir por inercia módulos ya cerrados cuando el hueco real restante está en la entrada de catálogo
@@ -45,7 +46,7 @@
   - deploy reproducible, rollback, backups, restore drills y evidencia operativa ya están institucionalizados
   - worker, cuotas, alertas, DLQ, rate limiting y billing operativo ya dejan el hardening suficientemente cerrado para esta base
 - siguiente frente recomendado del proyecto:
-  - abrir `scraping de productos` como siguiente frente faltante conectado a `crm`
+  - profundizar `products` con deduplicación/enriquecimiento
   - después recién decidir si conviene abrir otro módulo real (`iot`, `condos`, `projects`) o el frente administrativo de `IA local`
   - endurecimiento adicional opcional, por ejemplo:
     - stack externa de observabilidad/alerting

@@ -9,19 +9,19 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
-import { CRMModuleNav } from "../components/common/CRMModuleNav";
 import {
-  createCRMProduct,
-  deleteCRMProduct,
-  getCRMProducts,
-  updateCRMProduct,
-  updateCRMProductStatus,
-  type CRMProduct,
-  type CRMProductCharacteristic,
-  type CRMProductWriteRequest,
-} from "../services/crmService";
+  createProductCatalogItem,
+  deleteProductCatalogItem,
+  getProductCatalogItems,
+  updateProductCatalogItem,
+  updateProductCatalogItemStatus,
+  type ProductCatalogItem,
+  type ProductCatalogProductCharacteristic,
+  type ProductCatalogWriteRequest,
+} from "../../products/services/productsService";
+import { ProductsModuleNav } from "../../products/components/common/ProductsModuleNav";
 
-function buildDefaultCharacteristic(index: number): CRMProductCharacteristic {
+function buildDefaultCharacteristic(index: number): ProductCatalogProductCharacteristic {
   return {
     id: null,
     label: "",
@@ -30,7 +30,7 @@ function buildDefaultCharacteristic(index: number): CRMProductCharacteristic {
   };
 }
 
-function buildDefaultForm(): CRMProductWriteRequest {
+function buildDefaultForm(): ProductCatalogWriteRequest {
   return {
     sku: null,
     name: "",
@@ -47,8 +47,8 @@ function buildDefaultForm(): CRMProductWriteRequest {
 export function CRMProductsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
-  const [rows, setRows] = useState<CRMProduct[]>([]);
-  const [form, setForm] = useState<CRMProductWriteRequest>(buildDefaultForm());
+  const [rows, setRows] = useState<ProductCatalogItem[]>([]);
+  const [form, setForm] = useState<ProductCatalogWriteRequest>(buildDefaultForm());
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +60,7 @@ export function CRMProductsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getCRMProducts(session.accessToken);
+      const response = await getProductCatalogItems(session.accessToken);
       setRows(response.data);
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -79,7 +79,7 @@ export function CRMProductsPage() {
     setFeedback(null);
   }
 
-  function startEdit(item: CRMProduct) {
+  function startEdit(item: ProductCatalogItem) {
     setEditingId(item.id);
     setForm({
       sku: item.sku,
@@ -103,7 +103,7 @@ export function CRMProductsPage() {
     setFeedback(null);
   }
 
-  function updateCharacteristic(index: number, next: Partial<CRMProductCharacteristic>) {
+  function updateCharacteristic(index: number, next: Partial<ProductCatalogProductCharacteristic>) {
     setForm((current) => ({
       ...current,
       characteristics: current.characteristics.map((item, itemIndex) =>
@@ -143,8 +143,8 @@ export function CRMProductsPage() {
         ),
       };
       const response = editingId
-        ? await updateCRMProduct(session.accessToken, editingId, payload)
-        : await createCRMProduct(session.accessToken, payload);
+        ? await updateProductCatalogItem(session.accessToken, editingId, payload)
+        : await createProductCatalogItem(session.accessToken, payload);
       setFeedback(response.message);
       startNew();
       await loadRows();
@@ -155,10 +155,10 @@ export function CRMProductsPage() {
     }
   }
 
-  async function handleToggle(item: CRMProduct) {
+  async function handleToggle(item: ProductCatalogItem) {
     if (!session?.accessToken) return;
     try {
-      const response = await updateCRMProductStatus(session.accessToken, item.id, !item.is_active);
+      const response = await updateProductCatalogItemStatus(session.accessToken, item.id, !item.is_active);
       setFeedback(response.message);
       await loadRows();
     } catch (rawError) {
@@ -166,11 +166,11 @@ export function CRMProductsPage() {
     }
   }
 
-  async function handleDelete(item: CRMProduct) {
+  async function handleDelete(item: ProductCatalogItem) {
     if (!session?.accessToken) return;
     if (!window.confirm(language === "es" ? `Eliminar "${item.name}"?` : `Delete "${item.name}"?`)) return;
     try {
-      const response = await deleteCRMProduct(session.accessToken, item.id);
+      const response = await deleteProductCatalogItem(session.accessToken, item.id);
       setFeedback(response.message);
       if (editingId === item.id) {
         startNew();
@@ -184,13 +184,13 @@ export function CRMProductsPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "CRM comercial" : "Commercial CRM"}
+        eyebrow={language === "es" ? "Catálogo de productos" : "Product catalog"}
         icon="products"
         title={language === "es" ? "Productos y servicios" : "Products and services"}
         description={
           language === "es"
-            ? "Catálogo comercial reutilizable con características para cotizaciones y pipeline."
-            : "Reusable commercial catalog with characteristics for quotes and pipeline."
+            ? "Catálogo técnico-comercial reutilizable para cotizaciones, proyectos y futuras automatizaciones."
+            : "Reusable technical-commercial catalog for quotes, projects, and future automations."
         }
         actions={
           <AppToolbar compact>
@@ -203,7 +203,7 @@ export function CRMProductsPage() {
           </AppToolbar>
         }
       />
-      <CRMModuleNav />
+      <ProductsModuleNav />
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
       {error ? (
         <ErrorState
@@ -218,8 +218,8 @@ export function CRMProductsPage() {
         title={editingId ? (language === "es" ? "Editar producto" : "Edit product") : (language === "es" ? "Nuevo producto" : "New product")}
         subtitle={
           language === "es"
-            ? "Puedes dejar características técnicas/comerciales que después se reutilizan al cotizar."
-            : "You can keep technical/commercial characteristics to reuse later in quotes."
+            ? "Mantén atributos técnicos y comerciales que luego podrán reutilizarse en cotizaciones y proyectos."
+            : "Keep technical and commercial attributes that can later be reused in quotes and projects."
         }
       >
         <form className="crm-form-grid" onSubmit={(event) => void handleSubmit(event)}>
@@ -326,7 +326,11 @@ export function CRMProductsPage() {
 
       <DataTableCard
         title={language === "es" ? "Catálogo activo" : "Active catalog"}
-        subtitle={language === "es" ? "Productos y servicios listos para ventas." : "Products and services ready for sales."}
+        subtitle={
+          language === "es"
+            ? "Productos y servicios listos para reutilizarse desde el catálogo central."
+            : "Products and services ready to be reused from the central catalog."
+        }
         rows={rows}
         columns={[
           {

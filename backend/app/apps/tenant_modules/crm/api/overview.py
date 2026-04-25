@@ -49,7 +49,7 @@ def get_crm_module_overview(
         for section in sections
     ]
     section_line_map = quote_service.get_section_lines(tenant_db, section_ids)
-product_name_map = quote_service.get_product_name_map(
+    product_name_map = quote_service.get_product_name_map(
         tenant_db,
         [
             line.product_id

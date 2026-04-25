@@ -10,25 +10,25 @@ import { getApiErrorDisplayMessage } from "../../../../../services/api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
-import { CRMModuleNav } from "../components/common/CRMModuleNav";
 import {
-  approveCRMProductIngestionDraft,
-  cancelCRMProductIngestionRun,
-  createCRMProductIngestionDraft,
-  createCRMProductIngestionRun,
-  extractCRMProductIngestionUrl,
-  getCRMProductIngestionDrafts,
-  getCRMProductIngestionOverview,
-  getCRMProductIngestionRuns,
-  type CRMProductIngestionCharacteristic,
-  type CRMProductIngestionDraft,
-  type CRMProductIngestionDraftWriteRequest,
-  type CRMProductIngestionRun,
-  updateCRMProductIngestionDraft,
-  updateCRMProductIngestionDraftStatus,
-} from "../services/crmService";
+  approveProductCatalogIngestionDraft,
+  cancelProductCatalogIngestionRun,
+  createProductCatalogIngestionDraft,
+  createProductCatalogIngestionRun,
+  extractProductCatalogUrl,
+  getProductCatalogIngestionDrafts,
+  getProductCatalogIngestionOverview,
+  getProductCatalogIngestionRuns,
+  type ProductCatalogIngestionCharacteristic,
+  type ProductCatalogIngestionDraft,
+  type ProductCatalogIngestionDraftWriteRequest,
+  type ProductCatalogIngestionRun,
+  updateProductCatalogIngestionDraft,
+  updateProductCatalogIngestionDraftStatus,
+} from "../../products/services/productsService";
+import { ProductsModuleNav } from "../../products/components/common/ProductsModuleNav";
 
-function buildCharacteristic(index: number): CRMProductIngestionCharacteristic {
+function buildCharacteristic(index: number): ProductCatalogIngestionCharacteristic {
   return {
     id: null,
     label: "",
@@ -37,7 +37,7 @@ function buildCharacteristic(index: number): CRMProductIngestionCharacteristic {
   };
 }
 
-function buildDefaultForm(): CRMProductIngestionDraftWriteRequest {
+function buildDefaultForm(): ProductCatalogIngestionDraftWriteRequest {
   return {
     source_kind: "url_reference",
     source_label: null,
@@ -58,7 +58,7 @@ function buildDefaultForm(): CRMProductIngestionDraftWriteRequest {
   };
 }
 
-function buildBatchText(entries: CRMProductIngestionRun[]): string {
+function buildBatchText(entries: ProductCatalogIngestionRun[]): string {
   return entries
     .flatMap((run) => run.items)
     .map((item) => item.source_url)
@@ -69,10 +69,10 @@ function buildBatchText(entries: CRMProductIngestionRun[]): string {
 export function CRMProductIngestionPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
-  const [overview, setOverview] = useState<Awaited<ReturnType<typeof getCRMProductIngestionOverview>> | null>(null);
-  const [rows, setRows] = useState<CRMProductIngestionDraft[]>([]);
-  const [runs, setRuns] = useState<CRMProductIngestionRun[]>([]);
-  const [form, setForm] = useState<CRMProductIngestionDraftWriteRequest>(buildDefaultForm());
+  const [overview, setOverview] = useState<Awaited<ReturnType<typeof getProductCatalogIngestionOverview>> | null>(null);
+  const [rows, setRows] = useState<ProductCatalogIngestionDraft[]>([]);
+  const [runs, setRuns] = useState<ProductCatalogIngestionRun[]>([]);
+  const [form, setForm] = useState<ProductCatalogIngestionDraftWriteRequest>(buildDefaultForm());
   const [editingId, setEditingId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
@@ -95,12 +95,12 @@ export function CRMProductIngestionPage() {
     setError(null);
     try {
       const [overviewResponse, draftsResponse, runsResponse] = await Promise.all([
-        getCRMProductIngestionOverview(session.accessToken),
-        getCRMProductIngestionDrafts(session.accessToken, {
+        getProductCatalogIngestionOverview(session.accessToken),
+        getProductCatalogIngestionDrafts(session.accessToken, {
           capture_status: statusFilter === "all" ? null : statusFilter,
           q: query || null,
         }),
-        getCRMProductIngestionRuns(session.accessToken),
+        getProductCatalogIngestionRuns(session.accessToken),
       ]);
       setOverview(overviewResponse);
       setRows(draftsResponse.data);
@@ -137,7 +137,7 @@ export function CRMProductIngestionPage() {
     setReviewNotes("");
   }
 
-  function startEdit(item: CRMProductIngestionDraft) {
+  function startEdit(item: ProductCatalogIngestionDraft) {
     setEditingId(item.id);
     setForm({
       source_kind: item.source_kind,
@@ -168,7 +168,7 @@ export function CRMProductIngestionPage() {
     setReviewNotes(item.review_notes || "");
   }
 
-  function updateCharacteristic(index: number, next: Partial<CRMProductIngestionCharacteristic>) {
+  function updateCharacteristic(index: number, next: Partial<ProductCatalogIngestionCharacteristic>) {
     setForm((current) => ({
       ...current,
       characteristics: current.characteristics.map((item, itemIndex) =>
@@ -206,8 +206,8 @@ export function CRMProductIngestionPage() {
         characteristics: form.characteristics.filter((item) => item.label.trim() && item.value.trim()),
       };
       const response = editingId
-        ? await updateCRMProductIngestionDraft(session.accessToken, editingId, payload)
-        : await createCRMProductIngestionDraft(session.accessToken, payload);
+        ? await updateProductCatalogIngestionDraft(session.accessToken, editingId, payload)
+        : await createProductCatalogIngestionDraft(session.accessToken, payload);
       setFeedback(response.message);
       startNew();
       await loadData();
@@ -224,7 +224,7 @@ export function CRMProductIngestionPage() {
     setError(null);
     setFeedback(null);
     try {
-      const response = await extractCRMProductIngestionUrl(session.accessToken, {
+      const response = await extractProductCatalogUrl(session.accessToken, {
         source_url: extractUrl.trim(),
         source_label: extractSourceLabel.trim() || null,
         external_reference: extractReference.trim() || null,
@@ -257,7 +257,7 @@ export function CRMProductIngestionPage() {
     setError(null);
     setFeedback(null);
     try {
-      const response = await createCRMProductIngestionRun(session.accessToken, {
+      const response = await createProductCatalogIngestionRun(session.accessToken, {
         source_label: batchLabel.trim() || null,
         entries,
       });
@@ -272,10 +272,10 @@ export function CRMProductIngestionPage() {
     }
   }
 
-  async function handleApprove(item: CRMProductIngestionDraft) {
+  async function handleApprove(item: ProductCatalogIngestionDraft) {
     if (!session?.accessToken) return;
     try {
-      const response = await approveCRMProductIngestionDraft(session.accessToken, item.id, reviewNotes || null);
+      const response = await approveProductCatalogIngestionDraft(session.accessToken, item.id, reviewNotes || null);
       setFeedback(response.message);
       await loadData();
     } catch (rawError) {
@@ -283,10 +283,10 @@ export function CRMProductIngestionPage() {
     }
   }
 
-  async function handleStatus(item: CRMProductIngestionDraft, nextStatus: "draft" | "discarded") {
+  async function handleStatus(item: ProductCatalogIngestionDraft, nextStatus: "draft" | "discarded") {
     if (!session?.accessToken) return;
     try {
-      const response = await updateCRMProductIngestionDraftStatus(
+      const response = await updateProductCatalogIngestionDraftStatus(
         session.accessToken,
         item.id,
         nextStatus,
@@ -299,10 +299,10 @@ export function CRMProductIngestionPage() {
     }
   }
 
-  async function handleCancelRun(item: CRMProductIngestionRun) {
+  async function handleCancelRun(item: ProductCatalogIngestionRun) {
     if (!session?.accessToken) return;
     try {
-      const response = await cancelCRMProductIngestionRun(session.accessToken, item.id);
+      const response = await cancelProductCatalogIngestionRun(session.accessToken, item.id);
       setFeedback(response.message);
       await loadData();
       setRuns((current) => current.map((run) => (run.id === response.data.id ? response.data : run)));
@@ -331,13 +331,13 @@ export function CRMProductIngestionPage() {
   return (
     <div className="d-grid gap-4">
       <PageHeader
-        eyebrow={language === "es" ? "CRM comercial" : "Commercial CRM"}
+        eyebrow={language === "es" ? "Catálogo de productos" : "Product catalog"}
         icon="products"
         title={language === "es" ? "Ingesta de productos" : "Product ingestion"}
         description={
           language === "es"
-            ? "Captura, extracción por URL y corridas batch antes de publicar productos al catálogo CRM."
-            : "Capture, URL extraction, and batch runs before publishing products into the CRM catalog."
+            ? "Captura, extracción por URL y corridas batch antes de publicar productos al catálogo central."
+            : "Capture, URL extraction, and batch runs before publishing products into the central catalog."
         }
         actions={
           <AppToolbar compact>
@@ -350,7 +350,7 @@ export function CRMProductIngestionPage() {
           </AppToolbar>
         }
       />
-      <CRMModuleNav />
+      <ProductsModuleNav />
 
       {feedback ? <div className="alert alert-success mb-0">{feedback}</div> : null}
       {error ? (
@@ -367,25 +367,25 @@ export function CRMProductIngestionPage() {
           <MetricCard
             icon="products"
             label={language === "es" ? "Borradores" : "Drafts"}
-            value={metrics.ingestion_draft}
+            value={metrics.draft}
             hint={language === "es" ? "Pendientes de revisar" : "Pending review"}
           />
           <MetricCard
             icon="catalogs"
             label={language === "es" ? "Aprobados" : "Approved"}
-            value={metrics.ingestion_approved}
+            value={metrics.approved}
             hint={language === "es" ? "Ya publicados al catálogo" : "Already published to catalog"}
           />
           <MetricCard
             icon="focus"
             label={language === "es" ? "Descartados" : "Discarded"}
-            value={metrics.ingestion_discarded}
+            value={metrics.discarded}
             hint={language === "es" ? "Capturas no publicadas" : "Captures not published"}
           />
           <MetricCard
             icon="reports"
             label={language === "es" ? "Con URL" : "With URL"}
-            value={metrics.ingestion_with_url}
+            value={metrics.with_url}
             hint={language === "es" ? "Referencias externas declaradas" : "Declared external references"}
           />
         </div>
@@ -649,8 +649,8 @@ export function CRMProductIngestionPage() {
         title={language === "es" ? "Borradores de ingesta" : "Ingestion drafts"}
         subtitle={
           language === "es"
-            ? "Revisa, aprueba o descarta antes de mover al catálogo CRM."
-            : "Review, approve, or discard before moving to the CRM catalog."
+            ? "Revisa, aprueba o descarta antes de mover al catálogo central."
+            : "Review, approve, or discard before moving to the central catalog."
         }
         rows={rows}
         actions={

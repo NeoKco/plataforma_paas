@@ -1,5 +1,11 @@
 # CRM Changelog
 
+## 2026-04-24
+
+- `crm` deja de ser dueño público del catálogo e ingesta de productos
+- cotizaciones y plantillas pasan a consumir el módulo independiente `products`
+- las rutas públicas de catálogo e ingesta dejan de vivir en `/tenant/crm/*` y pasan a `/tenant/products/*`
+
 ## 2026-04-23
 
 - se abre el módulo `crm` como primer frente de expansión post-cierre del roadmap base

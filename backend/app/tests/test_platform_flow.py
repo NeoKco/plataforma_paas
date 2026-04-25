@@ -3694,24 +3694,8 @@ class PlatformServicesTestCase(unittest.TestCase):
         )
         self.assertIn("compatibility_policy_code", catalog["base_plan_catalog"][0])
         self.assertEqual(
-            catalog["module_subscription_catalog"][-1]["module_key"],
-            "techdocs",
-        )
-        self.assertEqual(
-            catalog["module_subscription_catalog"][-2]["module_key"],
-            "taskops",
-        )
-        self.assertEqual(
-            catalog["module_subscription_catalog"][-3]["module_key"],
-            "crm",
-        )
-        self.assertEqual(
-            catalog["module_subscription_catalog"][-4]["module_key"],
-            "chat",
-        )
-        self.assertEqual(
-            catalog["module_subscription_catalog"][-5]["module_key"],
-            "maintenance",
+            [entry["module_key"] for entry in catalog["module_subscription_catalog"][-6:]],
+            ["maintenance", "products", "chat", "crm", "taskops", "techdocs"],
         )
         self.assertIn("maintenance", catalog["maintenance_scopes"])
         self.assertIn("full_block", catalog["maintenance_access_modes"])
@@ -5107,24 +5091,8 @@ class PlatformRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(response.base_plan_catalog[0].plan_code, "base_finance")
         self.assertEqual(
-            response.module_subscription_catalog[-1].module_key,
-            "techdocs",
-        )
-        self.assertEqual(
-            response.module_subscription_catalog[-2].module_key,
-            "taskops",
-        )
-        self.assertEqual(
-            response.module_subscription_catalog[-3].module_key,
-            "crm",
-        )
-        self.assertEqual(
-            response.module_subscription_catalog[-4].module_key,
-            "chat",
-        )
-        self.assertEqual(
-            response.module_subscription_catalog[-5].module_key,
-            "maintenance",
+            [entry.module_key for entry in response.module_subscription_catalog[-6:]],
+            ["maintenance", "products", "chat", "crm", "taskops", "techdocs"],
         )
         self.assertEqual(response.ui_label_catalog["modules"]["finance"]["es"], "Finanzas")
         self.assertIsInstance(response.legacy_plan_fallback_available, bool)

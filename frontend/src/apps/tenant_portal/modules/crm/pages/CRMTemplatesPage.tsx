@@ -11,13 +11,15 @@ import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { CRMModuleNav } from "../components/common/CRMModuleNav";
 import {
+  getProductCatalogItems,
+  type ProductCatalogItem,
+} from "../../products/services/productsService";
+import {
   createCRMQuoteTemplate,
   deleteCRMQuoteTemplate,
-  getCRMProducts,
   getCRMQuoteTemplates,
   updateCRMQuoteTemplate,
   updateCRMQuoteTemplateStatus,
-  type CRMProduct,
   type CRMQuoteTemplate,
   type CRMQuoteTemplateItem,
   type CRMQuoteTemplateSection,
@@ -62,7 +64,7 @@ export function CRMTemplatesPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
   const [rows, setRows] = useState<CRMQuoteTemplate[]>([]);
-  const [products, setProducts] = useState<CRMProduct[]>([]);
+  const [products, setProducts] = useState<ProductCatalogItem[]>([]);
   const [form, setForm] = useState<CRMQuoteTemplateWriteRequest>(buildDefaultForm());
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,12 +77,19 @@ export function CRMTemplatesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [templatesResponse, productsResponse] = await Promise.all([
-        getCRMQuoteTemplates(session.accessToken),
-        getCRMProducts(session.accessToken),
-      ]);
+      const templatesResponse = await getCRMQuoteTemplates(session.accessToken);
+      let productItems: ProductCatalogItem[] = [];
+      try {
+        const productsResponse = await getProductCatalogItems(session.accessToken);
+        productItems = productsResponse.data.filter((item) => item.is_active);
+      } catch (productError) {
+        const maybeApiError = productError as ApiError;
+        if (maybeApiError?.status !== 403) {
+          throw productError;
+        }
+      }
       setRows(templatesResponse.data);
-      setProducts(productsResponse.data.filter((item) => item.is_active));
+      setProducts(productItems);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {

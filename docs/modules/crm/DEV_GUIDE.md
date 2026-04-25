@@ -1,42 +1,29 @@
 # CRM Dev Guide
 
-Guía de desarrollo del módulo `crm`.
+## Alcance del módulo
 
-## Objetivo técnico
+`crm` concentra la capa comercial:
 
-Cubrir el bloque faltante `CRM + Cotizaciones + Productos` sin mezclarlo con:
+- oportunidades
+- histórico de cierres
+- notas, actividades y adjuntos
+- plantillas de cotización
+- cotizaciones
 
-- `maintenance`
-- `finance`
-- identidad base de `business-core`
+No es dueño del catálogo técnico-comercial.  
+Ese dominio ya vive en `products`.
 
-La frontera correcta es:
+## Estructura principal
 
-- `business-core` es dueño de clientes, organizaciones, grupos sociales, contactos base y sitios
-- `crm` es dueño de:
-  - productos/servicios comerciales
-  - oportunidades
-  - detalle comercial de oportunidad
-  - cotizaciones
-  - plantillas comerciales
+- backend:
+  - `backend/app/apps/tenant_modules/crm`
+- frontend:
+  - `frontend/src/apps/tenant_portal/modules/crm`
 
-## Estructura
+## Persistencia principal
 
-- Backend:
-  - [backend/app/apps/tenant_modules/crm](/home/felipe/platform_paas/backend/app/apps/tenant_modules/crm)
-- Frontend:
-  - [frontend/src/apps/tenant_portal/modules/crm](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm)
-- Migraciones tenant:
-  - [v0040_crm_base.py](/home/felipe/platform_paas/backend/migrations/tenant/v0040_crm_base.py)
-  - [v0041_crm_expansion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0041_crm_expansion.py)
-  - [v0045_crm_product_ingestion.py](/home/felipe/platform_paas/backend/migrations/tenant/v0045_crm_product_ingestion.py)
+Tablas activas del dominio:
 
-## Modelo actual
-
-Entidades activas del módulo:
-
-- `crm_products`
-- `crm_product_characteristics`
 - `crm_opportunities`
 - `crm_opportunity_contacts`
 - `crm_opportunity_notes`
@@ -49,174 +36,41 @@ Entidades activas del módulo:
 - `crm_quote_templates`
 - `crm_quote_template_sections`
 - `crm_quote_template_items`
-- `crm_product_ingestion_drafts`
-- `crm_product_ingestion_characteristics`
 
-## Relaciones clave
+Relaciones relevantes:
 
 - `crm_opportunities.client_id -> business_clients.id`
 - `crm_quotes.client_id -> business_clients.id`
 - `crm_quotes.opportunity_id -> crm_opportunities.id`
-- `crm_quotes.template_id -> crm_quote_templates.id`
-- `crm_quote_sections.quote_id -> crm_quotes.id`
-- `crm_quote_lines.quote_id -> crm_quotes.id`
-- `crm_quote_lines.section_id -> crm_quote_sections.id`
-- `crm_quote_lines.product_id -> crm_products.id`
-- `crm_quote_template_sections.template_id -> crm_quote_templates.id`
-- `crm_quote_template_items.section_id -> crm_quote_template_sections.id`
-- `crm_quote_template_items.product_id -> crm_products.id`
-- `crm_product_ingestion_drafts.published_product_id -> crm_products.id`
-- `crm_product_ingestion_characteristics.draft_id -> crm_product_ingestion_drafts.id`
+- `crm_quote_lines.product_id -> catálogo vigente de products`
+- `crm_quote_template_items.product_id -> catálogo vigente de products`
 
-## Contrato funcional actual
+## Contratos públicos
 
-### Productos
+El módulo expone solo rutas de CRM:
 
-- CRUD completo
-- validación de unicidad por `name`
-- validación de unicidad case-insensitive por `sku`
-- características reemplazables en create/update
+- `/tenant/crm/overview`
+- `/tenant/crm/opportunities`
+- `/tenant/crm/history`
+- `/tenant/crm/quotes`
+- `/tenant/crm/templates`
 
-### Oportunidades
+Las rutas de catálogo e ingesta ya viven en `/tenant/products/*`.
 
-- CRUD completo
-- etapas controladas:
-  - `lead`
-  - `qualified`
-  - `proposal`
-  - `negotiation`
-  - `won`
-  - `lost`
-- cierre formal mediante `close_opportunity`
-- detalle rico con:
-  - contactos
-  - notas
-  - actividades
-  - adjuntos
-  - stage events
-- kanban abierto separado del histórico cerrado
+## Integración con `products`
 
-### Cotizaciones
+`crm` consume el catálogo independiente para:
 
-- CRUD completo
-- líneas libres y líneas por sección
-- plantilla opcional
-- recálculo server-side de subtotal y total
-- serialización con nombres auxiliares:
-  - cliente
-  - oportunidad
-  - plantilla
-  - producto
+- listar productos activos en cotizaciones
+- listar productos activos en plantillas
+- resolver `product_id` de líneas y secciones
 
-### Plantillas
+Si un tenant no tiene contratado `products`, `crm` sigue operando:
 
-- CRUD completo
-- toggle activa/inactiva
-- estructura por secciones
-- ítems base ligados o no al catálogo
+- con líneas libres
+- sin fallar por ausencia del catálogo
 
-### Ingesta asistida
+## Criterio de evolución
 
-- borradores de captura con `source_kind`:
-  - `manual_capture`
-  - `url_reference`
-- extracción automática por URL simple
-- corridas batch persistidas:
-  - `crm_product_ingestion_runs`
-  - `crm_product_ingestion_run_items`
-- estados controlados:
-  - `draft`
-  - `approved`
-  - `discarded`
-- estados de corrida:
-  - `queued`
-  - `running`
-  - `completed`
-  - `cancelled`
-  - `failed`
-- aprobación server-side mediante `approve_draft(...)`
-- publicación al catálogo usando `CRMProductService.create_product(...)`
-- características del borrador persistidas aparte y promovidas al producto final
-- resumen propio de ingesta para overview y página dedicada
+Cambios futuros sobre catálogo, scraping, enriquecimiento o deduplicación deben abrirse en `products`, no en `crm`.
 
-## API tenant actual
-
-Prefijo:
-
-- `/tenant/crm/*`
-
-Routers visibles:
-
-- `overview`
-- `products`
-- `opportunities`
-- `quotes`
-- `templates`
-- `product-ingestion`
-
-Endpoints relevantes extra:
-
-- `POST /tenant/crm/product-ingestion/extract-url`
-- `GET /tenant/crm/product-ingestion/runs`
-- `POST /tenant/crm/product-ingestion/runs`
-- `GET /tenant/crm/product-ingestion/runs/{id}`
-- `POST /tenant/crm/product-ingestion/runs/{id}/cancel`
-- `GET /tenant/crm/opportunities/kanban`
-- `GET /tenant/crm/opportunities/historical`
-- `GET /tenant/crm/opportunities/{id}/detail`
-- `POST /tenant/crm/opportunities/{id}/close`
-- subrecursos de oportunidad:
-  - `contacts`
-  - `notes`
-  - `activities`
-  - `attachments`
-
-## Frontend tenant actual
-
-Rutas:
-
-- `/tenant-portal/crm`
-- `/tenant-portal/crm/opportunities`
-- `/tenant-portal/crm/history`
-- `/tenant-portal/crm/ingestion`
-- `/tenant-portal/crm/quotes`
-- `/tenant-portal/crm/templates`
-- `/tenant-portal/crm/products`
-
-Piezas relevantes:
-
-- `CRMModuleNav.tsx`
-- `crmService.ts`
-- páginas CRUD específicas
-
-## Permisos
-
-- lectura:
-  - `tenant.crm.read`
-- gestión:
-  - `tenant.crm.manage`
-
-## Cobertura de regresión actual
-
-- [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
-  - reglas de productos, ingesta, corridas batch, oportunidades, cotizaciones estructuradas y plantillas
-- [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
-  - presencia e idempotencia de `0040_crm_base`, `0041_crm_expansion`, `0045_crm_product_ingestion` y `0046_crm_product_ingestion_runs`
-
-## Regla de evolución
-
-No duplicar desde `crm`:
-
-- clientes
-- organizaciones
-- grupos sociales
-- sitios
-
-Todo eso sigue resolviéndose desde `business-core`.
-
-La siguiente evolución razonable del módulo ya no es “cerrar lo básico”, sino profundizar:
-
-- render/PDF
-- plantillas visuales
-- IA comercial
-- deduplicación/enriquecimiento

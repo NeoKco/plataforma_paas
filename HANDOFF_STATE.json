@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-24T20:20:00-04:00",
+  "updated_at": "2026-04-24T22:10:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya deja `crm`, `crm ingestion`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. `crm ingestion` ya quedó convergida en staging y production también para la ola automática (`extract-url` + `runs`) bajo backup tenant previo obligatorio por carril, incluyendo `ieris-ltda` en production. El hotfix contractual de `platform-core` ya evita el fallo al contratar múltiples add-ons (`maintenance + crm`), `ieris-ltda` ya fue restaurado selectivamente al snapshot útil del 23-04-2026, y la regla de backup PostgreSQL obligatorio antes de mutar datos tenant en development, staging o production ya queda formalizada.",
-  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada, con `crm`, `taskops`, `techdocs` y `chat` institucionalizados en runtime y el siguiente salto recomendado moviéndose a `scraping de productos` sobre `crm` como siguiente frente faltante desde `ieris_app`.",
+  "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. `products` ya quedó institucionalizado como módulo independiente para catálogo técnico-comercial e ingesta asistida, y `crm` ya consume ese catálogo en vez de ser dueño público del mismo. El hotfix contractual de `platform-core` ya evita el fallo al contratar múltiples add-ons (`maintenance + crm`), `ieris-ltda` ya fue restaurado selectivamente al snapshot útil del 23-04-2026, y la regla de backup PostgreSQL obligatorio antes de mutar datos tenant en development, staging o production ya queda formalizada.",
+  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada, con `products`, `crm`, `taskops`, `techdocs` y `chat` institucionalizados en runtime y el siguiente salto recomendado moviéndose a deduplicación/enriquecimiento dentro de `products`.",
   "active_modules": [
     "platform-core",
     "finance",
@@ -12,11 +12,12 @@
     "crm",
     "taskops",
     "techdocs",
-    "chat"
+    "chat",
+    "products"
   ],
   "module_in_focus": [
-    "crm-ingestion",
-    "chat-interno",
+    "products",
+    "crm",
     "platform-core"
   ],
   "decisions_closed": [

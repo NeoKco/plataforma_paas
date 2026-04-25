@@ -4,6 +4,29 @@
 
 - fecha: 2026-04-24
 - foco operativo nuevo ya cerrado en repo y runtime:
+  - `products` ya queda terminado como módulo tenant independiente
+  - backend tenant ya expone:
+    - `/tenant/products/overview`
+    - `/tenant/products/catalog`
+    - `/tenant/products/ingestion/drafts`
+    - `/tenant/products/ingestion/extract-url`
+    - `/tenant/products/ingestion/runs`
+    - `/tenant/products/ingestion/drafts/{draft_id}/approve`
+  - frontend tenant ya publica:
+    - `Resumen`
+    - `Catálogo`
+    - `Ingesta`
+  - el módulo ya soporta:
+    - catálogo técnico-comercial reusable
+    - scraping asistido por URL
+    - corridas batch
+    - revisión previa a publicación
+    - aprobación al catálogo central
+  - decisión de dominio ya cerrada:
+    - `products` es módulo independiente
+    - `crm` ya no es dueño público del catálogo ni de la ingesta
+    - `crm` solo consume el catálogo desde `products`
+- foco operativo nuevo ya cerrado en repo y runtime:
   - `crm ingestion` ya queda terminado como expansión del módulo `crm`
   - backend tenant ya expone:
     - `/tenant/crm/product-ingestion/overview`
@@ -165,7 +188,6 @@
   - `crm` ya queda cerrado para su alcance comercial actual como primer módulo nuevo de expansión
   - backend tenant ya expone:
     - `/tenant/crm/overview`
-    - `/tenant/crm/products`
     - `/tenant/crm/opportunities`
     - `/tenant/crm/quotes`
     - `/tenant/crm/templates`
@@ -175,8 +197,7 @@
     - `Histórico`
     - `Cotizaciones`
     - `Plantillas`
-    - `Productos`
-  - el módulo ya reutiliza clientes de `business-core` y entra al catálogo contractual como add-on `crm`
+  - el módulo ya reutiliza clientes de `business-core`, consume el catálogo `products` y entra al catálogo contractual como add-on `crm`
   - validación repo:
     - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow backend.app.tests.test_crm_services backend.app.tests.test_migration_flow -v` -> `262 tests OK`
     - `cd frontend && npm run build` -> `OK`

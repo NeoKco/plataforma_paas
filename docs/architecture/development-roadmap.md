@@ -648,8 +648,13 @@ Resultado actual:
   - reportes
   - instalaciones
   - costos, visitas y sincronización con finanzas
-- la expansión posterior ya quedó iniciada con `crm`:
-  - productos con características
+- la expansión posterior ya quedó iniciada con dos dominios complementarios:
+  - `products` como catálogo técnico-comercial independiente:
+    - catálogo reusable de productos y servicios
+    - scraping/ingesta asistida
+    - revisión antes de publicación
+    - base compartida para cotizaciones y futuros proyectos
+  - `crm` como frente comercial:
   - oportunidades abiertas e históricas
   - contactos, notas, actividades y adjuntos comerciales
   - plantillas reutilizables

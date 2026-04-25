@@ -4973,3 +4973,13 @@ Resultado:
   - se restringe el default `mantencion` exclusivamente al alta nueva
   - la lectura/edición de OT existentes vuelve a usar solo el `task_type_id` persistido real
   - se agrega cobertura backend en [test_maintenance_work_order_service.py](/home/felipe/platform_paas/backend/app/tests/test_maintenance_work_order_service.py) para asegurar que `update_work_order(...)` persiste un cambio directo de tipo de tarea
+- 2026-04-24
+  - se reabre el frente de catálogo/scraping para corregir una decisión de dominio: productos ya no debe vivir nombrado ni expuesto como parte de `crm`
+  - se crea `products` como módulo tenant independiente con:
+    - rutas propias `/tenant/products/*`
+    - sidebar propia
+    - permisos `tenant.products.read/manage`
+    - add-on contractual `products`
+    - docs canónicas propias
+  - `crm` pasa a consumir el catálogo desde `products` en cotizaciones y plantillas
+  - el catálogo e ingesta quedan públicamente desacoplados de `crm` sin hacer un rename físico destructivo de persistencia en este corte

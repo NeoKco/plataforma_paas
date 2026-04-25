@@ -40,8 +40,10 @@ La idea no es duplicar toda la documentación técnica existente, sino:
   Dominio tenant transversal para clientes, empresas, contactos, sitios y taxonomias compartidas.
 - [community-core](/home/felipe/platform_paas/docs/modules/community-core/README.md)
   Dominio vertical para condominios, residentes, unidades, visitas y operacion residencial.
+- [products](/home/felipe/platform_paas/docs/modules/products/README.md)
+  Módulo tenant independiente para catálogo técnico-comercial, scraping asistido, normalización y publicación reusable desde cotizaciones, proyectos y otros dominios.
 - [crm](/home/felipe/platform_paas/docs/modules/crm/README.md)
-  Módulo comercial para productos, ingesta con extracción por URL y batch, oportunidades, histórico, plantillas y cotizaciones estructuradas apoyado sobre `business-core`.
+  Módulo comercial para oportunidades, histórico, plantillas y cotizaciones estructuradas que consume el catálogo independiente de `products` y se apoya sobre `business-core`.
 - [chat](/home/felipe/platform_paas/docs/modules/chat/README.md)
   Módulo tenant para conversaciones internas entre usuarios e hilos por contexto operativo apoyado sobre `core/users`, `business-core`, `crm`, `maintenance` y `taskops`.
 - [finance](/home/felipe/platform_paas/docs/modules/finance/README.md)

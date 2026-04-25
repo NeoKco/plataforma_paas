@@ -24,6 +24,7 @@ from app.apps.tenant_modules.products.schemas.products import (
     ProductCatalogProductCharacteristicWriteRequest,
     ProductCatalogProductCreateRequest,
     ProductCatalogProductUpdateRequest,
+    ProductCatalogStatusUpdateDraftRequest,
     ProductCatalogStatusUpdateRequest,
 )
 
@@ -53,5 +54,6 @@ __all__ = [
     "ProductCatalogProductCharacteristicWriteRequest",
     "ProductCatalogProductCreateRequest",
     "ProductCatalogProductUpdateRequest",
+    "ProductCatalogStatusUpdateDraftRequest",
     "ProductCatalogStatusUpdateRequest",
 ]

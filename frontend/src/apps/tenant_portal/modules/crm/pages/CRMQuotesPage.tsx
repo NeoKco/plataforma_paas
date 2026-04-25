@@ -16,16 +16,18 @@ import {
 } from "../../business_core/services/organizationsService";
 import { CRMModuleNav } from "../components/common/CRMModuleNav";
 import {
+  getProductCatalogItems,
+  type ProductCatalogItem,
+} from "../../products/services/productsService";
+import {
   createCRMQuote,
   deleteCRMQuote,
   getCRMOpportunities,
-  getCRMProducts,
   getCRMQuoteTemplates,
   getCRMQuotes,
   updateCRMQuote,
   updateCRMQuoteStatus,
   type CRMOpportunity,
-  type CRMProduct,
   type CRMQuote,
   type CRMQuoteLine,
   type CRMQuoteSection,
@@ -137,7 +139,7 @@ export function CRMQuotesPage() {
   const [rows, setRows] = useState<CRMQuote[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
-  const [products, setProducts] = useState<CRMProduct[]>([]);
+  const [products, setProducts] = useState<ProductCatalogItem[]>([]);
   const [opportunities, setOpportunities] = useState<CRMOpportunity[]>([]);
   const [templates, setTemplates] = useState<CRMQuoteTemplate[]>([]);
   const [form, setForm] = useState<CRMQuoteWriteRequest>(buildDefaultForm());
@@ -156,21 +158,29 @@ export function CRMQuotesPage() {
         quotesResponse,
         clientsResponse,
         organizationsResponse,
-        productsResponse,
         opportunitiesResponse,
         templatesResponse,
       ] = await Promise.all([
         getCRMQuotes(session.accessToken),
         getTenantBusinessClients(session.accessToken, { includeInactive: false }),
         getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
-        getCRMProducts(session.accessToken),
         getCRMOpportunities(session.accessToken),
         getCRMQuoteTemplates(session.accessToken),
       ]);
+      let productItems: ProductCatalogItem[] = [];
+      try {
+        const productsResponse = await getProductCatalogItems(session.accessToken);
+        productItems = productsResponse.data.filter((item) => item.is_active);
+      } catch (productError) {
+        const maybeApiError = productError as ApiError;
+        if (maybeApiError?.status !== 403) {
+          throw productError;
+        }
+      }
       setRows(quotesResponse.data);
       setClients(clientsResponse.data);
       setOrganizations(organizationsResponse.data);
-      setProducts(productsResponse.data.filter((item) => item.is_active));
+      setProducts(productItems);
       setOpportunities(opportunitiesResponse.data.filter((item) => item.is_active));
       setTemplates(templatesResponse.data.filter((item) => item.is_active));
     } catch (rawError) {

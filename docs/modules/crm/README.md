@@ -8,39 +8,29 @@ Nombre funcional visible:
 
 Estado actual:
 
-- módulo tenant ya operativo dentro del PaaS
-- backend tenant ya expone:
-  - productos con características
-  - oportunidades activas e históricas
-  - detalle comercial con contactos, notas, actividades y adjuntos
-  - plantillas comerciales reutilizables
-  - cotizaciones estructuradas con líneas libres y secciones
-- frontend tenant ya entrega lectura y captura para:
-  - `Resumen`
-  - `Ingesta`
-  - `Oportunidades`
-  - `Histórico`
-  - `Cotizaciones`
-  - `Plantillas`
-  - `Productos`
-- el módulo reutiliza `business-core` como base de clientes
-- el módulo ya entra al catálogo contractual como add-on tenant (`crm`)
+- módulo tenant operativo en repo y runtime
+- enfocado en:
+  - oportunidades abiertas e históricas
+  - contactos, notas, actividades y adjuntos comerciales
+  - plantillas de cotización
+  - cotizaciones estructuradas
+- consume:
+  - `business-core` para clientes y organizaciones
+  - `products` para catálogo técnico-comercial reusable
+- entra al catálogo contractual como add-on tenant (`crm`)
 
 Objetivo del módulo:
 
-- cubrir el frente comercial faltante respecto de `ieris_app`
-- unificar pipeline comercial, catálogo reusable, plantillas y propuestas dentro del tenant
-- dejar preparada una base seria para futuras extensiones comerciales sin mezclar conceptos con `business-core`
+- cubrir el frente comercial y de pipeline faltante respecto de `ieris_app`
+- separar correctamente:
+  - `products` = catálogo base reusable
+  - `crm` = gestión comercial y propuestas
+- dejar preparada la base para futuros `projects` sin mezclar catálogo con pipeline
 
 ## Alcance actual
 
 El módulo hoy incluye:
 
-- productos y servicios con:
-  - `sku`
-  - tipo `product/service`
-  - precio unitario
-  - características técnicas/comerciales
 - oportunidades comerciales con:
   - etapas abiertas y cerradas
   - kanban
@@ -49,12 +39,12 @@ El módulo hoy incluye:
   - notas
   - actividades
   - adjuntos
-  - historial de cambios de etapa
+  - historial de cambios
 - histórico de oportunidades cerradas
 - plantillas comerciales con:
   - secciones
   - ítems base
-  - productos del catálogo o ítems libres
+  - líneas ligadas al catálogo `products` o ítems libres
 - cotizaciones con:
   - cliente
   - oportunidad opcional
@@ -63,27 +53,17 @@ El módulo hoy incluye:
   - secciones estructuradas
   - totales recalculados
 - resumen comercial con métricas de:
-  - productos
-  - ingesta asistida
   - pipeline
   - históricas
   - cotizaciones
   - plantillas
-- ingesta de productos con:
-  - borradores manuales
-  - extracción rápida por URL
-  - corridas batch por URLs
-  - normalización mínima previa
-  - características
-  - aprobación al catálogo `crm_products`
-  - descarte y reapertura de borradores
 
 Queda fuera por ahora:
 
 - render visual avanzado de cotización
 - PDF formal/export comercial
+- workflow formal de aprobación comercial
 - IA comercial local
-- deduplicación/enriquecimiento más avanzados
 
 ## Mapa de documentos
 
@@ -97,24 +77,9 @@ Queda fuera por ahora:
   Estado del módulo y backlog posterior al cierre del alcance actual.
 - [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/crm/CHANGELOG.md)
   Hitos funcionales y técnicos del módulo.
-- [../improvements/README.md](/home/felipe/platform_paas/docs/modules/improvements/README.md)
-  Backlog transversal de mejoras sugeridas por módulo.
 
 ## Código principal
 
 - Backend: [crm](/home/felipe/platform_paas/backend/app/apps/tenant_modules/crm)
 - Frontend: [crm](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm)
 
-## Criterio de uso
-
-Si necesitas operar el módulo:
-
-- parte por [USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/crm/USER_GUIDE.md)
-
-Si necesitas modificar o extender el módulo:
-
-- parte por [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/crm/DEV_GUIDE.md)
-
-Si necesitas revisar estado y backlog posterior:
-
-- parte por [ROADMAP.md](/home/felipe/platform_paas/docs/modules/crm/ROADMAP.md)
