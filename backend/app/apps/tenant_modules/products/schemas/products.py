@@ -116,6 +116,11 @@ class ProductCatalogItemResponse(BaseModel):
     description: str | None = None
     is_active: bool
     sort_order: int
+    source_count: int = 0
+    active_source_count: int = 0
+    health_status: str = "no_source"
+    last_refresh_at: datetime | None = None
+    next_refresh_at: datetime | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
     characteristics: list[ProductCatalogProductCharacteristicItemResponse] = Field(default_factory=list)
@@ -146,6 +151,9 @@ class ProductCatalogProductSourceCreateRequest(BaseModel):
     source_url: str | None = None
     external_reference: str | None = None
     source_status: str = "active"
+    refresh_mode: str = "manual"
+    refresh_merge_policy: str = "safe_merge"
+    refresh_prompt: str | None = None
     latest_unit_price: float = 0
     currency_code: str = "CLP"
     source_summary: str | None = None
@@ -178,12 +186,17 @@ class ProductCatalogProductSourceItemResponse(BaseModel):
     external_reference: str | None = None
     source_status: str
     sync_status: str
+    refresh_mode: str
+    refresh_merge_policy: str
+    refresh_prompt: str | None = None
     latest_unit_price: float
     currency_code: str
     source_summary: str | None = None
     captured_at: datetime | None = None
     last_seen_at: datetime | None = None
     last_sync_attempt_at: datetime | None = None
+    next_refresh_at: datetime | None = None
+    last_refresh_success_at: datetime | None = None
     last_sync_error: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
@@ -265,6 +278,99 @@ class ProductCatalogConnectorSyncResponse(BaseModel):
     skipped: int
     price_updates: int
     data: list[ProductCatalogConnectorSyncItemResponse] = Field(default_factory=list)
+
+
+class ProductCatalogRefreshNowRequest(BaseModel):
+    prefer_ai: bool = True
+
+
+class ProductCatalogRefreshResultResponse(BaseModel):
+    product_id: int
+    product_name: str
+    refreshed_sources: int
+    completed_sources: int
+    error_sources: int
+    changed_fields: list[str] = Field(default_factory=list)
+    merge_policies: list[str] = Field(default_factory=list)
+    message: str | None = None
+
+
+class ProductCatalogRefreshMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    product: ProductCatalogItemResponse
+    result: ProductCatalogRefreshResultResponse
+
+
+class ProductCatalogRefreshRunCreateRequest(BaseModel):
+    scope: str = "due_sources"
+    connector_id: int | None = None
+    product_ids: list[int] = Field(default_factory=list)
+    limit: int = 100
+    prefer_ai: bool = True
+
+
+class ProductCatalogRefreshRunItemResponse(BaseModel):
+    id: int
+    run_id: int
+    product_id: int
+    product_name: str | None = None
+    product_source_id: int | None = None
+    item_status: str
+    source_url: str | None = None
+    source_label: str | None = None
+    merge_policy: str
+    used_ai_enrichment: bool
+    changed_fields: list[str] = Field(default_factory=list)
+    error_message: str | None = None
+    processed_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProductCatalogRefreshRunResponse(BaseModel):
+    id: int
+    status: str
+    scope: str
+    scope_label: str | None = None
+    connector_id: int | None = None
+    connector_name: str | None = None
+    requested_count: int
+    processed_count: int
+    completed_count: int
+    error_count: int
+    cancelled_count: int
+    prefer_ai: bool
+    created_by_user_id: int | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    cancelled_at: datetime | None = None
+    last_error: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    items: list[ProductCatalogRefreshRunItemResponse] = Field(default_factory=list)
+
+    class Config:
+        from_attributes = True
+
+
+class ProductCatalogRefreshRunsResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    total: int
+    data: list[ProductCatalogRefreshRunResponse]
+
+
+class ProductCatalogRefreshRunMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: ProductCatalogRefreshRunResponse
 
 
 class ProductCatalogComparisonSourceResponse(BaseModel):
@@ -553,3 +659,4 @@ class ProductCatalogModuleOverviewResponse(BaseModel):
     recent_prices: list[ProductCatalogPriceHistoryItemResponse] = Field(default_factory=list)
     recent_connectors: list[ProductCatalogConnectorItemResponse] = Field(default_factory=list)
     recent_comparisons: list[ProductCatalogComparisonItemResponse] = Field(default_factory=list)
+    recent_refresh_runs: list[ProductCatalogRefreshRunResponse] = Field(default_factory=list)
