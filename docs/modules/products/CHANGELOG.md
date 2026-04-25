@@ -33,6 +33,33 @@
     - `backend.app.tests.test_platform_flow` -> `239 tests OK`
     - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/connectors.py backend/app/apps/tenant_modules/products/api/serializers.py backend/app/apps/tenant_modules/products/schemas/products.py backend/app/apps/tenant_modules/products/services/connector_service.py backend/app/apps/tenant_modules/products/services/connector_sync_service.py backend/app/apps/tenant_modules/products/services/connector_validation_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py backend/migrations/tenant/v0051_products_connector_runtime_profiles.py` -> `OK`
     - `cd frontend && npm run build` -> `OK`
+  - cierre runtime confirmado:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant: `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con:
+        - `ProductsRefreshPage-CUPhbrCA.js`
+        - `ProductsOverviewPage-C2Mwn6k7.js`
+        - `ProductsSourcesPage-C9qPt9Ix.js`
+        - `ProductsConnectorsPage-XmIuByWj.js`
+        - `ProductsIngestionPage-C0rbAyMW.js`
+        - `productsService-Dg-e-pn6.js`
+        - `index-4sFadlum.js`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant: `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con:
+        - `ProductsRefreshPage-DpFfkeJu.js`
+        - `ProductsOverviewPage-D2OWfUYD.js`
+        - `ProductsSourcesPage-fwr261li.js`
+        - `ProductsConnectorsPage-CK9A201e.js`
+        - `ProductsIngestionPage-CZOqWINb.js`
+        - `productsService-BN7X9scM.js`
+        - `index-C1fEDkBT.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 - `products` cierra scheduler formal por tenant para `due_sources` y presets de conectores por proveedor:
   - nueva migración tenant:

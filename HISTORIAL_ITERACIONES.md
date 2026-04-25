@@ -45,7 +45,20 @@ Validación:
 Resultado:
 
 - `products` ya tiene un primer conector patrón reutilizable y no solo presets de proveedor
-- el siguiente paso de este frente pasa a runtime y luego a scheduler automático gobernado o más proveedores específicos
+- cierre runtime:
+  - `staging`:
+    - backup PostgreSQL tenant previo completado con `4` backups
+    - backend redeployado con `585 tests OK`
+    - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado con `ProductsRefreshPage-CUPhbrCA.js`, `ProductsOverviewPage-C2Mwn6k7.js`, `ProductsSourcesPage-C9qPt9Ix.js`, `ProductsConnectorsPage-XmIuByWj.js`, `ProductsIngestionPage-C0rbAyMW.js`, `productsService-Dg-e-pn6.js` e `index-4sFadlum.js`
+  - `production`:
+    - backup PostgreSQL tenant previo completado con `4` backups
+    - backup adicional explícito de `ieris-ltda`
+    - backend redeployado con `585 tests OK`
+    - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado con `ProductsRefreshPage-DpFfkeJu.js`, `ProductsOverviewPage-D2OWfUYD.js`, `ProductsSourcesPage-fwr261li.js`, `ProductsConnectorsPage-CK9A201e.js`, `ProductsIngestionPage-CZOqWINb.js`, `productsService-BN7X9scM.js` e `index-C1fEDkBT.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- el siguiente paso de este frente ya pasa a scheduler automático gobernado o más proveedores específicos
 
 ## 2026-04-25 - `products` cierra scheduler formal por tenant y presets por proveedor
 
