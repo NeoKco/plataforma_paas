@@ -1732,7 +1732,7 @@ function getPlanModuleLabel(
     finance: language === "es" ? "Finanzas" : "Finance",
     maintenance: language === "es" ? "Mantenciones" : "Maintenance",
     crm: language === "es" ? "CRM comercial" : "Commercial CRM",
-    taskops: language === "es" ? "TaskOps" : "TaskOps",
+    taskops: language === "es" ? "Tareas" : "Tasks",
   };
   return labels[moduleKey] || moduleKey;
 }

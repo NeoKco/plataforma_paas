@@ -43,6 +43,17 @@ class TaskOpsTaskService:
     }
     ATTACHMENT_MAX_SIZE_BYTES = 8 * 1024 * 1024
 
+    @staticmethod
+    def can_assign_tasks_to_others(context: dict | None) -> bool:
+        if not context:
+            return False
+        permissions = set(context.get("permissions", []))
+        return "tenant.taskops.assign_others" in permissions or "tenant.taskops.manage" in permissions
+
+    @classmethod
+    def can_manage_all_tasks(cls, context: dict | None) -> bool:
+        return cls.can_assign_tasks_to_others(context)
+
     def list_tasks(
         self,
         tenant_db,
@@ -53,8 +64,15 @@ class TaskOpsTaskService:
         assigned_user_id: int | None = None,
         client_id: int | None = None,
         q: str | None = None,
+        viewer_user_id: int | None = None,
+        viewer_can_manage_all: bool = True,
     ) -> list[TaskOpsTask]:
         query = tenant_db.query(TaskOpsTask)
+        if viewer_user_id and not viewer_can_manage_all:
+            query = query.filter(
+                (TaskOpsTask.assigned_user_id == viewer_user_id)
+                | (TaskOpsTask.created_by_user_id == viewer_user_id)
+            )
         if not include_inactive:
             query = query.filter(TaskOpsTask.is_active.is_(True))
         if not include_closed:
@@ -80,10 +98,22 @@ class TaskOpsTaskService:
             ).all()
         )
 
-    def list_history(self, tenant_db, *, q: str | None = None) -> list[TaskOpsTask]:
+    def list_history(
+        self,
+        tenant_db,
+        *,
+        q: str | None = None,
+        viewer_user_id: int | None = None,
+        viewer_can_manage_all: bool = True,
+    ) -> list[TaskOpsTask]:
         query = tenant_db.query(TaskOpsTask).filter(
             TaskOpsTask.status.in_(sorted(self.CLOSED_STATUSES))
         )
+        if viewer_user_id and not viewer_can_manage_all:
+            query = query.filter(
+                (TaskOpsTask.assigned_user_id == viewer_user_id)
+                | (TaskOpsTask.created_by_user_id == viewer_user_id)
+            )
         if q and q.strip():
             token = f"%{q.strip().lower()}%"
             query = query.filter(
@@ -98,14 +128,38 @@ class TaskOpsTaskService:
             ).all()
         )
 
-    def get_task(self, tenant_db, task_id: int) -> TaskOpsTask:
+    def get_task(
+        self,
+        tenant_db,
+        task_id: int,
+        *,
+        actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
+    ) -> TaskOpsTask:
         item = tenant_db.get(TaskOpsTask, task_id)
         if item is None:
             raise ValueError("Tarea no encontrada")
+        self._ensure_actor_can_access_task(
+            item,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         return item
 
-    def get_task_detail(self, tenant_db, task_id: int) -> dict:
-        task = self.get_task(tenant_db, task_id)
+    def get_task_detail(
+        self,
+        tenant_db,
+        task_id: int,
+        *,
+        actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
+    ) -> dict:
+        task = self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         return {
             "task": task,
             "comments": self.list_comments(tenant_db, task.id),
@@ -133,13 +187,26 @@ class TaskOpsTaskService:
             for status in self.KANBAN_STATUSES
         ]
 
-    def create_task(self, tenant_db, payload, *, actor_user_id: int | None = None) -> TaskOpsTask:
+    def create_task(
+        self,
+        tenant_db,
+        payload,
+        *,
+        actor_user_id: int | None = None,
+        actor_can_assign_others: bool = True,
+    ) -> TaskOpsTask:
         status = self._validate_status(payload.status)
+        assigned_user_id = self._normalize_assigned_user_id(
+            tenant_db,
+            payload.assigned_user_id,
+            actor_user_id=actor_user_id,
+            actor_can_assign_others=actor_can_assign_others,
+        )
         item = TaskOpsTask(
             client_id=self._validate_client(tenant_db, payload.client_id),
             opportunity_id=self._validate_opportunity(tenant_db, payload.opportunity_id),
             work_order_id=self._validate_work_order(tenant_db, payload.work_order_id),
-            assigned_user_id=self._validate_user(tenant_db, payload.assigned_user_id),
+            assigned_user_id=assigned_user_id,
             assigned_work_group_id=self._validate_work_group(tenant_db, payload.assigned_work_group_id),
             title=self._normalize_required(payload.title, field_name="titulo"),
             description=self._normalize_optional(payload.description),
@@ -169,14 +236,34 @@ class TaskOpsTaskService:
         tenant_db.refresh(item)
         return item
 
-    def update_task(self, tenant_db, task_id: int, payload, *, actor_user_id: int | None = None) -> TaskOpsTask:
-        item = self.get_task(tenant_db, task_id)
+    def update_task(
+        self,
+        tenant_db,
+        task_id: int,
+        payload,
+        *,
+        actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
+        actor_can_assign_others: bool = True,
+    ) -> TaskOpsTask:
+        item = self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         previous_status = item.status
         next_status = self._validate_status(payload.status)
         item.client_id = self._validate_client(tenant_db, payload.client_id)
         item.opportunity_id = self._validate_opportunity(tenant_db, payload.opportunity_id)
         item.work_order_id = self._validate_work_order(tenant_db, payload.work_order_id)
-        item.assigned_user_id = self._validate_user(tenant_db, payload.assigned_user_id)
+        item.assigned_user_id = self._normalize_assigned_user_id(
+            tenant_db,
+            payload.assigned_user_id,
+            actor_user_id=actor_user_id,
+            actor_can_assign_others=actor_can_assign_others,
+            fallback_existing_user_id=item.assigned_user_id,
+        )
         item.assigned_work_group_id = self._validate_work_group(
             tenant_db,
             payload.assigned_work_group_id,
@@ -211,8 +298,14 @@ class TaskOpsTaskService:
         *,
         notes: str | None = None,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
     ) -> TaskOpsTask:
-        item = self.get_task(tenant_db, task_id)
+        item = self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         previous_status = item.status
         next_status = self._validate_status(status)
         item.status = next_status
@@ -230,16 +323,41 @@ class TaskOpsTaskService:
         tenant_db.refresh(item)
         return item
 
-    def set_task_active(self, tenant_db, task_id: int, is_active: bool) -> TaskOpsTask:
-        item = self.get_task(tenant_db, task_id)
+    def set_task_active(
+        self,
+        tenant_db,
+        task_id: int,
+        is_active: bool,
+        *,
+        actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
+    ) -> TaskOpsTask:
+        item = self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         item.is_active = bool(is_active)
         tenant_db.add(item)
         tenant_db.commit()
         tenant_db.refresh(item)
         return item
 
-    def delete_task(self, tenant_db, task_id: int) -> TaskOpsTask:
-        item = self.get_task(tenant_db, task_id)
+    def delete_task(
+        self,
+        tenant_db,
+        task_id: int,
+        *,
+        actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
+    ) -> TaskOpsTask:
+        item = self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         attachments = self.list_attachments(tenant_db, item.id)
         absolute_paths = [self._attachments_root() / attachment.storage_key for attachment in attachments]
         tenant_db.delete(item)
@@ -265,8 +383,14 @@ class TaskOpsTaskService:
         payload,
         *,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
     ) -> TaskOpsTaskComment:
-        self.get_task(tenant_db, task_id)
+        self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         item = TaskOpsTaskComment(
             task_id=task_id,
             comment=self._normalize_required(payload.comment, field_name="comentario"),
@@ -277,8 +401,21 @@ class TaskOpsTaskService:
         tenant_db.refresh(item)
         return item
 
-    def delete_comment(self, tenant_db, task_id: int, comment_id: int) -> TaskOpsTaskComment:
-        self.get_task(tenant_db, task_id)
+    def delete_comment(
+        self,
+        tenant_db,
+        task_id: int,
+        comment_id: int,
+        *,
+        actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
+    ) -> TaskOpsTaskComment:
+        self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         item = tenant_db.get(TaskOpsTaskComment, comment_id)
         if item is None or item.task_id != task_id:
             raise ValueError("Comentario no encontrado")
@@ -305,8 +442,14 @@ class TaskOpsTaskService:
         content_bytes: bytes,
         notes: str | None = None,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
     ) -> TaskOpsTaskAttachment:
-        self.get_task(tenant_db, task_id)
+        self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         normalized_file_name = self._normalize_attachment_file_name(file_name)
         normalized_content_type = (content_type or "").strip().lower() or None
         if normalized_content_type not in self.ATTACHMENT_ALLOWED_CONTENT_TYPES:
@@ -342,8 +485,21 @@ class TaskOpsTaskService:
         tenant_db.refresh(item)
         return item
 
-    def delete_attachment(self, tenant_db, task_id: int, attachment_id: int) -> TaskOpsTaskAttachment:
-        self.get_task(tenant_db, task_id)
+    def delete_attachment(
+        self,
+        tenant_db,
+        task_id: int,
+        attachment_id: int,
+        *,
+        actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
+    ) -> TaskOpsTaskAttachment:
+        self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         item = tenant_db.get(TaskOpsTaskAttachment, attachment_id)
         if item is None or item.task_id != task_id:
             raise ValueError("Adjunto no encontrado")
@@ -354,8 +510,21 @@ class TaskOpsTaskService:
             absolute_path.unlink()
         return item
 
-    def get_attachment_file(self, tenant_db, task_id: int, attachment_id: int) -> tuple[TaskOpsTaskAttachment, Path]:
-        self.get_task(tenant_db, task_id)
+    def get_attachment_file(
+        self,
+        tenant_db,
+        task_id: int,
+        attachment_id: int,
+        *,
+        actor_user_id: int | None = None,
+        actor_can_manage_all: bool = True,
+    ) -> tuple[TaskOpsTaskAttachment, Path]:
+        self.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=actor_user_id,
+            actor_can_manage_all=actor_can_manage_all,
+        )
         item = tenant_db.get(TaskOpsTaskAttachment, attachment_id)
         if item is None or item.task_id != task_id:
             raise ValueError("Adjunto no encontrado")
@@ -448,26 +617,38 @@ class TaskOpsTaskService:
         )
         return {row_id: name for row_id, name in rows}
 
-    def build_overview_metrics(self, tenant_db) -> dict[str, int]:
-        open_total = tenant_db.query(TaskOpsTask).filter(
+    def build_overview_metrics(
+        self,
+        tenant_db,
+        *,
+        viewer_user_id: int | None = None,
+        viewer_can_manage_all: bool = True,
+    ) -> dict[str, int]:
+        base_query = tenant_db.query(TaskOpsTask)
+        if viewer_user_id and not viewer_can_manage_all:
+            base_query = base_query.filter(
+                (TaskOpsTask.assigned_user_id == viewer_user_id)
+                | (TaskOpsTask.created_by_user_id == viewer_user_id)
+            )
+        open_total = base_query.filter(
             TaskOpsTask.status.in_(sorted(self.OPEN_STATUSES)),
             TaskOpsTask.is_active.is_(True),
         ).count()
-        in_progress_total = tenant_db.query(TaskOpsTask).filter(
+        in_progress_total = base_query.filter(
             TaskOpsTask.status == "in_progress",
             TaskOpsTask.is_active.is_(True),
         ).count()
-        blocked_total = tenant_db.query(TaskOpsTask).filter(
+        blocked_total = base_query.filter(
             TaskOpsTask.status == "blocked",
             TaskOpsTask.is_active.is_(True),
         ).count()
-        due_soon_total = tenant_db.query(TaskOpsTask).filter(
+        due_soon_total = base_query.filter(
             TaskOpsTask.status.in_(sorted(self.OPEN_STATUSES)),
             TaskOpsTask.due_at.is_not(None),
             TaskOpsTask.due_at <= self._now() + timedelta(days=7),
             TaskOpsTask.is_active.is_(True),
         ).count()
-        closed_total = tenant_db.query(TaskOpsTask).filter(
+        closed_total = base_query.filter(
             TaskOpsTask.status.in_(sorted(self.CLOSED_STATUSES))
         ).count()
         return {
@@ -565,6 +746,40 @@ class TaskOpsTaskService:
         if item is None:
             raise ValueError("Usuario asignado no encontrado")
         return item.id
+
+    def _normalize_assigned_user_id(
+        self,
+        tenant_db,
+        assigned_user_id: int | None,
+        *,
+        actor_user_id: int | None,
+        actor_can_assign_others: bool,
+        fallback_existing_user_id: int | None = None,
+    ) -> int | None:
+        candidate_user_id = assigned_user_id
+        if not actor_can_assign_others:
+            if actor_user_id is None:
+                raise ValueError("No se pudo identificar al usuario actual para asignar la tarea")
+            if candidate_user_id is None:
+                candidate_user_id = fallback_existing_user_id or actor_user_id
+            if candidate_user_id != actor_user_id:
+                raise ValueError("Tu perfil actual solo permite crear o editar tareas propias")
+        return self._validate_user(tenant_db, candidate_user_id)
+
+    @staticmethod
+    def _ensure_actor_can_access_task(
+        item: TaskOpsTask,
+        *,
+        actor_user_id: int | None,
+        actor_can_manage_all: bool,
+    ) -> None:
+        if actor_can_manage_all:
+            return
+        if actor_user_id is None:
+            raise ValueError("No se pudo identificar al usuario actual")
+        if item.assigned_user_id == actor_user_id or item.created_by_user_id == actor_user_id:
+            return
+        raise ValueError("No tienes permisos para operar esta tarea")
 
     def _validate_work_group(self, tenant_db, work_group_id: int | None) -> int | None:
         if work_group_id is None:

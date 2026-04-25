@@ -20,6 +20,8 @@ export type TaskOpsTask = {
   assigned_user_display_name: string | null;
   assigned_work_group_id: number | null;
   assigned_work_group_name: string | null;
+  agenda_linked: boolean;
+  agenda_source_label: string | null;
   title: string;
   description: string | null;
   status: string;

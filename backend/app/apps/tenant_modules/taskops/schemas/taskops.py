@@ -92,6 +92,8 @@ class TaskOpsTaskItemResponse(BaseModel):
     assigned_user_display_name: str | None = None
     assigned_work_group_id: int | None = None
     assigned_work_group_name: str | None = None
+    agenda_linked: bool = False
+    agenda_source_label: str | None = None
     title: str
     description: str | None = None
     status: str
@@ -174,4 +176,3 @@ class TaskOpsModuleOverviewResponse(BaseModel):
     metrics: TaskOpsOverviewMetricsResponse
     recent_tasks: list[TaskOpsTaskItemResponse]
     recent_history: list[TaskOpsTaskItemResponse]
-

@@ -191,6 +191,114 @@ class TaskOpsServicesTestCase(unittest.TestCase):
 
         self.assertIn("Tipo de archivo no soportado", str(exc.exception))
 
+    def test_create_task_without_assign_permission_defaults_to_actor(self) -> None:
+        tenant_db = Mock()
+        tenant_db.get.side_effect = lambda model, item_id: (
+            SimpleNamespace(id=item_id) if model is User and item_id == 8 else None
+        )
+
+        added_items: list[object] = []
+
+        def add_side_effect(item) -> None:
+            added_items.append(item)
+
+        def flush_side_effect() -> None:
+            for item in added_items:
+                if isinstance(item, TaskOpsTask) and getattr(item, "id", None) is None:
+                    item.id = 88
+
+        tenant_db.add.side_effect = add_side_effect
+        tenant_db.flush.side_effect = flush_side_effect
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        service = TaskOpsTaskService()
+        created = service.create_task(
+            tenant_db,
+            TaskOpsTaskCreateRequest(
+                client_id=None,
+                opportunity_id=None,
+                work_order_id=None,
+                assigned_user_id=None,
+                assigned_work_group_id=None,
+                title="Tarea propia",
+                description=None,
+                status="todo",
+                priority="normal",
+                due_at=None,
+                is_active=True,
+                sort_order=10,
+            ),
+            actor_user_id=8,
+            actor_can_assign_others=False,
+        )
+
+        self.assertEqual(created.assigned_user_id, 8)
+
+    def test_create_task_rejects_assigning_others_without_permission(self) -> None:
+        tenant_db = Mock()
+        tenant_db.get.side_effect = lambda model, item_id: (
+            SimpleNamespace(id=item_id) if model is User and item_id in {8, 9} else None
+        )
+
+        service = TaskOpsTaskService()
+        with self.assertRaises(ValueError) as exc:
+            service.create_task(
+                tenant_db,
+                TaskOpsTaskCreateRequest(
+                    client_id=None,
+                    opportunity_id=None,
+                    work_order_id=None,
+                    assigned_user_id=9,
+                    assigned_work_group_id=None,
+                    title="Asignación no permitida",
+                    description=None,
+                    status="todo",
+                    priority="normal",
+                    due_at=None,
+                    is_active=True,
+                    sort_order=10,
+                ),
+                actor_user_id=8,
+                actor_can_assign_others=False,
+            )
+
+        self.assertIn("solo permite crear o editar tareas propias", str(exc.exception))
+
+    def test_get_task_rejects_access_to_foreign_task_without_manage_all(self) -> None:
+        task = TaskOpsTask(
+            id=91,
+            client_id=None,
+            opportunity_id=None,
+            work_order_id=None,
+            assigned_user_id=33,
+            assigned_work_group_id=None,
+            title="Tarea ajena",
+            description=None,
+            status="todo",
+            priority="normal",
+            due_at=None,
+            started_at=None,
+            completed_at=None,
+            created_by_user_id=44,
+            updated_by_user_id=None,
+            is_active=True,
+            sort_order=100,
+        )
+        tenant_db = Mock()
+        tenant_db.get.side_effect = lambda model, item_id: task if model is TaskOpsTask and item_id == 91 else None
+
+        service = TaskOpsTaskService()
+        with self.assertRaises(ValueError) as exc:
+            service.get_task(
+                tenant_db,
+                91,
+                actor_user_id=8,
+                actor_can_manage_all=False,
+            )
+
+        self.assertIn("No tienes permisos para operar esta tarea", str(exc.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

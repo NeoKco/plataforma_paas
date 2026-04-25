@@ -46,13 +46,13 @@ export function TaskOpsOverviewPage() {
   }, [session?.accessToken]);
 
   if (isLoading) {
-    return <LoadingBlock label={language === "es" ? "Cargando TaskOps..." : "Loading TaskOps..."} />;
+    return <LoadingBlock label={language === "es" ? "Cargando tareas..." : "Loading tasks..."} />;
   }
 
   if (error || !response) {
     return (
       <ErrorState
-        title={language === "es" ? "No pudimos cargar TaskOps" : "We could not load TaskOps"}
+        title={language === "es" ? "No pudimos cargar tareas" : "We could not load tasks"}
         detail={error ? getApiErrorDisplayMessage(error) : language === "es" ? "Sin respuesta del servidor." : "No response from server."}
       />
     );
@@ -65,12 +65,12 @@ export function TaskOpsOverviewPage() {
   return (
     <div className="taskops-page">
       <PageHeader
-        eyebrow={language === "es" ? "TASKOPS" : "TASKOPS"}
-        title={language === "es" ? "Tareas internas" : "Internal tasks"}
+        eyebrow={language === "es" ? "TAREAS" : "TASKS"}
+        title={language === "es" ? "Tareas" : "Tasks"}
         description={
           language === "es"
-            ? "Coordina pendientes internos con asignación, kanban, comentarios y adjuntos."
-            : "Coordinate internal work with assignment, kanban, comments and attachments."
+            ? "Coordina tareas internas, propias o asignadas, con kanban, comentarios, adjuntos e histórico."
+            : "Coordinate internal tasks, your own or assigned, with kanban, comments, attachments and history."
         }
         icon="taskops"
       />

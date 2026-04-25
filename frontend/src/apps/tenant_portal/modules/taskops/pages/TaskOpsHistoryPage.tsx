@@ -9,6 +9,7 @@ import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { TaskOpsModuleNav } from "../components/common/TaskOpsModuleNav";
+import { TaskOpsTaskModal } from "../components/common/TaskOpsTaskModal";
 import { getTaskOpsHistory, type TaskOpsTask } from "../services/taskopsService";
 
 function formatDateTime(value: string | null, language: "es" | "en") {
@@ -19,13 +20,24 @@ function formatDateTime(value: string | null, language: "es" | "en") {
   }).format(new Date(value));
 }
 
+function getStatusLabel(status: string, language: "es" | "en") {
+  const labels: Record<string, string> =
+    language === "es"
+      ? { done: "Cerrada", cancelled: "Cancelada" }
+      : { done: "Closed", cancelled: "Cancelled" };
+  return labels[status] || status;
+}
+
 export function TaskOpsHistoryPage() {
-  const { session } = useTenantAuth();
+  const { session, tenantUser } = useTenantAuth();
   const { language } = useLanguage();
   const [rows, setRows] = useState<TaskOpsTask[]>([]);
   const [query, setQuery] = useState("");
+  const [modalTaskId, setModalTaskId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
+
+  const canAssignOthers = tenantUser?.role === "admin" || tenantUser?.role === "manager";
 
   async function loadRows(search = "") {
     if (!session?.accessToken) return;
@@ -48,7 +60,7 @@ export function TaskOpsHistoryPage() {
   const visibleRows = useMemo(() => rows, [rows]);
 
   if (isLoading) {
-    return <LoadingBlock label={language === "es" ? "Cargando histórico TaskOps..." : "Loading TaskOps history..."} />;
+    return <LoadingBlock label={language === "es" ? "Cargando histórico..." : "Loading history..."} />;
   }
 
   if (error) {
@@ -63,12 +75,12 @@ export function TaskOpsHistoryPage() {
   return (
     <div className="taskops-page">
       <PageHeader
-        eyebrow="TASKOPS"
+        eyebrow={language === "es" ? "TAREAS" : "TASKS"}
         title={language === "es" ? "Histórico" : "History"}
         description={
           language === "es"
-            ? "Consulta tareas cerradas para auditoría y seguimiento operativo."
-            : "Review closed tasks for audit and operational follow-up."
+            ? "Consulta tareas cerradas con todo su detalle operativo, comentarios, adjuntos y trazabilidad."
+            : "Review closed tasks with their full operational detail, comments, attachments and traceability."
         }
         icon="tenant-history"
       />
@@ -79,8 +91,8 @@ export function TaskOpsHistoryPage() {
         title={language === "es" ? "Tareas cerradas" : "Closed tasks"}
         subtitle={
           language === "es"
-            ? "Completadas o canceladas."
-            : "Completed or cancelled."
+            ? "Completadas o canceladas, listas para revisar en detalle."
+            : "Completed or cancelled, ready for detailed review."
         }
         rows={visibleRows}
         actions={
@@ -91,18 +103,74 @@ export function TaskOpsHistoryPage() {
               onChange={(event) => setQuery(event.target.value)}
               placeholder={language === "es" ? "Buscar..." : "Search..."}
             />
-            <button className="btn btn-outline-secondary" onClick={() => void loadRows(query)}>
+            <button className="btn btn-outline-secondary" type="button" onClick={() => void loadRows(query)}>
               {language === "es" ? "Buscar" : "Search"}
             </button>
           </div>
         }
         columns={[
-          { key: "task", header: language === "es" ? "Tarea" : "Task", render: (row) => <div><strong>{row.title}</strong><div className="text-muted small">{row.description || "—"}</div></div> },
-          { key: "client", header: language === "es" ? "Cliente" : "Client", render: (row) => <div className="small">{row.client_display_name || "—"}</div> },
-          { key: "status", header: language === "es" ? "Estado final" : "Final status", render: (row) => <div className="small">{row.status}<br />{row.priority}</div> },
-          { key: "owner", header: language === "es" ? "Responsable" : "Owner", render: (row) => <div className="small">{row.assigned_user_display_name || "—"}<br />{row.assigned_work_group_name || "—"}</div> },
-          { key: "closed", header: language === "es" ? "Cierre" : "Closed", render: (row) => <div className="small">{formatDateTime(row.completed_at, language)}</div> },
+          {
+            key: "task",
+            header: language === "es" ? "Tarea" : "Task",
+            render: (row) => (
+              <div>
+                <strong>{row.title}</strong>
+                <div className="text-muted small">{row.description || "—"}</div>
+              </div>
+            ),
+          },
+          {
+            key: "client",
+            header: language === "es" ? "Cliente" : "Client",
+            render: (row) => <div className="small">{row.client_display_name || "—"}</div>,
+          },
+          {
+            key: "status",
+            header: language === "es" ? "Estado final" : "Final status",
+            render: (row) => (
+              <div className="small">
+                {getStatusLabel(row.status, language)}
+                <br />
+                {row.priority}
+              </div>
+            ),
+          },
+          {
+            key: "owner",
+            header: language === "es" ? "Responsable" : "Owner",
+            render: (row) => (
+              <div className="small">
+                {row.assigned_user_display_name || "—"}
+                <br />
+                {row.assigned_work_group_name || "—"}
+              </div>
+            ),
+          },
+          {
+            key: "closed",
+            header: language === "es" ? "Cierre" : "Closed",
+            render: (row) => <div className="small">{formatDateTime(row.completed_at, language)}</div>,
+          },
+          {
+            key: "actions",
+            header: language === "es" ? "Acciones" : "Actions",
+            render: (row) => (
+              <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => setModalTaskId(row.id)}>
+                {language === "es" ? "Ver detalle" : "View detail"}
+              </button>
+            ),
+          },
         ]}
+      />
+
+      <TaskOpsTaskModal
+        accessToken={session?.accessToken ?? null}
+        isOpen={modalTaskId !== null}
+        taskId={modalTaskId}
+        currentUserId={tenantUser?.id ?? null}
+        canAssignOthers={canAssignOthers}
+        onClose={() => setModalTaskId(null)}
+        onChanged={loadRows}
       />
     </div>
   );

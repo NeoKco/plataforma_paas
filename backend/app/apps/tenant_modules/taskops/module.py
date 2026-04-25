@@ -12,10 +12,10 @@ class TaskOpsModuleDefinition:
 
 TASKOPS_MODULE = TaskOpsModuleDefinition(
     key="taskops",
-    name="TaskOps",
+    name="Tareas",
     route_prefix="/tenant/taskops",
     tenant_portal_base_path="/tenant-portal/taskops",
     description=(
-        "Módulo tenant para tareas internas con kanban, comentarios, adjuntos e histórico."
+        "Módulo tenant para tareas internas con kanban, detalle modal, adjuntos, cierre e histórico."
     ),
 )

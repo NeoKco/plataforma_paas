@@ -8,22 +8,46 @@ import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { TaskOpsModuleNav } from "../components/common/TaskOpsModuleNav";
+import { TaskOpsTaskModal } from "../components/common/TaskOpsTaskModal";
 import {
   getTaskOpsKanban,
-  getTaskOpsTaskDetail,
-  updateTaskOpsTaskStatus,
   type TaskOpsKanbanColumn,
-  type TaskOpsTaskDetail,
 } from "../services/taskopsService";
 
+function getStatusLabel(status: string, language: "es" | "en") {
+  const labels: Record<string, string> =
+    language === "es"
+      ? {
+          backlog: "Backlog",
+          todo: "Por hacer",
+          in_progress: "En curso",
+          blocked: "Bloqueada",
+          done: "Cerrada",
+          cancelled: "Cancelada",
+        }
+      : {
+          backlog: "Backlog",
+          todo: "Todo",
+          in_progress: "In progress",
+          blocked: "Blocked",
+          done: "Closed",
+          cancelled: "Cancelled",
+        };
+  return labels[status] || status;
+}
+
 export function TaskOpsKanbanPage() {
-  const { session } = useTenantAuth();
+  const { session, tenantUser } = useTenantAuth();
   const { language } = useLanguage();
   const [columns, setColumns] = useState<TaskOpsKanbanColumn[]>([]);
-  const [detail, setDetail] = useState<TaskOpsTaskDetail | null>(null);
+  const [modalTaskId, setModalTaskId] = useState<number | null>(null);
+  const [createStatus, setCreateStatus] = useState<string>("todo");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
+
+  const canAssignOthers = tenantUser?.role === "admin" || tenantUser?.role === "manager";
 
   async function loadKanban() {
     if (!session?.accessToken) return;
@@ -39,30 +63,14 @@ export function TaskOpsKanbanPage() {
     }
   }
 
-  async function loadDetail(taskId: number) {
-    if (!session?.accessToken) return;
-    try {
-      const response = await getTaskOpsTaskDetail(session.accessToken, taskId);
-      setDetail(response.data);
-    } catch (rawError) {
-      setError(rawError as ApiError);
-    }
-  }
-
   useEffect(() => {
     void loadKanban();
   }, [session?.accessToken]);
 
-  async function moveTask(taskId: number, status: string) {
-    if (!session?.accessToken) return;
-    try {
-      const response = await updateTaskOpsTaskStatus(session.accessToken, taskId, status);
-      setFeedback(response.message);
-      await loadKanban();
-      await loadDetail(taskId);
-    } catch (rawError) {
-      setError(rawError as ApiError);
-    }
+  function openCreateModal(initial: string) {
+    setCreateStatus(initial);
+    setIsCreateModalOpen(true);
+    setFeedback(null);
   }
 
   if (isLoading) {
@@ -81,12 +89,12 @@ export function TaskOpsKanbanPage() {
   return (
     <div className="taskops-page">
       <PageHeader
-        eyebrow="TASKOPS"
+        eyebrow={language === "es" ? "TAREAS" : "TASKS"}
         title="Kanban"
         description={
           language === "es"
-            ? "Mueve tareas entre backlog, por hacer, en curso, bloqueadas y cerradas."
-            : "Move tasks between backlog, todo, in progress, blocked and done."
+            ? "Crea tareas desde el tablero y entra al detalle operativo con comentarios, adjuntos y cierre a histórico."
+            : "Create tasks from the board and open operational detail with comments, attachments and historical closure."
         }
         icon="pipeline"
       />
@@ -96,12 +104,32 @@ export function TaskOpsKanbanPage() {
 
       {feedback ? <div className="alert alert-success">{feedback}</div> : null}
 
+      <div className="taskops-kanban__toolbar">
+        <button className="btn btn-primary" type="button" onClick={() => openCreateModal("todo")}>
+          {language === "es" ? "Registrar tarea" : "Register task"}
+        </button>
+        <div className="small text-muted">
+          {language === "es"
+            ? canAssignOthers
+              ? "Tu perfil puede crear tareas propias y asignarlas a otros usuarios."
+              : "Tu perfil puede crear tareas propias; la asignación a otros usuarios depende de permisos."
+            : canAssignOthers
+              ? "Your profile can create tasks and assign them to other users."
+              : "Your profile can create your own tasks; assigning others depends on permissions."}
+        </div>
+      </div>
+
       <div className="taskops-kanban">
         {columns.map((column) => (
           <div className="taskops-kanban__column" key={column.status}>
             <div className="taskops-kanban__column-header">
-              <strong>{column.status}</strong>
-              <span>{column.total}</span>
+              <div>
+                <strong>{getStatusLabel(column.status, language)}</strong>
+                <div className="small text-muted">{column.total}</div>
+              </div>
+              <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => openCreateModal(column.status)}>
+                {language === "es" ? "Nueva" : "New"}
+              </button>
             </div>
             <div className="taskops-kanban__list">
               {column.items.map((item) => (
@@ -109,11 +137,16 @@ export function TaskOpsKanbanPage() {
                   type="button"
                   key={item.id}
                   className="taskops-kanban__card"
-                  onClick={() => void loadDetail(item.id)}
+                  onClick={() => setModalTaskId(item.id)}
                 >
                   <strong>{item.title}</strong>
                   <div className="small text-muted">{item.client_display_name || "—"}</div>
                   <div className="small">{item.assigned_user_display_name || "—"}</div>
+                  {item.agenda_linked ? (
+                    <div className="small taskops-linked-badge">
+                      {language === "es" ? "Ligada a agenda" : "Agenda linked"}
+                    </div>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -121,32 +154,26 @@ export function TaskOpsKanbanPage() {
         ))}
       </div>
 
-      {detail ? (
-        <div className="panel-card">
-          <div className="panel-card__header">
-            <h2 className="panel-card__title">{detail.task.title}</h2>
-          </div>
-          <div className="taskops-detail-grid">
-            <div>
-              <div className="small text-muted">{detail.task.description || "—"}</div>
-              <div className="small mt-2">
-                {language === "es" ? "Cliente" : "Client"}: {detail.task.client_display_name || "—"}
-              </div>
-              <div className="small">
-                {language === "es" ? "Responsable" : "Owner"}: {detail.task.assigned_user_display_name || "—"}
-              </div>
-            </div>
-            <div className="d-flex flex-wrap gap-2 align-items-start">
-              <button className="btn btn-outline-secondary btn-sm" onClick={() => void moveTask(detail.task.id, "backlog")}>Backlog</button>
-              <button className="btn btn-outline-secondary btn-sm" onClick={() => void moveTask(detail.task.id, "todo")}>{language === "es" ? "Por hacer" : "Todo"}</button>
-              <button className="btn btn-outline-primary btn-sm" onClick={() => void moveTask(detail.task.id, "in_progress")}>{language === "es" ? "En curso" : "In progress"}</button>
-              <button className="btn btn-outline-warning btn-sm" onClick={() => void moveTask(detail.task.id, "blocked")}>{language === "es" ? "Bloqueada" : "Blocked"}</button>
-              <button className="btn btn-outline-success btn-sm" onClick={() => void moveTask(detail.task.id, "done")}>{language === "es" ? "Completar" : "Done"}</button>
-              <button className="btn btn-outline-danger btn-sm" onClick={() => void moveTask(detail.task.id, "cancelled")}>{language === "es" ? "Cancelar" : "Cancel"}</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <TaskOpsTaskModal
+        accessToken={session?.accessToken ?? null}
+        isOpen={isCreateModalOpen}
+        taskId={null}
+        currentUserId={tenantUser?.id ?? null}
+        canAssignOthers={canAssignOthers}
+        initialStatus={createStatus}
+        onClose={() => setIsCreateModalOpen(false)}
+        onChanged={loadKanban}
+      />
+
+      <TaskOpsTaskModal
+        accessToken={session?.accessToken ?? null}
+        isOpen={modalTaskId !== null}
+        taskId={modalTaskId}
+        currentUserId={tenantUser?.id ?? null}
+        canAssignOthers={canAssignOthers}
+        onClose={() => setModalTaskId(null)}
+        onChanged={loadKanban}
+      />
     </div>
   );
 }

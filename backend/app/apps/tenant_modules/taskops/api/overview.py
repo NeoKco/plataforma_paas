@@ -23,14 +23,25 @@ def get_taskops_module_overview(
     current_user=Depends(require_taskops_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsModuleOverviewResponse:
+    viewer_can_manage_all = task_service.can_manage_all_tasks(current_user)
     recent_tasks = task_service.list_tasks(
         tenant_db,
         include_inactive=False,
         include_closed=False,
+        viewer_user_id=current_user["user_id"],
+        viewer_can_manage_all=viewer_can_manage_all,
     )[:5]
-    recent_history = task_service.list_history(tenant_db)[:5]
+    recent_history = task_service.list_history(
+        tenant_db,
+        viewer_user_id=current_user["user_id"],
+        viewer_can_manage_all=viewer_can_manage_all,
+    )[:5]
     maps = task_service.get_reference_maps(tenant_db, recent_tasks + recent_history)
-    metrics = overview_service.build_overview(tenant_db)
+    metrics = overview_service.build_overview(
+        tenant_db,
+        viewer_user_id=current_user["user_id"],
+        viewer_can_manage_all=viewer_can_manage_all,
+    )
     return TaskOpsModuleOverviewResponse(
         success=True,
         message="Resumen TaskOps recuperado correctamente",

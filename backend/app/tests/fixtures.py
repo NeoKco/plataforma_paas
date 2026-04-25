@@ -64,6 +64,8 @@ def build_tenant_context(
                 "tenant.maintenance.read",
                 "tenant.maintenance.manage",
                 "tenant.taskops.read",
+                "tenant.taskops.create_own",
+                "tenant.taskops.assign_others",
                 "tenant.taskops.manage",
             ],
             "manager": [
@@ -79,6 +81,8 @@ def build_tenant_context(
                 "tenant.maintenance.read",
                 "tenant.maintenance.manage",
                 "tenant.taskops.read",
+                "tenant.taskops.create_own",
+                "tenant.taskops.assign_others",
                 "tenant.taskops.manage",
             ],
             "operator": [
@@ -88,6 +92,7 @@ def build_tenant_context(
                 "tenant.crm.read",
                 "tenant.maintenance.read",
                 "tenant.taskops.read",
+                "tenant.taskops.create_own",
             ],
         }
         permissions = permissions_by_role.get(role, [])

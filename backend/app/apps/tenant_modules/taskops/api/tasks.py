@@ -10,6 +10,7 @@ from app.apps.tenant_modules.taskops.api.serializers import (
 )
 from app.apps.tenant_modules.taskops.dependencies import (
     build_taskops_requested_by,
+    require_taskops_create_own,
     require_taskops_manage,
     require_taskops_read,
 )
@@ -32,6 +33,14 @@ from app.common.db.session_manager import get_tenant_db
 
 router = APIRouter(prefix="/tenant/taskops/tasks", tags=["Tenant TaskOps"])
 service = TaskOpsTaskService()
+
+
+def _actor_can_manage_all(current_user: dict) -> bool:
+    return service.can_manage_all_tasks(current_user)
+
+
+def _actor_can_assign_others(current_user: dict) -> bool:
+    return service.can_assign_tasks_to_others(current_user)
 
 
 def _build_detail(tenant_db, detail: dict) -> TaskOpsTaskDetailItemResponse:
@@ -65,14 +74,16 @@ def list_taskops_tasks(
 ) -> TaskOpsTasksResponse:
     try:
         rows = service.list_tasks(
-            tenant_db,
-            include_inactive=include_inactive,
-            include_closed=include_closed,
-            status=status,
-            assigned_user_id=assigned_user_id,
-            client_id=client_id,
-            q=q,
-        )
+        tenant_db,
+        include_inactive=include_inactive,
+        include_closed=include_closed,
+        status=status,
+        assigned_user_id=assigned_user_id,
+        client_id=client_id,
+        q=q,
+        viewer_user_id=current_user["user_id"],
+        viewer_can_manage_all=_actor_can_manage_all(current_user),
+    )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     maps = service.get_reference_maps(tenant_db, rows)
@@ -91,7 +102,31 @@ def get_taskops_kanban(
     current_user=Depends(require_taskops_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsKanbanResponse:
-    columns = service.list_kanban_columns(tenant_db, include_inactive=include_inactive)
+    columns = service.list_kanban_columns(
+        tenant_db,
+        include_inactive=include_inactive,
+    )
+    if not _actor_can_manage_all(current_user):
+        columns = [
+            {
+                **column,
+                "items": [
+                    item
+                    for item in column["items"]
+                    if item.assigned_user_id == current_user["user_id"]
+                    or item.created_by_user_id == current_user["user_id"]
+                ],
+                "total": len(
+                    [
+                        item
+                        for item in column["items"]
+                        if item.assigned_user_id == current_user["user_id"]
+                        or item.created_by_user_id == current_user["user_id"]
+                    ]
+                ),
+            }
+            for column in columns
+        ]
     maps = service.get_reference_maps(
         tenant_db,
         [item for column in columns for item in column["items"]],
@@ -117,7 +152,12 @@ def list_taskops_history(
     current_user=Depends(require_taskops_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsTasksResponse:
-    rows = service.list_history(tenant_db, q=q)
+    rows = service.list_history(
+        tenant_db,
+        q=q,
+        viewer_user_id=current_user["user_id"],
+        viewer_can_manage_all=_actor_can_manage_all(current_user),
+    )
     maps = service.get_reference_maps(tenant_db, rows)
     return TaskOpsTasksResponse(
         success=True,
@@ -131,11 +171,16 @@ def list_taskops_history(
 @router.post("", response_model=TaskOpsTaskMutationResponse)
 def create_taskops_task(
     payload: TaskOpsTaskCreateRequest,
-    current_user=Depends(require_taskops_manage),
+    current_user=Depends(require_taskops_create_own),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsTaskMutationResponse:
     try:
-        item = service.create_task(tenant_db, payload, actor_user_id=current_user.user_id)
+        item = service.create_task(
+            tenant_db,
+            payload,
+            actor_user_id=current_user["user_id"],
+            actor_can_assign_others=_actor_can_assign_others(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     maps = service.get_reference_maps(tenant_db, [item])
@@ -154,7 +199,12 @@ def get_taskops_task(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsTaskMutationResponse:
     try:
-        item = service.get_task(tenant_db, task_id)
+        item = service.get_task(
+            tenant_db,
+            task_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     maps = service.get_reference_maps(tenant_db, [item])
@@ -173,7 +223,12 @@ def get_taskops_task_detail(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsTaskDetailResponse:
     try:
-        detail = service.get_task_detail(tenant_db, task_id)
+        detail = service.get_task_detail(
+            tenant_db,
+            task_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return TaskOpsTaskDetailResponse(
@@ -188,11 +243,18 @@ def get_taskops_task_detail(
 def update_taskops_task(
     task_id: int,
     payload: TaskOpsTaskUpdateRequest,
-    current_user=Depends(require_taskops_manage),
+    current_user=Depends(require_taskops_create_own),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsTaskMutationResponse:
     try:
-        item = service.update_task(tenant_db, task_id, payload, actor_user_id=current_user.user_id)
+        item = service.update_task(
+            tenant_db,
+            task_id,
+            payload,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+            actor_can_assign_others=_actor_can_assign_others(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     maps = service.get_reference_maps(tenant_db, [item])
@@ -208,7 +270,7 @@ def update_taskops_task(
 def update_taskops_task_status(
     task_id: int,
     payload: TaskOpsStatusUpdateRequest,
-    current_user=Depends(require_taskops_manage),
+    current_user=Depends(require_taskops_create_own),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsTaskMutationResponse:
     try:
@@ -217,7 +279,8 @@ def update_taskops_task_status(
             task_id,
             payload.status,
             notes=payload.notes,
-            actor_user_id=current_user.user_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -234,11 +297,17 @@ def update_taskops_task_status(
 def update_taskops_task_active(
     task_id: int,
     payload: TaskOpsActiveStatusRequest,
-    current_user=Depends(require_taskops_manage),
+    current_user=Depends(require_taskops_create_own),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsTaskMutationResponse:
     try:
-        item = service.set_task_active(tenant_db, task_id, payload.is_active)
+        item = service.set_task_active(
+            tenant_db,
+            task_id,
+            payload.is_active,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     maps = service.get_reference_maps(tenant_db, [item])
@@ -253,11 +322,16 @@ def update_taskops_task_active(
 @router.delete("/{task_id}", response_model=TaskOpsTaskMutationResponse)
 def delete_taskops_task(
     task_id: int,
-    current_user=Depends(require_taskops_manage),
+    current_user=Depends(require_taskops_create_own),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsTaskMutationResponse:
     try:
-        item = service.delete_task(tenant_db, task_id)
+        item = service.delete_task(
+            tenant_db,
+            task_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     maps = service.get_reference_maps(tenant_db, [item])
@@ -273,12 +347,23 @@ def delete_taskops_task(
 def create_taskops_task_comment(
     task_id: int,
     payload: TaskOpsCommentWriteRequest,
-    current_user=Depends(require_taskops_manage),
+    current_user=Depends(require_taskops_create_own),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsSubresourceMutationResponse:
     try:
-        service.create_comment(tenant_db, task_id, payload, actor_user_id=current_user.user_id)
-        detail = service.get_task_detail(tenant_db, task_id)
+        service.create_comment(
+            tenant_db,
+            task_id,
+            payload,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
+        detail = service.get_task_detail(
+            tenant_db,
+            task_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return TaskOpsSubresourceMutationResponse(
@@ -293,12 +378,23 @@ def create_taskops_task_comment(
 def delete_taskops_task_comment(
     task_id: int,
     comment_id: int,
-    current_user=Depends(require_taskops_manage),
+    current_user=Depends(require_taskops_create_own),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsSubresourceMutationResponse:
     try:
-        service.delete_comment(tenant_db, task_id, comment_id)
-        detail = service.get_task_detail(tenant_db, task_id)
+        service.delete_comment(
+            tenant_db,
+            task_id,
+            comment_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
+        detail = service.get_task_detail(
+            tenant_db,
+            task_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return TaskOpsSubresourceMutationResponse(
@@ -314,7 +410,7 @@ async def create_taskops_task_attachment(
     task_id: int,
     file: UploadFile = File(...),
     notes: str | None = Form(default=None),
-    current_user=Depends(require_taskops_manage),
+    current_user=Depends(require_taskops_create_own),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsSubresourceMutationResponse:
     try:
@@ -326,9 +422,15 @@ async def create_taskops_task_attachment(
             content_type=file.content_type,
             content_bytes=content_bytes,
             notes=notes,
-            actor_user_id=current_user.user_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
         )
-        detail = service.get_task_detail(tenant_db, task_id)
+        detail = service.get_task_detail(
+            tenant_db,
+            task_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return TaskOpsSubresourceMutationResponse(
@@ -343,12 +445,23 @@ async def create_taskops_task_attachment(
 def delete_taskops_task_attachment(
     task_id: int,
     attachment_id: int,
-    current_user=Depends(require_taskops_manage),
+    current_user=Depends(require_taskops_create_own),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> TaskOpsSubresourceMutationResponse:
     try:
-        service.delete_attachment(tenant_db, task_id, attachment_id)
-        detail = service.get_task_detail(tenant_db, task_id)
+        service.delete_attachment(
+            tenant_db,
+            task_id,
+            attachment_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
+        detail = service.get_task_detail(
+            tenant_db,
+            task_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return TaskOpsSubresourceMutationResponse(
@@ -367,7 +480,13 @@ def download_taskops_task_attachment(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FileResponse:
     try:
-        item, absolute_path = service.get_attachment_file(tenant_db, task_id, attachment_id)
+        item, absolute_path = service.get_attachment_file(
+            tenant_db,
+            task_id,
+            attachment_id,
+            actor_user_id=current_user["user_id"],
+            actor_can_manage_all=_actor_can_manage_all(current_user),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     media_type = item.content_type or "application/octet-stream"

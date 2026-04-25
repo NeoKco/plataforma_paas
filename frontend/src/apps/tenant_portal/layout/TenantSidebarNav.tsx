@@ -52,7 +52,7 @@ export function TenantSidebarNav() {
     },
     {
       to: "/tenant-portal/taskops",
-      label: language === "es" ? "TaskOps" : "TaskOps",
+      label: language === "es" ? "Tareas" : "Tasks",
       icon: "taskops" as AppIconName,
       visible: isTenantPortalSectionVisible(tenantInfo, "taskops"),
     },

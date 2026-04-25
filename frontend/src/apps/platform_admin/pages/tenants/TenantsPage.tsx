@@ -6324,7 +6324,7 @@ function getTenantPlanModuleLabel(moduleKey: string): string {
     maintenance: language === "es" ? "Mantenciones" : "Maintenance",
     crm: language === "es" ? "CRM comercial" : "Commercial CRM",
     products: language === "es" ? "Catálogo de productos" : "Product catalog",
-    taskops: language === "es" ? "TaskOps" : "TaskOps",
+    taskops: language === "es" ? "Tareas" : "Tasks",
   };
 
   return labels[moduleKey] || moduleKey;
