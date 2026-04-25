@@ -183,21 +183,27 @@
     - `Kanban`
     - `Histórico`
   - el módulo ya soporta:
+    - nombre visible `Tareas`
+    - lectura de tareas propias/asignadas según perfil
+    - creación de tareas propias sin gestión global
+    - asignación a otros usuarios solo con permiso específico
+    - creación rápida desde `Kanban`
+    - detalle modal desde tablero, listado e histórico
     - comentarios
     - adjuntos con descarga
+    - cierre con confirmación y paso a histórico
     - trazabilidad de cambios de estado
     - referencias cruzadas a cliente, oportunidad, OT, usuario y grupo de trabajo
   - el módulo ya entra al catálogo contractual como add-on `taskops`
   - validación repo:
-    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_taskops_services backend.app.tests.test_migration_flow -v` -> `21 tests OK`
-    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow backend.app.tests.test_tenant_flow -v` -> `335 tests OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_taskops_services -v` -> `7 tests OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow -v` -> `239 tests OK`
     - `cd frontend && npm run build` -> `OK`
   - validación runtime:
-    - backup PostgreSQL tenant previo ejecutado en `staging` y `production` antes de converger `0042_taskops_base`
-    - `staging` backend redeployado con `582 tests OK`, convergencia `processed=4, synced=4, failed=0`
-    - `production` backend redeployado con `582 tests OK`, convergencia `processed=4, synced=4, failed=0`
-    - `staging` publicado con `TaskOpsOverviewPage-rlZhmAVt.js`, `TaskOpsHistoryPage-CcAehJVR.js`, `TaskOpsKanbanPage-ApSgXgqs.js`, `TaskOpsTasksPage-DgEFxY71.js`, `taskopsService-AREnSosS.js`, `TenantsPage-CyTcV9O4.js`, `SettingsPage-D_j7BFu8.js` e `index-CeKZzb_n.js`
-    - `production` publicado con `TaskOpsOverviewPage-rlZhmAVt.js`, `TaskOpsHistoryPage-CcAehJVR.js`, `TaskOpsKanbanPage-ApSgXgqs.js`, `TaskOpsTasksPage-DgEFxY71.js`, `taskopsService-AREnSosS.js`, `TenantsPage-CyTcV9O4.js`, `SettingsPage-D_j7BFu8.js` e `index-CeKZzb_n.js`
+    - `staging` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `production` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+    - `staging` publicado con `TaskOpsOverviewPage-B9dr5rvc.js`, `TaskOpsHistoryPage-DDGipaTh.js`, `TaskOpsKanbanPage-BR7g0zM3.js`, `TaskOpsTasksPage-Dk5s0IOc.js`, `TaskOpsTaskModal-D0V4ZWBe.js`, `taskopsService-Z_8NLxsj.js`, `SettingsPage-wE85qLRp.js`, `TenantsPage-CHYNd3C9.js` e `index-691x-fZ4.js`
+    - `production` publicado con `TaskOpsOverviewPage-CfhNewsb.js`, `TaskOpsHistoryPage-4Qc7RPuF.js`, `TaskOpsKanbanPage-CNezdXBT.js`, `TaskOpsTasksPage-BijoHpxY.js`, `TaskOpsTaskModal-CoWlkBQD.js`, `taskopsService-B0oGUSrE.js`, `SettingsPage-DjAUzIYr.js`, `TenantsPage-DKEKUjQ2.js` e `index-D3Tz-VFD.js`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - regla operativa nueva formalizada:
   - antes de modificar datos de cualquier tenant en `development`, `staging` o `production`, ya queda obligatorio tomar backup PostgreSQL del tenant afectado

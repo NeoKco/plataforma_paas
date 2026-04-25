@@ -10,6 +10,13 @@
     - deduplicación accionable
     - enriquecimiento técnico más profundo
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
+  - `taskops` ya consolida además:
+    - nombre visible `Tareas`
+    - creación propia por operador
+    - asignación a terceros solo por permiso
+    - creación rápida desde `Kanban`
+    - detalle modal reutilizable
+    - cierre con confirmación hacia `Histórico`
   - `techdocs` ya queda cerrado para su alcance operativo actual en runtime
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
   - no conviene reabrir `taskops`, `techdocs` ni `chat` por inercia salvo expansión explícita

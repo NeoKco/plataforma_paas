@@ -382,6 +382,64 @@ Resultado:
 - `taskops` deja de ser propuesta y pasa a módulo tenant cerrado para su alcance actual
 - el siguiente paso ya no es “terminar TaskOps”, sino elegir el próximo módulo faltante; la recomendación actual pasa a `Expediente técnico`
 
+## 2026-04-24 - `taskops` se refina y se consolida como `Tareas`
+
+Contexto:
+
+- el módulo ya existía y estaba publicado, pero faltaba alinear su operación con el uso real esperado:
+  - tareas propias por usuario
+  - asignación a terceros solo por perfil funcional
+  - creación rápida desde `Kanban`
+  - detalle modal completo
+  - cierre con confirmación hacia `Histórico`
+
+Cambios:
+
+- nombre visible consolidado como `Tareas`
+- backend:
+  - separación de permisos:
+    - `tenant.taskops.read`
+    - `tenant.taskops.create_own`
+    - `tenant.taskops.assign_others`
+    - `tenant.taskops.manage`
+  - los perfiles sin `assign_others` ya crean tareas propias por defecto y no pueden reasignarlas a otro usuario
+  - overview, listados, histórico, detalle, comentarios y adjuntos ya filtran tareas propias/creadas cuando el usuario no tiene gestión global
+  - el detalle de tarea ya expone si la tarea está ligada a agenda por OT de `maintenance`
+- frontend:
+  - `Kanban` pasa a ser superficie principal de creación rápida
+  - pinchar una tarjeta abre modal con:
+    - detalle
+    - edición
+    - comentarios
+    - adjuntos
+    - borrado
+    - cierre con confirmación
+  - `Histórico` reutiliza el mismo modal para lectura completa de tareas cerradas
+- documentación canónica de `taskops` ya reescrita al comportamiento real del módulo
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_taskops_services` -> `7 tests OK`
+  - `backend.app.tests.test_platform_flow` -> `239 tests OK`
+  - `python3 -m py_compile backend/app/apps/tenant_modules/taskops/...` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+- runtime:
+  - `staging` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado con `TaskOpsOverviewPage-B9dr5rvc.js`, `TaskOpsHistoryPage-DDGipaTh.js`, `TaskOpsKanbanPage-BR7g0zM3.js`, `TaskOpsTasksPage-Dk5s0IOc.js`, `TaskOpsTaskModal-D0V4ZWBe.js`, `taskopsService-Z_8NLxsj.js`, `SettingsPage-wE85qLRp.js`, `TenantsPage-CHYNd3C9.js` e `index-691x-fZ4.js`
+  - `production` frontend publicado con `TaskOpsOverviewPage-CfhNewsb.js`, `TaskOpsHistoryPage-4Qc7RPuF.js`, `TaskOpsKanbanPage-CNezdXBT.js`, `TaskOpsTasksPage-BijoHpxY.js`, `TaskOpsTaskModal-CoWlkBQD.js`, `taskopsService-B0oGUSrE.js`, `SettingsPage-DjAUzIYr.js`, `TenantsPage-DKEKUjQ2.js` e `index-D3Tz-VFD.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+Resultado:
+
+- `taskops` ya queda cerrado también en su flujo refinado real como `Tareas`
+- lo siguiente sobre este módulo ya es expansión explícita:
+  - subtareas
+  - checklists
+  - SLA
+  - automatizaciones
+
 ## 2026-04-24 - se formaliza regla de backup obligatorio previo a mutaciones tenant
 
 Contexto:
