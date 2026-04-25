@@ -1,4 +1,4 @@
-# TaskOps Dev Guide
+# Tareas Dev Guide
 
 Guía de desarrollo del módulo `taskops`.
 
@@ -11,6 +11,8 @@ Cubrir el bloque faltante de tareas internas con:
 - comentarios
 - adjuntos
 - histórico
+- permisos separados para tarea propia vs asignación a otros
+- detalle modal reutilizable entre vistas
 
 sin mezclarlo con:
 
@@ -67,6 +69,7 @@ Nota:
 ### Tareas
 
 - CRUD completo
+- lectura restringida a tareas propias/creadas cuando el usuario no tiene gestión global
 - estados controlados:
   - `backlog`
   - `todo`
@@ -83,6 +86,13 @@ Nota:
   - `started_at` al entrar en `in_progress`
   - `completed_at` al cerrar en `done` o `cancelled`
 - reactivación limpia al volver a estado abierto
+- si el actor no puede asignar a otros:
+  - la creación nueva cae a `assigned_user_id = actor_user_id`
+  - no puede reasignar a otro usuario
+- el detalle expone:
+  - `agenda_linked`
+  - `agenda_source_label`
+  para mostrar si la tarea está ligada a agenda vía OT
 
 ### Comentarios
 
@@ -110,6 +120,7 @@ Nota:
   - bloqueadas
   - por vencer
   - cerradas
+- para usuarios sin gestión global, el overview filtra solo tareas propias/creadas
 
 ## API tenant actual
 
@@ -144,6 +155,7 @@ Piezas relevantes:
 
 - `TaskOpsModuleNav.tsx`
 - `taskopsService.ts`
+- `TaskOpsTaskModal.tsx`
 - páginas:
   - `TaskOpsOverviewPage.tsx`
   - `TaskOpsTasksPage.tsx`
@@ -154,8 +166,19 @@ Piezas relevantes:
 
 - lectura:
   - `tenant.taskops.read`
-- gestión:
+- creación propia:
+  - `tenant.taskops.create_own`
+- asignación a otros:
+  - `tenant.taskops.assign_others`
+- gestión global:
   - `tenant.taskops.manage`
+
+Lectura práctica:
+
+- `read` habilita visibilidad del módulo
+- `create_own` permite crear y operar tareas propias
+- `assign_others` permite asignar o reasignar a otros usuarios
+- `manage` habilita lectura/operación global sobre todas las tareas del tenant
 
 ## Contrato comercial y dependencias
 
@@ -174,6 +197,8 @@ Razón:
 
 - [test_taskops_services.py](/home/felipe/platform_paas/backend/app/tests/test_taskops_services.py)
   - reglas de estados y adjuntos
+  - tarea propia por defecto para perfiles sin asignación a otros
+  - bloqueo de acceso a tareas ajenas sin gestión global
 - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
   - presencia e idempotencia de `0042_taskops_base`
 - [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py)

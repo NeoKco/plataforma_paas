@@ -1,4 +1,4 @@
-# TaskOps API Reference
+# Tareas API Reference
 
 Referencia resumida del módulo `taskops`.
 
@@ -29,6 +29,10 @@ Notas:
   - `assigned_user_id`
   - `client_id`
   - `q`
+- si el actor no tiene gestión global, el backend filtra solo tareas propias o creadas por ese usuario
+- `POST` y `PUT` respetan permisos separados:
+  - `tenant.taskops.create_own`
+  - `tenant.taskops.assign_others`
 
 ## Kanban
 
@@ -38,6 +42,7 @@ Notas:
 
 - soporta `include_inactive`
 - no muestra `cancelled` como columna abierta del tablero
+- es el punto principal de creación rápida en la UI
 
 ## History
 
@@ -47,6 +52,7 @@ Notas:
 
 - lista tareas cerradas
 - soporta filtro `q`
+- el detalle de una tarea histórica se sigue leyendo por `GET /tenant/taskops/tasks/{task_id}/detail`
 
 ## Task Comments
 
@@ -73,5 +79,9 @@ Restricciones actuales:
 
 - lectura:
   - `tenant.taskops.read`
-- escritura:
+- escritura propia:
+  - `tenant.taskops.create_own`
+- asignación a otros:
+  - `tenant.taskops.assign_others`
+- gestión global:
   - `tenant.taskops.manage`

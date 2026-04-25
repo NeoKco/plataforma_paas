@@ -1,16 +1,17 @@
-# TaskOps Module
+# Tareas Module
 
 Documentación canónica del módulo `taskops`.
 
 Nombre funcional visible:
 
-- `TaskOps`
+- `Tareas`
 
 Estado actual:
 
 - módulo tenant ya operativo dentro del PaaS
 - backend tenant ya expone:
-  - tareas internas
+  - tareas internas propias o asignadas
+  - permisos separados para crear tareas propias o asignarlas a otros
   - kanban por estado
   - histórico cerrado
   - comentarios
@@ -21,6 +22,7 @@ Estado actual:
   - `Tareas`
   - `Kanban`
   - `Histórico`
+- el detalle operativo ya vive en modal desde `Tareas`, `Kanban` e `Histórico`
 - el módulo reutiliza `business-core` para clientes y grupos de trabajo
 - el módulo puede referenciar también:
   - oportunidades de `crm`
@@ -50,6 +52,10 @@ El módulo hoy incluye:
   - fecha compromiso
   - estado operativo
   - orden manual
+- creación rápida desde `Kanban`
+- apertura de detalle por modal al pinchar la tarea
+- cierre con confirmación y envío a `Histórico`
+- visibilidad de vínculo con agenda cuando la tarea referencia una OT de `maintenance`
 - kanban visible sobre estados abiertos:
   - `backlog`
   - `todo`
@@ -68,6 +74,13 @@ El módulo hoy incluye:
   - bloqueadas
   - por vencer
   - cerradas
+
+Permisos visibles del módulo:
+
+- `tenant.taskops.read`
+- `tenant.taskops.create_own`
+- `tenant.taskops.assign_others`
+- `tenant.taskops.manage`
 
 Queda fuera por ahora:
 

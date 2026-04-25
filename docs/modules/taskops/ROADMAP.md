@@ -1,4 +1,4 @@
-# TaskOps Roadmap
+# Tareas Roadmap
 
 Estado del módulo `taskops`.
 
@@ -9,7 +9,10 @@ Estado del módulo `taskops`.
 El módulo ya cubre:
 
 - tareas internas con referencias cruzadas a cliente, oportunidad y OT
-- kanban por estado
+- visibilidad de tareas propias o asignadas según perfil
+- asignación a otros usuarios solo para perfiles autorizados
+- kanban por estado con creación rápida
+- detalle modal reutilizable desde tablero, listado e histórico
 - histórico de cerradas
 - comentarios
 - adjuntos
@@ -22,6 +25,7 @@ El módulo ya cubre:
 - migración tenant:
   - `0042_taskops_base`
 - permisos tenant propios
+- separación entre `create_own`, `assign_others` y `manage`
 - visibilidad por módulo en tenant portal
 - catálogo contractual del módulo `taskops`
 - dependencia técnica visible con `core`

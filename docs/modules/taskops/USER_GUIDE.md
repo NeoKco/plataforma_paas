@@ -1,13 +1,14 @@
-# TaskOps User Guide
+# Tareas User Guide
 
-Guía operativa del módulo `taskops` (`TaskOps`) para usuarios tenant y soporte funcional.
+Guía operativa del módulo `taskops` (`Tareas`) para usuarios tenant y soporte funcional.
 
 ## Para qué sirve
 
 Este módulo cubre el frente de tareas internas del tenant:
 
 - registrar trabajo operativo no estructurado como OT
-- asignar tareas a usuarios o grupos
+- ver las tareas que el usuario tiene asignadas o creó
+- asignar tareas a usuarios o grupos cuando el perfil lo permite
 - seguirlas en kanban
 - dejar comentarios y adjuntos
 - mantener histórico cerrado
@@ -15,6 +16,11 @@ Este módulo cubre el frente de tareas internas del tenant:
   - cliente
   - oportunidad comercial
   - orden de trabajo
+
+Una tarea puede o no estar ligada a agenda:
+
+- si referencia una OT de `maintenance`, el detalle la mostrará como tarea ligada a agenda
+- si no referencia OT, sigue siendo una tarea interna válida y no depende de agenda
 
 Base esperada:
 
@@ -36,8 +42,10 @@ Base esperada:
 - `Kanban`
   - tablero de estados abiertos
   - cambio rápido de estado
+  - creación rápida desde el mismo tablero
+  - apertura de detalle al pinchar una tarjeta
 - `Histórico`
-  - tareas cerradas
+  - tareas cerradas con detalle completo
 
 ## Estados actuales
 
@@ -67,14 +75,15 @@ Lectura práctica:
 
 ## Flujo operativo sugerido
 
-1. crear la tarea en `Tareas`
+1. crear la tarea desde `Kanban` o `Tareas`
 2. asociar cliente, oportunidad u OT si aplica
-3. asignar usuario o grupo responsable
-4. moverla a `todo` o `in_progress`
-5. usar comentarios para seguimiento
-6. subir adjuntos si hace falta evidencia
-7. cerrar como `done` o `cancelled`
-8. revisar luego en `Histórico`
+3. si tu perfil lo permite, asignarla a otro usuario o grupo
+4. si tu perfil no permite asignar a otros, la tarea quedará para ti
+5. moverla a `todo` o `in_progress`
+6. abrir el modal de detalle al pinchar la tarea
+7. usar comentarios y adjuntos para seguimiento
+8. cerrar con confirmación como `done` o `cancelled`
+9. revisar luego el detalle completo en `Histórico`
 
 ## Cómo usar cada frente
 
@@ -96,6 +105,15 @@ Cada tarea puede llevar:
 - estado
 - orden manual
 
+Notas:
+
+- si el perfil solo tiene permiso para tareas propias, no podrá asignar la tarea a otro usuario
+- el detalle de la tarea se abre en modal y desde ahí también puedes:
+  - editar
+  - subir archivos
+  - borrar
+  - cerrar
+
 ### Kanban
 
 Úsalo para trabajo diario visual.
@@ -104,7 +122,14 @@ Sirve para:
 
 - ver carga abierta por estado
 - abrir el detalle rápido
+- crear tareas en el mismo tablero
 - mover una tarea entre estados abiertos y cierre
+
+Al pinchar una tarjeta:
+
+- se abre un modal con todos los datos
+- puedes ver relación con agenda si la tarea viene desde una OT
+- puedes comentar, adjuntar archivos, editar o cerrar
 
 ### Comentarios
 
@@ -142,6 +167,7 @@ Límites actuales:
 - revisar cierres recientes
 - auditar trabajo ya completado o cancelado
 - buscar tareas cerradas por texto
+- abrir el detalle completo de una tarea ya cerrada
 
 ## Qué no hace todavía
 
@@ -168,7 +194,14 @@ Si el usuario reporta que no ve el módulo:
 - revisar que el tenant tenga habilitado `taskops`
 - revisar permisos tenant:
   - `tenant.taskops.read`
+  - `tenant.taskops.create_own`
+  - `tenant.taskops.assign_others`
   - `tenant.taskops.manage`
+
+Si reporta que no puede asignar a otro usuario:
+
+- revisar si su perfil tiene `tenant.taskops.assign_others`
+- si no lo tiene, el comportamiento correcto es permitirle solo tareas propias
 
 Si reporta que no puede asociar clientes:
 

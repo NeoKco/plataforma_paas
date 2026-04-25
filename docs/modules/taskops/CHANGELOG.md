@@ -31,3 +31,16 @@
   - [test_taskops_services.py](/home/felipe/platform_paas/backend/app/tests/test_taskops_services.py)
   - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
   - [test_platform_flow.py](/home/felipe/platform_paas/backend/app/tests/test_platform_flow.py)
+- slice funcional adicional del día:
+  - nombre visible del módulo consolidado como `Tareas`
+  - usuarios operador ya pueden crear y operar tareas propias sin requerir gestión global
+  - la asignación a terceros queda separada por permiso `tenant.taskops.assign_others`
+  - el kanban pasa a ser superficie principal de creación rápida
+  - pinchar una tarjeta abre modal de detalle con:
+    - edición
+    - comentarios
+    - adjuntos
+    - borrado
+    - cierre con confirmación
+  - al cerrar la tarea, el flujo operativo la mueve a `Histórico`
+  - el histórico ahora reutiliza el mismo detalle modal para lectura completa de tareas cerradas
