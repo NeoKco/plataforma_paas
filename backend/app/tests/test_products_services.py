@@ -1,276 +1,158 @@
 import os
 import unittest
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 os.environ["DEBUG"] = "true"
 os.environ["APP_ENV"] = "test"
 
-from app.apps.tenant_modules.crm.models import (  # noqa: E402
-    CRMProduct,
-    CRMProductIngestionCharacteristic,
-    CRMProductIngestionDraft,
+from app.apps.tenant_modules.crm.models import CRMProduct, CRMProductIngestionDraft  # noqa: E402
+from app.apps.tenant_modules.products.models import (  # noqa: E402
+    ProductConnector,
+    ProductPriceHistory,
+    ProductSource,
 )
-from app.apps.tenant_modules.products.services.enrichment_service import (  # noqa: E402
-    ProductCatalogEnrichmentService,
+from app.apps.tenant_modules.products.schemas import (  # noqa: E402
+    ProductCatalogConnectorCreateRequest,
+)
+from app.apps.tenant_modules.products.services.connector_service import (  # noqa: E402
+    ProductConnectorService,
+)
+from app.apps.tenant_modules.products.services.source_service import (  # noqa: E402
+    ProductSourceService,
 )
 
 
-class ProductCatalogEnrichmentServiceTestCase(unittest.TestCase):
-    def test_duplicate_analysis_flags_catalog_and_draft_candidates(self) -> None:
-        service = ProductCatalogEnrichmentService()
+class ProductsServicesTestCase(unittest.TestCase):
+    def test_create_connector_persists_profile(self) -> None:
         tenant_db = Mock()
+        added_items: list[object] = []
+        tenant_db.add.side_effect = lambda item: added_items.append(item)
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
 
-        current = CRMProductIngestionDraft(
-            id=10,
-            source_kind="url_reference",
-            source_label="Proveedor Solar",
-            source_url="https://proveedor.local/panel-200",
-            external_reference="ref-200",
-            capture_status="draft",
-            sku="PNL-200",
-            name="Panel Solar 200W",
-            brand="Sun Corp",
-            category_label="Solar",
-            product_type="product",
-            unit_label="unidad",
-            unit_price=199990,
-            currency_code="CLP",
-            description="Panel fotovoltaico",
-            source_excerpt=None,
-            extraction_notes=None,
-            review_notes=None,
-            created_by_user_id=1,
-            reviewed_by_user_id=None,
-            published_product_id=None,
-            published_at=None,
-            discarded_at=None,
-        )
-        other_draft = CRMProductIngestionDraft(
-            id=11,
-            source_kind="url_reference",
-            source_label="Proveedor Solar",
-            source_url="https://proveedor.local/panel-200",
-            external_reference="ref-201",
-            capture_status="draft",
-            sku="PNL-200",
-            name="Panel solar 200w",
-            brand="Sun Corp",
-            category_label="Solar",
-            product_type="product",
-            unit_label="unidad",
-            unit_price=200000,
-            currency_code="CLP",
-            description="Panel fotovoltaico similar",
-            source_excerpt=None,
-            extraction_notes=None,
-            review_notes=None,
-            created_by_user_id=2,
-            reviewed_by_user_id=None,
-            published_product_id=None,
-            published_at=None,
-            discarded_at=None,
-        )
-        catalog_product = CRMProduct(
-            id=7,
-            sku="PNL-200",
-            name="Panel Solar 200W",
-            product_type="product",
-            unit_label="unidad",
-            unit_price=210000,
-            description="Marca: Sun Corp",
-            is_active=True,
-            sort_order=100,
+        service = ProductConnectorService()
+        created = service.create_connector(
+            tenant_db,
+            ProductCatalogConnectorCreateRequest(
+                name="Proveedor Solar",
+                connector_kind="vendor_site",
+                base_url="https://solar.local",
+                default_currency_code="CLP",
+                supports_batch=True,
+                supports_price_tracking=True,
+                is_active=True,
+                config_notes="catálogo principal",
+            ),
         )
 
-        product_query = Mock()
-        product_query.order_by.return_value.all.return_value = [catalog_product]
-        draft_query = Mock()
-        draft_query.all.return_value = [current, other_draft]
-        tenant_db.query.side_effect = lambda model: (
-            product_query if model is CRMProduct else draft_query
-        )
+        self.assertEqual(created.name, "Proveedor Solar")
+        self.assertEqual(created.connector_kind, "vendor_site")
+        self.assertTrue(any(isinstance(item, ProductConnector) for item in added_items))
 
-        analysis_map = service.build_duplicate_analysis_map(tenant_db, [current])
-        analysis = analysis_map[current.id]
-
-        self.assertEqual(analysis["status"], "high")
-        self.assertGreaterEqual(analysis["candidate_count"], 2)
-        self.assertEqual(analysis["candidates"][0]["score"], 100)
-        self.assertIn(
-            analysis["candidates"][0]["candidate_kind"],
-            {"catalog_product", "ingestion_draft"},
-        )
-
-    def test_enrich_draft_normalizes_fields_and_characteristics(self) -> None:
-        service = ProductCatalogEnrichmentService()
+    def test_record_from_draft_creates_source_and_price_event(self) -> None:
+        product = CRMProduct(id=14, name="Heat Pipe 150L")
         draft = CRMProductIngestionDraft(
-            id=21,
-            source_kind="manual_capture",
-            source_label="lista caliente",
-            source_url=None,
-            external_reference=None,
+            id=77,
+            source_kind="url_reference",
+            source_label="Proveedor Demo",
+            source_url="https://proveedor.local/heat-pipe-150",
+            connector_id=3,
+            external_reference="sku-150",
             capture_status="draft",
-            sku=" kit  20 ",
-            name="kit SOLAR premium",
-            brand="solarpro",
-            category_label=None,
+            sku="HP-150",
+            name="Heat Pipe 150L",
+            brand="Solar Demo",
+            category_label="Solar",
             product_type="product",
-            unit_label=None,
-            unit_price=150000,
+            unit_label="unidad",
+            unit_price=345000,
             currency_code="CLP",
-            description="  kit   solar para techo   ",
-            source_excerpt=None,
-            extraction_notes="captura manual",
+            description="Equipo",
+            source_excerpt="Ficha comercial",
+            extraction_notes=None,
             review_notes=None,
-            created_by_user_id=1,
+            created_by_user_id=None,
             reviewed_by_user_id=None,
             published_product_id=None,
             published_at=None,
             discarded_at=None,
         )
-        current_characteristic = CRMProductIngestionCharacteristic(
-            id=1,
-            draft_id=21,
-            label=" potencia ",
-            value=" 200W ",
-            sort_order=10,
-        )
+        connector = ProductConnector(id=3, name="Proveedor Demo", connector_kind="vendor_site")
 
         tenant_db = Mock()
         tenant_db.get.side_effect = lambda model, item_id: (
-            draft if model is CRMProductIngestionDraft and item_id == 21 else None
+            product
+            if model is CRMProduct and item_id == 14
+            else connector
+            if model is ProductConnector and item_id == 3
+            else None
         )
-        characteristic_filter = Mock()
-        characteristic_filter.order_by.return_value.all.return_value = [current_characteristic]
-        characteristic_filter.delete.return_value = None
-        characteristic_query = Mock()
-        characteristic_query.filter.return_value = characteristic_filter
-        tenant_db.query.side_effect = lambda model: characteristic_query
-        tenant_db.add.return_value = None
-        tenant_db.flush.return_value = None
-        tenant_db.commit.return_value = None
-        tenant_db.refresh.return_value = None
+        source_query = Mock()
+        scoped_query = Mock()
+        nested_query = Mock()
+        source_query.filter.return_value = scoped_query
+        scoped_query.filter.return_value = nested_query
+        nested_query.first.side_effect = [None, None]
+        nested_query.order_by.return_value.first.return_value = None
+        tenant_db.query.return_value = source_query
 
-        enriched = service.enrich_draft(tenant_db, 21, actor_user_id=8, prefer_ai=False)
+        added_items: list[object] = []
 
-        self.assertEqual(enriched.sku, "KIT-20")
-        self.assertEqual(enriched.name, "Kit Solar Premium")
-        self.assertEqual(enriched.brand, "Solarpro")
-        self.assertEqual(enriched.category_label, "Solar")
-        self.assertEqual(enriched.unit_label, "kit")
-        self.assertEqual(enriched.reviewed_by_user_id, 8)
-        self.assertIn("[products-enrichment:heuristic]", enriched.extraction_notes or "")
-        added_labels = [
-            getattr(call.args[0], "label", None)
-            for call in tenant_db.add.call_args_list
-            if getattr(call.args[0], "label", None)
-        ]
-        self.assertIn("Potencia", added_labels)
+        def add_side_effect(item) -> None:
+            added_items.append(item)
 
+        def flush_side_effect() -> None:
+            source_id = 501
+            price_id = 601
+            for item in added_items:
+                if isinstance(item, ProductSource) and getattr(item, "id", None) is None:
+                    item.id = source_id
+                if isinstance(item, ProductPriceHistory) and getattr(item, "id", None) is None:
+                    item.id = price_id
 
-class ProductCatalogDuplicateResolutionTestCase(unittest.TestCase):
-    def test_resolve_duplicate_updates_existing_product_and_links_draft(self) -> None:
-        from app.apps.tenant_modules.crm.models import CRMProductCharacteristic  # noqa: E402
-        from app.apps.tenant_modules.crm.services.product_ingestion_service import (  # noqa: E402
-            CRMProductIngestionService,
-        )
+        tenant_db.add.side_effect = add_side_effect
+        tenant_db.flush.side_effect = flush_side_effect
 
-        service = CRMProductIngestionService()
-        draft = CRMProductIngestionDraft(
-            id=30,
-            source_kind="url_reference",
-            source_label="Proveedor Solar",
-            source_url="https://proveedor.local/panel-200",
-            external_reference="PANEL-200X",
-            capture_status="draft",
-            sku="PNL-200",
-            name="Panel Solar 200W",
-            brand="Sun Corp",
-            category_label="Solar",
-            product_type="product",
-            unit_label="unidad",
-            unit_price=219990,
-            currency_code="CLP",
-            description="Panel solar 200W 24V 12A",
-            source_excerpt=None,
-            extraction_notes=None,
-            review_notes=None,
-            created_by_user_id=1,
-            reviewed_by_user_id=None,
-            published_product_id=None,
-            published_at=None,
-            discarded_at=None,
-        )
-        product = CRMProduct(
-            id=7,
-            sku="PNL-200",
-            name="Panel Solar 200W Legacy",
-            product_type="product",
-            unit_label="unidad",
-            unit_price=150000,
-            description="Producto anterior",
-            is_active=True,
-            sort_order=100,
-        )
-        draft_characteristic = CRMProductIngestionCharacteristic(
-            id=1,
-            draft_id=30,
-            label="Potencia",
-            value="200 W",
-            sort_order=10,
-        )
-
-        tenant_db = Mock()
-
-        def get_side_effect(model, item_id):
-            if model is CRMProductIngestionDraft and item_id == 30:
-                return draft
-            if model is CRMProduct and item_id == 7:
-                return product
-            return None
-
-        tenant_db.get.side_effect = get_side_effect
-        tenant_db.add.return_value = None
-        tenant_db.flush.return_value = None
-        tenant_db.commit.return_value = None
-        tenant_db.refresh.return_value = None
-
-        draft_characteristics_filter = Mock()
-        draft_characteristics_filter.order_by.return_value.all.return_value = [draft_characteristic]
-        product_characteristics_filter = Mock()
-        product_characteristics_filter.order_by.return_value.all.return_value = []
-        product_characteristics_filter.delete.return_value = None
-
-        def query_side_effect(model):
-            query = Mock()
-            query.all.return_value = []
-            if model is CRMProductIngestionCharacteristic:
-                query.filter.return_value = draft_characteristics_filter
-                return query
-            if model is CRMProductCharacteristic:
-                query.filter.return_value = product_characteristics_filter
-                return query
-            if model is CRMProduct:
-                return query
-            return query
-
-        tenant_db.query.side_effect = query_side_effect
-
-        resolved_draft, resolved_product = service.resolve_duplicate_to_existing_product(
+        service = ProductSourceService()
+        source, price_event = service.record_from_draft(
             tenant_db,
-            30,
-            target_product_id=7,
-            resolution_mode="update_existing",
-            actor_user_id=9,
-            review_notes="merge desde ingesta",
+            product_id=14,
+            draft=draft,
+            connector_id=3,
+            notes="approved",
         )
 
-        self.assertEqual(resolved_product.name, "Panel Solar 200W")
-        self.assertEqual(resolved_product.unit_price, 219990)
-        self.assertEqual(resolved_draft.capture_status, "approved")
-        self.assertEqual(resolved_draft.published_product_id, 7)
-        self.assertEqual(resolved_draft.reviewed_by_user_id, 9)
+        self.assertEqual(source.product_id, 14)
+        self.assertEqual(source.connector_id, 3)
+        self.assertEqual(source.latest_unit_price, 345000)
+        self.assertEqual(price_event.product_source_id, 501)
+        self.assertEqual(price_event.unit_price, 345000)
+        self.assertTrue(any(isinstance(item, ProductSource) for item in added_items))
+        self.assertTrue(any(isinstance(item, ProductPriceHistory) for item in added_items))
 
+    def test_record_from_draft_rejects_unknown_product(self) -> None:
+        tenant_db = Mock()
+        tenant_db.get.return_value = None
+        service = ProductSourceService()
 
-if __name__ == "__main__":
-    unittest.main()
+        with self.assertRaises(ValueError) as exc:
+            service.record_from_draft(
+                tenant_db,
+                product_id=999,
+                draft=SimpleNamespace(
+                    connector_id=None,
+                    source_url=None,
+                    external_reference=None,
+                    source_kind="manual_capture",
+                    source_label=None,
+                    unit_price=0,
+                    currency_code="CLP",
+                    brand=None,
+                    category_label=None,
+                    source_excerpt=None,
+                    id=1,
+                ),
+            )
+
+        self.assertIn("Producto no encontrado", str(exc.exception))

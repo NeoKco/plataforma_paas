@@ -98,5 +98,14 @@ class ProductCatalogIngestionService(CRMProductIngestionService):
 
     def build_overview(self, tenant_db) -> dict[str, int]:
         base = super().build_overview(tenant_db)
-        base.update(self._source_service.build_metrics(tenant_db))
-        return base
+        source_metrics = self._source_service.build_metrics(tenant_db)
+        return {
+            "total": int(base["ingestion_total"]),
+            "draft": int(base["ingestion_draft"]),
+            "approved": int(base["ingestion_approved"]),
+            "discarded": int(base["ingestion_discarded"]),
+            "with_url": int(base["ingestion_with_url"]),
+            "source_total": int(source_metrics["source_total"]),
+            "price_event_total": int(source_metrics["price_event_total"]),
+            "connectors_total": int(source_metrics["connectors_total"]),
+        }

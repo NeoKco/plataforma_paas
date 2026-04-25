@@ -46,6 +46,7 @@ from migrations.tenant import v0043_techdocs_base
 from migrations.tenant import v0044_chat_base
 from migrations.tenant import v0045_crm_product_ingestion
 from migrations.tenant import v0046_crm_product_ingestion_runs
+from migrations.tenant import v0047_products_sources_and_connectors
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -230,6 +231,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0044_chat_base",
                 "0045_crm_product_ingestion",
                 "0046_crm_product_ingestion_runs",
+                "0047_products_sources_and_connectors",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -255,6 +257,9 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("finance_loan_installments", tables)
         self.assertIn("business_organizations", tables)
         self.assertIn("social_community_groups", tables)
+        self.assertIn("products_connectors", tables)
+        self.assertIn("products_product_sources", tables)
+        self.assertIn("products_price_history", tables)
         self.assertIn("business_clients", tables)
         self.assertIn("business_contacts", tables)
         self.assertIn("business_sites", tables)
@@ -682,6 +687,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0044_chat_base",
                 "0045_crm_product_ingestion",
                 "0046_crm_product_ingestion_runs",
+                "0047_products_sources_and_connectors",
             ],
         )
 

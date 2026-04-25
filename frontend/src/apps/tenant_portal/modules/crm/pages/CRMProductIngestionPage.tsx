@@ -17,10 +17,12 @@ import {
   createProductCatalogIngestionRun,
   enrichProductCatalogIngestionDraft,
   extractProductCatalogUrl,
+  getProductCatalogConnectors,
   getProductCatalogIngestionDrafts,
   getProductCatalogIngestionOverview,
   getProductCatalogIngestionRuns,
   resolveProductCatalogDuplicate,
+  type ProductCatalogConnector,
   type ProductCatalogIngestionCharacteristic,
   type ProductCatalogDuplicateCandidate,
   type ProductCatalogIngestionDraft,
@@ -45,6 +47,7 @@ function buildDefaultForm(): ProductCatalogIngestionDraftWriteRequest {
     source_kind: "url_reference",
     source_label: null,
     source_url: null,
+    connector_id: null,
     external_reference: null,
     sku: null,
     name: null,
@@ -79,6 +82,7 @@ export function CRMProductIngestionPage() {
   const [overview, setOverview] = useState<Awaited<ReturnType<typeof getProductCatalogIngestionOverview>> | null>(null);
   const [rows, setRows] = useState<ProductCatalogIngestionDraft[]>([]);
   const [runs, setRuns] = useState<ProductCatalogIngestionRun[]>([]);
+  const [connectors, setConnectors] = useState<ProductCatalogConnector[]>([]);
   const [form, setForm] = useState<ProductCatalogIngestionDraftWriteRequest>(buildDefaultForm());
   const [editingId, setEditingId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -86,8 +90,10 @@ export function CRMProductIngestionPage() {
   const [reviewNotes, setReviewNotes] = useState("");
   const [extractUrl, setExtractUrl] = useState("");
   const [extractSourceLabel, setExtractSourceLabel] = useState("");
+  const [extractConnectorId, setExtractConnectorId] = useState("");
   const [extractReference, setExtractReference] = useState("");
   const [batchLabel, setBatchLabel] = useState("");
+  const [batchConnectorId, setBatchConnectorId] = useState("");
   const [batchUrls, setBatchUrls] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -101,17 +107,19 @@ export function CRMProductIngestionPage() {
     }
     setError(null);
     try {
-      const [overviewResponse, draftsResponse, runsResponse] = await Promise.all([
+      const [overviewResponse, draftsResponse, runsResponse, connectorsResponse] = await Promise.all([
         getProductCatalogIngestionOverview(session.accessToken),
         getProductCatalogIngestionDrafts(session.accessToken, {
           capture_status: statusFilter === "all" ? null : statusFilter,
           q: query || null,
         }),
         getProductCatalogIngestionRuns(session.accessToken),
+        getProductCatalogConnectors(session.accessToken),
       ]);
       setOverview(overviewResponse);
       setRows(draftsResponse.data);
       setRuns(runsResponse.data);
+      setConnectors(connectorsResponse.data.filter((item) => item.is_active));
       if (!batchUrls.trim() && runsResponse.data.length > 0) {
         setBatchUrls(buildBatchText(runsResponse.data));
       }
@@ -150,6 +158,7 @@ export function CRMProductIngestionPage() {
       source_kind: item.source_kind,
       source_label: item.source_label,
       source_url: item.source_url,
+      connector_id: item.connector_id,
       external_reference: item.external_reference,
       sku: item.sku,
       name: item.name,
@@ -234,11 +243,13 @@ export function CRMProductIngestionPage() {
       const response = await extractProductCatalogUrl(session.accessToken, {
         source_url: extractUrl.trim(),
         source_label: extractSourceLabel.trim() || null,
+        connector_id: extractConnectorId ? Number(extractConnectorId) : null,
         external_reference: extractReference.trim() || null,
       });
       setFeedback(response.message);
       setExtractUrl("");
       setExtractSourceLabel("");
+      setExtractConnectorId("");
       setExtractReference("");
       await loadData();
     } catch (rawError) {
@@ -257,6 +268,7 @@ export function CRMProductIngestionPage() {
       .map((source_url) => ({
         source_url,
         source_label: batchLabel.trim() || null,
+        connector_id: batchConnectorId ? Number(batchConnectorId) : null,
         external_reference: null,
       }));
     if (entries.length === 0) return;
@@ -266,10 +278,12 @@ export function CRMProductIngestionPage() {
     try {
       const response = await createProductCatalogIngestionRun(session.accessToken, {
         source_label: batchLabel.trim() || null,
+        connector_id: batchConnectorId ? Number(batchConnectorId) : null,
         entries,
       });
       setFeedback(response.message);
       setBatchUrls("");
+      setBatchConnectorId("");
       await loadData();
       setRuns((current) => [response.data, ...current.filter((item) => item.id !== response.data.id)]);
     } catch (rawError) {
@@ -463,6 +477,17 @@ export function CRMProductIngestionPage() {
             <input value={extractSourceLabel} onChange={(event) => setExtractSourceLabel(event.target.value)} />
           </label>
           <label>
+            <span>{language === "es" ? "Conector" : "Connector"}</span>
+            <select value={extractConnectorId} onChange={(event) => setExtractConnectorId(event.target.value)}>
+              <option value="">{language === "es" ? "Sin conector" : "No connector"}</option>
+              {connectors.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
             <span>{language === "es" ? "Referencia externa" : "External reference"}</span>
             <input value={extractReference} onChange={(event) => setExtractReference(event.target.value)} />
           </label>
@@ -486,6 +511,17 @@ export function CRMProductIngestionPage() {
           <label>
             <span>{language === "es" ? "Etiqueta fuente común" : "Shared source label"}</span>
             <input value={batchLabel} onChange={(event) => setBatchLabel(event.target.value)} />
+          </label>
+          <label>
+            <span>{language === "es" ? "Conector común" : "Shared connector"}</span>
+            <select value={batchConnectorId} onChange={(event) => setBatchConnectorId(event.target.value)}>
+              <option value="">{language === "es" ? "Sin conector" : "No connector"}</option>
+              {connectors.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="crm-form-grid__full">
             <span>{language === "es" ? "URLs (una por línea)" : "URLs (one per line)"}</span>
@@ -514,7 +550,7 @@ export function CRMProductIngestionPage() {
             render: (row) => (
               <div>
                 <strong>{row.source_label || `run-${row.id}`}</strong>
-                <div className="text-muted small">{row.source_mode}</div>
+                <div className="text-muted small">{row.connector_name || row.source_mode}</div>
               </div>
             ),
           },
@@ -574,6 +610,25 @@ export function CRMProductIngestionPage() {
           <label>
             <span>{language === "es" ? "Etiqueta fuente" : "Source label"}</span>
             <input value={form.source_label || ""} onChange={(event) => setForm((current) => ({ ...current, source_label: event.target.value || null }))} />
+          </label>
+          <label>
+            <span>{language === "es" ? "Conector" : "Connector"}</span>
+            <select
+              value={form.connector_id || ""}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  connector_id: event.target.value ? Number(event.target.value) : null,
+                }))
+              }
+            >
+              <option value="">{language === "es" ? "Sin conector" : "No connector"}</option>
+              {connectors.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="crm-form-grid__full">
             <span>URL</span>
@@ -730,7 +785,7 @@ export function CRMProductIngestionPage() {
             render: (row) => (
               <div>
                 <strong>{row.name || row.source_label || "—"}</strong>
-                <div className="text-muted small">{row.brand || row.category_label || "—"}</div>
+                <div className="text-muted small">{row.connector_name || row.brand || row.category_label || "—"}</div>
                 {row.duplicate_summary && row.duplicate_summary.status !== "none" ? (
                   <div className="small text-danger">
                     {language === "es" ? "Posible duplicado" : "Possible duplicate"} · {row.duplicate_summary.top_score}/100
@@ -758,7 +813,7 @@ export function CRMProductIngestionPage() {
             header: language === "es" ? "Fuente" : "Source",
             render: (row) => (
               <div>
-                <div>{row.source_kind}</div>
+                <div>{row.connector_name || row.source_kind}</div>
                 <div className="text-muted small">{row.source_url || row.source_label || "—"}</div>
               </div>
             ),

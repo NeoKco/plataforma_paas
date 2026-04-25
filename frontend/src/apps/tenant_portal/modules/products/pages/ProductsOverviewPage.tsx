@@ -13,10 +13,10 @@ import type { ApiError } from "../../../../../types";
 import { ProductsModuleNav } from "../components/common/ProductsModuleNav";
 import { getProductCatalogOverview } from "../services/productsService";
 
-function formatMoney(value: number, language: "es" | "en") {
+function formatMoney(value: number, language: "es" | "en", currencyCode = "CLP") {
   return new Intl.NumberFormat(language === "es" ? "es-CL" : "en-US", {
     style: "currency",
-    currency: "CLP",
+    currency: currencyCode || "CLP",
     maximumFractionDigits: 0,
   }).format(value || 0);
 }
