@@ -39,12 +39,12 @@
     - revisión previa a publicación
     - aprobación al catálogo central
   - validación runtime:
-    - backup PostgreSQL tenant previo ejecutado en `staging` y `production`
-    - `production` incluye backup previo explícito de `ieris-ltda`
+    - el runner automático de backup tenant mostró drift de credenciales/runtime en `empresa-demo` e `ieris-ltda`
+    - antes del redeploy de `production` se tomó backup explícito adicional de `ieris-ltda`
     - `staging` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
     - `production` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
-    - `staging` publicado con `ProductsModuleNav-BiqpOMpB.js`, `productsService-fgRUAu6H.js`, `ProductsOverviewPage-D7ZuaEsi.js`, `ProductsCatalogPage-D1v_kPRj.js`, `ProductsIngestionPage-DUPLspNo.js`, `CRMOverviewPage-C-O6N02V.js`, `crmService-BUJZw-Vm.js`, `SettingsPage-Cg4qvxmh.js`, `TenantsPage-DZkp1icm.js` e `index-DQCLoPpU.js`
-    - `production` publicado con `ProductsModuleNav-Dbg3Sv0c.js`, `productsService-C6M0Hbi9.js`, `ProductsOverviewPage-CT-8DIP_.js`, `ProductsCatalogPage-2gPen9yZ.js`, `ProductsIngestionPage-J7eDw7Ge.js`, `CRMOverviewPage-Cz1Z9LRX.js`, `crmService-BUBlg9Ar.js`, `SettingsPage-B5sH0v3q.js`, `TenantsPage-CjZMpC_3.js` e `index-DYDQGbjH.js`
+    - `staging` publicado con `ProductsModuleNav-CKwpW8hj.js`, `productsService-nqmbLz3R.js`, `ProductsOverviewPage-Db51R4sp.js`, `ProductsCatalogPage-Da3Gbzwz.js`, `ProductsIngestionPage-lhpSttV5.js`, `CRMOverviewPage-DHl96uDE.js`, `crmService-DpZT8Mjl.js`, `SettingsPage-Cr1nll4i.js`, `TenantsPage-BlVmNcxH.js` e `index-r7dgkPPT.js`
+    - `production` publicado con `ProductsModuleNav-Bbt3x-tR.js`, `productsService-DAglSp-9.js`, `ProductsOverviewPage-DAdxTAdF.js`, `ProductsCatalogPage-DFNPWkDz.js`, `ProductsIngestionPage-ov02F_L3.js`, `CRMOverviewPage-Bzua8CYh.js`, `crmService-CIPev910.js`, `SettingsPage-BBzUScYp.js`, `TenantsPage-BkgcbE0p.js` e `index-Mb6PvFRu.js`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
   - decisión de dominio ya cerrada:
     - `products` es módulo independiente

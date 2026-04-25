@@ -27,6 +27,13 @@ Validación:
   - `backend.app.tests.test_products_services + test_crm_services + test_migration_flow` -> `34 tests OK`
   - `backend.app.tests.test_platform_flow + test_tenant_flow` -> `335 tests OK`
   - `npm run build` -> `OK`
+- runtime:
+  - `staging` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado con `ProductsModuleNav-CKwpW8hj.js`, `productsService-nqmbLz3R.js`, `ProductsOverviewPage-Db51R4sp.js`, `ProductsCatalogPage-Da3Gbzwz.js`, `ProductsIngestionPage-lhpSttV5.js` e `index-r7dgkPPT.js`
+  - `production` frontend publicado con `ProductsModuleNav-Bbt3x-tR.js`, `productsService-DAglSp-9.js`, `ProductsOverviewPage-DAdxTAdF.js`, `ProductsCatalogPage-DFNPWkDz.js`, `ProductsIngestionPage-ov02F_L3.js` e `index-Mb6PvFRu.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - salvedad operativa: el runner automático de backup mostró drift de credenciales/runtime en `empresa-demo` e `ieris-ltda`; para `production` se tomó backup explícito adicional de `ieris-ltda`
 
 Resultado:
 
