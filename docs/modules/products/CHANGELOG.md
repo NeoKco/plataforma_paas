@@ -35,6 +35,48 @@
     - `backend.app.tests.test_platform_flow` -> `239 tests OK`
     - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/models/product_ingestion_*.py backend/migrations/tenant/v0047_products_sources_and_connectors.py` -> `OK`
     - `npm run build` -> `OK`
+  - cierre runtime confirmado:
+    - `staging`:
+      - el backup tenant previo detectó drift técnico:
+        - `empresa-demo` sin secreto runtime
+        - `ieris-ltda` con `invalid_db_credentials`
+      - se corrige antes del deploy con:
+        - `rescue_tenant_runtime_secrets_from_legacy.py --tenant-slug empresa-demo --apply`
+        - `repair_tenant_operational_drift.py --tenant-slug ieris-ltda --auto-rotate-if-invalid-credentials --skip-schema-sync --skip-seed-defaults --skip-maintenance-finance-repair`
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant: `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con:
+        - `ProductsModuleNav-CmhB7zBp.js`
+        - `productsService-CV0hTQUC.js`
+        - `ProductsOverviewPage-Dj0Zpje-.js`
+        - `ProductsCatalogPage-BbxBCV_4.js`
+        - `ProductsSourcesPage-Cit0QL5C.js`
+        - `ProductsConnectorsPage-CLQNGjwu.js`
+        - `ProductsIngestionPage-tbTZRkmg.js`
+        - `index-DuGLK8QR.js`
+    - `production`:
+      - el backup tenant previo detectó drift técnico:
+        - `empresa-demo` sin secreto runtime
+        - `ieris-ltda` con `invalid_db_credentials`
+      - se corrige antes del deploy con:
+        - `rescue_tenant_runtime_secrets_from_legacy.py --tenant-slug empresa-demo --apply`
+        - `repair_tenant_operational_drift.py --tenant-slug ieris-ltda --auto-rotate-if-invalid-credentials --skip-schema-sync --skip-seed-defaults --skip-maintenance-finance-repair`
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backup adicional explícito de `ieris-ltda` ejecutado por regla de tenant sensible
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant: `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con:
+        - `ProductsModuleNav-XH_-Fq4B.js`
+        - `productsService-BfEwK0HP.js`
+        - `ProductsOverviewPage-I-aJZ1jT.js`
+        - `ProductsCatalogPage-CKUHS2Xs.js`
+        - `ProductsSourcesPage-DH3KftsD.js`
+        - `ProductsConnectorsPage-Biqott2G.js`
+        - `ProductsIngestionPage-Cyp483vo.js`
+        - `index-DsBCfXTm.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+    - `bash deploy/check_release_governance.sh` -> `OK`
 
 - `products` cierra deduplicación accionable y enriquecimiento técnico más profundo:
   - se publica `POST /tenant/products/ingestion/drafts/{draft_id}/resolve-duplicate`

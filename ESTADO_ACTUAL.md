@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-24
-- foco operativo nuevo ya cerrado en repo:
+- foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya cierra historial de fuentes/precios y conectores multi-fuente configurables
   - backend tenant ya expone además:
     - `/tenant/products/sources`
@@ -21,6 +21,21 @@
     - `backend.app.tests.test_platform_flow` -> `239 tests OK`
     - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/models/product_ingestion_*.py backend/migrations/tenant/v0047_products_sources_and_connectors.py` -> `OK`
     - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging`:
+      - drift técnico previo corregido para `empresa-demo` y `ieris-ltda` antes del backup obligatorio
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsModuleNav-CmhB7zBp.js`, `productsService-CV0hTQUC.js`, `ProductsOverviewPage-Dj0Zpje-.js`, `ProductsCatalogPage-BbxBCV_4.js`, `ProductsSourcesPage-Cit0QL5C.js`, `ProductsConnectorsPage-CLQNGjwu.js`, `ProductsIngestionPage-tbTZRkmg.js` e `index-DuGLK8QR.js`
+    - `production`:
+      - drift técnico previo corregido para `empresa-demo` y `ieris-ltda` antes del backup obligatorio
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsModuleNav-XH_-Fq4B.js`, `productsService-BfEwK0HP.js`, `ProductsOverviewPage-I-aJZ1jT.js`, `ProductsCatalogPage-CKUHS2Xs.js`, `ProductsSourcesPage-DH3KftsD.js`, `ProductsConnectorsPage-Biqott2G.js`, `ProductsIngestionPage-Cyp483vo.js` e `index-DsBCfXTm.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya cierra deduplicación accionable y enriquecimiento técnico más profundo
   - backend tenant ya expone además:

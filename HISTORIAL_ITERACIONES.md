@@ -33,6 +33,24 @@ Validación:
   - `backend.app.tests.test_platform_flow` -> `239 tests OK`
   - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/models/product_ingestion_*.py backend/migrations/tenant/v0047_products_sources_and_connectors.py` -> `OK`
   - `npm run build` -> `OK`
+- runtime:
+  - `staging`:
+    - el backup obligatorio detectó drift técnico en `empresa-demo` e `ieris-ltda`
+    - se corrige primero con rescate runtime legacy controlado para `empresa-demo` y rotación técnica controlada para `ieris-ltda`
+    - backup PostgreSQL tenant previo completado con `4` backups
+    - backend redeploy -> `585 tests OK`
+    - convergencia tenant -> `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado con `ProductsSourcesPage-Cit0QL5C.js`, `ProductsConnectorsPage-CLQNGjwu.js` e `index-DuGLK8QR.js`
+  - `production`:
+    - el backup obligatorio detectó drift técnico en `empresa-demo` e `ieris-ltda`
+    - se corrige primero con rescate runtime legacy controlado para `empresa-demo` y rotación técnica controlada para `ieris-ltda`
+    - backup PostgreSQL tenant previo completado con `4` backups
+    - backup adicional explícito de `ieris-ltda`
+    - backend redeploy -> `585 tests OK`
+    - convergencia tenant -> `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado con `ProductsSourcesPage-DH3KftsD.js`, `ProductsConnectorsPage-Biqott2G.js` e `index-DsBCfXTm.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - `bash deploy/check_release_governance.sh` -> `OK`
 
 Resultado:
 

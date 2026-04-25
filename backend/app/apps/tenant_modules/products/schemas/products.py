@@ -52,6 +52,9 @@ class ProductCatalogConnectorCreateRequest(BaseModel):
     supports_batch: bool = True
     supports_price_tracking: bool = True
     is_active: bool = True
+    sync_mode: str = "manual"
+    fetch_strategy: str = "html_generic"
+    run_ai_enrichment: bool = False
     config_notes: str | None = None
 
 
@@ -72,9 +75,13 @@ class ProductCatalogConnectorItemResponse(BaseModel):
     supports_batch: bool
     supports_price_tracking: bool
     is_active: bool
+    sync_mode: str
+    fetch_strategy: str
+    run_ai_enrichment: bool
     config_notes: str | None = None
     last_sync_at: datetime | None = None
     last_sync_status: str
+    last_sync_summary: str | None = None
     source_total: int = 0
     price_event_total: int = 0
     created_at: datetime | None = None
@@ -170,11 +177,14 @@ class ProductCatalogProductSourceItemResponse(BaseModel):
     source_url: str | None = None
     external_reference: str | None = None
     source_status: str
+    sync_status: str
     latest_unit_price: float
     currency_code: str
     source_summary: str | None = None
     captured_at: datetime | None = None
     last_seen_at: datetime | None = None
+    last_sync_attempt_at: datetime | None = None
+    last_sync_error: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
@@ -224,6 +234,76 @@ class ProductCatalogPriceHistoryResponse(BaseModel):
     requested_by: TenantUserContextResponse
     total: int
     data: list[ProductCatalogPriceHistoryItemResponse]
+
+
+class ProductCatalogConnectorSyncRequest(BaseModel):
+    product_id: int | None = None
+    limit: int = 25
+
+
+class ProductCatalogConnectorSyncItemResponse(BaseModel):
+    source_id: int
+    product_id: int
+    connector_id: int | None = None
+    source_label: str | None = None
+    source_url: str | None = None
+    sync_status: str
+    unit_price: float = 0
+    currency_code: str = "CLP"
+    detail: str | None = None
+
+
+class ProductCatalogConnectorSyncResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    connector_id: int
+    connector_name: str
+    processed: int
+    synced: int
+    failed: int
+    skipped: int
+    price_updates: int
+    data: list[ProductCatalogConnectorSyncItemResponse] = Field(default_factory=list)
+
+
+class ProductCatalogComparisonSourceResponse(BaseModel):
+    source_id: int
+    connector_id: int | None = None
+    connector_name: str | None = None
+    source_label: str | None = None
+    source_url: str | None = None
+    source_status: str
+    sync_status: str
+    latest_unit_price: float
+    currency_code: str
+    last_seen_at: datetime | None = None
+
+
+class ProductCatalogComparisonItemResponse(BaseModel):
+    product_id: int
+    product_name: str
+    product_sku: str | None = None
+    source_count: int
+    active_source_count: int
+    recommended_source_id: int | None = None
+    recommended_reason: str | None = None
+    recommended_price: float | None = None
+    recommended_currency_code: str | None = None
+    lowest_price: float | None = None
+    highest_price: float | None = None
+    price_spread: float | None = None
+    price_spread_percent: float | None = None
+    latest_seen_at: datetime | None = None
+    sources: list[ProductCatalogComparisonSourceResponse] = Field(default_factory=list)
+
+
+class ProductCatalogComparisonsResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    total: int
+    data: list[ProductCatalogComparisonItemResponse]
 
 
 class ProductCatalogIngestionCharacteristicWriteRequest(BaseModel):
@@ -472,3 +552,4 @@ class ProductCatalogModuleOverviewResponse(BaseModel):
     recent_sources: list[ProductCatalogProductSourceItemResponse] = Field(default_factory=list)
     recent_prices: list[ProductCatalogPriceHistoryItemResponse] = Field(default_factory=list)
     recent_connectors: list[ProductCatalogConnectorItemResponse] = Field(default_factory=list)
+    recent_comparisons: list[ProductCatalogComparisonItemResponse] = Field(default_factory=list)

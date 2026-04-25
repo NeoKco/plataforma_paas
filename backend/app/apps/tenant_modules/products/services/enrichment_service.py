@@ -4,6 +4,7 @@ import json
 import re
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
+from types import SimpleNamespace
 from typing import Any
 
 from app.apps.tenant_modules.crm.models import (
@@ -73,6 +74,39 @@ class ProductCatalogEnrichmentService:
             "summary": None,
             "ai_available": bool(settings.API_IA_URL.strip()),
         }
+
+    def enrich_capture_payload(
+        self,
+        payload: dict[str, Any],
+        *,
+        prefer_ai: bool = True,
+    ) -> dict[str, Any]:
+        draft = SimpleNamespace(
+            id=None,
+            name=payload.get("name"),
+            sku=payload.get("sku"),
+            brand=payload.get("brand"),
+            category_label=payload.get("category_label"),
+            product_type=payload.get("product_type") or "product",
+            unit_label=payload.get("unit_label"),
+            unit_price=float(payload.get("unit_price") or 0),
+            description=payload.get("description"),
+            source_excerpt=payload.get("source_excerpt"),
+            source_label=payload.get("source_label"),
+            source_url=payload.get("source_url"),
+            extraction_notes=payload.get("extraction_notes"),
+        )
+        characteristics = [
+            SimpleNamespace(
+                label=(item or {}).get("label"),
+                value=(item or {}).get("value"),
+                sort_order=int((item or {}).get("sort_order") or ((index + 1) * 10)),
+            )
+            for index, item in enumerate(payload.get("characteristics") or [])
+        ]
+        heuristic_payload = self._build_heuristic_enrichment(draft, characteristics)
+        ai_payload = self._try_ai_enrichment(draft, characteristics) if prefer_ai else None
+        return self._merge_enrichment_payloads(heuristic_payload, ai_payload)
 
     def enrich_draft(
         self,

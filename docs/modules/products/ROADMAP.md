@@ -43,6 +43,7 @@ El módulo ya cubre:
   - fuentes
   - precios
   - conectores
+- publicación y validación runtime de este slice en `staging` y `production`
 
 ## Backlog posterior al cierre
 

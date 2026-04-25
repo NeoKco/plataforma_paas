@@ -8,6 +8,8 @@ from app.apps.tenant_modules.products.models import ProductConnector, ProductPri
 class ProductConnectorService:
     VALID_CONNECTOR_KINDS = {"generic_url", "vendor_site", "vendor_feed", "ai_scrape"}
     VALID_SYNC_STATUSES = {"idle", "ready", "warning", "error"}
+    VALID_SYNC_MODES = {"manual", "connector_sync"}
+    VALID_FETCH_STRATEGIES = {"html_generic", "html_vendor", "json_feed", "html_ai"}
 
     def list_connectors(self, tenant_db, *, include_inactive: bool = True) -> list[ProductConnector]:
         query = tenant_db.query(ProductConnector)
@@ -31,9 +33,15 @@ class ProductConnectorService:
             supports_batch=bool(payload.supports_batch),
             supports_price_tracking=bool(payload.supports_price_tracking),
             is_active=bool(payload.is_active),
+            sync_mode=self._normalize_sync_mode(getattr(payload, "sync_mode", "manual")),
+            fetch_strategy=self._normalize_fetch_strategy(
+                getattr(payload, "fetch_strategy", "html_generic")
+            ),
+            run_ai_enrichment=bool(getattr(payload, "run_ai_enrichment", False)),
             config_notes=self._normalize_optional(payload.config_notes),
             last_sync_at=None,
             last_sync_status="ready" if payload.is_active else "idle",
+            last_sync_summary=None,
         )
         tenant_db.add(item)
         tenant_db.commit()
@@ -49,6 +57,11 @@ class ProductConnectorService:
         item.supports_batch = bool(payload.supports_batch)
         item.supports_price_tracking = bool(payload.supports_price_tracking)
         item.is_active = bool(payload.is_active)
+        item.sync_mode = self._normalize_sync_mode(getattr(payload, "sync_mode", "manual"))
+        item.fetch_strategy = self._normalize_fetch_strategy(
+            getattr(payload, "fetch_strategy", "html_generic")
+        )
+        item.run_ai_enrichment = bool(getattr(payload, "run_ai_enrichment", False))
         item.config_notes = self._normalize_optional(payload.config_notes)
         item.updated_at = self._now()
         tenant_db.add(item)
@@ -78,6 +91,7 @@ class ProductConnectorService:
         connector_id: int | None,
         *,
         status: str = "ready",
+        summary: str | None = None,
     ) -> None:
         if not connector_id:
             return
@@ -86,6 +100,8 @@ class ProductConnectorService:
             return
         item.last_sync_at = self._now()
         item.last_sync_status = status if status in self.VALID_SYNC_STATUSES else "ready"
+        if summary is not None:
+            item.last_sync_summary = self._normalize_optional(summary)
         item.updated_at = self._now()
         tenant_db.add(item)
         tenant_db.flush()
@@ -134,6 +150,18 @@ class ProductConnectorService:
         normalized = (value or "generic_url").strip().lower()
         if normalized not in self.VALID_CONNECTOR_KINDS:
             raise ValueError("Tipo de conector inválido")
+        return normalized
+
+    def _normalize_sync_mode(self, value: str | None) -> str:
+        normalized = (value or "manual").strip().lower()
+        if normalized not in self.VALID_SYNC_MODES:
+            raise ValueError("Modo de sincronización inválido")
+        return normalized
+
+    def _normalize_fetch_strategy(self, value: str | None) -> str:
+        normalized = (value or "html_generic").strip().lower()
+        if normalized not in self.VALID_FETCH_STRATEGIES:
+            raise ValueError("Estrategia de extracción inválida")
         return normalized
 
     @staticmethod

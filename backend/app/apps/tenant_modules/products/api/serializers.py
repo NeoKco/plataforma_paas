@@ -1,7 +1,10 @@
 from app.apps.tenant_modules.products.schemas import (
+    ProductCatalogComparisonItemResponse,
+    ProductCatalogComparisonSourceResponse,
     ProductCatalogDuplicateCandidateResponse,
     ProductCatalogDuplicateSummaryResponse,
     ProductCatalogConnectorItemResponse,
+    ProductCatalogConnectorSyncItemResponse,
     ProductCatalogEnrichmentStateResponse,
     ProductCatalogIngestionCharacteristicItemResponse,
     ProductCatalogIngestionDraftItemResponse,
@@ -56,9 +59,13 @@ def build_product_connector_item(
         supports_batch=bool(item.supports_batch),
         supports_price_tracking=bool(item.supports_price_tracking),
         is_active=bool(item.is_active),
+        sync_mode=item.sync_mode,
+        fetch_strategy=item.fetch_strategy,
+        run_ai_enrichment=bool(getattr(item, "run_ai_enrichment", False)),
         config_notes=item.config_notes,
         last_sync_at=item.last_sync_at,
         last_sync_status=item.last_sync_status,
+        last_sync_summary=getattr(item, "last_sync_summary", None),
         source_total=int(source_total or 0),
         price_event_total=int(price_event_total or 0),
         created_at=item.created_at,
@@ -83,11 +90,14 @@ def build_product_source_item(
         source_url=item.source_url,
         external_reference=item.external_reference,
         source_status=item.source_status,
+        sync_status=getattr(item, "sync_status", "idle"),
         latest_unit_price=float(item.latest_unit_price or 0),
         currency_code=item.currency_code,
         source_summary=item.source_summary,
         captured_at=item.captured_at,
         last_seen_at=item.last_seen_at,
+        last_sync_attempt_at=getattr(item, "last_sync_attempt_at", None),
+        last_sync_error=getattr(item, "last_sync_error", None),
         created_at=item.created_at,
         updated_at=getattr(item, "updated_at", None),
     )
@@ -115,6 +125,54 @@ def build_product_price_history_item(
         notes=item.notes,
         captured_at=item.captured_at,
         created_at=item.created_at,
+    )
+
+
+def build_product_connector_sync_item(item: dict) -> ProductCatalogConnectorSyncItemResponse:
+    return ProductCatalogConnectorSyncItemResponse(
+        source_id=int(item["source_id"]),
+        product_id=int(item["product_id"]),
+        connector_id=item.get("connector_id"),
+        source_label=item.get("source_label"),
+        source_url=item.get("source_url"),
+        sync_status=item.get("sync_status", "idle"),
+        unit_price=float(item.get("unit_price", 0) or 0),
+        currency_code=item.get("currency_code") or "CLP",
+        detail=item.get("detail"),
+    )
+
+
+def build_product_comparison_item(item: dict) -> ProductCatalogComparisonItemResponse:
+    return ProductCatalogComparisonItemResponse(
+        product_id=int(item["product_id"]),
+        product_name=item["product_name"],
+        product_sku=item.get("product_sku"),
+        source_count=int(item.get("source_count", 0) or 0),
+        active_source_count=int(item.get("active_source_count", 0) or 0),
+        recommended_source_id=item.get("recommended_source_id"),
+        recommended_reason=item.get("recommended_reason"),
+        recommended_price=float(item["recommended_price"]) if item.get("recommended_price") is not None else None,
+        recommended_currency_code=item.get("recommended_currency_code"),
+        lowest_price=float(item["lowest_price"]) if item.get("lowest_price") is not None else None,
+        highest_price=float(item["highest_price"]) if item.get("highest_price") is not None else None,
+        price_spread=float(item["price_spread"]) if item.get("price_spread") is not None else None,
+        price_spread_percent=float(item["price_spread_percent"]) if item.get("price_spread_percent") is not None else None,
+        latest_seen_at=item.get("latest_seen_at"),
+        sources=[
+            ProductCatalogComparisonSourceResponse(
+                source_id=int(source["source_id"]),
+                connector_id=source.get("connector_id"),
+                connector_name=source.get("connector_name"),
+                source_label=source.get("source_label"),
+                source_url=source.get("source_url"),
+                source_status=source.get("source_status", "active"),
+                sync_status=source.get("sync_status", "idle"),
+                latest_unit_price=float(source.get("latest_unit_price", 0) or 0),
+                currency_code=source.get("currency_code") or "CLP",
+                last_seen_at=source.get("last_seen_at"),
+            )
+            for source in item.get("sources", [])
+        ],
     )
 
 

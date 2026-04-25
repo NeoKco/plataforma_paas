@@ -11,7 +11,8 @@ from app.apps.tenant_modules.products.models import ProductConnector, ProductPri
 class ProductSourceService:
     VALID_SOURCE_KINDS = {"manual_capture", "url_reference", "vendor_site", "vendor_feed"}
     VALID_SOURCE_STATUSES = {"active", "stale", "archived"}
-    VALID_PRICE_KINDS = {"reference", "quoted", "list_price", "offer"}
+    VALID_PRICE_KINDS = {"reference", "quoted", "list_price", "offer", "connector_sync"}
+    VALID_SYNC_STATUSES = {"idle", "synced", "warning", "error"}
 
     def list_sources(
         self,
@@ -57,11 +58,14 @@ class ProductSourceService:
             source_url=self._normalize_optional(payload.source_url),
             external_reference=self._normalize_optional(payload.external_reference),
             source_status=self._normalize_source_status(payload.source_status),
+            sync_status="idle",
             latest_unit_price=max(float(payload.latest_unit_price or 0), 0),
             currency_code=self._normalize_currency(payload.currency_code),
             source_summary=self._normalize_optional(payload.source_summary),
             captured_at=self._now(),
             last_seen_at=self._now(),
+            last_sync_attempt_at=None,
+            last_sync_error=None,
         )
         tenant_db.add(item)
         tenant_db.commit()
@@ -81,6 +85,7 @@ class ProductSourceService:
         item.currency_code = self._normalize_currency(payload.currency_code)
         item.source_summary = self._normalize_optional(payload.source_summary)
         item.last_seen_at = self._now()
+        item.last_sync_error = None
         item.updated_at = self._now()
         tenant_db.add(item)
         tenant_db.commit()
@@ -158,11 +163,14 @@ class ProductSourceService:
                 source_url=self._normalize_optional(draft.source_url),
                 external_reference=self._normalize_optional(draft.external_reference),
                 source_status="active",
+                sync_status="synced",
                 latest_unit_price=max(float(draft.unit_price or 0), 0),
                 currency_code=self._normalize_currency(draft.currency_code),
                 source_summary=self._build_source_summary(draft),
                 captured_at=timestamp,
                 last_seen_at=timestamp,
+                last_sync_attempt_at=timestamp,
+                last_sync_error=None,
             )
             tenant_db.add(source)
             tenant_db.flush()
@@ -175,10 +183,13 @@ class ProductSourceService:
             source.source_url = self._normalize_optional(draft.source_url)
             source.external_reference = self._normalize_optional(draft.external_reference)
             source.source_status = "active"
+            source.sync_status = "synced"
             source.latest_unit_price = max(float(draft.unit_price or 0), 0)
             source.currency_code = self._normalize_currency(draft.currency_code)
             source.source_summary = self._build_source_summary(draft)
             source.last_seen_at = timestamp
+            source.last_sync_attempt_at = timestamp
+            source.last_sync_error = None
             source.updated_at = timestamp
             tenant_db.add(source)
             tenant_db.flush()
@@ -199,6 +210,76 @@ class ProductSourceService:
         tenant_db.add(price_event)
         tenant_db.flush()
         return source, price_event
+
+    def mark_source_sync_attempt(
+        self,
+        tenant_db,
+        source: ProductSource,
+        *,
+        sync_status: str,
+        error_detail: str | None = None,
+        latest_unit_price: float | None = None,
+        currency_code: str | None = None,
+        source_label: str | None = None,
+        source_summary: str | None = None,
+        external_reference: str | None = None,
+        source_kind: str | None = None,
+    ) -> ProductSource:
+        timestamp = self._now()
+        source.sync_status = self._normalize_sync_status(sync_status)
+        source.last_sync_attempt_at = timestamp
+        source.last_sync_error = self._normalize_optional(error_detail)
+        if latest_unit_price is not None:
+            source.latest_unit_price = max(float(latest_unit_price or 0), 0)
+        if currency_code is not None:
+            source.currency_code = self._normalize_currency(currency_code)
+        if source_label is not None:
+            source.source_label = self._normalize_optional(source_label)
+        if source_summary is not None:
+            source.source_summary = self._normalize_optional(source_summary)
+        if external_reference is not None:
+            source.external_reference = self._normalize_optional(external_reference)
+        if source_kind is not None:
+            source.source_kind = self._normalize_source_kind(source_kind)
+        if source.sync_status == "synced":
+            source.source_status = "active"
+            source.last_seen_at = timestamp
+        source.updated_at = timestamp
+        tenant_db.add(source)
+        tenant_db.flush()
+        return source
+
+    def register_price_event(
+        self,
+        tenant_db,
+        *,
+        product_id: int,
+        product_source_id: int | None,
+        connector_id: int | None,
+        price_kind: str,
+        unit_price: float,
+        currency_code: str,
+        source_label: str | None = None,
+        source_url: str | None = None,
+        notes: str | None = None,
+        draft_id: int | None = None,
+    ) -> ProductPriceHistory:
+        item = ProductPriceHistory(
+            product_id=product_id,
+            product_source_id=product_source_id,
+            connector_id=connector_id,
+            draft_id=draft_id,
+            price_kind=self._normalize_price_kind(price_kind),
+            unit_price=max(float(unit_price or 0), 0),
+            currency_code=self._normalize_currency(currency_code),
+            source_label=self._normalize_optional(source_label),
+            source_url=self._normalize_optional(source_url),
+            notes=self._normalize_optional(notes),
+            captured_at=self._now(),
+        )
+        tenant_db.add(item)
+        tenant_db.flush()
+        return item
 
     def build_maps(
         self,
@@ -322,6 +403,12 @@ class ProductSourceService:
         normalized = (value or "reference").strip().lower()
         if normalized not in self.VALID_PRICE_KINDS:
             raise ValueError("Tipo de precio inválido")
+        return normalized
+
+    def _normalize_sync_status(self, value: str | None) -> str:
+        normalized = (value or "idle").strip().lower()
+        if normalized not in self.VALID_SYNC_STATUSES:
+            raise ValueError("Estado de sincronización inválido")
         return normalized
 
     @staticmethod

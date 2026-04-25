@@ -29,6 +29,7 @@
       - conectores automáticos reales
       - comparación multi-fuente
       - integración más profunda con cotizaciones y proyectos
+      - historial/versionado más rico de atributos por fuente
   - por qué este orden:
     - `products` ya cubre el hueco inmediato de calidad en captura, deduplicación y enriquecimiento
     - `crm` ya queda mejor acotado como consumidor comercial de ese catálogo

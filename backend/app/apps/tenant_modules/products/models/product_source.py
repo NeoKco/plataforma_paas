@@ -37,11 +37,18 @@ class ProductSource(TenantBase):
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True, index=True)
     external_reference: Mapped[str | None] = mapped_column(String(180), nullable=True, index=True)
     source_status: Mapped[str] = mapped_column(String(40), nullable=False, default="active", index=True)
+    sync_status: Mapped[str] = mapped_column(String(40), nullable=False, default="idle", index=True)
     latest_unit_price: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     currency_code: Mapped[str] = mapped_column(String(12), nullable=False, default="CLP")
     source_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     captured_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
     last_seen_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    last_sync_attempt_at: Mapped[DateTime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
+    last_sync_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
