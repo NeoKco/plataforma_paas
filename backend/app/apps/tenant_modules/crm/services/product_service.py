@@ -5,6 +5,7 @@ from app.apps.tenant_modules.crm.models import CRMProduct, CRMProductCharacteris
 
 class CRMProductService:
     VALID_PRODUCT_TYPES = {"product", "service"}
+    VALID_REFRESH_MERGE_POLICIES = {"price_only", "safe_merge", "overwrite_catalog"}
 
     def list_products(
         self,
@@ -141,6 +142,86 @@ class CRMProductService:
         )
         return {row.id: row.name for row in rows}
 
+    def apply_capture_refresh(
+        self,
+        tenant_db,
+        product_id: int,
+        capture_payload: dict,
+        *,
+        merge_policy: str = "safe_merge",
+    ) -> tuple[CRMProduct, list[str]]:
+        item = self.get_product(tenant_db, product_id)
+        normalized_policy = self._normalize_refresh_merge_policy(merge_policy)
+        existing_characteristics = self.get_characteristics_map(tenant_db, [item.id]).get(item.id, [])
+        changed_fields: list[str] = []
+
+        def mark_if_changed(field_name: str, before, after) -> None:
+            if before != after:
+                changed_fields.append(field_name)
+
+        price_value = max(float(capture_payload.get("unit_price") or 0), 0)
+        if price_value > 0:
+            previous_price = float(item.unit_price or 0)
+            item.unit_price = price_value
+            mark_if_changed("unit_price", previous_price, item.unit_price)
+
+        if normalized_policy == "price_only":
+            tenant_db.add(item)
+            tenant_db.flush()
+            return item, changed_fields
+
+        incoming_name = self._normalize_optional(capture_payload.get("name"))
+        incoming_sku = self._normalize_optional(capture_payload.get("sku"))
+        incoming_type = self._normalize_optional(capture_payload.get("product_type"))
+        incoming_unit_label = self._normalize_optional(capture_payload.get("unit_label"))
+        incoming_description = self._normalize_optional(capture_payload.get("description"))
+        characteristics_payload = capture_payload.get("characteristics") or []
+
+        if normalized_policy == "overwrite_catalog":
+            if incoming_name:
+                mark_if_changed("name", item.name, incoming_name)
+                item.name = incoming_name
+            if incoming_sku is not None:
+                mark_if_changed("sku", item.sku, incoming_sku)
+                item.sku = incoming_sku
+            if incoming_type:
+                normalized_type = self._validate_type(incoming_type)
+                mark_if_changed("product_type", item.product_type, normalized_type)
+                item.product_type = normalized_type
+            if incoming_unit_label is not None:
+                mark_if_changed("unit_label", item.unit_label, incoming_unit_label)
+                item.unit_label = incoming_unit_label
+            if incoming_description is not None:
+                mark_if_changed("description", item.description, incoming_description)
+                item.description = incoming_description
+            self._replace_characteristics(tenant_db, item.id, characteristics_payload)
+            if characteristics_payload:
+                changed_fields.append("characteristics")
+        else:
+            if incoming_sku and not item.sku:
+                item.sku = incoming_sku
+                changed_fields.append("sku")
+            if incoming_type:
+                normalized_type = self._validate_type(incoming_type)
+                if item.product_type in {"service", ""} and normalized_type != item.product_type:
+                    item.product_type = normalized_type
+                    changed_fields.append("product_type")
+            if incoming_unit_label and not item.unit_label:
+                item.unit_label = incoming_unit_label
+                changed_fields.append("unit_label")
+            if incoming_description and not item.description:
+                item.description = incoming_description
+                changed_fields.append("description")
+            if characteristics_payload:
+                merged_characteristics = self._merge_characteristics(existing_characteristics, characteristics_payload)
+                if merged_characteristics:
+                    self._replace_characteristics(tenant_db, item.id, merged_characteristics)
+                    changed_fields.append("characteristics")
+
+        tenant_db.add(item)
+        tenant_db.flush()
+        return item, changed_fields
+
     def _replace_characteristics(self, tenant_db, product_id: int, characteristics_payload: list) -> None:
         tenant_db.query(CRMProductCharacteristic).filter(
             CRMProductCharacteristic.product_id == product_id
@@ -169,6 +250,12 @@ class CRMProductService:
         if normalized_type not in self.VALID_PRODUCT_TYPES:
             raise ValueError("Tipo de producto invalido")
         return normalized_type
+
+    def _normalize_refresh_merge_policy(self, merge_policy: str | None) -> str:
+        normalized = (merge_policy or "safe_merge").strip().lower()
+        if normalized not in self.VALID_REFRESH_MERGE_POLICIES:
+            raise ValueError("Política de merge inválida")
+        return normalized
 
     def _has_duplicate_name(self, tenant_db, name: str, *, exclude_id: int | None = None) -> bool:
         normalized = " ".join((name or "").strip().lower().split())
@@ -202,3 +289,33 @@ class CRMProductService:
     def _normalize_optional(value: str | None) -> str | None:
         text = (value or "").strip()
         return text or None
+
+    def _merge_characteristics(self, existing_rows: list[CRMProductCharacteristic], incoming_payload: list) -> list[dict]:
+        merged: list[dict] = []
+        seen: set[tuple[str, str]] = set()
+
+        def push(label: str | None, value: str | None) -> None:
+            normalized_label = self._normalize_optional(label)
+            normalized_value = self._normalize_optional(value)
+            if not normalized_label or not normalized_value:
+                return
+            key = (normalized_label.lower(), normalized_value.lower())
+            if key in seen:
+                return
+            seen.add(key)
+            merged.append(
+                {
+                    "label": normalized_label,
+                    "value": normalized_value,
+                    "sort_order": (len(merged) + 1) * 10,
+                }
+            )
+
+        for row in existing_rows:
+            push(row.label, row.value)
+        for payload in incoming_payload or []:
+            if isinstance(payload, dict):
+                push(payload.get("label"), payload.get("value"))
+            else:
+                push(getattr(payload, "label", None), getattr(payload, "value", None))
+        return merged

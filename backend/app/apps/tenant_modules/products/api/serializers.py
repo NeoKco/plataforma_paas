@@ -12,12 +12,21 @@ from app.apps.tenant_modules.products.schemas import (
     ProductCatalogIngestionRunResponse,
     ProductCatalogItemResponse,
     ProductCatalogPriceHistoryItemResponse,
+    ProductCatalogRefreshResultResponse,
+    ProductCatalogRefreshRunItemResponse,
+    ProductCatalogRefreshRunResponse,
     ProductCatalogProductSourceItemResponse,
     ProductCatalogProductCharacteristicItemResponse,
 )
 
 
-def build_product_catalog_item(item, *, characteristics: list | None = None) -> ProductCatalogItemResponse:
+def build_product_catalog_item(
+    item,
+    *,
+    characteristics: list | None = None,
+    health: dict | None = None,
+) -> ProductCatalogItemResponse:
+    health = health or {}
     return ProductCatalogItemResponse(
         id=item.id,
         sku=item.sku,
@@ -28,6 +37,11 @@ def build_product_catalog_item(item, *, characteristics: list | None = None) -> 
         description=item.description,
         is_active=bool(item.is_active),
         sort_order=int(item.sort_order or 0),
+        source_count=int(health.get("source_count", 0) or 0),
+        active_source_count=int(health.get("active_source_count", 0) or 0),
+        health_status=health.get("health_status", "no_source"),
+        last_refresh_at=health.get("last_refresh_at"),
+        next_refresh_at=health.get("next_refresh_at"),
         created_at=item.created_at,
         updated_at=getattr(item, "updated_at", None),
         characteristics=[
@@ -91,12 +105,17 @@ def build_product_source_item(
         external_reference=item.external_reference,
         source_status=item.source_status,
         sync_status=getattr(item, "sync_status", "idle"),
+        refresh_mode=getattr(item, "refresh_mode", "manual"),
+        refresh_merge_policy=getattr(item, "refresh_merge_policy", "safe_merge"),
+        refresh_prompt=getattr(item, "refresh_prompt", None),
         latest_unit_price=float(item.latest_unit_price or 0),
         currency_code=item.currency_code,
         source_summary=item.source_summary,
         captured_at=item.captured_at,
         last_seen_at=item.last_seen_at,
         last_sync_attempt_at=getattr(item, "last_sync_attempt_at", None),
+        next_refresh_at=getattr(item, "next_refresh_at", None),
+        last_refresh_success_at=getattr(item, "last_refresh_success_at", None),
         last_sync_error=getattr(item, "last_sync_error", None),
         created_at=item.created_at,
         updated_at=getattr(item, "updated_at", None),
@@ -172,6 +191,82 @@ def build_product_comparison_item(item: dict) -> ProductCatalogComparisonItemRes
                 last_seen_at=source.get("last_seen_at"),
             )
             for source in item.get("sources", [])
+        ],
+    )
+
+
+def build_product_refresh_result(item: dict) -> ProductCatalogRefreshResultResponse:
+    return ProductCatalogRefreshResultResponse(
+        product_id=int(item["product_id"]),
+        product_name=item["product_name"],
+        refreshed_sources=int(item.get("refreshed_sources", 0) or 0),
+        completed_sources=int(item.get("completed_sources", 0) or 0),
+        error_sources=int(item.get("error_sources", 0) or 0),
+        changed_fields=list(item.get("changed_fields") or []),
+        merge_policies=list(item.get("merge_policies") or []),
+        message=item.get("message"),
+    )
+
+
+def build_product_refresh_run_item(item, *, product_name: str | None = None) -> ProductCatalogRefreshRunItemResponse:
+    import json
+
+    changed_fields: list[str] = []
+    try:
+        payload = json.loads(item.detected_changes_json or "{}")
+    except Exception:  # noqa: BLE001
+        payload = {}
+    changed_fields = list(payload.get("changed_fields") or [])
+    return ProductCatalogRefreshRunItemResponse(
+        id=item.id,
+        run_id=item.run_id,
+        product_id=item.product_id,
+        product_name=product_name,
+        product_source_id=item.product_source_id,
+        item_status=item.item_status,
+        source_url=item.source_url,
+        source_label=item.source_label,
+        merge_policy=item.merge_policy,
+        used_ai_enrichment=bool(item.used_ai_enrichment),
+        changed_fields=changed_fields,
+        error_message=item.error_message,
+        processed_at=item.processed_at,
+        created_at=getattr(item, "created_at", None),
+        updated_at=getattr(item, "updated_at", None),
+    )
+
+
+def build_product_refresh_run(
+    item,
+    *,
+    items: list | None = None,
+    connector_name: str | None = None,
+    product_names: dict[int, str] | None = None,
+) -> ProductCatalogRefreshRunResponse:
+    product_names = product_names or {}
+    return ProductCatalogRefreshRunResponse(
+        id=item.id,
+        status=item.status,
+        scope=item.scope,
+        scope_label=item.scope_label,
+        connector_id=getattr(item, "connector_id", None),
+        connector_name=connector_name,
+        requested_count=int(item.requested_count or 0),
+        processed_count=int(item.processed_count or 0),
+        completed_count=int(item.completed_count or 0),
+        error_count=int(item.error_count or 0),
+        cancelled_count=int(item.cancelled_count or 0),
+        prefer_ai=bool(getattr(item, "prefer_ai", False)),
+        created_by_user_id=item.created_by_user_id,
+        started_at=item.started_at,
+        finished_at=item.finished_at,
+        cancelled_at=item.cancelled_at,
+        last_error=item.last_error,
+        created_at=getattr(item, "created_at", None),
+        updated_at=getattr(item, "updated_at", None),
+        items=[
+            build_product_refresh_run_item(run_item, product_name=product_names.get(run_item.product_id))
+            for run_item in (items or [])
         ],
     )
 

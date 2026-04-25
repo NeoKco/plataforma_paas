@@ -13,6 +13,8 @@ class ProductSourceService:
     VALID_SOURCE_STATUSES = {"active", "stale", "archived"}
     VALID_PRICE_KINDS = {"reference", "quoted", "list_price", "offer", "connector_sync"}
     VALID_SYNC_STATUSES = {"idle", "synced", "warning", "error"}
+    VALID_REFRESH_MODES = {"manual", "daily", "weekly", "monthly"}
+    VALID_REFRESH_MERGE_POLICIES = {"price_only", "safe_merge", "overwrite_catalog"}
 
     def list_sources(
         self,
@@ -59,12 +61,22 @@ class ProductSourceService:
             external_reference=self._normalize_optional(payload.external_reference),
             source_status=self._normalize_source_status(payload.source_status),
             sync_status="idle",
+            refresh_mode=self._normalize_refresh_mode(getattr(payload, "refresh_mode", None)),
+            refresh_merge_policy=self._normalize_refresh_merge_policy(
+                getattr(payload, "refresh_merge_policy", None)
+            ),
+            refresh_prompt=self._normalize_optional(getattr(payload, "refresh_prompt", None)),
             latest_unit_price=max(float(payload.latest_unit_price or 0), 0),
             currency_code=self._normalize_currency(payload.currency_code),
             source_summary=self._normalize_optional(payload.source_summary),
             captured_at=self._now(),
             last_seen_at=self._now(),
             last_sync_attempt_at=None,
+            next_refresh_at=self._build_next_refresh_at(
+                self._normalize_refresh_mode(getattr(payload, "refresh_mode", None)),
+                reference=self._now(),
+            ),
+            last_refresh_success_at=None,
             last_sync_error=None,
         )
         tenant_db.add(item)
@@ -81,10 +93,16 @@ class ProductSourceService:
         item.source_url = self._normalize_optional(payload.source_url)
         item.external_reference = self._normalize_optional(payload.external_reference)
         item.source_status = self._normalize_source_status(payload.source_status)
+        item.refresh_mode = self._normalize_refresh_mode(getattr(payload, "refresh_mode", None))
+        item.refresh_merge_policy = self._normalize_refresh_merge_policy(
+            getattr(payload, "refresh_merge_policy", None)
+        )
+        item.refresh_prompt = self._normalize_optional(getattr(payload, "refresh_prompt", None))
         item.latest_unit_price = max(float(payload.latest_unit_price or 0), 0)
         item.currency_code = self._normalize_currency(payload.currency_code)
         item.source_summary = self._normalize_optional(payload.source_summary)
         item.last_seen_at = self._now()
+        item.next_refresh_at = self._build_next_refresh_at(item.refresh_mode, reference=self._now())
         item.last_sync_error = None
         item.updated_at = self._now()
         tenant_db.add(item)
@@ -164,12 +182,17 @@ class ProductSourceService:
                 external_reference=self._normalize_optional(draft.external_reference),
                 source_status="active",
                 sync_status="synced",
+                refresh_mode="manual",
+                refresh_merge_policy="safe_merge",
+                refresh_prompt=None,
                 latest_unit_price=max(float(draft.unit_price or 0), 0),
                 currency_code=self._normalize_currency(draft.currency_code),
                 source_summary=self._build_source_summary(draft),
                 captured_at=timestamp,
                 last_seen_at=timestamp,
                 last_sync_attempt_at=timestamp,
+                next_refresh_at=None,
+                last_refresh_success_at=timestamp,
                 last_sync_error=None,
             )
             tenant_db.add(source)
@@ -184,11 +207,18 @@ class ProductSourceService:
             source.external_reference = self._normalize_optional(draft.external_reference)
             source.source_status = "active"
             source.sync_status = "synced"
+            source.refresh_mode = source.refresh_mode or "manual"
+            source.refresh_merge_policy = source.refresh_merge_policy or "safe_merge"
             source.latest_unit_price = max(float(draft.unit_price or 0), 0)
             source.currency_code = self._normalize_currency(draft.currency_code)
             source.source_summary = self._build_source_summary(draft)
             source.last_seen_at = timestamp
             source.last_sync_attempt_at = timestamp
+            source.last_refresh_success_at = timestamp
+            source.next_refresh_at = self._build_next_refresh_at(
+                source.refresh_mode,
+                reference=timestamp,
+            )
             source.last_sync_error = None
             source.updated_at = timestamp
             tenant_db.add(source)
@@ -244,6 +274,11 @@ class ProductSourceService:
         if source.sync_status == "synced":
             source.source_status = "active"
             source.last_seen_at = timestamp
+            source.last_refresh_success_at = timestamp
+            source.next_refresh_at = self._build_next_refresh_at(
+                source.refresh_mode,
+                reference=timestamp,
+            )
         source.updated_at = timestamp
         tenant_db.add(source)
         tenant_db.flush()
@@ -336,6 +371,67 @@ class ProductSourceService:
             "products_with_source": int(products_with_source),
         }
 
+    def build_product_health_map(self, tenant_db, product_ids: list[int]) -> dict[int, dict]:
+        normalized_ids = [item for item in product_ids if item]
+        if not normalized_ids:
+            return {}
+        rows = (
+            tenant_db.query(ProductSource)
+            .filter(ProductSource.product_id.in_(normalized_ids))
+            .order_by(ProductSource.product_id.asc(), ProductSource.id.asc())
+            .all()
+        )
+        grouped: dict[int, list[ProductSource]] = {}
+        for row in rows:
+            grouped.setdefault(row.product_id, []).append(row)
+
+        now = self._now()
+        response: dict[int, dict] = {}
+        for product_id in normalized_ids:
+            items = grouped.get(product_id, [])
+            active_items = [item for item in items if item.source_status == "active"]
+            next_refresh_candidates = [
+                item.next_refresh_at
+                for item in active_items
+                if item.next_refresh_at is not None
+            ]
+            last_refresh_candidates = [
+                item.last_refresh_success_at or item.last_sync_attempt_at
+                for item in items
+                if (item.last_refresh_success_at or item.last_sync_attempt_at) is not None
+            ]
+            if not items:
+                response[product_id] = {
+                    "source_count": 0,
+                    "active_source_count": 0,
+                    "health_status": "no_source",
+                    "last_refresh_at": None,
+                    "next_refresh_at": None,
+                }
+                continue
+            has_error = any(item.sync_status == "error" for item in active_items)
+            is_stale = any(
+                item.next_refresh_at is not None and item.next_refresh_at <= now
+                for item in active_items
+            )
+            has_warning = any(item.sync_status == "warning" for item in active_items)
+            if has_error:
+                health_status = "error"
+            elif is_stale:
+                health_status = "stale"
+            elif has_warning:
+                health_status = "warning"
+            else:
+                health_status = "healthy"
+            response[product_id] = {
+                "source_count": len(items),
+                "active_source_count": len(active_items),
+                "health_status": health_status,
+                "last_refresh_at": max(last_refresh_candidates) if last_refresh_candidates else None,
+                "next_refresh_at": min(next_refresh_candidates) if next_refresh_candidates else None,
+            }
+        return response
+
     def _find_matching_source(
         self,
         tenant_db,
@@ -411,6 +507,18 @@ class ProductSourceService:
             raise ValueError("Estado de sincronización inválido")
         return normalized
 
+    def _normalize_refresh_mode(self, value: str | None) -> str:
+        normalized = (value or "manual").strip().lower()
+        if normalized not in self.VALID_REFRESH_MODES:
+            raise ValueError("Modo de actualización inválido")
+        return normalized
+
+    def _normalize_refresh_merge_policy(self, value: str | None) -> str:
+        normalized = (value or "safe_merge").strip().lower()
+        if normalized not in self.VALID_REFRESH_MERGE_POLICIES:
+            raise ValueError("Política de merge inválida")
+        return normalized
+
     @staticmethod
     def _normalize_currency(value: str | None) -> str:
         normalized = ((value or "CLP").strip().upper())[:12]
@@ -419,3 +527,14 @@ class ProductSourceService:
     @staticmethod
     def _now() -> datetime:
         return datetime.now(timezone.utc)
+
+    def _build_next_refresh_at(self, refresh_mode: str, *, reference: datetime) -> datetime | None:
+        from datetime import timedelta
+
+        if refresh_mode == "daily":
+            return reference + timedelta(days=1)
+        if refresh_mode == "weekly":
+            return reference + timedelta(days=7)
+        if refresh_mode == "monthly":
+            return reference + timedelta(days=30)
+        return None

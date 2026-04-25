@@ -80,6 +80,7 @@ class ProductCatalogEnrichmentService:
         payload: dict[str, Any],
         *,
         prefer_ai: bool = True,
+        prompt_override: str | None = None,
     ) -> dict[str, Any]:
         draft = SimpleNamespace(
             id=None,
@@ -105,7 +106,11 @@ class ProductCatalogEnrichmentService:
             for index, item in enumerate(payload.get("characteristics") or [])
         ]
         heuristic_payload = self._build_heuristic_enrichment(draft, characteristics)
-        ai_payload = self._try_ai_enrichment(draft, characteristics) if prefer_ai else None
+        ai_payload = (
+            self._try_ai_enrichment(draft, characteristics, prompt_override=prompt_override)
+            if prefer_ai
+            else None
+        )
         return self._merge_enrichment_payloads(heuristic_payload, ai_payload)
 
     def enrich_draft(
@@ -359,6 +364,8 @@ class ProductCatalogEnrichmentService:
         self,
         draft: CRMProductIngestionDraft,
         characteristics: list[CRMProductIngestionCharacteristic],
+        *,
+        prompt_override: str | None = None,
     ) -> dict[str, Any] | None:
         if not settings.API_IA_URL.strip():
             return None
@@ -367,7 +374,11 @@ class ProductCatalogEnrichmentService:
         except ModuleNotFoundError:
             return None
 
-        payload = self._build_ai_request_payload(draft, characteristics)
+        payload = self._build_ai_request_payload(
+            draft,
+            characteristics,
+            prompt_override=prompt_override,
+        )
         headers = {"Content-Type": "application/json"}
         if settings.MANAGER_API_IA_KEY.strip():
             headers["Authorization"] = f"Bearer {settings.MANAGER_API_IA_KEY.strip()}"
@@ -429,6 +440,8 @@ class ProductCatalogEnrichmentService:
         self,
         draft: CRMProductIngestionDraft,
         characteristics: list[CRMProductIngestionCharacteristic],
+        *,
+        prompt_override: str | None = None,
     ) -> dict[str, Any]:
         structured_characteristics = [
             {"label": item.label, "value": item.value, "sort_order": item.sort_order}
@@ -446,6 +459,8 @@ class ProductCatalogEnrichmentService:
             "Normaliza labels en español y evita duplicados. "
             "No agregues texto fuera del JSON."
         )
+        if (prompt_override or "").strip():
+            prompt = f"{prompt}\n\nInstrucción adicional del conector/fuente:\n{prompt_override.strip()}"
         return {
             "model": settings.API_IA_MODEL_ID or None,
             "max_tokens": int(settings.API_IA_MAX_TOKENS or 1200),

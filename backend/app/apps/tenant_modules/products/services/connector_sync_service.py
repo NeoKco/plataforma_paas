@@ -67,7 +67,7 @@ class ProductConnectorSyncService:
 
             previous_price = float(source.latest_unit_price or 0)
             try:
-                extracted = self._extract_for_connector(
+                extracted = self.extract_capture_payload(
                     connector=connector,
                     url=source.source_url,
                     source_label=source.source_label,
@@ -76,6 +76,7 @@ class ProductConnectorSyncService:
                     extracted,
                     prefer_ai=bool(connector.run_ai_enrichment)
                     or connector.fetch_strategy == "html_ai",
+                    prompt_override=getattr(source, "refresh_prompt", None) or connector.config_notes,
                 )
                 currency_code = enriched.get("currency_code") or connector.default_currency_code or source.currency_code
                 latest_price = max(float(enriched.get("unit_price") or 0), 0)
@@ -180,6 +181,19 @@ class ProductConnectorSyncService:
         )
 
     def _extract_for_connector(
+        self,
+        *,
+        connector,
+        url: str,
+        source_label: str | None,
+    ) -> dict[str, Any]:
+        return self.extract_capture_payload(
+            connector=connector,
+            url=url,
+            source_label=source_label,
+        )
+
+    def extract_capture_payload(
         self,
         *,
         connector,
