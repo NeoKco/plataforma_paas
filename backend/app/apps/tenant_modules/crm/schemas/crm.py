@@ -128,6 +128,23 @@ class CRMProductIngestionApproveRequest(BaseModel):
     review_notes: str | None = None
 
 
+class CRMProductIngestionExtractUrlRequest(BaseModel):
+    source_url: str
+    source_label: str | None = None
+    external_reference: str | None = None
+
+
+class CRMProductIngestionRunEntryRequest(BaseModel):
+    source_url: str
+    source_label: str | None = None
+    external_reference: str | None = None
+
+
+class CRMProductIngestionRunCreateRequest(BaseModel):
+    source_label: str | None = None
+    entries: list[CRMProductIngestionRunEntryRequest] = Field(default_factory=list)
+
+
 class CRMProductIngestionDraftItemResponse(BaseModel):
     id: int
     source_kind: str
@@ -190,6 +207,62 @@ class CRMProductIngestionApprovalResponse(BaseModel):
     requested_by: TenantUserContextResponse
     data: CRMProductIngestionDraftItemResponse
     published_product: CRMProductItemResponse
+
+
+class CRMProductIngestionRunItemResponse(BaseModel):
+    id: int
+    run_id: int
+    source_url: str
+    source_label: str | None = None
+    external_reference: str | None = None
+    item_status: str
+    draft_id: int | None = None
+    extracted_name: str | None = None
+    error_message: str | None = None
+    processed_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class CRMProductIngestionRunResponse(BaseModel):
+    id: int
+    status: str
+    source_mode: str
+    source_label: str | None = None
+    requested_count: int
+    processed_count: int
+    completed_count: int
+    error_count: int
+    cancelled_count: int
+    created_by_user_id: int | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    cancelled_at: datetime | None = None
+    last_error: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    items: list[CRMProductIngestionRunItemResponse] = Field(default_factory=list)
+
+    class Config:
+        from_attributes = True
+
+
+class CRMProductIngestionRunsResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    total: int
+    data: list[CRMProductIngestionRunResponse]
+
+
+class CRMProductIngestionRunMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: CRMProductIngestionRunResponse
 
 
 class CRMOpportunityCreateRequest(BaseModel):

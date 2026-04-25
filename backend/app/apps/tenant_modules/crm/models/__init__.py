@@ -9,6 +9,8 @@ from app.apps.tenant_modules.crm.models.product_ingestion_characteristic import 
     CRMProductIngestionCharacteristic,
 )
 from app.apps.tenant_modules.crm.models.product_ingestion_draft import CRMProductIngestionDraft
+from app.apps.tenant_modules.crm.models.product_ingestion_run import CRMProductIngestionRun
+from app.apps.tenant_modules.crm.models.product_ingestion_run_item import CRMProductIngestionRunItem
 from app.apps.tenant_modules.crm.models.product_characteristic import CRMProductCharacteristic
 from app.apps.tenant_modules.crm.models.quote import CRMQuote
 from app.apps.tenant_modules.crm.models.quote_line import CRMQuoteLine
@@ -27,6 +29,8 @@ __all__ = [
     "CRMProduct",
     "CRMProductIngestionCharacteristic",
     "CRMProductIngestionDraft",
+    "CRMProductIngestionRun",
+    "CRMProductIngestionRunItem",
     "CRMProductCharacteristic",
     "CRMQuote",
     "CRMQuoteLine",
