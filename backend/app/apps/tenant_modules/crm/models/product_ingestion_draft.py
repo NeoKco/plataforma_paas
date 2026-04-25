@@ -11,6 +11,12 @@ class CRMProductIngestionDraft(TenantBase):
     source_kind: Mapped[str] = mapped_column(String(40), nullable=False, default="manual_capture", index=True)
     source_label: Mapped[str | None] = mapped_column(String(180), nullable=True)
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    connector_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("products_connectors.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     external_reference: Mapped[str | None] = mapped_column(String(180), nullable=True, index=True)
     capture_status: Mapped[str] = mapped_column(String(40), nullable=False, default="draft", index=True)
     sku: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)

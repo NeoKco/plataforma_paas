@@ -43,6 +43,7 @@ def build_product_catalog_ingestion_draft_item(
     *,
     characteristics: list | None = None,
     published_product_name: str | None = None,
+    connector_name: str | None = None,
     duplicate_analysis: dict | None = None,
     enrichment_state: dict | None = None,
 ) -> ProductCatalogIngestionDraftItemResponse:
@@ -51,6 +52,8 @@ def build_product_catalog_ingestion_draft_item(
         source_kind=item.source_kind,
         source_label=item.source_label,
         source_url=item.source_url,
+        connector_id=getattr(item, "connector_id", None),
+        connector_name=connector_name,
         external_reference=item.external_reference,
         capture_status=item.capture_status,
         sku=item.sku,
@@ -120,12 +123,14 @@ def build_product_catalog_ingestion_draft_item(
     )
 
 
-def build_product_catalog_ingestion_run_item(item) -> ProductCatalogIngestionRunItemResponse:
+def build_product_catalog_ingestion_run_item(item, *, connector_name: str | None = None) -> ProductCatalogIngestionRunItemResponse:
     return ProductCatalogIngestionRunItemResponse(
         id=item.id,
         run_id=item.run_id,
         source_url=item.source_url,
         source_label=item.source_label,
+        connector_id=getattr(item, "connector_id", None),
+        connector_name=connector_name,
         external_reference=item.external_reference,
         item_status=item.item_status,
         draft_id=item.draft_id,
@@ -137,12 +142,20 @@ def build_product_catalog_ingestion_run_item(item) -> ProductCatalogIngestionRun
     )
 
 
-def build_product_catalog_ingestion_run(item, *, items: list | None = None) -> ProductCatalogIngestionRunResponse:
+def build_product_catalog_ingestion_run(
+    item,
+    *,
+    items: list | None = None,
+    connector_name: str | None = None,
+    item_connector_names: dict[int, str] | None = None,
+) -> ProductCatalogIngestionRunResponse:
     return ProductCatalogIngestionRunResponse(
         id=item.id,
         status=item.status,
         source_mode=item.source_mode,
         source_label=item.source_label,
+        connector_id=getattr(item, "connector_id", None),
+        connector_name=connector_name,
         requested_count=int(item.requested_count or 0),
         processed_count=int(item.processed_count or 0),
         completed_count=int(item.completed_count or 0),
@@ -155,5 +168,11 @@ def build_product_catalog_ingestion_run(item, *, items: list | None = None) -> P
         last_error=item.last_error,
         created_at=getattr(item, "created_at", None),
         updated_at=getattr(item, "updated_at", None),
-        items=[build_product_catalog_ingestion_run_item(run_item) for run_item in (items or [])],
+        items=[
+            build_product_catalog_ingestion_run_item(
+                run_item,
+                connector_name=(item_connector_names or {}).get(run_item.id),
+            )
+            for run_item in (items or [])
+        ],
     )

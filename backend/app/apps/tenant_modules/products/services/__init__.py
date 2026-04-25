@@ -1,3 +1,6 @@
+from app.apps.tenant_modules.products.services.connector_service import (
+    ProductConnectorService,
+)
 from app.apps.tenant_modules.products.services.ingestion_extraction_service import (
     ProductCatalogIngestionExtractionService,
 )
@@ -16,6 +19,9 @@ from app.apps.tenant_modules.products.services.overview_service import (
 from app.apps.tenant_modules.products.services.product_service import (
     ProductCatalogService,
 )
+from app.apps.tenant_modules.products.services.source_service import (
+    ProductSourceService,
+)
 
 __all__ = [
     "ProductCatalogEnrichmentService",
@@ -24,4 +30,6 @@ __all__ = [
     "ProductCatalogIngestionService",
     "ProductCatalogOverviewService",
     "ProductCatalogService",
+    "ProductConnectorService",
+    "ProductSourceService",
 ]

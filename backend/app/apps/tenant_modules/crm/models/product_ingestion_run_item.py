@@ -14,6 +14,12 @@ class CRMProductIngestionRunItem(TenantBase):
         nullable=False,
         index=True,
     )
+    connector_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("products_connectors.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     source_url: Mapped[str] = mapped_column(String(500), nullable=False)
     source_label: Mapped[str | None] = mapped_column(String(180), nullable=True)
     external_reference: Mapped[str | None] = mapped_column(String(180), nullable=True, index=True)

@@ -44,6 +44,61 @@ class ProductCatalogProductUpdateRequest(ProductCatalogProductCreateRequest):
     pass
 
 
+class ProductCatalogConnectorCreateRequest(BaseModel):
+    name: str
+    connector_kind: str = "generic_url"
+    base_url: str | None = None
+    default_currency_code: str = "CLP"
+    supports_batch: bool = True
+    supports_price_tracking: bool = True
+    is_active: bool = True
+    config_notes: str | None = None
+
+
+class ProductCatalogConnectorUpdateRequest(ProductCatalogConnectorCreateRequest):
+    pass
+
+
+class ProductCatalogConnectorStatusUpdateRequest(BaseModel):
+    is_active: bool
+
+
+class ProductCatalogConnectorItemResponse(BaseModel):
+    id: int
+    name: str
+    connector_kind: str
+    base_url: str | None = None
+    default_currency_code: str
+    supports_batch: bool
+    supports_price_tracking: bool
+    is_active: bool
+    config_notes: str | None = None
+    last_sync_at: datetime | None = None
+    last_sync_status: str
+    source_total: int = 0
+    price_event_total: int = 0
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProductCatalogConnectorsResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    total: int
+    data: list[ProductCatalogConnectorItemResponse]
+
+
+class ProductCatalogConnectorMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: ProductCatalogConnectorItemResponse
+
+
 class ProductCatalogItemResponse(BaseModel):
     id: int
     sku: str | None = None
@@ -77,6 +132,100 @@ class ProductCatalogMutationResponse(BaseModel):
     data: ProductCatalogItemResponse
 
 
+class ProductCatalogProductSourceCreateRequest(BaseModel):
+    connector_id: int | None = None
+    source_kind: str = "manual_capture"
+    source_label: str | None = None
+    source_url: str | None = None
+    external_reference: str | None = None
+    source_status: str = "active"
+    latest_unit_price: float = 0
+    currency_code: str = "CLP"
+    source_summary: str | None = None
+
+
+class ProductCatalogProductSourceUpdateRequest(ProductCatalogProductSourceCreateRequest):
+    pass
+
+
+class ProductCatalogPriceHistoryCreateRequest(BaseModel):
+    connector_id: int | None = None
+    source_label: str | None = None
+    source_url: str | None = None
+    unit_price: float = 0
+    currency_code: str = "CLP"
+    price_kind: str = "reference"
+    notes: str | None = None
+
+
+class ProductCatalogProductSourceItemResponse(BaseModel):
+    id: int
+    product_id: int
+    connector_id: int | None = None
+    connector_name: str | None = None
+    draft_id: int | None = None
+    run_item_id: int | None = None
+    source_kind: str
+    source_label: str | None = None
+    source_url: str | None = None
+    external_reference: str | None = None
+    source_status: str
+    latest_unit_price: float
+    currency_code: str
+    source_summary: str | None = None
+    captured_at: datetime | None = None
+    last_seen_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProductCatalogPriceHistoryItemResponse(BaseModel):
+    id: int
+    product_id: int
+    product_name: str | None = None
+    product_source_id: int | None = None
+    connector_id: int | None = None
+    connector_name: str | None = None
+    draft_id: int | None = None
+    price_kind: str
+    unit_price: float
+    currency_code: str
+    source_label: str | None = None
+    source_url: str | None = None
+    notes: str | None = None
+    captured_at: datetime | None = None
+    created_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProductCatalogSourcesResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    total: int
+    data: list[ProductCatalogProductSourceItemResponse]
+
+
+class ProductCatalogSourceMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: ProductCatalogProductSourceItemResponse
+
+
+class ProductCatalogPriceHistoryResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    total: int
+    data: list[ProductCatalogPriceHistoryItemResponse]
+
+
 class ProductCatalogIngestionCharacteristicWriteRequest(BaseModel):
     id: int | None = None
     label: str
@@ -100,6 +249,7 @@ class ProductCatalogIngestionDraftCreateRequest(BaseModel):
     source_kind: str = "manual_capture"
     source_label: str | None = None
     source_url: str | None = None
+    connector_id: int | None = None
     external_reference: str | None = None
     sku: str | None = None
     name: str | None = None
@@ -141,17 +291,20 @@ class ProductCatalogDuplicateResolutionRequest(BaseModel):
 class ProductCatalogIngestionExtractUrlRequest(BaseModel):
     source_url: str
     source_label: str | None = None
+    connector_id: int | None = None
     external_reference: str | None = None
 
 
 class ProductCatalogIngestionRunEntryRequest(BaseModel):
     source_url: str
     source_label: str | None = None
+    connector_id: int | None = None
     external_reference: str | None = None
 
 
 class ProductCatalogIngestionRunCreateRequest(BaseModel):
     source_label: str | None = None
+    connector_id: int | None = None
     entries: list[ProductCatalogIngestionRunEntryRequest] = Field(default_factory=list)
 
 
@@ -185,6 +338,8 @@ class ProductCatalogIngestionDraftItemResponse(BaseModel):
     source_kind: str
     source_label: str | None = None
     source_url: str | None = None
+    connector_id: int | None = None
+    connector_name: str | None = None
     external_reference: str | None = None
     capture_status: str
     sku: str | None = None
@@ -252,6 +407,8 @@ class ProductCatalogIngestionRunItemResponse(BaseModel):
     run_id: int
     source_url: str
     source_label: str | None = None
+    connector_id: int | None = None
+    connector_name: str | None = None
     external_reference: str | None = None
     item_status: str
     draft_id: int | None = None
@@ -270,6 +427,8 @@ class ProductCatalogIngestionRunResponse(BaseModel):
     status: str
     source_mode: str
     source_label: str | None = None
+    connector_id: int | None = None
+    connector_name: str | None = None
     requested_count: int
     processed_count: int
     completed_count: int
@@ -310,3 +469,6 @@ class ProductCatalogModuleOverviewResponse(BaseModel):
     metrics: dict
     recent_products: list[ProductCatalogItemResponse] = Field(default_factory=list)
     recent_drafts: list[ProductCatalogIngestionDraftItemResponse] = Field(default_factory=list)
+    recent_sources: list[ProductCatalogProductSourceItemResponse] = Field(default_factory=list)
+    recent_prices: list[ProductCatalogPriceHistoryItemResponse] = Field(default_factory=list)
+    recent_connectors: list[ProductCatalogConnectorItemResponse] = Field(default_factory=list)
