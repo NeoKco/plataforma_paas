@@ -34,6 +34,39 @@
     - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `27 tests OK`
     - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/services/product_service.py backend/migrations/tenant/v0049_products_live_refresh.py` -> `OK`
     - `cd frontend && npm run build` -> `OK`
+  - cierre runtime confirmado:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant: `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con:
+        - `ProductsRefreshPage-CGQXN31r.js`
+        - `ProductsOverviewPage-C-kQSkXl.js`
+        - `ProductsSourcesPage-DMIQtCr8.js`
+        - `ProductsConnectorsPage-SjzNKUZt.js`
+        - `ProductsCatalogPage-zg6tR-HA.js`
+        - `ProductsComparisonsPage-D3PIk-O2.js`
+        - `ProductsIngestionPage-B9pmKlRR.js`
+        - `productsService-BmW0mUJo.js`
+        - `ProductsModuleNav-CdBZcaff.js`
+        - `index-CDnDTACf.js`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant: `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con:
+        - `ProductsRefreshPage-Cg5NfViw.js`
+        - `ProductsOverviewPage-D-jsO6K7.js`
+        - `ProductsSourcesPage-D-uVk96H.js`
+        - `ProductsConnectorsPage-BY0cYGX-.js`
+        - `ProductsCatalogPage-DyOthwQG.js`
+        - `ProductsComparisonsPage-B4fiYexT.js`
+        - `ProductsIngestionPage-B2-5vNOt.js`
+        - `productsService-BxJdsGuX.js`
+        - `ProductsModuleNav-C_DugnWK.js`
+        - `index-CdR0uOIk.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 ## 2026-04-24
 

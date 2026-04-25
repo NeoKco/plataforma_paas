@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-25
-- foco operativo nuevo ya cerrado en repo:
+- foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya se alinea mejor a la lógica histórica de `ieris_app` como catálogo vivo técnico-comercial
   - backend tenant ya expone además:
     - `/tenant/products/catalog/{product_id}/refresh`
@@ -28,26 +28,19 @@
     - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `27 tests OK`
     - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/*.py backend/app/apps/tenant_modules/products/services/*.py backend/app/apps/tenant_modules/products/models/*.py backend/app/apps/tenant_modules/crm/services/product_service.py backend/migrations/tenant/v0049_products_live_refresh.py` -> `OK`
     - `cd frontend && npm run build` -> `OK`
-- foco operativo nuevo ya cerrado en repo:
-  - `products` ya se reorienta a catálogo vivo con actualización individual/masiva por scraping + IA
-  - backend tenant ya expone además:
-    - `/tenant/products/catalog/{product_id}/refresh`
-    - `/tenant/products/refresh-runs`
-  - las fuentes ya persisten:
-    - `refresh_mode`
-    - `refresh_merge_policy`
-    - `refresh_prompt`
-    - `next_refresh_at`
-    - `last_refresh_success_at`
-  - frontend tenant ya suma:
-    - `Actualizaciones`
-    - salud por artículo
-    - corridas batch de refresh
-    - configuración de refresh/merge/prompt por fuente
-  - validación repo nueva:
-    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `27 tests OK`
-    - `python3 -m py_compile ... v0049_products_live_refresh.py` -> `OK`
-    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsRefreshPage-CGQXN31r.js`, `ProductsOverviewPage-C-kQSkXl.js`, `ProductsSourcesPage-DMIQtCr8.js`, `ProductsConnectorsPage-SjzNKUZt.js`, `ProductsCatalogPage-zg6tR-HA.js`, `ProductsComparisonsPage-D3PIk-O2.js`, `ProductsIngestionPage-B9pmKlRR.js`, `productsService-BmW0mUJo.js`, `ProductsModuleNav-CdBZcaff.js` e `index-CDnDTACf.js`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsRefreshPage-Cg5NfViw.js`, `ProductsOverviewPage-D-jsO6K7.js`, `ProductsSourcesPage-D-uVk96H.js`, `ProductsConnectorsPage-BY0cYGX-.js`, `ProductsCatalogPage-DyOthwQG.js`, `ProductsComparisonsPage-B4fiYexT.js`, `ProductsIngestionPage-B2-5vNOt.js`, `productsService-BxJdsGuX.js`, `ProductsModuleNav-C_DugnWK.js` e `index-CdR0uOIk.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya cierra conectores automáticos reales y comparación multi-fuente
   - backend tenant ya expone además:

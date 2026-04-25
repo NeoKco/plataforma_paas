@@ -64,6 +64,11 @@ El módulo ya cubre:
   - `safe_merge`
   - `overwrite_catalog`
 - publicación y validación runtime de este slice en `staging` y `production`
+- actualización viva ya publicada y validada en `staging` y `production` con:
+  - backup PostgreSQL tenant previo por carril
+  - backup adicional explícito de `ieris-ltda` en `production`
+  - convergencia tenant `0049_products_live_refresh`
+  - readiness final en verde
 
 ## Backlog posterior al cierre
 

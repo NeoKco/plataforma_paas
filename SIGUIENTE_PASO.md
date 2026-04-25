@@ -2,7 +2,7 @@
 
 ## Prioridad vigente
 
-- expansión reciente ya cerrada en repo:
+- expansión reciente ya cerrada en repo y runtime:
   - `products` ya suma actualización viva mejor alineada a `ieris_app`
   - ya existen:
     - refresh por artículo
@@ -10,6 +10,12 @@
     - merge policy sobre catálogo publicado
     - prompt adicional por fuente para extracción IA
     - salud por artículo y corridas recientes visibles
+  - validación runtime ya cerrada:
+    - backups PostgreSQL tenant previos ejecutados por carril
+    - backup adicional explícito de `ieris-ltda` en `production`
+    - backend redeployado con `585 tests OK` en ambos carriles
+    - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado y readiness `0 fallos, 0 advertencias`
   - el hueco real restante en este módulo ya no es ingesta básica:
     - pasa a scheduler formal por tenant para `due_sources`
     - o conectores específicos por proveedor/marketplace
@@ -36,18 +42,12 @@
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
   - no conviene reabrir `taskops`, `techdocs` ni `chat` por inercia salvo expansión explícita
 - siguiente frente recomendado:
-  - cerrar primero runtime del slice nuevo de `products`:
-    - backup PostgreSQL tenant previo por carril
-    - redeploy backend
-    - publish frontend
-    - readiness final
-  - una vez publicado ese slice:
-    - decidir si ya abrimos `projects` como siguiente módulo consumidor fuerte
-    - o, si se mantiene foco en `products`, priorizar:
-      - scheduler formal por tenant para `due_sources`
-      - conectores específicos por proveedor/marketplace
-      - integración más profunda con cotizaciones y proyectos
-      - historial/versionado más rico de atributos por fuente
+  - decidir si ya abrimos `projects` como siguiente módulo consumidor fuerte
+  - o, si se mantiene foco en `products`, priorizar:
+    - scheduler formal por tenant para `due_sources`
+    - conectores específicos por proveedor/marketplace
+    - integración más profunda con cotizaciones y proyectos
+    - historial/versionado más rico de atributos por fuente
   - por qué este orden:
     - `products` ya cubre el hueco inmediato de calidad en captura, deduplicación y enriquecimiento
     - `crm` ya queda mejor acotado como consumidor comercial de ese catálogo
