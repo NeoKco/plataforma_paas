@@ -4,23 +4,24 @@
 
 - expansión reciente ya cerrada:
   - `crm` ya queda cerrado para su alcance comercial actual en runtime
-  - `crm ingestion` ya queda cerrada como expansión sobre `crm` también en runtime
+  - `crm ingestion` ya queda cerrada también en runtime para la ola automática (`extract-url` + `runs`)
   - `taskops` ya queda cerrado para su alcance operativo actual en runtime
   - `techdocs` ya queda cerrado para su alcance operativo actual en runtime
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
-  - no conviene reabrir ninguno de los cinco por inercia salvo expansión explícita
+  - no conviene reabrir `taskops`, `techdocs` ni `chat` por inercia salvo expansión explícita
 - siguiente frente recomendado:
-  - abrir el próximo frente faltante desde `ieris_app`
+  - decidir si la siguiente profundización sigue sobre `crm ingestion` o si ya abrimos el próximo frente faltante desde `ieris_app`
   - recomendación actual:
-    - profundizar `crm ingestion` desde captura asistida hacia scraping automático multi-fuente
+    - profundizar `crm ingestion` con deduplicación/enriquecimiento sugeridos
   - por qué este orden:
-    - `crm` ya absorbió productos, oportunidades, plantillas, cotizaciones e ingesta asistida, pero todavía falta el frente de captura automática desde fuentes externas
+    - `crm` ya absorbió productos, oportunidades, plantillas, cotizaciones e ingesta asistida y ahora también el frente automático básico desde fuentes externas
+    - el hueco inmediato ya no es “capturar URLs”, sino filtrar duplicados y enriquecer mejor antes de publicar catálogo
     - `taskops`, `techdocs` y `chat` ya cubren los bloques internos transversales que faltaban
     - evita reabrir por inercia módulos ya cerrados cuando el hueco real restante está en la entrada de catálogo
   - alcance sugerido del primer slice:
-    - scraping automático multi-fuente
-    - enriquecimiento y deduplicación sugerida
-    - misma revisión humana antes de publicar en catálogo operativo
+    - deduplicación sugerida entre borradores y catálogo
+    - heurísticas de coincidencia por SKU, nombre y marca
+    - enriquecimiento controlado sobre el mismo carril revisable
 - el roadmap base actual ya queda formalmente cerrado:
   - las `Etapas 9`, `10`, `11`, `12`, `13`, `14`, `15`, `16` y `17` ya quedaron cerradas para el alcance actual
   - la base PaaS ya no necesita más cierres estructurales para operar

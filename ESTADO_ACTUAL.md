@@ -8,27 +8,32 @@
   - backend tenant ya expone:
     - `/tenant/crm/product-ingestion/overview`
     - `/tenant/crm/product-ingestion/drafts`
+    - `/tenant/crm/product-ingestion/extract-url`
+    - `/tenant/crm/product-ingestion/runs`
     - `/tenant/crm/product-ingestion/drafts/{draft_id}/approve`
   - frontend tenant ya publica:
     - `Ingesta`
     - resumen de ingesta dentro de `CRM > Resumen`
   - el frente ya soporta:
     - borradores manuales o por URL de referencia
+    - extracción rápida automática desde una URL
+    - corridas batch por múltiples URLs
+    - cancelación y trazabilidad por corrida
     - normalización mínima previa
     - características por borrador
     - descarte y reapertura
     - aprobación al catálogo `crm_products`
   - validación repo:
-    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_crm_services backend.app.tests.test_migration_flow backend.app.tests.test_platform_flow -v` -> `268 tests OK`
-    - `python3 -m py_compile backend/app/apps/tenant_modules/crm/api/*.py backend/app/apps/tenant_modules/crm/models/*.py backend/app/apps/tenant_modules/crm/schemas/*.py backend/app/apps/tenant_modules/crm/services/*.py backend/migrations/tenant/v0045_crm_product_ingestion.py` -> `OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_crm_services backend.app.tests.test_migration_flow -v` -> `32 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/crm/api/*.py backend/app/apps/tenant_modules/crm/models/*.py backend/app/apps/tenant_modules/crm/schemas/*.py backend/app/apps/tenant_modules/crm/services/*.py backend/migrations/tenant/v0045_crm_product_ingestion.py backend/migrations/tenant/v0046_crm_product_ingestion_runs.py` -> `OK`
     - `cd frontend && npm run build` -> `OK`
   - validación runtime:
-    - backup PostgreSQL tenant previo ejecutado en `staging` y `production` antes de converger `0045_crm_product_ingestion`
+    - backup PostgreSQL tenant previo ejecutado en `staging` y `production` antes de converger `0046_crm_product_ingestion_runs`
     - `production` incluye backup previo explícito de `ieris-ltda`
     - `staging` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
     - `production` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
-    - `staging` publicado con `CRMProductIngestionPage-D7ZIlv_N.js`, `crmService-B3w0W1e7.js`, `CRMOverviewPage-JB9nVH80.js`, `CRMModuleNav-DlV8sg48.js`, `SettingsPage-BsoJ_PnL.js`, `TenantsPage-DHRAoOpA.js`, `TenantOverviewPage-BQONb2ph.js`, `DashboardPage-BPlRmdS2.js`, `ProvisioningPage-B_7NfUVj.js`, `BillingPage-BQq0L1eY.js`, `PlatformActivityPage-CYZoC0C8.js` e `index-Bv39exNC.js`
-    - `production` publicado con `CRMProductIngestionPage-BhEIJxo_.js`, `crmService-CopyIg3l.js`, `CRMOverviewPage--vl-XnH0.js`, `CRMModuleNav-Dl90-Yq7.js`, `SettingsPage-HtUerESN.js`, `TenantsPage-DrXwxqY6.js`, `TenantOverviewPage-CdaKRWEu.js`, `DashboardPage-CPdRNGli.js`, `ProvisioningPage-D-Eu0Rn6.js`, `BillingPage-jlZQha_b.js`, `PlatformActivityPage-CFfEO00M.js` e `index-8jUbGDEA.js`
+    - `staging` publicado con `CRMProductIngestionPage-CWnEottM.js`, `crmService-CvrBzVyF.js`, `CRMOverviewPage-Syr0Xhv8.js`, `CRMModuleNav-DetztJcQ.js`, `SettingsPage-DB-YLT8D.js`, `TenantsPage-BN0OCCGI.js`, `TenantOverviewPage-GEJUiJ6X.js`, `DashboardPage-BMpARNM9.js`, `ProvisioningPage-B5yxlwkJ.js`, `BillingPage-BDhDB96d.js`, `PlatformActivityPage-yIfB8DJo.js` e `index-0I-qS7W_.js`
+    - `production` publicado con `CRMProductIngestionPage-CUEAUrei.js`, `crmService-DJXg9gPI.js`, `CRMOverviewPage-D6m5lD1D.js`, `CRMModuleNav-C1ycFYTh.js`, `SettingsPage-DF7Qek4V.js`, `TenantsPage-ByQm6K2Z.js`, `TenantOverviewPage-D93NM2QM.js`, `DashboardPage-CtSjb4sT.js`, `ProvisioningPage-uYha5YSF.js`, `BillingPage-Bpn3TGA4.js`, `PlatformActivityPage-iOwml0wM.js` e `index-1dQQT0J0.js`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `chat` ya queda terminado para su alcance operativo actual como cuarto módulo de expansión post-cierre

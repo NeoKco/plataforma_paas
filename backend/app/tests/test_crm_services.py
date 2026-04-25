@@ -12,6 +12,8 @@ from app.apps.tenant_modules.crm.models import (  # noqa: E402
     CRMProduct,
     CRMProductIngestionCharacteristic,
     CRMProductIngestionDraft,
+    CRMProductIngestionRun,
+    CRMProductIngestionRunItem,
     CRMProductCharacteristic,
     CRMQuote,
     CRMQuoteLine,
@@ -24,6 +26,9 @@ from app.apps.tenant_modules.crm.schemas import (  # noqa: E402
     CRMProductCreateRequest,
     CRMProductIngestionDraftCreateRequest,
     CRMProductIngestionCharacteristicWriteRequest,
+    CRMProductIngestionExtractUrlRequest,
+    CRMProductIngestionRunCreateRequest,
+    CRMProductIngestionRunEntryRequest,
     CRMProductCharacteristicWriteRequest,
     CRMQuoteCreateRequest,
     CRMQuoteLineWriteRequest,
@@ -38,6 +43,9 @@ from app.apps.tenant_modules.crm.services.opportunity_service import (  # noqa: 
 from app.apps.tenant_modules.crm.services.product_ingestion_service import (  # noqa: E402
     CRMProductIngestionService,
 )
+from app.apps.tenant_modules.crm.services.product_ingestion_run_service import (  # noqa: E402
+    CRMProductIngestionRunService,
+)
 from app.apps.tenant_modules.crm.services.product_service import CRMProductService  # noqa: E402
 from app.apps.tenant_modules.crm.services.quote_service import CRMQuoteService  # noqa: E402
 from app.apps.tenant_modules.crm.services.template_service import (  # noqa: E402
@@ -46,6 +54,117 @@ from app.apps.tenant_modules.crm.services.template_service import (  # noqa: E40
 
 
 class CRMServicesTestCase(unittest.TestCase):
+    def test_product_ingestion_extract_url_uses_extraction_and_creates_draft(self) -> None:
+        extraction_service = Mock()
+        extraction_service.extract_from_url.return_value = {
+            "name": "Bomba 150L",
+            "sku": "BOM-150",
+            "brand": "Hydro",
+            "category_label": "Bombas",
+            "product_type": "product",
+            "unit_label": "unidad",
+            "unit_price": 120000,
+            "currency_code": "CLP",
+            "description": "Bomba comercial",
+            "source_excerpt": "Ficha comercial",
+            "extraction_notes": "extraida",
+            "characteristics": [{"label": "Capacidad", "value": "150L", "sort_order": 10}],
+        }
+        ingestion_service = Mock()
+        ingestion_service.create_draft.return_value = SimpleNamespace(id=77, name="Bomba 150L")
+        service = CRMProductIngestionRunService(
+            extraction_service=extraction_service,
+            ingestion_service=ingestion_service,
+        )
+
+        created = service.extract_url_to_draft(
+            Mock(),
+            CRMProductIngestionExtractUrlRequest(
+                source_url="https://proveedor.local/bomba-150",
+                source_label="Proveedor Demo",
+                external_reference="ref-77",
+            ),
+            actor_user_id=12,
+        )
+
+        self.assertEqual(created.id, 77)
+        extraction_service.extract_from_url.assert_called_once()
+        ingestion_service.create_draft.assert_called_once()
+        payload = ingestion_service.create_draft.call_args.args[1]
+        self.assertEqual(payload.name, "Bomba 150L")
+        self.assertEqual(payload.source_url, "https://proveedor.local/bomba-150")
+        self.assertEqual(payload.source_label, "Proveedor Demo")
+        self.assertEqual(payload.external_reference, "ref-77")
+
+    def test_product_ingestion_run_create_persists_run_and_items(self) -> None:
+        tenant_db = Mock()
+        added_items: list[object] = []
+
+        def add_side_effect(item) -> None:
+            added_items.append(item)
+
+        def flush_side_effect() -> None:
+            for item in added_items:
+                if isinstance(item, CRMProductIngestionRun) and getattr(item, "id", None) is None:
+                    item.id = 91
+
+        tenant_db.add.side_effect = add_side_effect
+        tenant_db.flush.side_effect = flush_side_effect
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        service = CRMProductIngestionRunService(
+            extraction_service=Mock(),
+            ingestion_service=Mock(),
+            tenant_connection_service=Mock(),
+        )
+        created = service.create_run(
+            tenant_db,
+            CRMProductIngestionRunCreateRequest(
+                source_label="Lista abril",
+                entries=[
+                    CRMProductIngestionRunEntryRequest(source_url="https://a.local/1"),
+                    CRMProductIngestionRunEntryRequest(source_url="https://a.local/2", external_reference="r-2"),
+                ],
+            ),
+            actor_user_id=5,
+        )
+
+        self.assertEqual(created.id, 91)
+        self.assertEqual(created.requested_count, 2)
+        run_items = [item for item in added_items if isinstance(item, CRMProductIngestionRunItem)]
+        self.assertEqual(len(run_items), 2)
+        self.assertTrue(all(item.run_id == 91 for item in run_items))
+        self.assertEqual(run_items[1].external_reference, "r-2")
+
+    def test_product_ingestion_run_cancel_marks_run_cancelled(self) -> None:
+        run = CRMProductIngestionRun(
+            id=15,
+            status="running",
+            source_mode="url_batch",
+            source_label="Lista caliente",
+            requested_count=3,
+            processed_count=1,
+            completed_count=1,
+            error_count=0,
+            cancelled_count=0,
+            created_by_user_id=2,
+        )
+        tenant_db = Mock()
+        tenant_db.get.side_effect = lambda model, item_id: run if model is CRMProductIngestionRun and item_id == 15 else None
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        service = CRMProductIngestionRunService(
+            extraction_service=Mock(),
+            ingestion_service=Mock(),
+            tenant_connection_service=Mock(),
+        )
+        updated = service.cancel_run(tenant_db, 15)
+
+        self.assertEqual(updated.status, "cancelled")
+        self.assertIsNotNone(updated.cancelled_at)
+
     def test_product_ingestion_create_persists_draft_and_characteristics(self) -> None:
         characteristic_query = Mock()
         characteristic_query.filter.return_value.delete.return_value = None

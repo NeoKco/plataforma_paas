@@ -9,7 +9,10 @@ Estado del módulo `crm`.
 El módulo ya cubre:
 
 - catálogo de productos y servicios con características
-- ingesta asistida de productos previa a publicación
+- ingesta de productos previa a publicación:
+  - borradores manuales
+  - extracción rápida por URL
+  - corridas batch por URLs
 - oportunidades comerciales
 - kanban abierto
 - histórico de oportunidades cerradas
@@ -25,6 +28,7 @@ El módulo ya cubre:
   - `0040_crm_base`
   - `0041_crm_expansion`
   - `0045_crm_product_ingestion`
+  - `0046_crm_product_ingestion_runs`
 - migraciones CRM endurecidas para estados parciales de PostgreSQL
 - permisos tenant propios
 - visibilidad por módulo en tenant portal
@@ -34,6 +38,8 @@ El módulo ya cubre:
 - publicación y validación runtime en `staging` y `production`
 - convergencia tenant confirmada en los 4 tenants activos de ambos carriles
 - backup PostgreSQL tenant previo ejecutado antes de converger `0045` en `staging` y `production`
+- backup PostgreSQL tenant previo ejecutado antes de converger `0046` en `staging` y `production`
+- extracción automática por URL y corridas batch ya publicadas en `staging` y `production`
 
 ## Backlog posterior al cierre
 
@@ -41,9 +47,10 @@ Lo siguiente ya no corresponde a “cerrar el módulo”, sino a profundizarlo:
 
 1. render/PDF formal de cotizaciones
 2. plantillas visuales comerciales
-3. scraping automático multi-fuente
-4. IA comercial/local
-5. workflow formal de aprobación comercial
+3. deduplicación sugerida sobre borradores y catálogo
+4. múltiples fuentes más ricas o conectores específicos
+5. IA comercial/local
+6. workflow formal de aprobación comercial
 
 ## Deuda visible no bloqueante
 

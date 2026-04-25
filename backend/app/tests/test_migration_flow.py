@@ -45,6 +45,7 @@ from migrations.tenant import v0042_taskops_base
 from migrations.tenant import v0043_techdocs_base
 from migrations.tenant import v0044_chat_base
 from migrations.tenant import v0045_crm_product_ingestion
+from migrations.tenant import v0046_crm_product_ingestion_runs
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -228,6 +229,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0043_techdocs_base",
                 "0044_chat_base",
                 "0045_crm_product_ingestion",
+                "0046_crm_product_ingestion_runs",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -294,6 +296,8 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("chat_conversations", tables)
         self.assertIn("crm_product_ingestion_drafts", tables)
         self.assertIn("crm_product_ingestion_characteristics", tables)
+        self.assertIn("crm_product_ingestion_runs", tables)
+        self.assertIn("crm_product_ingestion_run_items", tables)
         self.assertIn("chat_conversation_participants", tables)
         self.assertIn("chat_messages", tables)
         maintenance_cost_line_columns = {
@@ -677,6 +681,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0043_techdocs_base",
                 "0044_chat_base",
                 "0045_crm_product_ingestion",
+                "0046_crm_product_ingestion_runs",
             ],
         )
 
@@ -1070,10 +1075,14 @@ class MigrationFlowTestCase(unittest.TestCase):
             v0044_chat_base.upgrade(conn)
             v0045_crm_product_ingestion.upgrade(conn)
             v0045_crm_product_ingestion.upgrade(conn)
+            v0046_crm_product_ingestion_runs.upgrade(conn)
+            v0046_crm_product_ingestion_runs.upgrade(conn)
 
         tables = set(inspect(engine).get_table_names())
         self.assertIn("crm_product_ingestion_drafts", tables)
         self.assertIn("crm_product_ingestion_characteristics", tables)
+        self.assertIn("crm_product_ingestion_runs", tables)
+        self.assertIn("crm_product_ingestion_run_items", tables)
 
 
 if __name__ == "__main__":

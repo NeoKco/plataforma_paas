@@ -120,10 +120,20 @@ Entidades activas del módulo:
 - borradores de captura con `source_kind`:
   - `manual_capture`
   - `url_reference`
+- extracción automática por URL simple
+- corridas batch persistidas:
+  - `crm_product_ingestion_runs`
+  - `crm_product_ingestion_run_items`
 - estados controlados:
   - `draft`
   - `approved`
   - `discarded`
+- estados de corrida:
+  - `queued`
+  - `running`
+  - `completed`
+  - `cancelled`
+  - `failed`
 - aprobación server-side mediante `approve_draft(...)`
 - publicación al catálogo usando `CRMProductService.create_product(...)`
 - características del borrador persistidas aparte y promovidas al producto final
@@ -146,6 +156,11 @@ Routers visibles:
 
 Endpoints relevantes extra:
 
+- `POST /tenant/crm/product-ingestion/extract-url`
+- `GET /tenant/crm/product-ingestion/runs`
+- `POST /tenant/crm/product-ingestion/runs`
+- `GET /tenant/crm/product-ingestion/runs/{id}`
+- `POST /tenant/crm/product-ingestion/runs/{id}/cancel`
 - `GET /tenant/crm/opportunities/kanban`
 - `GET /tenant/crm/opportunities/historical`
 - `GET /tenant/crm/opportunities/{id}/detail`
@@ -184,9 +199,9 @@ Piezas relevantes:
 ## Cobertura de regresión actual
 
 - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
-  - reglas de productos, ingesta, oportunidades, cotizaciones estructuradas y plantillas
+  - reglas de productos, ingesta, corridas batch, oportunidades, cotizaciones estructuradas y plantillas
 - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
-  - presencia e idempotencia de `0040_crm_base`, `0041_crm_expansion` y `0045_crm_product_ingestion`
+  - presencia e idempotencia de `0040_crm_base`, `0041_crm_expansion`, `0045_crm_product_ingestion` y `0046_crm_product_ingestion_runs`
 
 ## Regla de evolución
 
@@ -203,5 +218,5 @@ La siguiente evolución razonable del módulo ya no es “cerrar lo básico”, 
 
 - render/PDF
 - plantillas visuales
-- scraping automático multi-fuente
 - IA comercial
+- deduplicación/enriquecimiento

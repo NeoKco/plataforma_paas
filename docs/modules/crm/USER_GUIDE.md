@@ -26,7 +26,7 @@ Base esperada:
   - oportunidades recientes
   - cotizaciones recientes
 - `Ingesta`
-  - borradores de captura asistida de productos
+  - borradores de captura, extracción por URL y corridas batch
   - revisión humana antes de publicar al catálogo
 - `Oportunidades`
   - tabla operativa
@@ -119,10 +119,22 @@ Cada borrador puede guardar:
 
 El flujo recomendado es:
 
-1. capturar el borrador
+1. capturar manualmente, extraer por URL o lanzar una corrida batch
 2. revisar y normalizar
 3. aprobar cuando ya pueda entrar al catálogo operativo
 4. descartar si la fuente no sirve o es duplicada
+
+La vista también deja:
+
+- correr una extracción rápida desde una sola URL
+- lanzar una corrida por varias URLs
+- seguir estado por corrida:
+  - `queued`
+  - `running`
+  - `completed`
+  - `cancelled`
+  - `failed`
+- cancelar una corrida sin borrar los borradores ya capturados
 
 Cuando apruebas:
 
@@ -180,8 +192,8 @@ Por ahora este módulo no incluye:
 - render visual avanzado de cotizaciones
 - PDF comercial final
 - workflow formal de aprobación
-- scraping automático multi-fuente
 - IA comercial local
+- deduplicación automática sugerida
 
 ## Dependencias visibles
 

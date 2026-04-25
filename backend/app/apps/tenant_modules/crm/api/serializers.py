@@ -8,6 +8,8 @@ from app.apps.tenant_modules.crm.schemas import (
     CRMProductCharacteristicItemResponse,
     CRMProductIngestionCharacteristicItemResponse,
     CRMProductIngestionDraftItemResponse,
+    CRMProductIngestionRunItemResponse,
+    CRMProductIngestionRunResponse,
     CRMProductItemResponse,
     CRMQuoteItemResponse,
     CRMQuoteLineItemResponse,
@@ -89,6 +91,45 @@ def build_product_ingestion_draft_item(
             )
             for characteristic in (characteristics or [])
         ],
+    )
+
+
+def build_product_ingestion_run_item(item) -> CRMProductIngestionRunItemResponse:
+    return CRMProductIngestionRunItemResponse(
+        id=item.id,
+        run_id=item.run_id,
+        source_url=item.source_url,
+        source_label=item.source_label,
+        external_reference=item.external_reference,
+        item_status=item.item_status,
+        draft_id=item.draft_id,
+        extracted_name=item.extracted_name,
+        error_message=item.error_message,
+        processed_at=item.processed_at,
+        created_at=item.created_at,
+        updated_at=item.updated_at,
+    )
+
+
+def build_product_ingestion_run(item, *, items: list | None = None) -> CRMProductIngestionRunResponse:
+    return CRMProductIngestionRunResponse(
+        id=item.id,
+        status=item.status,
+        source_mode=item.source_mode,
+        source_label=item.source_label,
+        requested_count=item.requested_count,
+        processed_count=item.processed_count,
+        completed_count=item.completed_count,
+        error_count=item.error_count,
+        cancelled_count=item.cancelled_count,
+        created_by_user_id=item.created_by_user_id,
+        started_at=item.started_at,
+        finished_at=item.finished_at,
+        cancelled_at=item.cancelled_at,
+        last_error=item.last_error,
+        created_at=item.created_at,
+        updated_at=item.updated_at,
+        items=[build_product_ingestion_run_item(run_item) for run_item in (items or [])],
     )
 
 

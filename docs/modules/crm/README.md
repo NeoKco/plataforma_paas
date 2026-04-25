@@ -69,8 +69,10 @@ El módulo hoy incluye:
   - históricas
   - cotizaciones
   - plantillas
-- ingesta asistida de productos con:
-  - borradores manuales o por referencia URL
+- ingesta de productos con:
+  - borradores manuales
+  - extracción rápida por URL
+  - corridas batch por URLs
   - normalización mínima previa
   - características
   - aprobación al catálogo `crm_products`
@@ -80,8 +82,8 @@ Queda fuera por ahora:
 
 - render visual avanzado de cotización
 - PDF formal/export comercial
-- scraping automático multi-fuente
 - IA comercial local
+- deduplicación/enriquecimiento más avanzados
 
 ## Mapa de documentos
 

@@ -102,6 +102,58 @@ export type CRMProductIngestionDraftWriteRequest = {
   characteristics: CRMProductIngestionCharacteristic[];
 };
 
+export type CRMProductIngestionExtractUrlRequest = {
+  source_url: string;
+  source_label: string | null;
+  external_reference: string | null;
+};
+
+export type CRMProductIngestionRunEntry = {
+  source_url: string;
+  source_label: string | null;
+  external_reference: string | null;
+};
+
+export type CRMProductIngestionRun = {
+  id: number;
+  status: string;
+  source_mode: string;
+  source_label: string | null;
+  requested_count: number;
+  processed_count: number;
+  completed_count: number;
+  error_count: number;
+  cancelled_count: number;
+  created_by_user_id: number | null;
+  started_at: string | null;
+  finished_at: string | null;
+  cancelled_at: string | null;
+  last_error: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  items: CRMProductIngestionRunItem[];
+};
+
+export type CRMProductIngestionRunItem = {
+  id: number;
+  run_id: number;
+  source_url: string;
+  source_label: string | null;
+  external_reference: string | null;
+  item_status: string;
+  draft_id: number | null;
+  extracted_name: string | null;
+  error_message: string | null;
+  processed_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type CRMProductIngestionRunCreateRequest = {
+  source_label: string | null;
+  entries: CRMProductIngestionRunEntry[];
+};
+
 export type CRMOpportunity = {
   id: number;
   client_id: number | null;
@@ -376,6 +428,21 @@ type CRMProductIngestionDraftMutationResponse = {
   data: CRMProductIngestionDraft;
 };
 
+type CRMProductIngestionRunMutationResponse = {
+  success: boolean;
+  message: string;
+  requested_by: CRMRequestedBy;
+  data: CRMProductIngestionRun;
+};
+
+type CRMProductIngestionRunsResponse = {
+  success: boolean;
+  message: string;
+  requested_by: CRMRequestedBy;
+  total: number;
+  data: CRMProductIngestionRun[];
+};
+
 type CRMProductIngestionApprovalResponse = {
   success: boolean;
   message: string;
@@ -528,6 +595,41 @@ export function createCRMProductIngestionDraft(accessToken: string, payload: CRM
     method: "POST",
     token: accessToken,
     body: payload,
+  });
+}
+
+export function extractCRMProductIngestionUrl(accessToken: string, payload: CRMProductIngestionExtractUrlRequest) {
+  return apiRequest<CRMProductIngestionDraftMutationResponse>("/tenant/crm/product-ingestion/extract-url", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function getCRMProductIngestionRuns(accessToken: string) {
+  return apiRequest<CRMProductIngestionRunsResponse>("/tenant/crm/product-ingestion/runs", {
+    token: accessToken,
+  });
+}
+
+export function createCRMProductIngestionRun(accessToken: string, payload: CRMProductIngestionRunCreateRequest) {
+  return apiRequest<CRMProductIngestionRunMutationResponse>("/tenant/crm/product-ingestion/runs", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function getCRMProductIngestionRun(accessToken: string, runId: number) {
+  return apiRequest<CRMProductIngestionRunMutationResponse>(`/tenant/crm/product-ingestion/runs/${runId}`, {
+    token: accessToken,
+  });
+}
+
+export function cancelCRMProductIngestionRun(accessToken: string, runId: number) {
+  return apiRequest<CRMProductIngestionRunMutationResponse>(`/tenant/crm/product-ingestion/runs/${runId}/cancel`, {
+    method: "POST",
+    token: accessToken,
   });
 }
 

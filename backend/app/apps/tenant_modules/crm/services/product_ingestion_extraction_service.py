@@ -3,14 +3,19 @@ from __future__ import annotations
 import re
 from typing import Any
 
-import requests
-from bs4 import BeautifulSoup
-
 
 class CRMProductIngestionExtractionService:
     USER_AGENT = "Mozilla/5.0 (compatible; orkestia-crm-ingestion/1.0)"
 
     def extract_from_url(self, url: str) -> dict[str, Any]:
+        try:
+            import requests
+            from bs4 import BeautifulSoup
+        except ModuleNotFoundError as exc:
+            raise RuntimeError(
+                "La extracción automática requiere requests y beautifulsoup4 instalados"
+            ) from exc
+
         normalized_url = (url or "").strip()
         if not normalized_url:
             raise ValueError("La URL es obligatoria para extraer datos")
@@ -58,7 +63,7 @@ class CRMProductIngestionExtractionService:
             "characteristics": characteristics,
         }
 
-    def _extract_title(self, soup: BeautifulSoup) -> str:
+    def _extract_title(self, soup: Any) -> str:
         candidates = [
             soup.select_one('meta[property="og:title"]'),
             soup.select_one('meta[name="twitter:title"]'),
@@ -71,7 +76,7 @@ class CRMProductIngestionExtractionService:
                 return text
         raise ValueError("No se pudo detectar un nombre útil del producto")
 
-    def _extract_description(self, soup: BeautifulSoup) -> str | None:
+    def _extract_description(self, soup: Any) -> str | None:
         candidates = [
             soup.select_one('meta[name="description"]'),
             soup.select_one('meta[property="og:description"]'),
@@ -92,7 +97,7 @@ class CRMProductIngestionExtractionService:
             return paragraphs[0][:4000]
         return None
 
-    def _extract_brand(self, soup: BeautifulSoup) -> str | None:
+    def _extract_brand(self, soup: Any) -> str | None:
         candidates = [
             soup.select_one('meta[property="product:brand"]'),
             soup.select_one('[itemprop="brand"]'),
@@ -104,7 +109,7 @@ class CRMProductIngestionExtractionService:
                 return text[:120]
         return None
 
-    def _extract_sku(self, soup: BeautifulSoup) -> str | None:
+    def _extract_sku(self, soup: Any) -> str | None:
         candidates = [
             soup.select_one('[itemprop="sku"]'),
             soup.select_one('meta[property="product:retailer_item_id"]'),
@@ -118,7 +123,7 @@ class CRMProductIngestionExtractionService:
                     return cleaned
         return None
 
-    def _extract_price(self, soup: BeautifulSoup) -> float:
+    def _extract_price(self, soup: Any) -> float:
         candidates = [
             soup.select_one('meta[property="product:price:amount"]'),
             soup.select_one('meta[itemprop="price"]'),
@@ -132,7 +137,7 @@ class CRMProductIngestionExtractionService:
                 return amount
         return 0.0
 
-    def _extract_category(self, soup: BeautifulSoup) -> str | None:
+    def _extract_category(self, soup: Any) -> str | None:
         breadcrumb = soup.find(attrs={"class": re.compile(r"breadcrumb|miga", re.I)})
         if breadcrumb:
             parts = [
@@ -144,7 +149,7 @@ class CRMProductIngestionExtractionService:
                 return parts[-2][:120]
         return None
 
-    def _extract_characteristics(self, soup: BeautifulSoup) -> list[dict[str, Any]]:
+    def _extract_characteristics(self, soup: Any) -> list[dict[str, Any]]:
         characteristics: list[dict[str, Any]] = []
         seen: set[tuple[str, str]] = set()
 

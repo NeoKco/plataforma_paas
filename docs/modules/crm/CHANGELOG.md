@@ -76,3 +76,28 @@
   - `production` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
   - `staging` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`
   - `production` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`
+
+## 2026-04-24
+
+- se profundiza `crm ingestion` hasta cubrir extracción automática por URL y corridas batch persistidas
+- nueva migración tenant en [v0046_crm_product_ingestion_runs.py](/home/felipe/platform_paas/backend/migrations/tenant/v0046_crm_product_ingestion_runs.py)
+- backend tenant nuevo para:
+  - `POST /tenant/crm/product-ingestion/extract-url`
+  - `GET /tenant/crm/product-ingestion/runs`
+  - `POST /tenant/crm/product-ingestion/runs`
+  - `GET /tenant/crm/product-ingestion/runs/{run_id}`
+  - `POST /tenant/crm/product-ingestion/runs/{run_id}/cancel`
+- frontend tenant nuevo con:
+  - extracción rápida por URL
+  - corridas batch por URLs
+  - tabla de seguimiento y cancelación de corridas
+- regresión ampliada en:
+  - [test_crm_services.py](/home/felipe/platform_paas/backend/app/tests/test_crm_services.py)
+  - [test_migration_flow.py](/home/felipe/platform_paas/backend/app/tests/test_migration_flow.py)
+- el cierre queda promovido a runtime:
+  - backup PostgreSQL tenant previo ejecutado en `staging` y `production` antes de converger `0046_crm_product_ingestion_runs`
+  - `production` incluye backup previo explícito de `ieris-ltda`
+  - `staging` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeployado con `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`
+  - `production` frontend publicado y validado con `check_frontend_static_readiness.sh -> 0 fallos, 0 advertencias`

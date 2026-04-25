@@ -27,19 +27,32 @@ Notas:
 - `GET /tenant/crm/product-ingestion/overview`
 - `GET /tenant/crm/product-ingestion/drafts`
 - `POST /tenant/crm/product-ingestion/drafts`
+- `POST /tenant/crm/product-ingestion/extract-url`
 - `GET /tenant/crm/product-ingestion/drafts/{draft_id}`
 - `PUT /tenant/crm/product-ingestion/drafts/{draft_id}`
 - `PATCH /tenant/crm/product-ingestion/drafts/{draft_id}/status`
 - `POST /tenant/crm/product-ingestion/drafts/{draft_id}/approve`
+- `GET /tenant/crm/product-ingestion/runs`
+- `POST /tenant/crm/product-ingestion/runs`
+- `GET /tenant/crm/product-ingestion/runs/{run_id}`
+- `POST /tenant/crm/product-ingestion/runs/{run_id}/cancel`
 
 Notas:
 
 - la ingesta no crea productos automáticamente por solo capturar el borrador
 - la publicación al catálogo ocurre recién en `approve`
+- la extracción rápida por URL crea un borrador revisable, no un producto final
+- las corridas batch dejan trazabilidad por URL y permiten cancelación explícita
 - los estados válidos de borrador son:
   - `draft`
   - `approved`
   - `discarded`
+- los estados válidos de corrida son:
+  - `queued`
+  - `running`
+  - `completed`
+  - `cancelled`
+  - `failed`
 
 ## Opportunities
 

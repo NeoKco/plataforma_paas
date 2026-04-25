@@ -1,5 +1,67 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-24 - `crm ingestion` automático queda cerrado también en runtime
+
+Contexto:
+
+- la ola automática de `crm ingestion` ya estaba cerrada a nivel repo
+- faltaba completarla en `staging` y `production` respetando backup PostgreSQL tenant previo por carril
+
+Cambios:
+
+- se ejecuta backup PostgreSQL tenant previo en `staging` antes de converger `0046_crm_product_ingestion_runs`
+- se ejecuta backup PostgreSQL tenant previo en `production`, incluyendo `ieris-ltda`, antes de converger `0046_crm_product_ingestion_runs`
+- backend redeployado en ambos carriles y convergencia tenant completada
+- frontend publicado en ambos carriles con la vista `CRM > Ingesta` ya ampliada con extracción rápida y corridas batch
+
+Validación:
+
+- runtime:
+  - `staging` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeploy -> `585 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `staging` frontend publicado con `CRMProductIngestionPage-CWnEottM.js`, `crmService-CvrBzVyF.js`, `CRMOverviewPage-Syr0Xhv8.js` e `index-0I-qS7W_.js`
+  - `production` frontend publicado con `CRMProductIngestionPage-CUEAUrei.js`, `crmService-DJXg9gPI.js`, `CRMOverviewPage-D6m5lD1D.js` e `index-1dQQT0J0.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+Resultado:
+
+- `crm ingestion` deja de estar limitada a captura asistida y queda cerrada también en runtime con automatización básica persistida
+- el siguiente frente sugerido pasa a ser deduplicación/enriquecimiento sobre el mismo carril o abrir el siguiente módulo faltante
+
+## 2026-04-24 - `crm ingestion` profundiza extracción automática y corridas batch en repo
+
+Contexto:
+
+- el slice asistido de `crm ingestion` ya estaba cerrado y publicado
+- faltaba llevarlo hasta la paridad útil mínima con `ieris_app`: extracción por URL, corridas batch persistidas y cancelación
+
+Cambios:
+
+- nueva migración tenant en [v0046_crm_product_ingestion_runs.py](/home/felipe/platform_paas/backend/migrations/tenant/v0046_crm_product_ingestion_runs.py)
+- backend nuevo para:
+  - `POST /tenant/crm/product-ingestion/extract-url`
+  - `GET /tenant/crm/product-ingestion/runs`
+  - `POST /tenant/crm/product-ingestion/runs`
+  - `GET /tenant/crm/product-ingestion/runs/{run_id}`
+  - `POST /tenant/crm/product-ingestion/runs/{run_id}/cancel`
+- servicio nuevo de extracción HTML mínima y servicio de corridas persistidas
+- frontend `CRM > Ingesta` ahora soporta:
+  - extracción rápida desde una URL
+  - corrida batch por múltiples URLs
+  - seguimiento y cancelación por corrida
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_crm_services + backend.app.tests.test_migration_flow` -> `32 tests OK`
+  - `python3 -m py_compile ...` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+
+Resultado:
+
+- `crm ingestion` ya no queda solo como captura asistida; también soporta automatización básica persistida
+- queda pendiente solo el publish runtime de esta nueva ola respetando backup tenant previo por carril
+
 ## 2026-04-24 - `crm ingestion` queda cerrada también en runtime
 
 Contexto:

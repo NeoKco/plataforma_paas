@@ -13,12 +13,17 @@ import type { ApiError } from "../../../../../types";
 import { CRMModuleNav } from "../components/common/CRMModuleNav";
 import {
   approveCRMProductIngestionDraft,
+  cancelCRMProductIngestionRun,
   createCRMProductIngestionDraft,
+  createCRMProductIngestionRun,
+  extractCRMProductIngestionUrl,
   getCRMProductIngestionDrafts,
   getCRMProductIngestionOverview,
+  getCRMProductIngestionRuns,
   type CRMProductIngestionCharacteristic,
   type CRMProductIngestionDraft,
   type CRMProductIngestionDraftWriteRequest,
+  type CRMProductIngestionRun,
   updateCRMProductIngestionDraft,
   updateCRMProductIngestionDraftStatus,
 } from "../services/crmService";
@@ -53,45 +58,78 @@ function buildDefaultForm(): CRMProductIngestionDraftWriteRequest {
   };
 }
 
+function buildBatchText(entries: CRMProductIngestionRun[]): string {
+  return entries
+    .flatMap((run) => run.items)
+    .map((item) => item.source_url)
+    .filter(Boolean)
+    .join("\n");
+}
+
 export function CRMProductIngestionPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
   const [overview, setOverview] = useState<Awaited<ReturnType<typeof getCRMProductIngestionOverview>> | null>(null);
   const [rows, setRows] = useState<CRMProductIngestionDraft[]>([]);
+  const [runs, setRuns] = useState<CRMProductIngestionRun[]>([]);
   const [form, setForm] = useState<CRMProductIngestionDraftWriteRequest>(buildDefaultForm());
   const [editingId, setEditingId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [reviewNotes, setReviewNotes] = useState("");
+  const [extractUrl, setExtractUrl] = useState("");
+  const [extractSourceLabel, setExtractSourceLabel] = useState("");
+  const [extractReference, setExtractReference] = useState("");
+  const [batchLabel, setBatchLabel] = useState("");
+  const [batchUrls, setBatchUrls] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  async function loadData() {
+  async function loadData(options?: { silent?: boolean }) {
     if (!session?.accessToken) return;
-    setIsLoading(true);
+    if (!options?.silent) {
+      setIsLoading(true);
+    }
     setError(null);
     try {
-      const [overviewResponse, draftsResponse] = await Promise.all([
+      const [overviewResponse, draftsResponse, runsResponse] = await Promise.all([
         getCRMProductIngestionOverview(session.accessToken),
         getCRMProductIngestionDrafts(session.accessToken, {
           capture_status: statusFilter === "all" ? null : statusFilter,
           q: query || null,
         }),
+        getCRMProductIngestionRuns(session.accessToken),
       ]);
       setOverview(overviewResponse);
       setRows(draftsResponse.data);
+      setRuns(runsResponse.data);
+      if (!batchUrls.trim() && runsResponse.data.length > 0) {
+        setBatchUrls(buildBatchText(runsResponse.data));
+      }
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
-      setIsLoading(false);
+      if (!options?.silent) {
+        setIsLoading(false);
+      }
     }
   }
 
   useEffect(() => {
     void loadData();
   }, [session?.accessToken, statusFilter, query]);
+
+  useEffect(() => {
+    if (!session?.accessToken) return undefined;
+    const hasActiveRuns = runs.some((item) => item.status === "queued" || item.status === "running");
+    if (!hasActiveRuns) return undefined;
+    const timer = window.setInterval(() => {
+      void loadData({ silent: true });
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [runs, session?.accessToken, statusFilter, query]);
 
   function startNew() {
     setEditingId(null);
@@ -180,14 +218,64 @@ export function CRMProductIngestionPage() {
     }
   }
 
+  async function handleExtractUrl() {
+    if (!session?.accessToken || !extractUrl.trim()) return;
+    setIsSubmitting(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      const response = await extractCRMProductIngestionUrl(session.accessToken, {
+        source_url: extractUrl.trim(),
+        source_label: extractSourceLabel.trim() || null,
+        external_reference: extractReference.trim() || null,
+      });
+      setFeedback(response.message);
+      setExtractUrl("");
+      setExtractSourceLabel("");
+      setExtractReference("");
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleCreateBatchRun() {
+    if (!session?.accessToken) return;
+    const entries = batchUrls
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((source_url) => ({
+        source_url,
+        source_label: batchLabel.trim() || null,
+        external_reference: null,
+      }));
+    if (entries.length === 0) return;
+    setIsSubmitting(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      const response = await createCRMProductIngestionRun(session.accessToken, {
+        source_label: batchLabel.trim() || null,
+        entries,
+      });
+      setFeedback(response.message);
+      setBatchUrls("");
+      await loadData();
+      setRuns((current) => [response.data, ...current.filter((item) => item.id !== response.data.id)]);
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleApprove(item: CRMProductIngestionDraft) {
     if (!session?.accessToken) return;
     try {
-      const response = await approveCRMProductIngestionDraft(
-        session.accessToken,
-        item.id,
-        reviewNotes || null,
-      );
+      const response = await approveCRMProductIngestionDraft(session.accessToken, item.id, reviewNotes || null);
       setFeedback(response.message);
       await loadData();
     } catch (rawError) {
@@ -211,12 +299,31 @@ export function CRMProductIngestionPage() {
     }
   }
 
+  async function handleCancelRun(item: CRMProductIngestionRun) {
+    if (!session?.accessToken) return;
+    try {
+      const response = await cancelCRMProductIngestionRun(session.accessToken, item.id);
+      setFeedback(response.message);
+      await loadData();
+      setRuns((current) => current.map((run) => (run.id === response.data.id ? response.data : run)));
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
   const metrics = overview?.metrics;
   const statusLabelMap = useMemo(
     () => ({
       draft: language === "es" ? "borrador" : "draft",
       approved: language === "es" ? "aprobado" : "approved",
       discarded: language === "es" ? "descartado" : "discarded",
+      queued: language === "es" ? "en cola" : "queued",
+      running: language === "es" ? "ejecutando" : "running",
+      completed: language === "es" ? "completada" : "completed",
+      cancelled: language === "es" ? "cancelada" : "cancelled",
+      failed: language === "es" ? "fallida" : "failed",
+      error: language === "es" ? "error" : "error",
+      processing: language === "es" ? "procesando" : "processing",
     }),
     [language],
   );
@@ -229,8 +336,8 @@ export function CRMProductIngestionPage() {
         title={language === "es" ? "Ingesta de productos" : "Product ingestion"}
         description={
           language === "es"
-            ? "Captura asistida de productos y servicios desde referencias externas antes de publicarlos al catálogo CRM."
-            : "Assisted capture of products and services from external references before publishing them to the CRM catalog."
+            ? "Captura, extracción por URL y corridas batch antes de publicar productos al catálogo CRM."
+            : "Capture, URL extraction, and batch runs before publishing products into the CRM catalog."
         }
         actions={
           <AppToolbar compact>
@@ -285,11 +392,121 @@ export function CRMProductIngestionPage() {
       ) : null}
 
       <PanelCard
-        title={editingId ? (language === "es" ? "Editar borrador" : "Edit draft") : (language === "es" ? "Nuevo borrador" : "New draft")}
+        title={language === "es" ? "Extracción rápida por URL" : "Quick extraction by URL"}
         subtitle={
           language === "es"
-            ? "Este primer corte captura y normaliza antes de publicar. El scraping automático real se profundiza después."
-            : "This first cut captures and normalizes before publishing. Full automatic scraping can be deepened later."
+            ? "Toma una página HTML y la convierte de inmediato en borrador revisable."
+            : "Takes an HTML page and converts it immediately into a reviewable draft."
+        }
+      >
+        <div className="crm-form-grid">
+          <label className="crm-form-grid__full">
+            <span>URL</span>
+            <input value={extractUrl} onChange={(event) => setExtractUrl(event.target.value)} />
+          </label>
+          <label>
+            <span>{language === "es" ? "Etiqueta fuente" : "Source label"}</span>
+            <input value={extractSourceLabel} onChange={(event) => setExtractSourceLabel(event.target.value)} />
+          </label>
+          <label>
+            <span>{language === "es" ? "Referencia externa" : "External reference"}</span>
+            <input value={extractReference} onChange={(event) => setExtractReference(event.target.value)} />
+          </label>
+          <div className="crm-form-actions crm-form-grid__full">
+            <button className="btn btn-primary" type="button" disabled={isSubmitting || !extractUrl.trim()} onClick={() => void handleExtractUrl()}>
+              {language === "es" ? "Extraer y crear borrador" : "Extract and create draft"}
+            </button>
+          </div>
+        </div>
+      </PanelCard>
+
+      <PanelCard
+        title={language === "es" ? "Corrida batch por URLs" : "Batch run by URLs"}
+        subtitle={
+          language === "es"
+            ? "Lanza una corrida asíncrona, deja trazabilidad por URL y permite cancelar sin borrar lo ya capturado."
+            : "Launches an async run, keeps per-URL traceability, and allows cancellation without deleting what was already captured."
+        }
+      >
+        <div className="crm-form-grid">
+          <label>
+            <span>{language === "es" ? "Etiqueta fuente común" : "Shared source label"}</span>
+            <input value={batchLabel} onChange={(event) => setBatchLabel(event.target.value)} />
+          </label>
+          <label className="crm-form-grid__full">
+            <span>{language === "es" ? "URLs (una por línea)" : "URLs (one per line)"}</span>
+            <textarea rows={6} value={batchUrls} onChange={(event) => setBatchUrls(event.target.value)} />
+          </label>
+          <div className="crm-form-actions crm-form-grid__full">
+            <button className="btn btn-primary" type="button" disabled={isSubmitting || !batchUrls.trim()} onClick={() => void handleCreateBatchRun()}>
+              {language === "es" ? "Iniciar corrida" : "Start run"}
+            </button>
+          </div>
+        </div>
+      </PanelCard>
+
+      <DataTableCard
+        title={language === "es" ? "Corridas de ingesta" : "Ingestion runs"}
+        subtitle={
+          language === "es"
+            ? "Seguimiento de ejecuciones automáticas por lote."
+            : "Tracking of automatic batch executions."
+        }
+        rows={runs}
+        columns={[
+          {
+            key: "run",
+            header: language === "es" ? "Corrida" : "Run",
+            render: (row) => (
+              <div>
+                <strong>{row.source_label || `run-${row.id}`}</strong>
+                <div className="text-muted small">{row.source_mode}</div>
+              </div>
+            ),
+          },
+          {
+            key: "status",
+            header: language === "es" ? "Estado" : "Status",
+            render: (row) => statusLabelMap[row.status as keyof typeof statusLabelMap] || row.status,
+          },
+          {
+            key: "progress",
+            header: language === "es" ? "Progreso" : "Progress",
+            render: (row) => `${row.processed_count}/${row.requested_count}`,
+          },
+          {
+            key: "result",
+            header: language === "es" ? "Resultado" : "Outcome",
+            render: (row) => (
+              <div className="small">
+                <div>{language === "es" ? "OK" : "OK"}: {row.completed_count}</div>
+                <div>{language === "es" ? "Error" : "Error"}: {row.error_count}</div>
+                <div>{language === "es" ? "Canceladas" : "Cancelled"}: {row.cancelled_count}</div>
+              </div>
+            ),
+          },
+          {
+            key: "actions",
+            header: language === "es" ? "Acciones" : "Actions",
+            render: (row) => (
+              <div className="d-flex flex-wrap gap-2">
+                {(row.status === "queued" || row.status === "running") ? (
+                  <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => void handleCancelRun(row)}>
+                    {language === "es" ? "Cancelar" : "Cancel"}
+                  </button>
+                ) : null}
+              </div>
+            ),
+          },
+        ]}
+      />
+
+      <PanelCard
+        title={editingId ? (language === "es" ? "Editar borrador" : "Edit draft") : (language === "es" ? "Nuevo borrador manual" : "New manual draft")}
+        subtitle={
+          language === "es"
+            ? "Si necesitas corregir o capturar manualmente, aquí mantienes el carril revisable antes de publicar."
+            : "If you need to correct or capture manually, this keeps the reviewable path before publishing."
         }
       >
         <form className="crm-form-grid" onSubmit={(event) => void handleSubmit(event)}>

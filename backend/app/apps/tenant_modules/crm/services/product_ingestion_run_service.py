@@ -168,6 +168,7 @@ class CRMProductIngestionRunService:
             if run.status == "cancelled":
                 self._cancel_remaining_items(tenant_db, run_id)
                 self._refresh_run_totals(tenant_db, run_id)
+                self._finalize_run(tenant_db, run_id)
                 return
             if item.item_status not in {"queued", "error"}:
                 continue
