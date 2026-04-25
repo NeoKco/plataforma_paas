@@ -20,6 +20,16 @@ export function ProductsModuleNav() {
       label: language === "es" ? "Ingesta" : "Ingestion",
       icon: "catalogs" as const,
     },
+    {
+      to: "/tenant-portal/products/sources",
+      label: language === "es" ? "Fuentes/precios" : "Sources/prices",
+      icon: "reports" as const,
+    },
+    {
+      to: "/tenant-portal/products/connectors",
+      label: language === "es" ? "Conectores" : "Connectors",
+      icon: "settings" as const,
+    },
   ];
 
   return (

@@ -22,6 +22,96 @@ export type ProductCatalogItem = {
   characteristics: ProductCatalogProductCharacteristic[];
 };
 
+export type ProductCatalogConnector = {
+  id: number;
+  name: string;
+  connector_kind: string;
+  base_url: string | null;
+  default_currency_code: string;
+  supports_batch: boolean;
+  supports_price_tracking: boolean;
+  is_active: boolean;
+  config_notes: string | null;
+  last_sync_at: string | null;
+  last_sync_status: string;
+  source_total: number;
+  price_event_total: number;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type ProductCatalogConnectorWriteRequest = {
+  name: string;
+  connector_kind: string;
+  base_url: string | null;
+  default_currency_code: string;
+  supports_batch: boolean;
+  supports_price_tracking: boolean;
+  is_active: boolean;
+  config_notes: string | null;
+};
+
+export type ProductCatalogProductSource = {
+  id: number;
+  product_id: number;
+  connector_id: number | null;
+  connector_name: string | null;
+  draft_id: number | null;
+  run_item_id: number | null;
+  source_kind: string;
+  source_label: string | null;
+  source_url: string | null;
+  external_reference: string | null;
+  source_status: string;
+  latest_unit_price: number;
+  currency_code: string;
+  source_summary: string | null;
+  captured_at: string | null;
+  last_seen_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type ProductCatalogProductSourceWriteRequest = {
+  connector_id: number | null;
+  source_kind: string;
+  source_label: string | null;
+  source_url: string | null;
+  external_reference: string | null;
+  source_status: string;
+  latest_unit_price: number;
+  currency_code: string;
+  source_summary: string | null;
+};
+
+export type ProductCatalogPriceHistoryItem = {
+  id: number;
+  product_id: number;
+  product_name: string | null;
+  product_source_id: number | null;
+  connector_id: number | null;
+  connector_name: string | null;
+  draft_id: number | null;
+  price_kind: string;
+  unit_price: number;
+  currency_code: string;
+  source_label: string | null;
+  source_url: string | null;
+  notes: string | null;
+  captured_at: string | null;
+  created_at: string | null;
+};
+
+export type ProductCatalogPriceHistoryWriteRequest = {
+  connector_id: number | null;
+  source_label: string | null;
+  source_url: string | null;
+  unit_price: number;
+  currency_code: string;
+  price_kind: string;
+  notes: string | null;
+};
+
 export type ProductCatalogWriteRequest = {
   sku: string | null;
   name: string;
@@ -46,6 +136,8 @@ export type ProductCatalogIngestionDraft = {
   source_kind: string;
   source_label: string | null;
   source_url: string | null;
+  connector_id: number | null;
+  connector_name: string | null;
   external_reference: string | null;
   capture_status: string;
   sku: string | null;
@@ -105,6 +197,7 @@ export type ProductCatalogIngestionDraftWriteRequest = {
   source_kind: string;
   source_label: string | null;
   source_url: string | null;
+  connector_id: number | null;
   external_reference: string | null;
   sku: string | null;
   name: string | null;
@@ -123,12 +216,14 @@ export type ProductCatalogIngestionDraftWriteRequest = {
 export type ProductCatalogIngestionExtractUrlRequest = {
   source_url: string;
   source_label: string | null;
+  connector_id: number | null;
   external_reference: string | null;
 };
 
 export type ProductCatalogIngestionRunEntry = {
   source_url: string;
   source_label: string | null;
+  connector_id: number | null;
   external_reference: string | null;
 };
 
@@ -137,6 +232,8 @@ export type ProductCatalogIngestionRunItem = {
   run_id: number;
   source_url: string;
   source_label: string | null;
+  connector_id: number | null;
+  connector_name: string | null;
   external_reference: string | null;
   item_status: string;
   draft_id: number | null;
@@ -152,6 +249,8 @@ export type ProductCatalogIngestionRun = {
   status: string;
   source_mode: string;
   source_label: string | null;
+  connector_id: number | null;
+  connector_name: string | null;
   requested_count: number;
   processed_count: number;
   completed_count: number;
@@ -169,6 +268,7 @@ export type ProductCatalogIngestionRun = {
 
 export type ProductCatalogIngestionRunCreateRequest = {
   source_label: string | null;
+  connector_id: number | null;
   entries: ProductCatalogIngestionRunEntry[];
 };
 
@@ -183,6 +283,39 @@ type ProductCatalogMutationResponse = {
   success: boolean;
   message: string;
   data: ProductCatalogItem;
+};
+
+type ProductCatalogConnectorsResponse = {
+  success: boolean;
+  message: string;
+  total: number;
+  data: ProductCatalogConnector[];
+};
+
+type ProductCatalogConnectorMutationResponse = {
+  success: boolean;
+  message: string;
+  data: ProductCatalogConnector;
+};
+
+type ProductCatalogSourcesResponse = {
+  success: boolean;
+  message: string;
+  total: number;
+  data: ProductCatalogProductSource[];
+};
+
+type ProductCatalogSourceMutationResponse = {
+  success: boolean;
+  message: string;
+  data: ProductCatalogProductSource;
+};
+
+type ProductCatalogPriceHistoryResponse = {
+  success: boolean;
+  message: string;
+  total: number;
+  data: ProductCatalogPriceHistoryItem[];
 };
 
 type ProductCatalogIngestionDraftsResponse = {
@@ -231,9 +364,17 @@ export type ProductCatalogOverviewResponse = {
     url_source_total: number;
     run_total: number;
     run_active: number;
+    source_total: number;
+    source_active: number;
+    price_event_total: number;
+    connector_total: number;
+    connector_active: number;
   };
   recent_products: ProductCatalogItem[];
   recent_drafts: ProductCatalogIngestionDraft[];
+  recent_sources: ProductCatalogProductSource[];
+  recent_prices: ProductCatalogPriceHistoryItem[];
+  recent_connectors: ProductCatalogConnector[];
 };
 
 type ProductCatalogIngestionOverviewResponse = {
@@ -289,6 +430,107 @@ export function deleteProductCatalogItem(accessToken: string, productId: number)
   return apiRequest<ProductCatalogMutationResponse>(`/tenant/products/catalog/${productId}`, {
     method: "DELETE",
     token: accessToken,
+  });
+}
+
+export function getProductCatalogConnectors(accessToken: string, includeInactive = true) {
+  const suffix = includeInactive ? "?include_inactive=true" : "?include_inactive=false";
+  return apiRequest<ProductCatalogConnectorsResponse>(`/tenant/products/connectors${suffix}`, {
+    token: accessToken,
+  });
+}
+
+export function createProductCatalogConnector(accessToken: string, payload: ProductCatalogConnectorWriteRequest) {
+  return apiRequest<ProductCatalogConnectorMutationResponse>("/tenant/products/connectors", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function updateProductCatalogConnector(accessToken: string, connectorId: number, payload: ProductCatalogConnectorWriteRequest) {
+  return apiRequest<ProductCatalogConnectorMutationResponse>(`/tenant/products/connectors/${connectorId}`, {
+    method: "PUT",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function updateProductCatalogConnectorStatus(accessToken: string, connectorId: number, isActive: boolean) {
+  return apiRequest<ProductCatalogConnectorMutationResponse>(`/tenant/products/connectors/${connectorId}/status`, {
+    method: "PATCH",
+    token: accessToken,
+    body: { is_active: isActive },
+  });
+}
+
+export function deleteProductCatalogConnector(accessToken: string, connectorId: number) {
+  return apiRequest<ProductCatalogConnectorMutationResponse>(`/tenant/products/connectors/${connectorId}`, {
+    method: "DELETE",
+    token: accessToken,
+  });
+}
+
+export function getProductCatalogSources(
+  accessToken: string,
+  params: { product_id?: number | null; connector_id?: number | null; source_status?: string | null } = {},
+) {
+  const search = new URLSearchParams();
+  if (params.product_id) search.set("product_id", String(params.product_id));
+  if (params.connector_id) search.set("connector_id", String(params.connector_id));
+  if (params.source_status) search.set("source_status", params.source_status);
+  const suffix = search.size > 0 ? `?${search.toString()}` : "";
+  return apiRequest<ProductCatalogSourcesResponse>(`/tenant/products/sources${suffix}`, {
+    token: accessToken,
+  });
+}
+
+export function createProductCatalogSource(
+  accessToken: string,
+  productId: number,
+  payload: ProductCatalogProductSourceWriteRequest,
+) {
+  return apiRequest<ProductCatalogSourceMutationResponse>(`/tenant/products/catalog/${productId}/sources`, {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function updateProductCatalogSource(
+  accessToken: string,
+  sourceId: number,
+  payload: ProductCatalogProductSourceWriteRequest,
+) {
+  return apiRequest<ProductCatalogSourceMutationResponse>(`/tenant/products/sources/${sourceId}`, {
+    method: "PUT",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function getProductCatalogPriceHistory(
+  accessToken: string,
+  params: { product_id?: number | null; connector_id?: number | null } = {},
+) {
+  const search = new URLSearchParams();
+  if (params.product_id) search.set("product_id", String(params.product_id));
+  if (params.connector_id) search.set("connector_id", String(params.connector_id));
+  const suffix = search.size > 0 ? `?${search.toString()}` : "";
+  return apiRequest<ProductCatalogPriceHistoryResponse>(`/tenant/products/price-history${suffix}`, {
+    token: accessToken,
+  });
+}
+
+export function createProductCatalogPriceHistory(
+  accessToken: string,
+  productId: number,
+  payload: ProductCatalogPriceHistoryWriteRequest,
+) {
+  return apiRequest<ProductCatalogPriceHistoryResponse>(`/tenant/products/catalog/${productId}/price-history`, {
+    method: "POST",
+    token: accessToken,
+    body: payload,
   });
 }
 

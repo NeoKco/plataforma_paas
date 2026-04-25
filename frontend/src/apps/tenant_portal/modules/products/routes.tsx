@@ -23,4 +23,18 @@ export const productsTenantPortalRoutes: RouteObject[] = [
       return { Component: module.ProductsIngestionPage };
     },
   },
+  {
+    path: "sources",
+    lazy: async () => {
+      const module = await import("./pages/ProductsSourcesPage");
+      return { Component: module.ProductsSourcesPage };
+    },
+  },
+  {
+    path: "connectors",
+    lazy: async () => {
+      const module = await import("./pages/ProductsConnectorsPage");
+      return { Component: module.ProductsConnectorsPage };
+    },
+  },
 ];

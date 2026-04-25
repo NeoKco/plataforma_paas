@@ -120,6 +120,18 @@ export function ProductsOverviewPage() {
               value={metrics.url_source_total}
               hint={language === "es" ? "Fuentes externas registradas" : "Registered external sources"}
             />
+            <MetricCard
+              icon="reports"
+              label={language === "es" ? "Fuentes activas" : "Active sources"}
+              value={metrics.source_active}
+              hint={language === "es" ? "Referencias útiles para cotizar" : "Useful references for quoting"}
+            />
+            <MetricCard
+              icon="settings"
+              label={language === "es" ? "Conectores activos" : "Active connectors"}
+              value={metrics.connector_active}
+              hint={language === "es" ? "Perfiles multi-fuente vigentes" : "Current multi-source profiles"}
+            />
           </div>
 
           <PanelCard
@@ -216,6 +228,70 @@ export function ProductsOverviewPage() {
                 key: "published",
                 header: language === "es" ? "Publicado" : "Published",
                 render: (row) => row.published_product_name || "—",
+              },
+            ]}
+          />
+
+          <DataTableCard
+            title={language === "es" ? "Fuentes recientes" : "Recent sources"}
+            subtitle={
+              language === "es"
+                ? "Últimas referencias persistidas por producto."
+                : "Latest persisted references per product."
+            }
+            rows={data?.recent_sources || []}
+            columns={[
+              {
+                key: "source",
+                header: language === "es" ? "Fuente" : "Source",
+                render: (row) => (
+                  <div>
+                    <strong>{row.source_label || row.source_url || "—"}</strong>
+                    <div className="text-muted small">{row.connector_name || row.source_kind}</div>
+                  </div>
+                ),
+              },
+              {
+                key: "status",
+                header: language === "es" ? "Estado" : "Status",
+                render: (row) => row.source_status,
+              },
+              {
+                key: "price",
+                header: language === "es" ? "Precio" : "Price",
+                render: (row) => formatMoney(row.latest_unit_price || 0, language, row.currency_code),
+              },
+            ]}
+          />
+
+          <DataTableCard
+            title={language === "es" ? "Eventos de precio recientes" : "Recent price events"}
+            subtitle={
+              language === "es"
+                ? "Trazabilidad de valores observados o consolidados."
+                : "Traceability of observed or consolidated values."
+            }
+            rows={data?.recent_prices || []}
+            columns={[
+              {
+                key: "product",
+                header: language === "es" ? "Producto" : "Product",
+                render: (row) => (
+                  <div>
+                    <strong>{row.product_name || `#${row.product_id}`}</strong>
+                    <div className="text-muted small">{row.connector_name || row.price_kind}</div>
+                  </div>
+                ),
+              },
+              {
+                key: "price",
+                header: language === "es" ? "Precio" : "Price",
+                render: (row) => formatMoney(row.unit_price || 0, language, row.currency_code),
+              },
+              {
+                key: "captured",
+                header: language === "es" ? "Capturado" : "Captured",
+                render: (row) => row.captured_at || "—",
               },
             ]}
           />
