@@ -19,6 +19,7 @@ El módulo ya cubre:
 - validación operativa por conector
 - actualización viva por artículo
 - scheduler formal por tenant para `due_sources`
+- automatización gobernada por tenant para `due_sources`
 - corridas batch de refresh con progreso
 - fuentes persistidas por producto
 - historial de eventos de precio
@@ -101,11 +102,21 @@ El módulo ya cubre:
   - referencia externa desde URL
   - prioridad a JSON-LD + metadata + hints
   - características extra operativas
+- automatización gobernada ya publicada:
+  - vista tenant `Automatización`
+  - `GET /tenant/products/scheduler/overview`
+  - `POST /tenant/products/scheduler/run-due`
+  - runner cross-tenant con:
+    - `--dry-run`
+    - `--json-output`
+- extracción reforzada además para:
+  - `sodimac`
+  - `easy`
 
 ## Backlog posterior al cierre
 
-1. scheduler automático gobernado por worker/cron del entorno
-2. conectores específicos por proveedor/fuente con autenticación propietaria más profunda
+1. conectores específicos por proveedor/fuente con autenticación propietaria más profunda
+2. scheduler automático gobernado por worker/cron del entorno ya institucionalizado fuera del runner manual
 3. comparación multi-moneda/unidad más profunda
 4. trazabilidad/versionado más rico de atributos técnicos por fuente
 5. integración más profunda del catálogo con `projects`
@@ -113,8 +124,9 @@ El módulo ya cubre:
 
 ## Siguiente slice recomendado
 
+- `products` ya puede considerarse cerrado para su alcance actual
 - abrir `projects` como consumidor fuerte del catálogo `products`
-- si se mantiene foco en `products`, priorizar:
+- si se mantiene foco en `products`, priorizar solo como profundización opcional:
   - scheduler automático gobernado por entorno
   - conectores concretos por marketplace/proveedor con autenticación propia
   - mejor conciliación de moneda/unidad

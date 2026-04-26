@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
@@ -35,6 +36,15 @@ def main() -> int:
         default=20,
         help="Maximum number of due connectors to launch per tenant.",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Inspect due connector schedules without launching refresh runs.",
+    )
+    parser.add_argument(
+        "--json-output",
+        help="Optional path to persist the scheduler summary as JSON.",
+    )
     args = parser.parse_args()
 
     service = ProductConnectorSchedulerService()
@@ -42,9 +52,12 @@ def main() -> int:
         tenant_slug=args.tenant_slug,
         tenant_limit=args.tenant_limit,
         connector_limit_per_tenant=args.connector_limit,
+        dry_run=args.dry_run,
     )
+    mode_label = "preview" if summary.get("dry_run") else "execution"
     print(
         "Products refresh scheduler summary: "
+        f"mode={mode_label}, "
         f"processed_tenants={summary['processed_tenants']}, "
         f"launched_runs={summary['launched_runs']}, "
         f"skipped_tenants={summary['skipped_tenants']}, "
@@ -52,6 +65,14 @@ def main() -> int:
     )
     for tenant_row in summary["tenants"]:
         print(tenant_row)
+    if args.json_output:
+        output_path = Path(args.json_output).expanduser()
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps(summary, ensure_ascii=True, indent=2, default=str),
+            encoding="utf-8",
+        )
+        print(f"Scheduler JSON summary saved to: {output_path}")
     return 0 if not summary["failed_tenants"] else 1
 
 

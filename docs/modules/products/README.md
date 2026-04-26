@@ -14,6 +14,7 @@ Estado actual:
   - scraping/ingesta asistida
   - actualización viva por artículo desde URL
   - scheduler formal por tenant para `due_sources`
+  - automatización gobernada por tenant para conectores vencidos
   - conectores runtime con perfil técnico explícito
   - validación operativa por conector
   - corridas batch de refresh con progreso
@@ -22,6 +23,7 @@ Estado actual:
   - conectores multi-fuente configurables
   - conectores específicos por proveedor con presets operativos
   - conector patrón profundizado para `mercadolibre`
+  - extracción más dedicada también para `sodimac` y `easy`
   - sincronización automática real por conector
   - comparación multi-fuente por producto
   - historial de fuentes por producto
@@ -37,6 +39,7 @@ Objetivo del módulo:
 - usar scraping y más adelante IA para traer/normalizar información actualizada
 - refrescar artículos ya existentes desde sus fuentes activas o vencidas
 - programar refresh por tenant desde conectores con política `due_sources`
+- previsualizar y ejecutar conectores vencidos desde una superficie gobernada por tenant
 - validar conectores antes de dejarlos como origen operativo
 - dejar una base reusable para cotizaciones, proyectos y otros dominios sin amarrarla a CRM
 
@@ -95,6 +98,7 @@ El módulo hoy incluye:
   - historial de corridas
   - estado de salud por artículo
   - ejecución programable por conector para fuentes vencidas
+  - ejecución manual gobernada por tenant sobre todos los conectores vencidos
 - fuentes por producto con:
   - URL/ref externa
   - proveedor
@@ -115,6 +119,13 @@ El módulo hoy incluye:
   - observación
   - fuente asociada cuando aplica
 - resumen operativo con métricas de catálogo e ingesta
+- automatización gobernada con:
+  - `GET /tenant/products/scheduler/overview`
+  - `POST /tenant/products/scheduler/run-due`
+  - runner cross-tenant:
+    - `backend/app/scripts/run_products_refresh_scheduler.py`
+    - `--dry-run`
+    - `--json-output`
 
 Queda fuera por ahora:
 
@@ -171,6 +182,34 @@ Ya quedó incluido además:
   - referencia externa desde URL
   - prioridad a JSON-LD + metadata + hints específicos
   - características extra como `Condición`, `Vendedor` y `Disponibilidad` cuando la fuente lo expone
+- extracción proveedor reforzada además para:
+  - `sodimac`
+    - referencia externa
+    - marca/modelo
+    - vendedor/proveedor
+    - nota de despacho cuando la fuente la expone
+  - `easy`
+    - referencia externa
+    - marca/modelo
+    - nota de unidad cuando la fuente la expone
+
+## Automatización gobernada
+
+El módulo ya no depende solo de ir conector por conector.
+
+Ahora existe una vista tenant `Automatización` que:
+
+- lista conectores vencidos para `due_sources`
+- cuantifica cuántas fuentes vencidas tiene cada conector
+- resume corridas recientes del scheduler
+- permite ejecutar `Correr vencidos ahora` desde una sola superficie
+
+La intención es dejar una operación más cercana al uso real de `ieris_app`:
+
+- artículos vivos por URL
+- refresh individual cuando hace falta
+- refresh gobernado por tenant cuando hay backlog vencido
+- runner cross-tenant cuando el entorno quiera institucionalizarlo vía cron/worker
 
 ## Cómo reconstruir este slice
 
@@ -184,6 +223,7 @@ Piezas canónicas de este cierre:
   - `backend/app/scripts/run_products_refresh_scheduler.py`
 - API tenant:
   - `backend/app/apps/tenant_modules/products/api/connectors.py`
+  - `backend/app/apps/tenant_modules/products/api/scheduler.py`
 - servicios:
   - `services/connector_service.py`
   - `services/connector_scheduler_service.py`
@@ -194,6 +234,7 @@ Piezas canónicas de este cierre:
 - frontend:
   - `frontend/src/apps/tenant_portal/modules/products/pages/ProductsConnectorsPage.tsx`
   - `frontend/src/apps/tenant_portal/modules/products/pages/ProductsOverviewPage.tsx`
+  - `frontend/src/apps/tenant_portal/modules/products/pages/ProductsAutomationPage.tsx`
   - `frontend/src/apps/tenant_portal/modules/products/services/productsService.ts`
 
 Regla de recreación:
@@ -201,8 +242,9 @@ Regla de recreación:
 1. aplicar migraciones tenant `0050` y `0051`
 2. exponer provider/scheduler/runtime profile en schemas + serializers
 3. exponer ejecución manual del scheduler y validación del conector desde API
-4. dejar runner cross-tenant para corridas automáticas
-5. publicar presets por proveedor y perfil runtime en UI
-6. profundizar el extractor del proveedor patrón (`mercadolibre`)
-7. validar repo
-8. hacer backup PostgreSQL tenant previo antes de mutar `staging` o `production`
+4. exponer overview gobernado de conectores vencidos por tenant
+5. dejar runner cross-tenant para corridas automáticas, preview y salida JSON
+6. publicar presets por proveedor, perfil runtime y `Automatización` en UI
+7. profundizar el extractor de proveedores ya priorizados (`mercadolibre`, `sodimac`, `easy`)
+8. validar repo
+9. hacer backup PostgreSQL tenant previo antes de mutar `staging` o `production`

@@ -562,6 +562,48 @@ export type ProductCatalogConnectorSyncResponse = {
   data: ProductCatalogConnectorSyncItem[];
 };
 
+export type ProductCatalogSchedulerConnectorItem = {
+  id: number;
+  name: string;
+  provider_key: string;
+  provider_profile: string;
+  schedule_frequency: string;
+  schedule_batch_limit: number;
+  next_scheduled_run_at: string | null;
+  last_scheduled_run_at: string | null;
+  last_schedule_status: string;
+  last_schedule_summary: string | null;
+  due_source_count: number;
+};
+
+export type ProductCatalogSchedulerOverviewResponse = {
+  success: boolean;
+  message: string;
+  due_total: number;
+  data: ProductCatalogSchedulerConnectorItem[];
+  recent_runs: ProductCatalogRefreshRun[];
+};
+
+export type ProductCatalogSchedulerBatchRunItem = {
+  connector_id: number;
+  connector_name: string;
+  status: string;
+  run_id: number | null;
+  processed_count: number;
+  completed_count: number;
+  error_count: number;
+  detail: string | null;
+};
+
+export type ProductCatalogSchedulerBatchRunResponse = {
+  success: boolean;
+  message: string;
+  processed: number;
+  launched: number;
+  failed: number;
+  data: ProductCatalogSchedulerBatchRunItem[];
+};
+
 export type ProductCatalogComparisonSource = {
   source_id: number;
   connector_id: number | null;
@@ -728,6 +770,19 @@ export function runProductCatalogConnectorSchedule(accessToken: string, connecto
 
 export function validateProductCatalogConnector(accessToken: string, connectorId: number) {
   return apiRequest<ProductCatalogConnectorValidationResponse>(`/tenant/products/connectors/${connectorId}/validate`, {
+    method: "POST",
+    token: accessToken,
+  });
+}
+
+export function getProductCatalogSchedulerOverview(accessToken: string) {
+  return apiRequest<ProductCatalogSchedulerOverviewResponse>("/tenant/products/scheduler/overview", {
+    token: accessToken,
+  });
+}
+
+export function runProductCatalogDueScheduler(accessToken: string) {
+  return apiRequest<ProductCatalogSchedulerBatchRunResponse>("/tenant/products/scheduler/run-due", {
     method: "POST",
     token: accessToken,
   });

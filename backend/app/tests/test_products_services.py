@@ -25,6 +25,9 @@ from app.apps.tenant_modules.products.services.connector_sync_service import (  
 from app.apps.tenant_modules.products.services.comparison_service import (  # noqa: E402
     ProductCatalogComparisonService,
 )
+from app.apps.tenant_modules.products.services.ingestion_extraction_service import (  # noqa: E402
+    ProductCatalogIngestionExtractionService,
+)
 from app.apps.tenant_modules.products.services.connector_scheduler_service import (  # noqa: E402
     ProductConnectorSchedulerService,
 )
@@ -326,6 +329,52 @@ class ProductsServicesTestCase(unittest.TestCase):
         service._connector_sync_service.extract_capture_payload.assert_called_once()
         tenant_db.commit.assert_called_once()
 
+    def test_provider_specific_sodimac_payload_returns_reference_and_brand(self) -> None:
+        service = ProductCatalogIngestionExtractionService()
+        script = Mock()
+        script.string = '{"productId":"SOD-7788","sellerName":"Sodimac","deliveryType":"despacho_programado"}'
+        script.get_text.return_value = script.string
+        soup = Mock()
+        soup.find_all.side_effect = lambda name, *args, **kwargs: [script] if name == "script" else []
+        soup.select_one.return_value = None
+        service._extract_category = Mock(return_value="Herramientas")
+        service._extract_table_value_by_label = Mock(side_effect=["Bosch", "GSB 13 RE"])
+
+        payload = service._extract_sodimac_payload(
+            soup,
+            source_url="https://www.sodimac.cl/sodimac-cl/product/7788/demo",
+        )
+
+        self.assertEqual(payload["external_reference"], "SOD-7788")
+        self.assertEqual(payload["brand"], "Bosch")
+        self.assertEqual(payload["category_label"], "Herramientas")
+        self.assertEqual(payload["extraction_notes"], "Extracción automática dedicada para Sodimac")
+        self.assertTrue(any(item["label"] == "Marca" for item in payload["characteristics"]))
+
+    def test_provider_specific_easy_payload_returns_reference_and_brand(self) -> None:
+        service = ProductCatalogIngestionExtractionService()
+        script = Mock()
+        script.string = '{"productReference":"EASY-900"}'
+        script.get_text.return_value = script.string
+        sku_candidate = Mock()
+        sku_candidate.get.return_value = None
+        sku_candidate.get_text.return_value = "EASY-900"
+        soup = Mock()
+        soup.find_all.side_effect = lambda name, *args, **kwargs: [script] if name == "script" else []
+        soup.select_one.side_effect = [sku_candidate]
+        service._extract_category = Mock(return_value="Servicios")
+        service._extract_table_value_by_label = Mock(side_effect=["Easy Home", None, "Servicio"])
+
+        payload = service._extract_easy_payload(
+            soup,
+            source_url="https://www.easy.cl/producto/demo",
+        )
+
+        self.assertEqual(payload["external_reference"], "EASY-900")
+        self.assertEqual(payload["brand"], "Easy Home")
+        self.assertEqual(payload["category_label"], "Servicios")
+        self.assertEqual(payload["extraction_notes"], "Extracción automática dedicada para Easy")
+
     def test_comparison_service_prefers_best_active_price(self) -> None:
         source_a = ProductSource(
             id=10,
@@ -522,3 +571,27 @@ class ProductsServicesTestCase(unittest.TestCase):
         service._refresh_run_service.create_run.assert_called_once()
         self.assertEqual(service._connector_service.touch_connector_schedule.call_count, 2)
         tenant_db.commit.assert_called()
+
+    def test_connector_scheduler_forwards_actor_user_id_in_batch_runs(self) -> None:
+        tenant_db = Mock()
+        connector = ProductConnector(id=41, name="Mercado Libre Scheduler", is_active=True)
+        run = SimpleNamespace(id=501, processed_count=3, completed_count=3, error_count=0)
+
+        service = ProductConnectorSchedulerService()
+        service.list_due_connectors = Mock(return_value=[connector])
+        service.run_connector_schedule_now = Mock(return_value=run)
+
+        summary = service.run_due_connector_schedules_for_tenant(
+            tenant_db,
+            limit=10,
+            actor_user_id=77,
+        )
+
+        service.run_connector_schedule_now.assert_called_once_with(
+            tenant_db,
+            41,
+            actor_user_id=77,
+        )
+        self.assertEqual(summary["processed"], 1)
+        self.assertEqual(summary["launched"], 1)
+        self.assertEqual(summary["items"][0]["run_id"], 501)

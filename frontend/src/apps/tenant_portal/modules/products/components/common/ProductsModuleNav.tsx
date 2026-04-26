@@ -31,6 +31,11 @@ export function ProductsModuleNav() {
       icon: "settings" as const,
     },
     {
+      to: "/tenant-portal/products/automation",
+      label: language === "es" ? "Automatización" : "Automation",
+      icon: "pulse" as const,
+    },
+    {
       to: "/tenant-portal/products/refresh",
       label: language === "es" ? "Actualizaciones" : "Refresh",
       icon: "pulse" as const,

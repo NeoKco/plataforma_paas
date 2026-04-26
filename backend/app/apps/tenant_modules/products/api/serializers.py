@@ -4,6 +4,7 @@ from app.apps.tenant_modules.products.schemas import (
     ProductCatalogDuplicateCandidateResponse,
     ProductCatalogDuplicateSummaryResponse,
     ProductCatalogConnectorItemResponse,
+    ProductCatalogSchedulerConnectorItemResponse,
     ProductCatalogConnectorSyncItemResponse,
     ProductCatalogEnrichmentStateResponse,
     ProductCatalogIngestionCharacteristicItemResponse,
@@ -102,6 +103,26 @@ def build_product_connector_item(
         price_event_total=int(price_event_total or 0),
         created_at=item.created_at,
         updated_at=getattr(item, "updated_at", None),
+    )
+
+
+def build_product_scheduler_connector_item(
+    item,
+    *,
+    due_source_count: int = 0,
+) -> ProductCatalogSchedulerConnectorItemResponse:
+    return ProductCatalogSchedulerConnectorItemResponse(
+        id=item.id,
+        name=item.name,
+        provider_key=getattr(item, "provider_key", "generic"),
+        provider_profile=getattr(item, "provider_profile", "generic_v1"),
+        schedule_frequency=getattr(item, "schedule_frequency", "daily"),
+        schedule_batch_limit=int(getattr(item, "schedule_batch_limit", 25) or 25),
+        next_scheduled_run_at=getattr(item, "next_scheduled_run_at", None),
+        last_scheduled_run_at=getattr(item, "last_scheduled_run_at", None),
+        last_schedule_status=getattr(item, "last_schedule_status", "idle"),
+        last_schedule_summary=getattr(item, "last_schedule_summary", None),
+        due_source_count=int(due_source_count or 0),
     )
 
 

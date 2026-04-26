@@ -14,6 +14,7 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 - configurar conectores de ingesta
 - validar conectores antes de usarlos como origen estable
 - programar conectores para refresh tenant automático
+- revisar y ejecutar conectores vencidos desde una superficie de automatización gobernada
 - refrescar artículos ya existentes desde sus URLs fuente
 - correr campañas batch de actualización con progreso
 - dejar base estable para cotizaciones y futuros proyectos
@@ -34,6 +35,8 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
   refresh vivo por artículo y corridas batch
 - `Comparación`
   lectura multi-fuente por producto con precio recomendado
+- `Automatización`
+  conectores vencidos, corridas recientes del scheduler y ejecución `run-due` por tenant
 
 ## Qué agrega este cierre
 
@@ -159,6 +162,7 @@ Uso recomendado del scheduler:
 2. usar `daily` para sitios HTML normales
 3. usar `hourly` solo para fuentes más estables o feeds JSON
 4. mantener un `batch limit` prudente para no saturar scraping ni IA
+5. usar `Automatización` para confirmar qué conectores están vencidos antes de lanzar una corrida amplia
 
 Uso recomendado del validador:
 
@@ -250,6 +254,28 @@ Este módulo ya soporta un carril formal para `due_sources`:
 
 Eso permite mantener vigente el catálogo sin depender solo de corridas manuales.
 
+## Automatización gobernada
+
+`Automatización` resume el carril `due_sources` a nivel tenant.
+
+Sirve para:
+
+- ver cuántos conectores tienen fuentes vencidas
+- ver cuántas fuentes vencidas arrastra cada conector
+- revisar corridas recientes del scheduler
+- ejecutar `Correr vencidos ahora` sin ir conector por conector
+
+Flujo recomendado:
+
+1. validar primero que los conectores relevantes estén sanos
+2. entrar a `Automatización`
+3. revisar conectores vencidos y volumen de `due_sources`
+4. ejecutar `Correr vencidos ahora`
+5. revisar:
+   - resultado reciente por conector
+   - corridas recientes
+   - artículos que queden en `error` o `stale`
+
 ## Conector patrón actual: Mercado Libre
 
 El primer conector específico profundizado es `Mercado Libre`.
@@ -270,6 +296,13 @@ Hoy ese preset ya hace mejor lectura que el scraping genérico porque:
   - `Vendedor`
   - `Disponibilidad`
   - `Despacho`
+
+Además, `Sodimac` y `Easy` ya no quedan como presets solo visuales:
+
+- `Sodimac`
+  - prioriza mejores pistas para referencia externa, marca, modelo y nota de despacho
+- `Easy`
+  - prioriza mejores pistas para referencia externa, marca, modelo y nota de unidad
 
 ## Flujo recomendado
 

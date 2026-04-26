@@ -34,6 +34,8 @@ Rutas públicas del módulo:
 - `/tenant/products/connectors`
 - `/tenant/products/refresh-runs`
 - `/tenant/products/comparisons`
+- `/tenant/products/scheduler/overview`
+- `/tenant/products/scheduler/run-due`
 - `/tenant/products/connectors/{connector_id}/schedule/run`
 - `/tenant/products/connectors/{connector_id}/validate`
 
@@ -213,6 +215,20 @@ Uso típico:
   - `PYTHONPATH=backend ./platform_paas_venv/bin/python backend/app/scripts/run_products_refresh_scheduler.py`
 - un tenant específico:
   - `... --tenant-slug ieris-ltda`
+- preview sin ejecutar:
+  - `... --dry-run`
+- salida JSON para evidencia/automatización:
+  - `... --json-output /tmp/products_refresh_scheduler.json`
+
+Además del runner cross-tenant, el módulo ya expone una superficie gobernada por tenant:
+
+- `GET /tenant/products/scheduler/overview`
+- `POST /tenant/products/scheduler/run-due`
+
+Esa superficie no reemplaza al runner del entorno; lo complementa:
+
+- tenant UI/API para operación controlada dentro del workspace
+- runner para cron/worker/operación cross-tenant fuera del request path
 
 La regla operativa sigue siendo:
 
@@ -224,7 +240,7 @@ La regla operativa sigue siendo:
 Las siguientes profundizaciones deben abrirse aquí:
 
 - conectores específicos por marketplace/proveedor con autenticación propietaria
-- scheduler automático gobernado por worker/cron del entorno
+- scheduler automático gobernado por worker/cron del entorno ya institucionalizado más allá del runner manual
 - comparación multi-moneda/unidad más profunda
 - mejor reutilización del catálogo en `projects`
 - clasificación/categorización más profunda por IA

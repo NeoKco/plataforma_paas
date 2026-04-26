@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 
 from pydantic import BaseModel, Field
@@ -159,6 +161,50 @@ class ProductCatalogConnectorValidationResponse(BaseModel):
     status: str
     detail: str | None = None
     preview: ProductCatalogConnectorValidationPreviewResponse | None = None
+
+
+class ProductCatalogSchedulerConnectorItemResponse(BaseModel):
+    id: int
+    name: str
+    provider_key: str
+    provider_profile: str
+    schedule_frequency: str
+    schedule_batch_limit: int
+    next_scheduled_run_at: datetime | None = None
+    last_scheduled_run_at: datetime | None = None
+    last_schedule_status: str
+    last_schedule_summary: str | None = None
+    due_source_count: int = 0
+
+
+class ProductCatalogSchedulerBatchRunItemResponse(BaseModel):
+    connector_id: int
+    connector_name: str
+    status: str
+    run_id: int | None = None
+    processed_count: int = 0
+    completed_count: int = 0
+    error_count: int = 0
+    detail: str | None = None
+
+
+class ProductCatalogSchedulerOverviewResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    due_total: int
+    data: list[ProductCatalogSchedulerConnectorItemResponse] = Field(default_factory=list)
+    recent_runs: list["ProductCatalogRefreshRunResponse"] = Field(default_factory=list)
+
+
+class ProductCatalogSchedulerBatchRunResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    processed: int
+    launched: int
+    failed: int
+    data: list[ProductCatalogSchedulerBatchRunItemResponse] = Field(default_factory=list)
 
 
 class ProductCatalogItemResponse(BaseModel):

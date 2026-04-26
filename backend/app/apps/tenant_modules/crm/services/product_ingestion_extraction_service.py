@@ -217,6 +217,10 @@ class CRMProductIngestionExtractionService:
     ) -> dict[str, Any]:
         if provider_key == "mercadolibre":
             return self._extract_mercadolibre_payload(soup, source_url=source_url)
+        if provider_key == "sodimac":
+            return self._extract_sodimac_payload(soup, source_url=source_url)
+        if provider_key == "easy":
+            return self._extract_easy_payload(soup, source_url=source_url)
         return {}
 
     def _extract_mercadolibre_payload(self, soup: Any, *, source_url: str) -> dict[str, Any]:
@@ -290,6 +294,96 @@ class CRMProductIngestionExtractionService:
             "category_label": self._extract_category(soup),
             "characteristics": characteristics,
             "extraction_notes": "Extracción automática dedicada para Mercado Libre",
+        }
+
+    def _extract_sodimac_payload(self, soup: Any, *, source_url: str) -> dict[str, Any]:
+        script_blob = "\n".join(
+            (script.string or script.get_text() or "")
+            for script in soup.find_all("script")
+        )
+        external_reference = self._search_script_value(
+            script_blob,
+            [
+                r'"productId"\s*:\s*"([^"]+)"',
+                r'"product_id"\s*:\s*"([^"]+)"',
+                r'"sku"\s*:\s*"([^"]+)"',
+            ],
+        )
+        if not external_reference:
+            meta_reference = soup.select_one('meta[property="product:retailer_item_id"]')
+            external_reference = self._content_or_text(meta_reference)
+
+        brand = self._extract_table_value_by_label(soup, {"marca", "brand"})
+        model = self._extract_table_value_by_label(soup, {"modelo", "model"})
+        seller_name = self._search_script_value(
+            script_blob,
+            [
+                r'"sellerName"\s*:\s*"([^"]+)"',
+                r'"seller"\s*:\s*"([^"]+)"',
+            ],
+        )
+        delivery_note = self._search_script_value(
+            script_blob,
+            [
+                r'"deliveryType"\s*:\s*"([^"]+)"',
+                r'"fulfillment"\s*:\s*"([^"]+)"',
+            ],
+        )
+        characteristics = []
+        if brand:
+            characteristics.append({"label": "Marca", "value": brand, "sort_order": 10})
+        if model:
+            characteristics.append({"label": "Modelo", "value": model, "sort_order": 20})
+        if seller_name:
+            characteristics.append({"label": "Proveedor", "value": seller_name, "sort_order": 30})
+        if delivery_note:
+            characteristics.append(
+                {
+                    "label": "Despacho",
+                    "value": delivery_note.replace("_", " ").strip(),
+                    "sort_order": 40,
+                }
+            )
+        return {
+            "brand": brand,
+            "external_reference": external_reference,
+            "category_label": self._extract_category(soup),
+            "characteristics": characteristics,
+            "extraction_notes": "Extracción automática dedicada para Sodimac",
+        }
+
+    def _extract_easy_payload(self, soup: Any, *, source_url: str) -> dict[str, Any]:
+        script_blob = "\n".join(
+            (script.string or script.get_text() or "")
+            for script in soup.find_all("script")
+        )
+        external_reference = self._search_script_value(
+            script_blob,
+            [
+                r'"productId"\s*:\s*"([^"]+)"',
+                r'"productReference"\s*:\s*"([^"]+)"',
+                r'"skuId"\s*:\s*"([^"]+)"',
+            ],
+        )
+        if not external_reference:
+            external_reference = self._content_or_text(soup.select_one('[itemprop="sku"]'))
+
+        brand = self._extract_table_value_by_label(soup, {"marca", "brand"})
+        model = self._extract_table_value_by_label(soup, {"modelo", "model"})
+        unit_note = self._extract_table_value_by_label(soup, {"unidad de venta", "unidad"})
+        characteristics = []
+        if brand:
+            characteristics.append({"label": "Marca", "value": brand, "sort_order": 10})
+        if model:
+            characteristics.append({"label": "Modelo", "value": model, "sort_order": 20})
+        if unit_note:
+            characteristics.append({"label": "Unidad", "value": unit_note, "sort_order": 30})
+        return {
+            "brand": brand,
+            "external_reference": external_reference,
+            "category_label": self._extract_category(soup),
+            "characteristics": characteristics,
+            "extraction_notes": "Extracción automática dedicada para Easy",
         }
 
     def _extract_brand(self, soup: Any) -> str | None:
@@ -388,6 +482,26 @@ class CRMProductIngestionExtractionService:
                 append(label, value)
 
         return characteristics[:40]
+
+    def _extract_table_value_by_label(self, soup: Any, labels: set[str]) -> str | None:
+        normalized_labels = {label.strip().lower() for label in labels if label}
+        for table in soup.find_all("table"):
+            for row in table.find_all("tr"):
+                cells = row.find_all(["th", "td"])
+                if len(cells) < 2:
+                    continue
+                label = self._normalize_text(cells[0].get_text(" ", strip=True))
+                value = self._normalize_text(cells[1].get_text(" ", strip=True))
+                if label and value and label.strip().lower() in normalized_labels:
+                    return value[:4000]
+        for definition in soup.find_all("dl"):
+            for term in definition.find_all("dt"):
+                label = self._normalize_text(term.get_text(" ", strip=True))
+                detail = term.find_next_sibling("dd")
+                value = self._normalize_text(detail.get_text(" ", strip=True)) if detail else None
+                if label and value and label.strip().lower() in normalized_labels:
+                    return value[:4000]
+        return None
 
     def _extract_structured_product_payload(
         self,

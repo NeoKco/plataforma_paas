@@ -47,6 +47,11 @@
 - `POST /tenant/products/connectors/{connector_id}/schedule/run`
 - `POST /tenant/products/connectors/{connector_id}/validate`
 
+## Scheduler Automation
+
+- `GET /tenant/products/scheduler/overview`
+- `POST /tenant/products/scheduler/run-due`
+
 ## Live Refresh
 
 - `GET /tenant/products/refresh-runs`
@@ -131,6 +136,18 @@ Notas del contrato actual:
     - `unit_price`
     - `currency_code`
     - `characteristic_count`
+- `GET /tenant/products/scheduler/overview`
+  - devuelve:
+    - `due_connectors`
+    - `recent_runs`
+    - `due_connector_count`
+    - `due_source_count`
+- `POST /tenant/products/scheduler/run-due`
+  - ejecuta en el tenant actual todos los conectores habilitados con alcance `due_sources`
+  - devuelve:
+    - `triggered_at`
+    - `triggered_connector_count`
+    - detalle por conector ejecutado
 - `POST /tenant/products/catalog/{product_id}/refresh`
   - request:
     - `prefer_ai`
@@ -154,6 +171,8 @@ Notas del contrato actual:
     - `--tenant-slug`
     - `--tenant-limit`
     - `--connector-limit`
+    - `--dry-run`
+    - `--json-output`
 - `GET /tenant/products/comparisons`
   - acepta filtros:
     - `product_id`

@@ -38,6 +38,13 @@ export const productsTenantPortalRoutes: RouteObject[] = [
     },
   },
   {
+    path: "automation",
+    lazy: async () => {
+      const module = await import("./pages/ProductsAutomationPage");
+      return { Component: module.ProductsAutomationPage };
+    },
+  },
+  {
     path: "refresh",
     lazy: async () => {
       const module = await import("./pages/ProductsRefreshPage");
