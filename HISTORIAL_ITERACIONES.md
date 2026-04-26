@@ -1,5 +1,55 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - Hotfix flujo rápido `products` con IA real y timeout largo
+
+Contexto:
+
+- tras corregir la lectura de características vacías, `production` siguió devolviendo `500` en `Products > Ingesta > Extracción rápida por URL`
+- el nuevo incidente vino con `request_id=e9487610e8706284770c38d4c7564bb3`
+- además, el uso esperado del módulo seguía corto respecto de `ieris_app`: la captura rápida todavía no forzaba enriquecimiento IA real antes de guardar
+
+Diagnóstico:
+
+- el error actual no era timeout de IA
+- el flujo rápido construía un `CRMProductIngestionDraftCreateRequest`
+- luego `ProductCatalogIngestionService.create_draft(...)` intentaba leer `payload.connector_id`
+- eso disparaba:
+  - `AttributeError: 'CRMProductIngestionDraftCreateRequest' object has no attribute 'connector_id'`
+- en paralelo, se confirmó una brecha funcional:
+  - `extract_url_to_draft(...)` todavía extraía HTML base, pero no enriquecía con IA como camino principal antes de persistir el borrador
+
+Cambios:
+
+- [ingestion_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/ingestion_service.py)
+  - `create_draft/update_draft` ya usan `getattr(payload, "connector_id", None)` y toleran payloads sin ese campo
+- [ingestion_run_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/ingestion_run_service.py)
+  - `extract_url_to_draft(...)` ahora usa `ProductCatalogIngestionDraftCreateRequest`
+  - la captura rápida ahora llama también a `ProductCatalogEnrichmentService.enrich_capture_payload(...)`
+  - el timeout IA mínimo de ese camino queda en `300s`
+- [enrichment_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/enrichment_service.py)
+  - `enrich_capture_payload(...)` y `_try_ai_enrichment(...)` aceptan `timeout_seconds` override
+- [test_products_services.py](/home/felipe/platform_paas/backend/app/tests/test_products_services.py)
+  - cobertura nueva para:
+    - payload sin `connector_id`
+    - extracción rápida con enriquecimiento IA y timeout largo
+
+Validación:
+
+- repo:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `16 tests OK`
+  - `python3 -m py_compile ...` -> `OK`
+- `staging`:
+  - backup PostgreSQL tenant previo -> `4` backups
+  - `ieris-ltda` requirió reparación técnica controlada por `invalid_db_credentials` antes del backup obligatorio
+  - backend redeploy -> `585 tests OK`
+  - convergencia tenant -> `processed=4, synced=4, skipped=0, failed=0`
+- `production`:
+  - backup PostgreSQL tenant previo -> `4` backups
+  - `ieris-ltda` requirió reparación técnica controlada por `invalid_db_credentials`
+  - backup adicional explícito de `ieris-ltda`
+  - backend redeploy -> `585 tests OK`
+  - convergencia tenant -> `processed=4, synced=4, skipped=0, failed=0`
+
 ## 2026-04-26 - Hotfix extractor `products` para URL con características vacías
 
 Contexto:

@@ -2,6 +2,38 @@
 
 ## 2026-04-26
 
+- hotfix funcional adicional para `Ingesta > Extracción rápida por URL`:
+  - se corrige el flujo `products` para que deje de reutilizar el schema `crm` al crear el borrador rápido
+  - el error real en `production` ya quedó identificado y corregido:
+    - `request_id=e9487610e8706284770c38d4c7564bb3`
+    - `AttributeError: 'CRMProductIngestionDraftCreateRequest' object has no attribute 'connector_id'`
+  - `ProductCatalogIngestionService` ya tolera payloads sin `connector_id`
+  - `ProductCatalogIngestionRunService.extract_url_to_draft(...)` ahora:
+    - usa `ProductCatalogIngestionDraftCreateRequest`
+    - aplica enriquecimiento IA real antes de persistir el borrador
+    - fuerza un timeout mínimo de `300s` para este carril rápido por URL
+    - reutiliza `connector.config_notes` como instrucción adicional cuando existe conector
+  - ajuste aplicado en:
+    - [enrichment_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/enrichment_service.py)
+    - [ingestion_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/ingestion_service.py)
+    - [ingestion_run_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/ingestion_run_service.py)
+    - [test_products_services.py](/home/felipe/platform_paas/backend/app/tests/test_products_services.py)
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `16 tests OK`
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/services/enrichment_service.py backend/app/apps/tenant_modules/products/services/ingestion_service.py backend/app/apps/tenant_modules/products/services/ingestion_run_service.py backend/app/tests/test_products_services.py` -> `OK`
+  - cierre runtime:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con reparación técnica controlada de `ieris-ltda` por `invalid_db_credentials`
+      - backend redeployado con `585 tests OK`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con reparación técnica controlada de `ieris-ltda` por `invalid_db_credentials`
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+    - convergencia tenant `processed=4, synced=4, skipped=0, failed=0` en ambos carriles
+  - resultado esperado:
+    - `Extracción rápida por URL` ya no debe caer por ausencia de `connector_id`
+    - el borrador rápido ahora sí intenta enriquecerse con la API IA y tolera respuestas lentas de hasta ~4 minutos
+
 - hotfix de robustez para `Ingesta > Extracción rápida por URL`:
   - se corrige el extractor de características para tolerar `li` vacíos o con texto nulo sin abortar la creación del borrador
   - queda cubierta la regresión del incidente reportado en `production` con:

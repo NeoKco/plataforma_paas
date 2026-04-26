@@ -1,6 +1,9 @@
 from app.apps.tenant_modules.products.services.ingestion_extraction_service import (
     ProductCatalogIngestionExtractionService,
 )
+from app.apps.tenant_modules.products.services.enrichment_service import (
+    ProductCatalogEnrichmentService,
+)
 from app.apps.tenant_modules.products.services.ingestion_service import (
     ProductCatalogIngestionService,
 )
@@ -10,10 +13,13 @@ from app.apps.tenant_modules.products.services.connector_service import (
 from app.apps.tenant_modules.crm.services.product_ingestion_run_service import (
     CRMProductIngestionRunService,
 )
-from app.apps.tenant_modules.crm.schemas import CRMProductIngestionDraftCreateRequest
+from app.apps.tenant_modules.products.schemas import ProductCatalogIngestionDraftCreateRequest
+from app.common.config.settings import settings
 
 
 class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
+    URL_EXTRACTION_AI_TIMEOUT_SECONDS = 300
+
     def __init__(
         self,
         *,
@@ -22,6 +28,7 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
         tenant_connection_service=None,
     ):
         self._connector_service = ProductConnectorService()
+        self._enrichment_service = ProductCatalogEnrichmentService()
         super().__init__(
             extraction_service=extraction_service or ProductCatalogIngestionExtractionService(),
             ingestion_service=ingestion_service or ProductCatalogIngestionService(),
@@ -61,24 +68,40 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
         extraction = self._extraction_service.extract_from_url(
             payload.source_url,
             provider_key=getattr(connector, "provider_key", "generic"),
+            timeout_seconds=getattr(connector, "request_timeout_seconds", None),
         )
-        draft_payload = CRMProductIngestionDraftCreateRequest(
+        source_label = self._normalize_optional(payload.source_label) or extraction.get("source_label") or getattr(connector, "name", None)
+        enriched = self._enrichment_service.enrich_capture_payload(
+            {
+                **extraction,
+                "source_url": payload.source_url.strip(),
+                "source_label": source_label,
+            },
+            prefer_ai=True,
+            prompt_override=getattr(connector, "config_notes", None),
+            timeout_seconds=max(
+                int(settings.API_IA_TIMEOUT or 45),
+                self.URL_EXTRACTION_AI_TIMEOUT_SECONDS,
+            ),
+        )
+        draft_payload = ProductCatalogIngestionDraftCreateRequest(
             source_kind="url_reference",
-            source_label=self._normalize_optional(payload.source_label),
+            source_label=source_label,
             source_url=payload.source_url.strip(),
             external_reference=self._normalize_optional(payload.external_reference),
-            sku=extraction.get("sku"),
-            name=extraction.get("name"),
-            brand=extraction.get("brand"),
-            category_label=extraction.get("category_label"),
-            product_type=extraction.get("product_type") or "product",
-            unit_label=extraction.get("unit_label"),
-            unit_price=float(extraction.get("unit_price") or 0),
-            currency_code=extraction.get("currency_code") or "CLP",
-            description=extraction.get("description"),
-            source_excerpt=extraction.get("source_excerpt"),
-            extraction_notes=extraction.get("extraction_notes"),
-            characteristics=extraction.get("characteristics") or [],
+            connector_id=getattr(connector, "id", None),
+            sku=enriched.get("sku"),
+            name=enriched.get("name"),
+            brand=enriched.get("brand"),
+            category_label=enriched.get("category_label"),
+            product_type=enriched.get("product_type") or "product",
+            unit_label=enriched.get("unit_label"),
+            unit_price=float(enriched.get("unit_price") or 0),
+            currency_code=enriched.get("currency_code") or "CLP",
+            description=enriched.get("description"),
+            source_excerpt=enriched.get("source_excerpt"),
+            extraction_notes=enriched.get("extraction_notes") or extraction.get("extraction_notes"),
+            characteristics=enriched.get("characteristics") or extraction.get("characteristics") or [],
         )
         draft = self._ingestion_service.create_draft(tenant_db, draft_payload, actor_user_id=actor_user_id)
         if connector:

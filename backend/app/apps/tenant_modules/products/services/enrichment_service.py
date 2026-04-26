@@ -81,6 +81,7 @@ class ProductCatalogEnrichmentService:
         *,
         prefer_ai: bool = True,
         prompt_override: str | None = None,
+        timeout_seconds: int | None = None,
     ) -> dict[str, Any]:
         draft = SimpleNamespace(
             id=None,
@@ -107,7 +108,12 @@ class ProductCatalogEnrichmentService:
         ]
         heuristic_payload = self._build_heuristic_enrichment(draft, characteristics)
         ai_payload = (
-            self._try_ai_enrichment(draft, characteristics, prompt_override=prompt_override)
+            self._try_ai_enrichment(
+                draft,
+                characteristics,
+                prompt_override=prompt_override,
+                timeout_seconds=timeout_seconds,
+            )
             if prefer_ai
             else None
         )
@@ -366,6 +372,7 @@ class ProductCatalogEnrichmentService:
         characteristics: list[CRMProductIngestionCharacteristic],
         *,
         prompt_override: str | None = None,
+        timeout_seconds: int | None = None,
     ) -> dict[str, Any] | None:
         if not settings.API_IA_URL.strip():
             return None
@@ -388,7 +395,7 @@ class ProductCatalogEnrichmentService:
                 settings.API_IA_URL.rstrip("/") + "/analyze",
                 json=payload,
                 headers=headers,
-                timeout=max(int(settings.API_IA_TIMEOUT or 45), 10),
+                timeout=max(int(timeout_seconds or settings.API_IA_TIMEOUT or 45), 10),
             )
             response.raise_for_status()
             parsed = self._parse_ai_response(response.json())

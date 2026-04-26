@@ -15,7 +15,8 @@ class ProductCatalogIngestionService(CRMProductIngestionService):
         self._source_service = ProductSourceService()
 
     def create_draft(self, tenant_db, payload, *, actor_user_id: int | None = None) -> CRMProductIngestionDraft:
-        connector = self._connector_service.get_connector(tenant_db, payload.connector_id) if payload.connector_id else None
+        connector_id = getattr(payload, "connector_id", None)
+        connector = self._connector_service.get_connector(tenant_db, connector_id) if connector_id else None
         item = super().create_draft(tenant_db, payload, actor_user_id=actor_user_id)
         item.connector_id = connector.id if connector else None
         tenant_db.add(item)
@@ -26,7 +27,8 @@ class ProductCatalogIngestionService(CRMProductIngestionService):
         return item
 
     def update_draft(self, tenant_db, draft_id: int, payload, *, actor_user_id: int | None = None) -> CRMProductIngestionDraft:
-        connector = self._connector_service.get_connector(tenant_db, payload.connector_id) if payload.connector_id else None
+        connector_id = getattr(payload, "connector_id", None)
+        connector = self._connector_service.get_connector(tenant_db, connector_id) if connector_id else None
         item = super().update_draft(tenant_db, draft_id, payload, actor_user_id=actor_user_id)
         item.connector_id = connector.id if connector else None
         tenant_db.add(item)

@@ -15,6 +15,8 @@ from app.apps.tenant_modules.products.models import (  # noqa: E402
 )
 from app.apps.tenant_modules.products.schemas import (  # noqa: E402
     ProductCatalogConnectorCreateRequest,
+    ProductCatalogIngestionDraftCreateRequest,
+    ProductCatalogIngestionExtractUrlRequest,
 )
 from app.apps.tenant_modules.products.services.connector_service import (  # noqa: E402
     ProductConnectorService,
@@ -27,6 +29,12 @@ from app.apps.tenant_modules.products.services.comparison_service import (  # no
 )
 from app.apps.tenant_modules.products.services.ingestion_extraction_service import (  # noqa: E402
     ProductCatalogIngestionExtractionService,
+)
+from app.apps.tenant_modules.products.services.ingestion_run_service import (  # noqa: E402
+    ProductCatalogIngestionRunService,
+)
+from app.apps.tenant_modules.products.services.ingestion_service import (  # noqa: E402
+    ProductCatalogIngestionService,
 )
 from app.apps.tenant_modules.products.services.connector_scheduler_service import (  # noqa: E402
     ProductConnectorSchedulerService,
@@ -400,6 +408,75 @@ class ProductsServicesTestCase(unittest.TestCase):
             characteristics,
             [{"label": "Marca", "value": "Ferrelectrica", "sort_order": 10}],
         )
+
+    def test_ingestion_service_accepts_payload_without_connector_id(self) -> None:
+        tenant_db = Mock()
+        created = SimpleNamespace(connector_id=None)
+        payload = ProductCatalogIngestionDraftCreateRequest(
+            source_kind="url_reference",
+            source_url="https://proveedor.local/demo",
+            name="Demo",
+        )
+        service = ProductCatalogIngestionService()
+        service._connector_service.get_connector = Mock()
+
+        with patch(
+            "app.apps.tenant_modules.products.services.ingestion_service.CRMProductIngestionService.create_draft",
+            return_value=created,
+        ) as super_create:
+            result = service.create_draft(tenant_db, payload, actor_user_id=5)
+
+        self.assertIs(result, created)
+        super_create.assert_called_once()
+        service._connector_service.get_connector.assert_not_called()
+
+    def test_extract_url_to_draft_uses_ai_enrichment_with_extended_timeout(self) -> None:
+        tenant_db = Mock()
+        draft = SimpleNamespace(connector_id=None)
+        service = ProductCatalogIngestionRunService()
+        service._connector_service.get_connector = Mock(return_value=None)
+        service._extraction_service.extract_from_url = Mock(
+            return_value={
+                "name": "Cordón Multipolar",
+                "product_type": "product",
+                "unit_price": 1000,
+                "currency_code": "CLP",
+                "characteristics": [{"label": "Voltaje", "value": "0.6/1kV", "sort_order": 10}],
+                "extraction_notes": "Extracción automática desde URL (generic)",
+            }
+        )
+        service._enrichment_service.enrich_capture_payload = Mock(
+            return_value={
+                "name": "Cordón Multipolar RV-K 3x4mm",
+                "product_type": "product",
+                "unit_price": 1234,
+                "currency_code": "CLP",
+                "description": "Descripción enriquecida por IA",
+                "source_excerpt": "Resumen IA",
+                "characteristics": [{"label": "Voltaje", "value": "0.6/1kV", "sort_order": 10}],
+                "extraction_notes": "Extracción automática desde URL (generic)",
+            }
+        )
+        service._ingestion_service.create_draft = Mock(return_value=draft)
+
+        result = service.extract_url_to_draft(
+            tenant_db,
+            ProductCatalogIngestionExtractUrlRequest(
+                source_url="https://proveedor.local/demo",
+                source_label="Ferrelectrica",
+            ),
+            actor_user_id=9,
+        )
+
+        self.assertIs(result, draft)
+        service._enrichment_service.enrich_capture_payload.assert_called_once()
+        _, kwargs = service._enrichment_service.enrich_capture_payload.call_args
+        self.assertTrue(kwargs["prefer_ai"])
+        self.assertGreaterEqual(kwargs["timeout_seconds"], 300)
+        created_payload = service._ingestion_service.create_draft.call_args.args[1]
+        self.assertIsInstance(created_payload, ProductCatalogIngestionDraftCreateRequest)
+        self.assertEqual(created_payload.name, "Cordón Multipolar RV-K 3x4mm")
+        self.assertEqual(created_payload.source_label, "Ferrelectrica")
 
     def test_comparison_service_prefers_best_active_price(self) -> None:
         source_a = ProductSource(

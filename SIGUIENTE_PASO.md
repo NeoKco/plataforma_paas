@@ -3,6 +3,11 @@
 ## Prioridad vigente
 
 - hotfix recién cerrado:
+  - `products > Ingesta` ya usa enriquecimiento IA real en `Extracción rápida por URL`
+  - ese carril ahora tolera hasta `300s` antes de desistir de la llamada IA
+  - también quedó corregido el bug de compatibilidad de schema/payload que disparaba `connector_id` ausente
+  - el siguiente paso en este módulo ya no es “hacer que funcione la URL rápida”, sino validar funcionalmente la calidad de extracción sobre fuentes reales y luego seguir con decisiones de producto más altas
+- hotfix recién cerrado:
   - `products > Ingesta` ya tolera páginas con características vacías o mal formadas sin abortar la captura por URL
   - el incidente de `ferrelectrica.cl` en `production` ya quedó corregido en backend y promovido a ambos carriles
   - el siguiente paso sobre este módulo ya no es más robustez básica del extractor en ese punto, sino seguir con decisiones de producto de más nivel

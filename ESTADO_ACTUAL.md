@@ -3,6 +3,31 @@
 ## Última actualización
 
 - fecha: 2026-04-26
+- hotfix operativo adicional recién cerrado:
+  - `products > Ingesta > Extracción rápida por URL` ya no reutiliza el schema `crm` al persistir borradores rápidos
+  - el incidente reportado en `production` con `request_id=e9487610e8706284770c38d4c7564bb3` quedó identificado y corregido
+  - causa real:
+    - el flujo rápido por URL construía un `CRMProductIngestionDraftCreateRequest`
+    - luego `ProductCatalogIngestionService.create_draft(...)` intentaba leer `connector_id`
+    - eso disparaba `AttributeError` antes de llegar a persistir el borrador
+  - corrección aplicada:
+    - `products` ahora usa `ProductCatalogIngestionDraftCreateRequest` en el flujo rápido
+    - `create_draft/update_draft` ya toleran payload sin `connector_id`
+    - el flujo rápido ahora sí ejecuta enriquecimiento IA antes de guardar
+    - el timeout IA mínimo para este carril queda en `300s`
+  - validación repo:
+    - `backend.app.tests.test_products_services` -> `16 tests OK`
+    - `py_compile` de servicios `products` tocados -> `OK`
+  - validación runtime:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con reparación técnica controlada previa de `ieris-ltda` por `invalid_db_credentials`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con reparación técnica controlada previa de `ieris-ltda` por `invalid_db_credentials`
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
 - hotfix operativo recién cerrado:
   - `products > Ingesta > Extracción rápida por URL` ya no cae si una página trae elementos de características vacíos o `None`
   - el incidente reportado en `production` con `request_id=5272c9132529d4324789f39b6522386b` quedó identificado y corregido
