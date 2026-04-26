@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from app.apps.tenant_modules.products.services.connector_sync_service import ProductConnectorSyncService
+from app.apps.tenant_modules.products.services.generic_ai_extraction_service import (
+    ProductCatalogGenericAiExtractionService,
+)
 from app.apps.tenant_modules.products.services.product_service import ProductCatalogService
 from app.apps.tenant_modules.products.services.source_service import ProductSourceService
+from app.common.config.settings import settings
 
 
 class ProductCatalogRefreshService:
@@ -10,6 +14,7 @@ class ProductCatalogRefreshService:
         self._product_service = ProductCatalogService()
         self._source_service = ProductSourceService()
         self._connector_sync_service = ProductConnectorSyncService()
+        self._generic_ai_extraction_service = ProductCatalogGenericAiExtractionService()
 
     def refresh_product(
         self,
@@ -46,7 +51,10 @@ class ProductCatalogRefreshService:
                 extracted = self._extract_for_source(source, connector)
                 enriched = self._connector_sync_service._enrichment_service.enrich_capture_payload(
                     extracted,
-                    prefer_ai=prefer_ai or bool(getattr(connector, "run_ai_enrichment", False)),
+                    prefer_ai=(
+                        not bool(extracted.get("used_ai_enrichment"))
+                        and (prefer_ai or bool(getattr(connector, "run_ai_enrichment", False)))
+                    ),
                     prompt_override=getattr(source, "refresh_prompt", None)
                     or getattr(connector, "config_notes", None),
                 )
@@ -115,10 +123,19 @@ class ProductCatalogRefreshService:
                 url=source.source_url,
                 source_label=source.source_label,
             )
-        payload = self._connector_sync_service._extraction_service.extract_from_url(
+        ai_payload = self._generic_ai_extraction_service.extract_from_url(
             source.source_url,
-            provider_key="generic",
+            timeout_seconds=max(int(settings.API_IA_TIMEOUT or 45), 300),
+            prompt_override=getattr(source, "refresh_prompt", None),
         )
+        try:
+            base_payload = self._connector_sync_service._extraction_service.extract_from_url(
+                source.source_url,
+                provider_key="generic",
+            )
+        except Exception:
+            base_payload = {}
+        payload = self._connector_sync_service._merge_capture_payloads(base_payload, ai_payload)
         payload["source_label"] = source.source_label or payload.get("source_label")
         payload["source_kind"] = source.source_kind or payload.get("source_kind") or "url_reference"
         return payload

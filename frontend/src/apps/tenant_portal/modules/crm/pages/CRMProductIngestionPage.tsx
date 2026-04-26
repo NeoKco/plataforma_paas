@@ -404,8 +404,8 @@ export function CRMProductIngestionPage() {
         title={language === "es" ? "Ingesta de productos" : "Product ingestion"}
         description={
           language === "es"
-            ? "Captura, extracción por URL y corridas batch antes de publicar productos al catálogo central."
-            : "Capture, URL extraction, and batch runs before publishing products into the central catalog."
+            ? "Captura, extracción IA por URL y corridas batch antes de publicar productos al catálogo central."
+            : "Capture, AI URL extraction, and batch runs before publishing products into the central catalog."
         }
         actions={
           <AppToolbar compact>
@@ -463,8 +463,8 @@ export function CRMProductIngestionPage() {
         title={language === "es" ? "Extracción rápida por URL" : "Quick extraction by URL"}
         subtitle={
           language === "es"
-            ? "Toma una página HTML y la convierte de inmediato en borrador revisable."
-            : "Takes an HTML page and converts it immediately into a reviewable draft."
+            ? "Usa scraping genérico + IA para convertir cualquier URL en borrador revisable. Puede tardar varios minutos."
+            : "Uses generic scraping + AI to convert any URL into a reviewable draft. It can take several minutes."
         }
       >
         <div className="crm-form-grid">

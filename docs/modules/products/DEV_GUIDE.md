@@ -74,7 +74,8 @@ La ingesta ahora ya expone:
 - endpoint de enriquecimiento por borrador
 - endpoint de resolución accionable contra catálogo:
   - `POST /tenant/products/ingestion/drafts/{draft_id}/resolve-duplicate`
-- fallback heurístico seguro si la API IA no está configurada o falla
+- pipeline IA genérico principal para `extract-url` y corridas batch por URL
+- sin fallback silencioso al heurístico cuando el carril IA está requerido
 - extracción técnica más profunda desde texto libre y scraping:
   - `Potencia`
   - `Voltaje`
@@ -164,6 +165,12 @@ Variables runtime compatibles con el carril IA existente:
 - `API_IA_MAX_TOKENS`
 - `API_IA_TEMPERATURE`
 - `API_IA_TIMEOUT`
+
+Regla nueva de implementación:
+
+- `Products > Ingesta > URL` y sus corridas batch deben usar scraping genérico + IA como carril principal
+- el parser HTML/base puede seguir aportando SKU/marca/categoría como soporte, pero no reemplaza el paso IA
+- si falta `API_IA_URL` o `MANAGER_API_IA_KEY`, el backend debe responder error explícito y no “simular éxito” con heurística pobre
 
 Regla de implementación:
 

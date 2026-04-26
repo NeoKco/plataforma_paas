@@ -3,6 +3,34 @@
 ## Última actualización
 
 - fecha: 2026-04-26
+- slice nuevo ya cerrado en repo y pendiente de publish runtime:
+  - `products > Ingesta > Extracción rápida por URL` deja de ser “HTML genérico con enriquecimiento opcional” y pasa a usar como carril principal el pipeline genérico IA alineado a `ieris_app`
+  - nuevo servicio:
+    - `backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py`
+  - comportamiento nuevo:
+    - scraping/preprocesado genérico de la URL
+    - prompt técnico estructurado
+    - llamada real a `/analyze` con `MANAGER_API_IA_KEY`
+    - postproceso estructurado de descripción y características
+    - merge con extracción base solo como apoyo para `sku`, `brand` o `category_label`
+  - regla nueva:
+    - si faltan `API_IA_URL` o `MANAGER_API_IA_KEY`, la captura URL y el batch URL deben fallar explícitamente
+    - ya no corresponde simular éxito degradando silenciosamente al heurístico
+  - visibilidad nueva en UI:
+    - `Ingesta de productos` y `Extracción rápida por URL` ahora dejan explícito que usan IA y que pueden tardar varios minutos
+  - validación repo:
+    - `py_compile` del slice nuevo -> `OK`
+    - `backend.app.tests.test_products_services` -> `18 tests OK`
+    - `backend.app.tests.test_platform_flow + test_products_services + test_migration_flow` -> `277 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - hallazgo operativo pendiente de cerrar en runtime:
+    - el runtime probado por el usuario todavía no está tomando este pipeline nuevo
+    - en `production`, el entorno actual no expone `API_IA_URL` ni `MANAGER_API_IA_KEY` al backend al cargar `/opt/platform_paas/.env`
+    - por eso el siguiente paso obligatorio es:
+      - alinear configuración IA runtime desde la configuración ya existente en `ieris_app`
+      - tomar backups tenant previos
+      - redeploy backend/frontend en `staging` y `production`
+      - revalidar la misma URL real del usuario sobre el pipeline nuevo
 - hotfix operativo final recién cerrado:
   - `products > Ingesta > Extracción rápida por URL` ya no falla por validación tipada de `characteristics`
   - el incidente reportado en `production` con `request_id=fd02b4536c3b40e84bc9ea22767927c1` quedó identificado y corregido

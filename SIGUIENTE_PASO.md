@@ -2,6 +2,28 @@
 
 ## Prioridad vigente
 
+- prioridad inmediata real:
+  - publicar en runtime el nuevo pipeline IA genérico de `products > Ingesta > URL`
+  - alinear `staging` y `production` con:
+    - `API_IA_URL`
+    - `MANAGER_API_IA_KEY`
+    - `API_IA_MODEL_ID`
+    - `API_IA_TIMEOUT`
+  - cerrar el publish con:
+    - backup PostgreSQL tenant previo por carril
+    - backup adicional explícito de `ieris-ltda` en `production`
+    - redeploy backend
+    - publish frontend
+    - readiness / convergencia
+    - revalidación funcional sobre una URL real genérica
+- cambio de criterio sobre `products > Ingesta`:
+  - ya no se acepta como comportamiento válido un borrador “más o menos útil” construido solo por heurística HTML
+  - el carril normal por URL debe comportarse como en `ieris_app`:
+    - scraping/preproceso
+    - prompt técnico
+    - `/analyze`
+    - postproceso estructurado
+  - si la IA no está configurada o falla de forma no recuperable, el sistema debe decirlo explícitamente
 - hotfix recién cerrado:
   - `products > Ingesta` ya cierra también la validación tipada de `characteristics`
   - el carril rápido por URL ya no debería fallar por:

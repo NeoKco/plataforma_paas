@@ -27,6 +27,7 @@ El módulo ya cubre:
 - descarte y reapertura
 - deduplicación sugerida entre borradores y catálogo
 - enriquecimiento controlado de borradores con heurística + IA opcional
+- extracción IA genérica como carril principal para URL y batch
 
 ## Cerrado en el alcance actual
 
@@ -112,6 +113,12 @@ El módulo ya cubre:
 - extracción reforzada además para:
   - `sodimac`
   - `easy`
+- pipeline genérico alineado a `ieris_app` para URL y lote:
+  - scraping/preprocesado
+  - prompt técnico
+  - llamada `/analyze`
+  - postproceso estructurado
+  - error explícito si la IA no está configurada
 
 ## Backlog posterior al cierre
 

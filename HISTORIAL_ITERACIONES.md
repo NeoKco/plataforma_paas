@@ -1,5 +1,81 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - `products` redefine la URL rápida como pipeline IA genérico alineado a `ieris_app`
+
+Contexto:
+
+- el usuario confirmó que el comportamiento esperado del módulo no es un conector específico por proveedor, sino un carril genérico capaz de capturar desde cualquier página utilizable
+- también confirmó que en `ieris_app` la lógica real era:
+  - scraping/preproceso
+  - prompt definido
+  - llamada a la API IA con token backend-to-backend
+  - postproceso estructurado
+  - guardado en BD
+- al contrastar el repo, se confirmó que `products` todavía no replicaba bien ese flujo; usaba una aproximación más débil de extracción HTML + enriquecimiento opcional
+
+Diagnóstico:
+
+- el pipeline vigente de `products` no estaba portando fielmente el comportamiento de `ieris_app`
+- además, el runtime real que el usuario estaba probando todavía no mostraba señales del pipeline nuevo:
+  - el borrador seguía marcando `Extracción automática desde URL (generic)`
+  - y el backend no estaba dejando explícita la trazabilidad correcta del carril IA
+- también se confirmó que el token no debería pedirse en UI:
+  - debe viajar backend-to-backend mediante `MANAGER_API_IA_KEY`
+
+Cambios:
+
+- [generic_ai_extraction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py)
+  - nuevo servicio que implementa el carril genérico IA como primer camino
+  - hace:
+    - preprocesado genérico de URL
+    - prompt técnico estructurado
+    - llamada a `/analyze`
+    - postproceso estructurado
+    - mapeo de `description`, `source_excerpt` y `characteristics`
+  - falla explícitamente si faltan:
+    - `API_IA_URL`
+    - `MANAGER_API_IA_KEY`
+- [ingestion_run_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/ingestion_run_service.py)
+  - `extract_url_to_draft(...)` ahora usa el pipeline IA genérico como camino principal
+  - la extracción base queda solo como apoyo para campos auxiliares
+  - ya no dispara una segunda IA cosmética al crear el borrador
+- [connector_sync_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/connector_sync_service.py)
+  - el carril `html_ai` ahora usa el mismo pipeline IA genérico
+  - evita reinvocar IA si la extracción ya vino enriquecida por ese carril
+- [refresh_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/refresh_service.py)
+  - el refresh de fuentes sin conector también adopta el mismo pipeline IA genérico
+- [test_products_services.py](/home/felipe/platform_paas/backend/app/tests/test_products_services.py)
+  - cobertura nueva para:
+    - mapeo del resultado IA
+    - uso del pipeline IA genérico en URL rápida
+    - no doble invocación IA en sync/refresh
+- [CRMProductIngestionPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm/pages/CRMProductIngestionPage.tsx)
+  - el texto visible ahora aclara:
+    - que la extracción usa IA
+    - que puede tardar varios minutos
+
+Documentación alineada:
+
+- [README.md](/home/felipe/platform_paas/docs/modules/products/README.md)
+- [USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/products/USER_GUIDE.md)
+- [DEV_GUIDE.md](/home/felipe/platform_paas/docs/modules/products/DEV_GUIDE.md)
+- [API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/products/API_REFERENCE.md)
+- [ROADMAP.md](/home/felipe/platform_paas/docs/modules/products/ROADMAP.md)
+- [CHANGELOG.md](/home/felipe/platform_paas/docs/modules/products/CHANGELOG.md)
+
+Validación:
+
+- repo:
+  - `python3 -m py_compile backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py backend/app/apps/tenant_modules/products/services/ingestion_run_service.py backend/app/apps/tenant_modules/products/services/connector_sync_service.py backend/app/apps/tenant_modules/products/services/refresh_service.py backend/app/tests/test_products_services.py` -> `OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `18 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_platform_flow backend.app.tests.test_products_services backend.app.tests.test_migration_flow -v` -> `277 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+
+Estado:
+
+- repo ya queda alineado al comportamiento esperado desde `ieris_app`
+- queda pendiente el publish runtime con configuración IA real en `staging` y `production`
+
 ## 2026-04-26 - Hotfix final de validación tipada en `products` URL rápida
 
 Contexto:

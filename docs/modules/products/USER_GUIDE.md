@@ -8,6 +8,7 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 
 - mantener el catálogo reusable de productos y servicios
 - capturar productos desde URLs o carga manual
+- capturar productos desde cualquier URL usando scraping genérico + IA
 - revisar borradores antes de publicarlos
 - mantener fuentes vigentes por producto
 - registrar y revisar historial de precios
@@ -26,7 +27,7 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 - `Catálogo`
   CRUD del catálogo base
 - `Ingesta`
-  captura manual, extracción por URL y corridas batch
+  captura manual, extracción IA por URL y corridas batch
 - `Fuentes/precios`
   fuentes activas por producto e historial de eventos de precio
 - `Conectores`
@@ -47,6 +48,12 @@ En `Ingesta`, cada borrador ya puede mostrar:
 - razón principal de la coincidencia
 - estado de enriquecimiento
 - disponibilidad del carril IA
+
+Regla operativa nueva para `Ingesta > URL`:
+
+- el carril normal ahora usa IA como primer camino, no como mejora opcional
+- si el runtime no tiene `API_IA_URL` o `MANAGER_API_IA_KEY`, la extracción debe fallar con mensaje explícito
+- si la IA tarda, la extracción puede tomar varios minutos antes de devolver el borrador
 
 Además, el operador ya puede usar:
 

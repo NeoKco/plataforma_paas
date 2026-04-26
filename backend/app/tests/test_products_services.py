@@ -30,6 +30,9 @@ from app.apps.tenant_modules.products.services.comparison_service import (  # no
 from app.apps.tenant_modules.products.services.ingestion_extraction_service import (  # noqa: E402
     ProductCatalogIngestionExtractionService,
 )
+from app.apps.tenant_modules.products.services.generic_ai_extraction_service import (  # noqa: E402
+    ProductCatalogGenericAiExtractionService,
+)
 from app.apps.tenant_modules.products.services.ingestion_run_service import (  # noqa: E402
     ProductCatalogIngestionRunService,
 )
@@ -283,8 +286,16 @@ class ProductsServicesTestCase(unittest.TestCase):
             fetch_strategy="html_ai",
             default_currency_code="CLP",
         )
+        service._generic_ai_extraction_service.extract_from_url = Mock(
+            return_value={
+                "name": "Producto ML",
+                "unit_price": 9990,
+                "currency_code": "CLP",
+                "used_ai_enrichment": True,
+            }
+        )
         service._extraction_service.extract_from_url = Mock(
-            return_value={"name": "Producto ML", "unit_price": 9990, "currency_code": "CLP"},
+            return_value={"sku": "MLC-123", "brand": "Marca ML"},
         )
 
         payload = service.extract_capture_payload(
@@ -293,6 +304,7 @@ class ProductsServicesTestCase(unittest.TestCase):
             source_label="Mercado Libre",
         )
 
+        service._generic_ai_extraction_service.extract_from_url.assert_called_once()
         service._extraction_service.extract_from_url.assert_called_once_with(
             "https://articulo.mercadolibre.cl/demo",
             provider_key="mercadolibre",
@@ -300,6 +312,7 @@ class ProductsServicesTestCase(unittest.TestCase):
         )
         self.assertEqual(payload["source_kind"], "marketplace_product")
         self.assertEqual(payload["source_label"], "Mercado Libre")
+        self.assertEqual(payload["sku"], "MLC-123")
 
     def test_connector_validation_uses_base_url_preview(self) -> None:
         tenant_db = Mock()
@@ -430,19 +443,54 @@ class ProductsServicesTestCase(unittest.TestCase):
         super_create.assert_called_once()
         service._connector_service.get_connector.assert_not_called()
 
-    def test_extract_url_to_draft_uses_ai_enrichment_with_extended_timeout(self) -> None:
+    def test_generic_ai_extraction_maps_llm_response(self) -> None:
+        service = ProductCatalogGenericAiExtractionService()
+        service._ensure_ai_configured = Mock()
+        service._preprocess_url = Mock(
+            return_value=(
+                "Cordón Multipolar RV-K 3x4mm",
+                "2850",
+                [("Marca", "Marca Cable"), ("Sección", "4 mm")],
+            )
+        )
+        service._analyze_prompt = Mock(
+            return_value='[{"clave":"Marca","valor":"Marca Cable","unidad":""},{"clave":"Sección","valor":"4","unidad":"mm"},{"clave":"Descripción","valor":"Cable RV-K para instalaciones interiores y exteriores.","unidad":""}]'
+        )
+        payload = service.extract_from_url(
+            "https://proveedor.local/demo",
+            timeout_seconds=300,
+        )
+
+        self.assertTrue(payload["used_ai_enrichment"])
+        self.assertEqual(payload["extraction_strategy"], "ai_full_generic")
+        self.assertEqual(payload["name"], "Cordón Multipolar RV-K 3x4mm")
+        self.assertEqual(payload["unit_price"], 2850.0)
+        self.assertTrue(any(item["label"] == "Sección" and item["value"] == "4 mm" for item in payload["characteristics"]))
+        self.assertIn("Extracción IA genérica", payload["extraction_notes"])
+
+    def test_extract_url_to_draft_uses_generic_ai_pipeline(self) -> None:
         tenant_db = Mock()
         draft = SimpleNamespace(connector_id=None)
         service = ProductCatalogIngestionRunService()
         service._connector_service.get_connector = Mock(return_value=None)
-        service._extraction_service.extract_from_url = Mock(
+        service._generic_ai_extraction_service.extract_from_url = Mock(
             return_value={
-                "name": "Cordón Multipolar",
+                "name": "Cordón Multipolar RV-K 3x4mm",
                 "product_type": "product",
-                "unit_price": 1000,
+                "unit_price": 1234,
                 "currency_code": "CLP",
                 "characteristics": [{"label": "Voltaje", "value": "0.6/1kV", "sort_order": 10}],
-                "extraction_notes": "Extracción automática desde URL (generic)",
+                "description": "Descripción enriquecida por IA",
+                "source_excerpt": "Resumen IA",
+                "extraction_notes": "Extracción IA genérica desde URL",
+                "used_ai_enrichment": True,
+            }
+        )
+        service._extraction_service.extract_from_url = Mock(
+            return_value={
+                "sku": "MULTI-RVK3X4MTS",
+                "brand": "Marca Cable",
+                "category_label": "Conductores",
             }
         )
         service._enrichment_service.enrich_capture_payload = Mock(
@@ -454,6 +502,7 @@ class ProductsServicesTestCase(unittest.TestCase):
                 "description": "Descripción enriquecida por IA",
                 "source_excerpt": "Resumen IA",
                 "characteristics": [{"label": "Voltaje", "value": "0.6/1kV", "sort_order": 10}],
+                "sku": "MULTI-RVK3X4MTS",
                 "extraction_notes": "Extracción automática desde URL (generic)",
             }
         )
@@ -469,18 +518,78 @@ class ProductsServicesTestCase(unittest.TestCase):
         )
 
         self.assertIs(result, draft)
+        service._generic_ai_extraction_service.extract_from_url.assert_called_once()
         service._enrichment_service.enrich_capture_payload.assert_called_once()
         _, kwargs = service._enrichment_service.enrich_capture_payload.call_args
-        self.assertTrue(kwargs["prefer_ai"])
-        self.assertGreaterEqual(kwargs["timeout_seconds"], 300)
+        self.assertFalse(kwargs["prefer_ai"])
         created_payload = service._ingestion_service.create_draft.call_args.args[1]
         self.assertIsInstance(created_payload, ProductCatalogIngestionDraftCreateRequest)
         self.assertEqual(created_payload.name, "Cordón Multipolar RV-K 3x4mm")
         self.assertEqual(created_payload.source_label, "Ferrelectrica")
+        self.assertEqual(created_payload.sku, "MULTI-RVK3X4MTS")
         self.assertEqual(len(created_payload.characteristics), 1)
         self.assertEqual(created_payload.characteristics[0].label, "Voltaje")
         self.assertEqual(created_payload.characteristics[0].value, "0.6/1kV")
         self.assertEqual(created_payload.characteristics[0].sort_order, 10)
+
+    def test_connector_sync_does_not_reinvoke_ai_after_full_ai_extraction(self) -> None:
+        tenant_db = Mock()
+        connector = ProductConnector(
+            id=9,
+            name="Proveedor IA",
+            connector_kind="vendor_site",
+            provider_key="generic",
+            fetch_strategy="html_ai",
+            default_currency_code="CLP",
+            is_active=True,
+            run_ai_enrichment=True,
+        )
+        source = ProductSource(
+            id=31,
+            product_id=14,
+            connector_id=9,
+            source_kind="vendor_site",
+            source_label="Proveedor IA",
+            source_url="https://vendor.local/producto",
+            external_reference=None,
+            source_status="active",
+            sync_status="idle",
+            refresh_prompt=None,
+            latest_unit_price=1000,
+            currency_code="CLP",
+        )
+
+        service = ProductConnectorSyncService()
+        service._connector_service.get_connector = Mock(return_value=connector)
+        service._source_service.mark_source_sync_attempt = Mock()
+        service._source_service.register_price_event = Mock()
+        service._connector_service.touch_connector_sync = Mock()
+        service.extract_capture_payload = Mock(
+            return_value={
+                "name": "Producto IA",
+                "unit_price": 1250,
+                "currency_code": "CLP",
+                "source_excerpt": "actualizado",
+                "source_kind": "vendor_site",
+                "used_ai_enrichment": True,
+            }
+        )
+        service._enrichment_service.enrich_capture_payload = Mock(
+            return_value={
+                "name": "Producto IA",
+                "unit_price": 1250,
+                "currency_code": "CLP",
+                "source_excerpt": "actualizado",
+                "source_kind": "vendor_site",
+            }
+        )
+
+        with patch.object(service, "_list_sync_sources", return_value=[source]):
+            result = service.sync_connector(tenant_db, connector_id=9, limit=10)
+
+        self.assertEqual(result["processed"], 1)
+        _, kwargs = service._enrichment_service.enrich_capture_payload.call_args
+        self.assertFalse(kwargs["prefer_ai"])
 
     def test_comparison_service_prefers_best_active_price(self) -> None:
         source_a = ProductSource(
@@ -555,6 +664,17 @@ class ProductsServicesTestCase(unittest.TestCase):
         service = ProductCatalogRefreshService()
         service._product_service.get_product = Mock(return_value=product)
         service._source_service.list_sources = Mock(return_value=[source])
+        service._generic_ai_extraction_service.extract_from_url = Mock(
+            return_value={
+                "name": "Panel 550W",
+                "product_type": "product",
+                "unit_label": "unidad",
+                "unit_price": 1250,
+                "description": "Panel fotovoltaico",
+                "characteristics": [{"label": "Potencia", "value": "550W", "sort_order": 10}],
+                "used_ai_enrichment": True,
+            }
+        )
         service._connector_sync_service._extraction_service.extract_from_url = Mock(
             return_value={
                 "name": "Panel 550W",
@@ -598,6 +718,8 @@ class ProductsServicesTestCase(unittest.TestCase):
         self.assertEqual(refreshed_product.product_type, "product")
         self.assertEqual(result["completed_sources"], 1)
         self.assertIn("unit_price", result["changed_fields"])
+        _, kwargs = service._connector_sync_service._enrichment_service.enrich_capture_payload.call_args
+        self.assertFalse(kwargs["prefer_ai"])
         tenant_db.commit.assert_called_once()
 
     def test_refresh_run_create_builds_items_for_due_sources(self) -> None:

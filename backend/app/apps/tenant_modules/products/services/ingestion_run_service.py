@@ -4,6 +4,9 @@ from app.apps.tenant_modules.products.services.ingestion_extraction_service impo
 from app.apps.tenant_modules.products.services.enrichment_service import (
     ProductCatalogEnrichmentService,
 )
+from app.apps.tenant_modules.products.services.generic_ai_extraction_service import (
+    ProductCatalogGenericAiExtractionService,
+)
 from app.apps.tenant_modules.products.services.ingestion_service import (
     ProductCatalogIngestionService,
 )
@@ -29,6 +32,7 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
     ):
         self._connector_service = ProductConnectorService()
         self._enrichment_service = ProductCatalogEnrichmentService()
+        self._generic_ai_extraction_service = ProductCatalogGenericAiExtractionService()
         super().__init__(
             extraction_service=extraction_service or ProductCatalogIngestionExtractionService(),
             ingestion_service=ingestion_service or ProductCatalogIngestionService(),
@@ -65,10 +69,24 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
 
     def extract_url_to_draft(self, tenant_db, payload, *, actor_user_id: int | None = None):
         connector = self._connector_service.get_connector(tenant_db, payload.connector_id) if payload.connector_id else None
-        extraction = self._extraction_service.extract_from_url(
+        timeout_seconds = max(
+            int(getattr(connector, "request_timeout_seconds", None) or 0),
+            int(settings.API_IA_TIMEOUT or 45),
+            self.URL_EXTRACTION_AI_TIMEOUT_SECONDS,
+        )
+        generic_ai_payload = self._generic_ai_extraction_service.extract_from_url(
             payload.source_url,
-            provider_key=getattr(connector, "provider_key", "generic"),
-            timeout_seconds=getattr(connector, "request_timeout_seconds", None),
+            timeout_seconds=timeout_seconds,
+            prompt_override=getattr(connector, "config_notes", None),
+        )
+        fallback_extraction = self._extract_fallback_payload(
+            payload.source_url,
+            connector=connector,
+            timeout_seconds=timeout_seconds,
+        )
+        extraction = self._merge_capture_payloads(
+            fallback_extraction,
+            generic_ai_payload,
         )
         source_label = self._normalize_optional(payload.source_label) or extraction.get("source_label") or getattr(connector, "name", None)
         enriched = self._enrichment_service.enrich_capture_payload(
@@ -77,12 +95,7 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
                 "source_url": payload.source_url.strip(),
                 "source_label": source_label,
             },
-            prefer_ai=True,
-            prompt_override=getattr(connector, "config_notes", None),
-            timeout_seconds=max(
-                int(settings.API_IA_TIMEOUT or 45),
-                self.URL_EXTRACTION_AI_TIMEOUT_SECONDS,
-            ),
+            prefer_ai=False,
         )
         draft_payload = ProductCatalogIngestionDraftCreateRequest(
             source_kind="url_reference",
@@ -113,6 +126,33 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
             tenant_db.commit()
             tenant_db.refresh(draft)
         return draft
+
+    def _extract_fallback_payload(self, source_url: str, *, connector, timeout_seconds: int) -> dict:
+        try:
+            return self._extraction_service.extract_from_url(
+                source_url,
+                provider_key=getattr(connector, "provider_key", "generic"),
+                timeout_seconds=timeout_seconds,
+            )
+        except Exception:
+            return {}
+
+    def _merge_capture_payloads(self, base_payload: dict | None, ai_payload: dict | None) -> dict:
+        base = dict(base_payload or {})
+        ai = dict(ai_payload or {})
+        merged = dict(base)
+        for key, value in ai.items():
+            if key == "characteristics":
+                if value:
+                    merged[key] = value
+                continue
+            if value not in (None, "", []):
+                merged[key] = value
+        if "currency_code" not in merged or not merged["currency_code"]:
+            merged["currency_code"] = "CLP"
+        if "product_type" not in merged or not merged["product_type"]:
+            merged["product_type"] = "product"
+        return merged
 
     def _normalize_draft_characteristics(self, items) -> list[dict[str, object]]:
         normalized: list[dict[str, object]] = []

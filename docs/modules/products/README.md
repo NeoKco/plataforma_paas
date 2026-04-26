@@ -36,7 +36,7 @@ Estado actual:
 Objetivo del módulo:
 
 - mantener un catálogo vivo de productos y servicios
-- usar scraping y más adelante IA para traer/normalizar información actualizada
+- usar scraping genérico + IA como carril principal para traer/normalizar información actualizada desde cualquier URL utilizable
 - refrescar artículos ya existentes desde sus fuentes activas o vencidas
 - programar refresh por tenant desde conectores con política `due_sources`
 - previsualizar y ejecutar conectores vencidos desde una superficie gobernada por tenant
@@ -55,7 +55,7 @@ El módulo hoy incluye:
   - características técnicas/comerciales
 - ingesta asistida con:
   - borradores manuales
-  - extracción por URL
+  - extracción IA por URL
   - corridas batch por URLs
   - selección opcional de conector
   - normalización mínima previa
@@ -74,7 +74,7 @@ El módulo hoy incluye:
   - backoff
   - modo de sincronización
   - estrategia de extracción
-  - enriquecimiento IA opcional
+  - extracción IA gobernada por runtime
   - scheduler por tenant:
     - habilitado/no habilitado
     - frecuencia
@@ -143,7 +143,8 @@ Ya quedó incluido además:
   - URL/referencia externa
 - enriquecimiento controlado del borrador:
   - normalización heurística base
-  - uso opcional de la API IA existente si el entorno runtime la configura
+- uso obligatorio del carril IA para `Ingesta > URL` y corridas batch por URL
+- si falta `API_IA_URL` o `MANAGER_API_IA_KEY`, la extracción por URL falla de forma explícita en vez de caer silenciosamente al heurístico
 - deduplicación accionable sobre catálogo ya publicado:
   - `Actualizar existente`
   - `Vincular existente`

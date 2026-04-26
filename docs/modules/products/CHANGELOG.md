@@ -2,6 +2,31 @@
 
 ## 2026-04-26
 
+- `products` alinea por fin la ingesta URL/batch con el comportamiento real esperado desde `ieris_app`:
+  - nuevo servicio:
+    - `backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py`
+  - el carril principal ya no es “HTML genérico + fallback bonito”, sino:
+    - scraping/preprocesado genérico
+    - prompt técnico estructurado
+    - llamada real a `/analyze` con `MANAGER_API_IA_KEY`
+    - postproceso estructurado de características/descripcion
+  - `ProductCatalogIngestionRunService.extract_url_to_draft(...)` ahora:
+    - usa ese pipeline IA genérico como camino principal
+    - deja el extractor HTML/base solo como apoyo para completar campos como `sku`, `brand` o `category_label`
+    - ya no vuelve a disparar una segunda IA cosmética al crear el borrador
+  - `connector_sync_service` y `refresh_service` ahora respetan también el carril `html_ai` sin duplicar otra llamada IA innecesaria
+  - `Products > Ingesta` ya deja explícito en UI que:
+    - la extracción usa IA
+    - puede tardar varios minutos
+  - regla nueva:
+    - si faltan `API_IA_URL` o `MANAGER_API_IA_KEY`, `extract-url` y el batch URL deben fallar explícitamente
+    - ya no corresponde degradar silenciosamente al heurístico para aparentar éxito
+  - validación repo:
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py backend/app/apps/tenant_modules/products/services/ingestion_run_service.py backend/app/apps/tenant_modules/products/services/connector_sync_service.py backend/app/apps/tenant_modules/products/services/refresh_service.py backend/app/tests/test_products_services.py` -> `OK`
+    - `backend.app.tests.test_products_services` -> `18 tests OK`
+    - `backend.app.tests.test_platform_flow + test_products_services + test_migration_flow` -> `277 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - hotfix final de validación para `Ingesta > Extracción rápida por URL`:
   - se corrige la compatibilidad entre los schemas de `crm` y `products` en `characteristics`
   - el incidente reportado en `production` ya quedó identificado y corregido:

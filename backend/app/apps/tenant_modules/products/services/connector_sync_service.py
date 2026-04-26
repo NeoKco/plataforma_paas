@@ -9,10 +9,14 @@ from app.apps.tenant_modules.crm.models import CRMProduct
 from app.apps.tenant_modules.products.models import ProductSource
 from app.apps.tenant_modules.products.services.connector_service import ProductConnectorService
 from app.apps.tenant_modules.products.services.enrichment_service import ProductCatalogEnrichmentService
+from app.apps.tenant_modules.products.services.generic_ai_extraction_service import (
+    ProductCatalogGenericAiExtractionService,
+)
 from app.apps.tenant_modules.products.services.ingestion_extraction_service import (
     ProductCatalogIngestionExtractionService,
 )
 from app.apps.tenant_modules.products.services.source_service import ProductSourceService
+from app.common.config.settings import settings
 
 
 class ProductConnectorSyncService:
@@ -23,6 +27,7 @@ class ProductConnectorSyncService:
         self._source_service = ProductSourceService()
         self._extraction_service = ProductCatalogIngestionExtractionService()
         self._enrichment_service = ProductCatalogEnrichmentService()
+        self._generic_ai_extraction_service = ProductCatalogGenericAiExtractionService()
 
     def sync_connector(
         self,
@@ -75,8 +80,13 @@ class ProductConnectorSyncService:
                 )
                 enriched = self._enrichment_service.enrich_capture_payload(
                     extracted,
-                    prefer_ai=bool(connector.run_ai_enrichment)
-                    or connector.fetch_strategy == "html_ai",
+                    prefer_ai=(
+                        not bool(extracted.get("used_ai_enrichment"))
+                        and (
+                            bool(connector.run_ai_enrichment)
+                            or connector.fetch_strategy == "html_ai"
+                        )
+                    ),
                     prompt_override=getattr(source, "refresh_prompt", None)
                     or getattr(connector, "config_notes", None),
                 )
@@ -234,6 +244,21 @@ class ProductConnectorSyncService:
             try:
                 if strategy == "json_feed":
                     return self._extract_from_json_feed(url, timeout_seconds=timeout_seconds)
+                if strategy == "html_ai":
+                    ai_payload = self._generic_ai_extraction_service.extract_from_url(
+                        url,
+                        timeout_seconds=max(timeout_seconds, int(settings.API_IA_TIMEOUT or 45)),
+                        prompt_override=getattr(connector, "config_notes", None),
+                    )
+                    try:
+                        base_payload = self._extraction_service.extract_from_url(
+                            url,
+                            provider_key=getattr(connector, "provider_key", "generic"),
+                            timeout_seconds=timeout_seconds,
+                        )
+                    except Exception:
+                        base_payload = {}
+                    return self._merge_capture_payloads(base_payload, ai_payload)
                 return self._extraction_service.extract_from_url(
                     url,
                     provider_key=getattr(connector, "provider_key", "generic"),
@@ -246,6 +271,18 @@ class ProductConnectorSyncService:
         if last_error is not None:
             raise last_error
         raise RuntimeError("No fue posible extraer el payload del conector")
+
+    @staticmethod
+    def _merge_capture_payloads(base_payload: dict | None, ai_payload: dict | None) -> dict[str, Any]:
+        merged = dict(base_payload or {})
+        for key, value in dict(ai_payload or {}).items():
+            if key == "characteristics":
+                if value:
+                    merged[key] = value
+                continue
+            if value not in (None, "", []):
+                merged[key] = value
+        return merged
 
     def _extract_from_json_feed(self, url: str, *, timeout_seconds: int = 25) -> dict[str, Any]:
         try:

@@ -86,8 +86,12 @@ Notas del contrato actual:
   - acepta opcionalmente `connector_id`
 - `POST /tenant/products/ingestion/extract-url`
   - acepta opcionalmente `connector_id`
+  - usa scraping genérico + IA como carril principal
+  - puede tardar varios minutos según `API_IA_TIMEOUT`
+  - si falta `API_IA_URL` o `MANAGER_API_IA_KEY`, responde error explícito
 - `POST /tenant/products/ingestion/runs`
   - acepta opcionalmente `connector_id`
+  - cada item URL reutiliza el mismo pipeline IA genérico del `extract-url`
 - `POST /tenant/products/connectors/{connector_id}/sync`
   - request:
     - `product_id` opcional
