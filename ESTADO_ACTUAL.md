@@ -2,7 +2,42 @@
 
 ## Última actualización
 
-- fecha: 2026-04-25
+- fecha: 2026-04-26
+- foco operativo nuevo ya cerrado en repo y runtime:
+  - `products` ya suma automatización gobernada por tenant para `due_sources`
+  - backend tenant ya expone además:
+    - `/tenant/products/scheduler/overview`
+    - `/tenant/products/scheduler/run-due`
+  - la vista tenant `Automatización` ya deja visible:
+    - conectores vencidos
+    - `due_sources` por conector
+    - corridas recientes del scheduler
+    - ejecución `Correr vencidos ahora`
+  - el runner cross-tenant ya soporta además:
+    - `--dry-run`
+    - `--json-output`
+  - la extracción por proveedor ya no queda solo en `mercadolibre`:
+    - `sodimac` y `easy` ya tienen extracción más dedicada
+  - validación repo nueva:
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/scheduler.py backend/app/apps/tenant_modules/products/api/router.py backend/app/apps/tenant_modules/products/api/serializers.py backend/app/apps/tenant_modules/products/schemas/products.py backend/app/apps/tenant_modules/products/services/connector_scheduler_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py backend/app/scripts/run_products_refresh_scheduler.py backend/app/tests/test_products_services.py` -> `OK`
+    - `backend.app.tests.test_products_services + backend.app.tests.test_platform_flow + backend.app.tests.test_migration_flow` -> `272 tests OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python backend/app/scripts/run_products_refresh_scheduler.py --help` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - drift técnico corregido en `ieris-ltda` con rotación controlada por `invalid_db_credentials` antes de repetir el backup obligatorio
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsAutomationPage-CtW2NsEO.js`, `ProductsRefreshPage-vBcJGxT8.js`, `ProductsOverviewPage-Z52hTpZ8.js`, `ProductsSourcesPage-Cby5va2R.js`, `ProductsConnectorsPage-CT8GutRn.js`, `ProductsIngestionPage-CnHYGW6V.js`, `productsService-IZgQHLid.js`, `ProductsModuleNav-BhSQTOel.js` e `index-4yW6GRhy.js`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - drift técnico corregido en `ieris-ltda` con rotación controlada por `invalid_db_credentials` antes de repetir el backup obligatorio
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con `ProductsAutomationPage-C5gFUpIy.js`, `ProductsRefreshPage-B0yYX2E3.js`, `ProductsOverviewPage-DPaZ0aDs.js`, `ProductsSourcesPage-BgePo6Hy.js`, `ProductsConnectorsPage-DqOQcGlU.js`, `ProductsIngestionPage-D02NjJwZ.js`, `productsService-Cdco5Tsf.js`, `ProductsModuleNav-DvZRizXO.js` e `index-CiAS3FaD.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya abre el primer conector específico real del módulo usando `mercadolibre` como patrón
   - backend tenant ya expone además:

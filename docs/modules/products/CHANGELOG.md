@@ -1,5 +1,76 @@
 # Products Changelog
 
+## 2026-04-26
+
+- `products` cierra automatización gobernada por tenant y profundiza conectores proveedor más allá del primer patrón:
+  - backend nuevo para:
+    - `GET /tenant/products/scheduler/overview`
+    - `POST /tenant/products/scheduler/run-due`
+  - `connector_scheduler_service` ya soporta:
+    - preview/overview de conectores vencidos por tenant
+    - conteo de `due_sources` por conector
+    - corridas batch gobernadas por tenant
+    - `dry_run` cross-tenant
+  - el runner formal:
+    - `backend/app/scripts/run_products_refresh_scheduler.py`
+    - ahora soporta además:
+      - `--dry-run`
+      - `--json-output`
+  - frontend `products` ya suma:
+    - vista `Automatización`
+    - `Correr vencidos ahora`
+    - tabla de conectores vencidos
+    - corridas recientes del scheduler
+    - resultado reciente por conector
+  - extracción proveedor reforzada además para:
+    - `sodimac`
+      - referencia externa
+      - marca/modelo
+      - vendedor/proveedor
+      - nota de despacho cuando la fuente la expone
+    - `easy`
+      - referencia externa
+      - marca/modelo
+      - nota de unidad cuando la fuente la expone
+  - validación repo:
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/scheduler.py backend/app/apps/tenant_modules/products/api/router.py backend/app/apps/tenant_modules/products/api/serializers.py backend/app/apps/tenant_modules/products/schemas/products.py backend/app/apps/tenant_modules/products/services/connector_scheduler_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py backend/app/scripts/run_products_refresh_scheduler.py backend/app/tests/test_products_services.py` -> `OK`
+    - `backend.app.tests.test_products_services + backend.app.tests.test_platform_flow + backend.app.tests.test_migration_flow` -> `272 tests OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python backend/app/scripts/run_products_refresh_scheduler.py --help` -> `OK`
+    - `cd frontend && npm run build` -> `OK`
+  - cierre runtime confirmado:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - drift técnico corregido en `ieris-ltda` con rotación controlada por `invalid_db_credentials` antes de repetir el backup obligatorio
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant: `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con:
+        - `ProductsAutomationPage-CtW2NsEO.js`
+        - `ProductsRefreshPage-vBcJGxT8.js`
+        - `ProductsOverviewPage-Z52hTpZ8.js`
+        - `ProductsSourcesPage-Cby5va2R.js`
+        - `ProductsConnectorsPage-CT8GutRn.js`
+        - `ProductsIngestionPage-CnHYGW6V.js`
+        - `productsService-IZgQHLid.js`
+        - `ProductsModuleNav-BhSQTOel.js`
+        - `index-4yW6GRhy.js`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con `4` backups
+      - drift técnico corregido en `ieris-ltda` con rotación controlada por `invalid_db_credentials` antes de repetir el backup obligatorio
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant: `processed=4, synced=4, skipped=0, failed=0`
+      - frontend publicado con:
+        - `ProductsAutomationPage-C5gFUpIy.js`
+        - `ProductsRefreshPage-B0yYX2E3.js`
+        - `ProductsOverviewPage-DPaZ0aDs.js`
+        - `ProductsSourcesPage-BgePo6Hy.js`
+        - `ProductsConnectorsPage-DqOQcGlU.js`
+        - `ProductsIngestionPage-D02NjJwZ.js`
+        - `productsService-Cdco5Tsf.js`
+        - `ProductsModuleNav-DvZRizXO.js`
+        - `index-CiAS3FaD.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 ## 2026-04-25
 
 - `products` abre el primer conector específico real del módulo usando `mercadolibre` como patrón:

@@ -3,6 +3,28 @@
 ## Prioridad vigente
 
 - expansión reciente ya cerrada en repo y runtime:
+  - `products` ya suma automatización gobernada por tenant para `due_sources`
+  - backend tenant ya expone además:
+    - `GET /tenant/products/scheduler/overview`
+    - `POST /tenant/products/scheduler/run-due`
+  - la vista tenant `Automatización` ya deja visible:
+    - conectores vencidos
+    - `due_sources` por conector
+    - corridas recientes del scheduler
+    - ejecución `Correr vencidos ahora`
+  - el runner cross-tenant ya soporta además:
+    - `--dry-run`
+    - `--json-output`
+  - la extracción por proveedor ya no queda solo en `mercadolibre`:
+    - `sodimac` y `easy` ya tienen extracción más dedicada
+  - validación runtime ya cerrada:
+    - backups PostgreSQL tenant previos ejecutados por carril
+    - drift técnico de `ieris-ltda` corregido por rotación controlada antes del backup obligatorio
+    - backup adicional explícito de `ieris-ltda` en `production`
+    - backend redeployado con `585 tests OK` en ambos carriles
+    - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado y readiness `0 fallos, 0 advertencias`
+- expansión reciente ya cerrada en repo y runtime:
   - `products` ya abre el primer conector específico real con `mercadolibre` como patrón
   - `Conectores` ya deja visible y operable además:
     - perfil runtime
@@ -74,8 +96,9 @@
   - `chat` ya queda cerrado para su alcance operativo actual en runtime
   - no conviene reabrir `taskops`, `techdocs` ni `chat` por inercia salvo expansión explícita
 - siguiente frente recomendado:
+  - `products` ya puede considerarse cerrado para su alcance actual
   - decidir si ya abrimos `projects` como siguiente módulo consumidor fuerte
-  - o, si se mantiene foco en `products`, priorizar:
+  - o, si se reabre `products`, priorizar:
     - conectores específicos por proveedor/marketplace con autenticación propia
     - scheduler automático gobernado por worker/cron operativo del entorno
     - integración más profunda con cotizaciones y proyectos

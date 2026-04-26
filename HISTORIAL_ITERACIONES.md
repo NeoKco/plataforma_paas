@@ -1,5 +1,71 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - `products` cierra automatización gobernada y extracción dedicada adicional por proveedor
+
+Contexto:
+
+- `products` ya había cerrado catálogo vivo, refresh, scheduler por conector y validación runtime
+- el hueco real restante era:
+  - una superficie gobernada por tenant para `due_sources`
+  - y profundizar más de un proveedor específico, no solo `mercadolibre`
+
+Cambios:
+
+- backend nuevo para:
+  - `GET /tenant/products/scheduler/overview`
+  - `POST /tenant/products/scheduler/run-due`
+- `connector_scheduler_service` ahora suma:
+  - mapa de `due_sources` por conector
+  - overview gobernado por tenant
+  - corridas batch tenant-wide sobre conectores vencidos
+  - `dry_run` cross-tenant
+- el runner:
+  - `backend/app/scripts/run_products_refresh_scheduler.py`
+  - ahora soporta:
+    - `--dry-run`
+    - `--json-output`
+- frontend `products` ahora suma:
+  - vista `Automatización`
+  - lectura de conectores vencidos
+  - corridas recientes del scheduler
+  - acción `Correr vencidos ahora`
+- extracción reforzada además para:
+  - `sodimac`
+  - `easy`
+
+Validación:
+
+- repo:
+  - `python3 -m py_compile backend/app/apps/tenant_modules/products/api/scheduler.py backend/app/apps/tenant_modules/products/api/router.py backend/app/apps/tenant_modules/products/api/serializers.py backend/app/apps/tenant_modules/products/schemas/products.py backend/app/apps/tenant_modules/products/services/connector_scheduler_service.py backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py backend/app/scripts/run_products_refresh_scheduler.py backend/app/tests/test_products_services.py` -> `OK`
+  - `backend.app.tests.test_products_services + test_platform_flow + test_migration_flow` -> `272 tests OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python backend/app/scripts/run_products_refresh_scheduler.py --help` -> `OK`
+  - `npm run build` -> `OK`
+- runtime:
+  - `staging`:
+    - drift técnico de `ieris-ltda` corregido por `invalid_db_credentials`
+    - backup PostgreSQL tenant previo completado con `4` backups
+    - backend redeployado con `585 tests OK`
+    - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado con `ProductsAutomationPage-CtW2NsEO.js`, `ProductsRefreshPage-vBcJGxT8.js`, `ProductsOverviewPage-Z52hTpZ8.js`, `ProductsSourcesPage-Cby5va2R.js`, `ProductsConnectorsPage-CT8GutRn.js`, `ProductsIngestionPage-CnHYGW6V.js`, `productsService-IZgQHLid.js`, `ProductsModuleNav-BhSQTOel.js` e `index-4yW6GRhy.js`
+  - `production`:
+    - drift técnico de `ieris-ltda` corregido por `invalid_db_credentials`
+    - backup PostgreSQL tenant previo completado con `4` backups
+    - backup adicional explícito de `ieris-ltda`
+    - backend redeployado con `585 tests OK`
+    - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado con `ProductsAutomationPage-C5gFUpIy.js`, `ProductsRefreshPage-B0yYX2E3.js`, `ProductsOverviewPage-DPaZ0aDs.js`, `ProductsSourcesPage-BgePo6Hy.js`, `ProductsConnectorsPage-DqOQcGlU.js`, `ProductsIngestionPage-D02NjJwZ.js`, `productsService-Cdco5Tsf.js`, `ProductsModuleNav-DvZRizXO.js` e `index-CiAS3FaD.js`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+Resultado:
+
+- `products` ya no obliga a operar el scheduler solo desde `Conectores`
+- el módulo ya tiene una superficie clara para automatización gobernada por tenant
+- la base por proveedor ya no queda solo en `mercadolibre`; `sodimac` y `easy` también mejoran su extracción
+- este frente ya puede considerarse cerrado para el alcance actual del módulo
+- el siguiente salto natural ya deja de ser “terminar products” y pasa a:
+  - abrir `projects`
+  - o reabrir `products` solo para conectores con autenticación propietaria / scheduler institucionalizado
+
 ## 2026-04-25 - `products` abre el primer conector específico real con `mercadolibre`
 
 Contexto:
