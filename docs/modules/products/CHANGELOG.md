@@ -2,6 +2,28 @@
 
 ## 2026-04-26
 
+- hotfix de robustez para `Ingesta > Extracción rápida por URL`:
+  - se corrige el extractor de características para tolerar `li` vacíos o con texto nulo sin abortar la creación del borrador
+  - queda cubierta la regresión del incidente reportado en `production` con:
+    - `request_id=5272c9132529d4324789f39b6522386b`
+    - `TypeError: argument of type 'NoneType' is not iterable`
+  - ajuste aplicado en:
+    - [product_ingestion_extraction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py)
+    - [test_products_services.py](/home/felipe/platform_paas/backend/app/tests/test_products_services.py)
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `14 tests OK`
+  - cierre runtime:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado tras corregir drift técnico de `ieris-ltda` por `invalid_db_credentials`
+      - backend redeployado con `585 tests OK`
+    - `production`:
+      - backup PostgreSQL tenant previo completado tras corregir drift técnico de `ieris-ltda` por `invalid_db_credentials`
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+    - convergencia tenant `processed=4, synced=4, skipped=0, failed=0` en ambos carriles
+  - resultado esperado:
+    - una URL con bloques de características mal formados ya no debe devolver `500`; debe seguir con la extracción y crear el borrador revisable siempre que el resto de la captura sea utilizable
+
 - `products` cierra automatización gobernada por tenant y profundiza conectores proveedor más allá del primer patrón:
   - backend nuevo para:
     - `GET /tenant/products/scheduler/overview`

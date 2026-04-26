@@ -375,6 +375,32 @@ class ProductsServicesTestCase(unittest.TestCase):
         self.assertEqual(payload["category_label"], "Servicios")
         self.assertEqual(payload["extraction_notes"], "Extracción automática dedicada para Easy")
 
+    def test_extract_characteristics_ignores_empty_list_item_text(self) -> None:
+        service = ProductCatalogIngestionExtractionService()
+        empty_item = Mock()
+        empty_item.get_text.return_value = None
+        valid_item = Mock()
+        valid_item.get_text.return_value = "Marca: Ferrelectrica"
+        soup = Mock()
+
+        def find_all_side_effect(name, *args, **kwargs):
+            if name == "table":
+                return []
+            if name == "dl":
+                return []
+            if name == "li":
+                return [empty_item, valid_item]
+            return []
+
+        soup.find_all.side_effect = find_all_side_effect
+
+        characteristics = service._extract_characteristics(soup)
+
+        self.assertEqual(
+            characteristics,
+            [{"label": "Marca", "value": "Ferrelectrica", "sort_order": 10}],
+        )
+
     def test_comparison_service_prefers_best_active_price(self) -> None:
         source_a = ProductSource(
             id=10,

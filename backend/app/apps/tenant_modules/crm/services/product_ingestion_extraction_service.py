@@ -475,7 +475,7 @@ class CRMProductIngestionExtractionService:
 
         for item in soup.find_all("li"):
             text = self._normalize_text(item.get_text(" ", strip=True))
-            if ":" not in text:
+            if not text or ":" not in text:
                 continue
             label, value = text.split(":", 1)
             if len(label) <= 80:

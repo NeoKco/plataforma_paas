@@ -1,5 +1,45 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - Hotfix extractor `products` para URL con características vacías
+
+Contexto:
+
+- en `production`, `Products > Ingesta > Extracción rápida por URL` devolvió `500` al intentar capturar una página de `ferrelectrica.cl`
+- el incidente vino con `request_id=5272c9132529d4324789f39b6522386b`
+- el catálogo no quedó dañado; la captura abortó antes de crear el borrador
+
+Diagnóstico:
+
+- el error real estaba en `_extract_characteristics(...)`
+- una fila `li` mal formada devolvía `text=None`
+- el extractor intentaba evaluar `":" not in text`
+- eso disparaba:
+  - `TypeError: argument of type 'NoneType' is not iterable`
+
+Cambios:
+
+- [product_ingestion_extraction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/crm/services/product_ingestion_extraction_service.py)
+  - se endurece la lectura de `li` con:
+    - `if not text or ":" not in text: continue`
+- [test_products_services.py](/home/felipe/platform_paas/backend/app/tests/test_products_services.py)
+  - cobertura nueva para asegurar que características vacías o nulas no rompen la extracción
+
+Validación:
+
+- repo:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `14 tests OK`
+- `staging`:
+  - backup PostgreSQL tenant previo -> `4` backups
+  - `ieris-ltda` requirió reparación técnica controlada por `invalid_db_credentials` antes del backup obligatorio
+  - backend redeploy -> `585 tests OK`
+  - convergencia tenant -> `processed=4, synced=4, skipped=0, failed=0`
+- `production`:
+  - backup PostgreSQL tenant previo -> `4` backups
+  - backup adicional explícito de `ieris-ltda`
+  - `ieris-ltda` requirió reparación técnica controlada por `invalid_db_credentials` antes del backup obligatorio
+  - backend redeploy -> `585 tests OK`
+  - convergencia tenant -> `processed=4, synced=4, skipped=0, failed=0`
+
 ## 2026-04-26 - `products` cierra automatización gobernada y extracción dedicada adicional por proveedor
 
 Contexto:

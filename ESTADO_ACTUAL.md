@@ -3,6 +3,26 @@
 ## Última actualización
 
 - fecha: 2026-04-26
+- hotfix operativo recién cerrado:
+  - `products > Ingesta > Extracción rápida por URL` ya no cae si una página trae elementos de características vacíos o `None`
+  - el incidente reportado en `production` con `request_id=5272c9132529d4324789f39b6522386b` quedó identificado y corregido
+  - causa real:
+    - el extractor evaluaba `":" in text` sobre un `text=None` dentro de `_extract_characteristics(...)`
+  - corrección aplicada:
+    - guard clause `if not text or ":" not in text: continue`
+    - regresión nueva en `test_products_services.py`
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `14 tests OK`
+  - validación runtime:
+    - `staging`:
+      - backup PostgreSQL tenant previo completado con reparación técnica controlada previa de `ieris-ltda` por `invalid_db_credentials`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
+    - `production`:
+      - backup PostgreSQL tenant previo completado con reparación técnica controlada previa de `ieris-ltda` por `invalid_db_credentials`
+      - backup adicional explícito de `ieris-ltda`
+      - backend redeployado con `585 tests OK`
+      - convergencia tenant `processed=4, synced=4, skipped=0, failed=0`
 - foco operativo nuevo ya cerrado en repo y runtime:
   - `products` ya suma automatización gobernada por tenant para `due_sources`
   - backend tenant ya expone además:

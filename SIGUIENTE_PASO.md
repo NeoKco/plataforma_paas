@@ -2,6 +2,10 @@
 
 ## Prioridad vigente
 
+- hotfix recién cerrado:
+  - `products > Ingesta` ya tolera páginas con características vacías o mal formadas sin abortar la captura por URL
+  - el incidente de `ferrelectrica.cl` en `production` ya quedó corregido en backend y promovido a ambos carriles
+  - el siguiente paso sobre este módulo ya no es más robustez básica del extractor en ese punto, sino seguir con decisiones de producto de más nivel
 - expansión reciente ya cerrada en repo y runtime:
   - `products` ya suma automatización gobernada por tenant para `due_sources`
   - backend tenant ya expone además:
