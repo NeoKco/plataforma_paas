@@ -31,6 +31,9 @@
       - tomar backups tenant previos
       - redeploy backend/frontend en `staging` y `production`
       - revalidar la misma URL real del usuario sobre el pipeline nuevo
+  - mejora adicional ya aplicada en repo tras la primera prueba real:
+    - el postproceso IA ahora consolida las líneas descriptivas/aplicaciones en una sola `description`
+    - evita que esas líneas queden replicadas como características redundantes
 - hotfix operativo final recién cerrado:
   - `products > Ingesta > Extracción rápida por URL` ya no falla por validación tipada de `characteristics`
   - el incidente reportado en `production` con `request_id=fd02b4536c3b40e84bc9ea22767927c1` quedó identificado y corregido

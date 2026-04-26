@@ -454,7 +454,7 @@ class ProductsServicesTestCase(unittest.TestCase):
             )
         )
         service._analyze_prompt = Mock(
-            return_value='[{"clave":"Marca","valor":"Marca Cable","unidad":""},{"clave":"Sección","valor":"4","unidad":"mm"},{"clave":"Descripción","valor":"Cable RV-K para instalaciones interiores y exteriores.","unidad":""}]'
+            return_value='[{"clave":"Marca","valor":"Marca Cable","unidad":""},{"clave":"Sección","valor":"4","unidad":"mm"},{"clave":"Descripción","valor":"Cable RV-K para instalaciones interiores y exteriores.","unidad":""},{"clave":"Aplicaciones","valor":"Tableros y canalizaciones.","unidad":""}]'
         )
         payload = service.extract_from_url(
             "https://proveedor.local/demo",
@@ -466,7 +466,27 @@ class ProductsServicesTestCase(unittest.TestCase):
         self.assertEqual(payload["name"], "Cordón Multipolar RV-K 3x4mm")
         self.assertEqual(payload["unit_price"], 2850.0)
         self.assertTrue(any(item["label"] == "Sección" and item["value"] == "4 mm" for item in payload["characteristics"]))
+        self.assertFalse(any(item["label"] == "Descripción" for item in payload["characteristics"]))
+        self.assertIn("instalaciones interiores y exteriores", payload["description"])
+        self.assertIn("Tableros y canalizaciones", payload["description"])
         self.assertIn("Extracción IA genérica", payload["extraction_notes"])
+
+    def test_generic_ai_extraction_prefers_primary_heading_string_for_name(self) -> None:
+        service = ProductCatalogGenericAiExtractionService()
+
+        class _FakeTag:
+            stripped_strings = [
+                "Cordón Multipolar RV-K 3x4mm XLPE/PVC 0.6/1KV x Mts 90°",
+                "CORDON RVK",
+            ]
+
+            @staticmethod
+            def get_text(*_args, **_kwargs) -> str:
+                return "Cordón Multipolar RV-K 3x4mm XLPE/PVC 0.6/1KV x Mts 90° CORDON RVK"
+
+        extracted = service._extract_heading_name(_FakeTag())
+
+        self.assertEqual(extracted, "Cordón Multipolar RV-K 3x4mm XLPE/PVC 0.6/1KV x Mts 90°")
 
     def test_extract_url_to_draft_uses_generic_ai_pipeline(self) -> None:
         tenant_db = Mock()

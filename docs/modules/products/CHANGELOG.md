@@ -14,6 +14,9 @@
     - usa ese pipeline IA genérico como camino principal
     - deja el extractor HTML/base solo como apoyo para completar campos como `sku`, `brand` o `category_label`
     - ya no vuelve a disparar una segunda IA cosmética al crear el borrador
+  - ajuste de calidad adicional sobre el mismo slice:
+    - el postproceso ya consolida múltiples líneas descriptivas/aplicaciones en una sola `description`
+    - deja de copiar esas líneas como características redundantes dentro del borrador
   - `connector_sync_service` y `refresh_service` ahora respetan también el carril `html_ai` sin duplicar otra llamada IA innecesaria
   - `Products > Ingesta` ya deja explícito en UI que:
     - la extracción usa IA

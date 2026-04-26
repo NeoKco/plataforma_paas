@@ -16,6 +16,9 @@
     - publish frontend
     - readiness / convergencia
     - revalidación funcional sobre una URL real genérica
+  - después de la primera revalidación real, también quedó claro que el cierre correcto incluye limpiar el postproceso descriptivo:
+    - consolidar `Descripción` / `Aplicaciones`
+    - no dejarlas como características duplicadas
 - cambio de criterio sobre `products > Ingesta`:
   - ya no se acepta como comportamiento válido un borrador “más o menos útil” construido solo por heurística HTML
   - el carril normal por URL debe comportarse como en `ieris_app`:

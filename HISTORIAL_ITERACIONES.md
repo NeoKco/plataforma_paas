@@ -76,6 +76,27 @@ Estado:
 - repo ya queda alineado al comportamiento esperado desde `ieris_app`
 - queda pendiente el publish runtime con configuración IA real en `staging` y `production`
 
+## 2026-04-26 - Ajuste de calidad del postproceso IA en `products`
+
+Contexto:
+
+- la primera prueba real contra runtime ya confirmó que el backend entraba a `ai_full_generic`
+- el resultado seguía mejor que el heurístico viejo, pero todavía venía ruidoso:
+  - varias líneas de `Descripción` / `Aplicaciones` quedaban como características separadas
+
+Cambios:
+
+- [generic_ai_extraction_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py)
+  - el postproceso ahora acumula segmentos descriptivos y los consolida en una sola `description`
+  - esas líneas ya no pasan al bloque de `characteristics`
+- [test_products_services.py](/home/felipe/platform_paas/backend/app/tests/test_products_services.py)
+  - se endurece la regresión para validar que `Descripción` no quede como característica redundante
+
+Validación:
+
+- `backend.app.tests.test_products_services` -> `18 tests OK`
+- `py_compile` del servicio y tests tocados -> `OK`
+
 ## 2026-04-26 - Hotfix final de validación tipada en `products` URL rápida
 
 Contexto:

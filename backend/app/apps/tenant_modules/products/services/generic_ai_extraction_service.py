@@ -38,7 +38,7 @@ class ProductCatalogGenericAiExtractionService:
         description = self._normalize_plain(parsed.get("descripcion"))
         excerpt = self._build_source_excerpt(description, characteristics)
         return {
-            "name": self._normalize_plain(nombre),
+            "name": self._normalize_catalog_name(nombre),
             "unit_price": self._parse_price(precio),
             "currency_code": "CLP",
             "description": description,
@@ -113,7 +113,7 @@ class ProductCatalogGenericAiExtractionService:
             tag.decompose()
 
         nombre_tag = soup.find("h1", class_="bs-product__title") or soup.find("h1")
-        nombre = nombre_tag.get_text(" ", strip=True) if nombre_tag else "Nombre no encontrado"
+        nombre = self._extract_heading_name(nombre_tag) if nombre_tag else "Nombre no encontrado"
 
         precio_tag = soup.find("span", class_="bs-product__final-price") or soup.find(
             "span",
@@ -423,7 +423,7 @@ Precio: {precio} CLP
 
         out: list[dict[str, str]] = []
         seen_triplets: set[tuple[str, str, str]] = set()
-        descripcion_keys = {"caracteristicas", "características", "descripcion", "descripción"}
+        description_segments: list[str] = []
 
         for element in parsed:
             if not isinstance(element, dict):
@@ -441,9 +441,13 @@ Precio: {precio} CLP
                 or "descripcion" in clave_norm
                 or "descrip" in clave_norm
                 or "detalle" in clave_norm
+                or "aplicacion" in clave_norm
             )
-            if (is_desc_key or clave_norm in descripcion_keys) and not result["descripcion"]:
-                result["descripcion"] = valor_raw
+            if is_desc_key:
+                if valor_raw and self._loose_norm_text(valor_raw) not in {
+                    self._loose_norm_text(item) for item in description_segments
+                }:
+                    description_segments.append(valor_raw)
                 continue
             if clave_norm in {"nombre", "precio", "valor", "unidad", "value", "unit"}:
                 continue
@@ -455,6 +459,8 @@ Precio: {precio} CLP
             seen_triplets.add(triplet)
             out.append({"clave": clave_final, "valor": valor, "unidad": unidad or ""})
 
+        if description_segments:
+            result["descripcion"] = " ".join(segment.strip() for segment in description_segments if segment.strip())
         result["caracteristicas"] = out
         return result
 
@@ -577,3 +583,37 @@ Precio: {precio} CLP
             return None
         text = str(value).strip()
         return text or None
+
+    def _extract_heading_name(self, tag: Any) -> str:
+        try:
+            strings = [self._normalize_plain(item) for item in tag.stripped_strings]
+            strings = [item for item in strings if item]
+            if strings:
+                return self._normalize_catalog_name(strings[0] or "") or "Nombre no encontrado"
+        except Exception:
+            pass
+        return self._normalize_catalog_name(tag.get_text(" ", strip=True)) or "Nombre no encontrado"
+
+    def _normalize_catalog_name(self, value: Any) -> str | None:
+        text = self._normalize_plain(value)
+        if not text:
+            return text
+        normalized = re.sub(r"\s+", " ", text).strip(" -|/")
+        if not normalized:
+            return None
+        parts = [part.strip() for part in re.split(r"\s+(?=[A-ZÁÉÍÓÚÑ0-9]{3,}\b)", normalized) if part.strip()]
+        if len(parts) > 1:
+            base = parts[0]
+            base_norm = self._loose_norm_text(base)
+            for extra in parts[1:]:
+                extra_norm = self._loose_norm_text(extra)
+                if not extra_norm:
+                    continue
+                if extra_norm in base_norm:
+                    continue
+                if len(extra.split()) <= 3 and extra.isupper():
+                    continue
+                base = f"{base} {extra}".strip()
+                base_norm = self._loose_norm_text(base)
+            normalized = base
+        return normalized[:255]

@@ -43,6 +43,16 @@ Objetivo del módulo:
 - validar conectores antes de dejarlos como origen operativo
 - dejar una base reusable para cotizaciones, proyectos y otros dominios sin amarrarla a CRM
 
+Regla base del módulo:
+
+- `Ingesta > URL` es genérica por defecto
+- el comportamiento normal esperado es:
+  - scraping/preprocesado genérico
+  - llamada IA backend-to-backend
+  - postproceso estructurado
+  - borrador revisable antes de publicar
+- los conectores específicos por proveedor son una mejora adicional sobre ese carril base, no su reemplazo
+
 ## Alcance actual
 
 El módulo hoy incluye:

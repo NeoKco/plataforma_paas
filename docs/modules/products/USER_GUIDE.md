@@ -285,6 +285,14 @@ Flujo recomendado:
 
 ## Conector patrón actual: Mercado Libre
 
+Antes de esa capa, la regla normal del módulo sigue siendo esta:
+
+- si pegas una URL en `Ingesta`, el sistema debe intentar capturarla con el carril genérico IA
+- ese carril no depende de que exista un conector dedicado para ese proveedor
+- el token IA no se pide en la UI:
+  - vive en backend runtime
+  - se usa server-to-server con `MANAGER_API_IA_KEY`
+
 El primer conector específico profundizado es `Mercado Libre`.
 
 Hoy ese preset ya hace mejor lectura que el scraping genérico porque:
