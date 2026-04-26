@@ -101,7 +101,9 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
             description=enriched.get("description"),
             source_excerpt=enriched.get("source_excerpt"),
             extraction_notes=enriched.get("extraction_notes") or extraction.get("extraction_notes"),
-            characteristics=enriched.get("characteristics") or extraction.get("characteristics") or [],
+            characteristics=self._normalize_draft_characteristics(
+                enriched.get("characteristics") or extraction.get("characteristics") or [],
+            ),
         )
         draft = self._ingestion_service.create_draft(tenant_db, draft_payload, actor_user_id=actor_user_id)
         if connector:
@@ -111,6 +113,28 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
             tenant_db.commit()
             tenant_db.refresh(draft)
         return draft
+
+    def _normalize_draft_characteristics(self, items) -> list[dict[str, object]]:
+        normalized: list[dict[str, object]] = []
+        for index, item in enumerate(items or []):
+            if isinstance(item, dict):
+                label = item.get("label")
+                value = item.get("value")
+                sort_order = item.get("sort_order")
+            else:
+                label = getattr(item, "label", None)
+                value = getattr(item, "value", None)
+                sort_order = getattr(item, "sort_order", None)
+            if not label or not value:
+                continue
+            normalized.append(
+                {
+                    "label": str(label),
+                    "value": str(value),
+                    "sort_order": int(sort_order) if sort_order is not None else (index + 1) * 10,
+                }
+            )
+        return normalized
 
     def get_run_items(self, tenant_db, run_id: int):
         return self.get_run_item_map(tenant_db, [run_id]).get(run_id, [])

@@ -3,6 +3,20 @@
 ## Última actualización
 
 - fecha: 2026-04-26
+- hotfix operativo final recién cerrado:
+  - `products > Ingesta > Extracción rápida por URL` ya no falla por validación tipada de `characteristics`
+  - el incidente reportado en `production` con `request_id=fd02b4536c3b40e84bc9ea22767927c1` quedó identificado y corregido
+  - causa real:
+    - `characteristics` seguía llegando tipado con clases/schema de `crm`
+    - `ProductCatalogIngestionDraftCreateRequest` esperaba el tipo/schema propio de `products`
+  - corrección aplicada:
+    - normalización explícita de `characteristics` a formato plano compatible con `products`
+  - validación repo:
+    - `backend.app.tests.test_products_services` -> `16 tests OK`
+  - validación runtime:
+    - `staging` backend redeployado con `585 tests OK`
+    - `production` backend redeployado con `585 tests OK`
+    - auditoría activa final `production` -> `processed=4, warnings=0, failed=0`
 - hotfix operativo adicional recién cerrado:
   - `products > Ingesta > Extracción rápida por URL` ya no reutiliza el schema `crm` al persistir borradores rápidos
   - el incidente reportado en `production` con `request_id=e9487610e8706284770c38d4c7564bb3` quedó identificado y corregido

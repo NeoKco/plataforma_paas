@@ -3,6 +3,13 @@
 ## Prioridad vigente
 
 - hotfix recién cerrado:
+  - `products > Ingesta` ya cierra también la validación tipada de `characteristics`
+  - el carril rápido por URL ya no debería fallar por:
+    - `connector_id` ausente
+    - schema incorrecto del borrador
+    - objetos `crm` en `characteristics`
+  - el siguiente paso inmediato ya no es más hotfix backend de este carril, sino revalidación funcional real sobre URLs de proveedores
+- hotfix recién cerrado:
   - `products > Ingesta` ya usa enriquecimiento IA real en `Extracción rápida por URL`
   - ese carril ahora tolera hasta `300s` antes de desistir de la llamada IA
   - también quedó corregido el bug de compatibilidad de schema/payload que disparaba `connector_id` ausente

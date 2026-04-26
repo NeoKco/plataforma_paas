@@ -2,6 +2,25 @@
 
 ## 2026-04-26
 
+- hotfix final de validación para `Ingesta > Extracción rápida por URL`:
+  - se corrige la compatibilidad entre los schemas de `crm` y `products` en `characteristics`
+  - el incidente reportado en `production` ya quedó identificado y corregido:
+    - `request_id=fd02b4536c3b40e84bc9ea22767927c1`
+    - `400 validation errors for ProductCatalogIngestionDraftCreateRequest.characteristics.*`
+  - causa real:
+    - el flujo rápido ya había migrado al schema `products`, pero seguía transportando `characteristics` como objetos tipados de `crm`
+    - Pydantic rechazaba esas instancias aunque tuvieran los mismos campos
+  - corrección aplicada:
+    - `ProductCatalogIngestionRunService` ahora normaliza `characteristics` al formato plano que espera `products`
+  - validación repo:
+    - `backend.app.tests.test_products_services` -> `16 tests OK`
+  - validación runtime:
+    - `staging` backend redeployado con `585 tests OK`
+    - `production` backend redeployado con `585 tests OK`
+    - auditoría activa final en `production` -> `processed=4, warnings=0, failed=0`
+  - resultado esperado:
+    - `Extracción rápida por URL` ya no debe fallar ni por `connector_id` ausente ni por `characteristics` tipadas desde `crm`
+
 - hotfix funcional adicional para `Ingesta > Extracción rápida por URL`:
   - se corrige el flujo `products` para que deje de reutilizar el schema `crm` al crear el borrador rápido
   - el error real en `production` ya quedó identificado y corregido:

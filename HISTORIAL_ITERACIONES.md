@@ -1,5 +1,39 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - Hotfix final de validación tipada en `products` URL rápida
+
+Contexto:
+
+- tras corregir el schema del borrador rápido y activar IA con timeout largo, `production` dejó de caer con `500` pero devolvió un `400` nuevo
+- el incidente vino con `request_id=fd02b4536c3b40e84bc9ea22767927c1`
+
+Diagnóstico:
+
+- la captura rápida ya construía `ProductCatalogIngestionDraftCreateRequest`
+- pero `characteristics` seguía llegando como instancias tipadas del carril `crm`
+- Pydantic las rechazaba dentro del schema `products` aunque compartieran los mismos campos
+
+Cambios:
+
+- [ingestion_run_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/ingestion_run_service.py)
+  - se agrega normalización explícita de `characteristics` a lista plana `{label, value, sort_order}`
+- [test_products_services.py](/home/felipe/platform_paas/backend/app/tests/test_products_services.py)
+  - se ajusta la regresión para validar que el payload final ya entra como schema correcto de `products`
+
+Validación:
+
+- repo:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `16 tests OK`
+- `staging`:
+  - backup PostgreSQL tenant previo completado con reparación técnica controlada de `ieris-ltda`
+  - backend redeploy -> `585 tests OK`
+- `production`:
+  - backup PostgreSQL tenant previo completado
+  - backup adicional explícito de `ieris-ltda`
+  - backend redeploy -> `585 tests OK`
+  - reparación técnica controlada posterior de `ieris-ltda`
+  - auditoría activa final -> `processed=4, warnings=0, failed=0`
+
 ## 2026-04-26 - Hotfix flujo rápido `products` con IA real y timeout largo
 
 Contexto:

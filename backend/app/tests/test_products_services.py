@@ -477,6 +477,10 @@ class ProductsServicesTestCase(unittest.TestCase):
         self.assertIsInstance(created_payload, ProductCatalogIngestionDraftCreateRequest)
         self.assertEqual(created_payload.name, "Cordón Multipolar RV-K 3x4mm")
         self.assertEqual(created_payload.source_label, "Ferrelectrica")
+        self.assertEqual(len(created_payload.characteristics), 1)
+        self.assertEqual(created_payload.characteristics[0].label, "Voltaje")
+        self.assertEqual(created_payload.characteristics[0].value, "0.6/1kV")
+        self.assertEqual(created_payload.characteristics[0].sort_order, 10)
 
     def test_comparison_service_prefers_best_active_price(self) -> None:
         source_a = ProductSource(
