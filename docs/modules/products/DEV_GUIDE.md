@@ -206,9 +206,14 @@ Secuencia de reconstrucción:
 4. agregar ejecución manual del scheduler desde `connectors.py`
 5. agregar validación explícita del conector desde `connectors.py`
 6. mantener runner cross-tenant separado del request path normal
-7. cablear presets por proveedor y perfil runtime en UI
-8. profundizar el extractor del proveedor patrón (`mercadolibre`) con prioridad JSON-LD + metadata + hints
-9. revalidar tests + build + deploy con backup tenant previo
+7. cablear primero el carril base `URL genérica + IA`:
+   - `generic_ai_extraction_service.py`
+   - prompt técnico
+   - `/analyze`
+   - postproceso estructurado
+8. cablear presets por proveedor y perfil runtime en UI como mejora adicional
+9. profundizar extractores específicos (`mercadolibre`, `sodimac`, `easy`) encima del carril genérico
+10. revalidar tests + build + deploy con backup tenant previo
 
 ## Operación programada
 

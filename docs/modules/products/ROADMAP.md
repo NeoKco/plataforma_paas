@@ -119,6 +119,8 @@ El módulo ya cubre:
   - llamada `/analyze`
   - postproceso estructurado
   - error explícito si la IA no está configurada
+  - timeout largo para capturas lentas
+  - preferencia por el título principal de la página para evitar arrastrar subtítulos/leyendas al nombre del producto
 
 ## Backlog posterior al cierre
 

@@ -1,5 +1,37 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - `products` cierra el carril base `URL genérica + IA`
+
+Contexto:
+
+- el usuario aclaró que `products > Ingesta > URL` no debe depender de un conector dedicado por proveedor
+- el comportamiento esperado es genérico:
+  - cualquier página utilizable
+  - extracción por IA
+  - borrador revisable antes de publicar
+
+Cambios:
+
+- se cierra el realineamiento del pipeline IA genérico y se revalida en runtime
+- el backend confirma ahora en `production`:
+  - `strategy=ai_full_generic`
+  - `used_ai_enrichment=true`
+  - precio `2850 CLP`
+  - características técnicas estructuradas
+- se ajusta además la calidad del nombre capturado:
+  - el extractor privilegia el título principal del `h1`
+  - evita arrastrar subtítulos o leyendas secundarias
+- se actualiza la documentación canónica para dejar explícito que:
+  - `URL genérica + IA` es el carril base
+  - los conectores específicos son mejoras adicionales, no el comportamiento normal
+
+Validación:
+
+- `backend.app.tests.test_products_services` -> `19 tests OK`
+- redeploy backend `staging` -> `585 tests OK`
+- redeploy backend `production` -> `585 tests OK`
+- sonda real contra `production` con la URL del usuario -> `ai_full_generic`
+
 ## 2026-04-26 - `products` redefine la URL rápida como pipeline IA genérico alineado a `ieris_app`
 
 Contexto:

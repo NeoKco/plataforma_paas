@@ -2,6 +2,22 @@
 
 ## 2026-04-26
 
+- ajuste final del carril genérico IA de `products` para dejarlo explícitamente como comportamiento base del módulo:
+  - `Ingesta > URL` ya no debe entenderse como un flujo atado a conectores específicos; el camino normal es `URL genérica + IA`
+  - el runtime de `production` quedó revalidado con la URL real del usuario y confirmó:
+    - `strategy=ai_full_generic`
+    - `used_ai_enrichment=true`
+    - precio `2850 CLP`
+    - características técnicas estructuradas
+  - mejora adicional de calidad:
+    - el extractor genérico ahora privilegia el título principal del `h1`
+    - evita arrastrar subtítulos o leyendas secundarias al nombre del borrador
+  - validación repo:
+    - `backend.app.tests.test_products_services` -> `19 tests OK`
+  - validación runtime:
+    - `staging` backend redeployado con `585 tests OK`
+    - `production` backend redeployado con `585 tests OK`
+
 - `products` alinea por fin la ingesta URL/batch con el comportamiento real esperado desde `ieris_app`:
   - nuevo servicio:
     - `backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py`
