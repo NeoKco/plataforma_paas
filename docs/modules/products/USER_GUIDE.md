@@ -28,6 +28,7 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 - `Catálogo`
   CRUD del catálogo base
   - fotos comprimidas por producto/servicio
+  - alta y edición dentro de modal
 - `Ingesta`
   captura manual, extracción IA por URL y corridas batch
 - `Fuentes/precios`
@@ -61,6 +62,8 @@ En `Catálogo`, cada producto o servicio ya puede tener:
 - una foto principal
 - una miniatura visible en la lista principal del catálogo, junto a sus características
 - una vista rápida al pinchar esa miniatura, sin entrar a editar
+- alta desde `Nuevo producto/servicio` en modal
+- edición desde `Editar` en modal, sin sacar al operador de la tabla
 - compresión previa en navegador antes de subir
 - borrado de fotos sin borrar el artículo
 
@@ -71,6 +74,7 @@ Regla operativa:
 - la primera foto queda como principal por defecto
 - si borras la principal y hay otras, el sistema promueve automáticamente otra
 - en la lista principal, la miniatura carga de forma perezosa cuando la fila entra en pantalla
+- si una foto legacy fue importada con metadata pobre de tipo MIME, la preview sigue mostrándose porque el backend infiere el tipo real desde el archivo
 
 En `Ingesta`, cada borrador ya puede mostrar:
 

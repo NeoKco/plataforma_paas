@@ -166,11 +166,16 @@ Regla visual del catálogo:
 
 - la tabla principal del catálogo no debe depender de descargar el archivo completo por cada fila
 - la miniatura se resuelve por `preview` inline autenticado y carga perezosa por fila visible
+- si una foto legacy fue importada con `content_type=application/octet-stream`, el backend debe inferir el tipo real desde la firma del archivo para que la miniatura y la vista rápida sigan funcionando
 - al pinchar la miniatura se abre una vista rápida del artículo:
   - foto principal
   - precio
   - descripción
   - características
+- el alta y la edición del artículo ya no usan un panel inline:
+  - `Nuevo producto/servicio` abre modal
+  - `Editar` abre el mismo modal sobre el artículo existente
+  - la galería sigue administrándose dentro de ese modal una vez que el artículo ya existe
 
 Queda fuera por ahora:
 

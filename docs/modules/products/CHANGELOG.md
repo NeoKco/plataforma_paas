@@ -2,6 +2,28 @@
 
 ## 2026-04-27
 
+- `products > Catálogo` ya mueve `Nuevo producto/servicio` y `Editar` a un modal reutilizable:
+  - la creación ya no usa panel inline
+  - la edición ya no saca al operador de la tabla
+  - la galería de fotos sigue viva dentro del mismo modal una vez que el artículo existe
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `26 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - backend redeployado:
+      - `staging` -> `588 tests OK`
+      - `production` -> `588 tests OK`
+    - frontend publicado y `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
+- `products > Catálogo` ya muestra correctamente miniaturas y vista rápida también para fotos legacy importadas sin `content_type` útil:
+  - `ProductCatalogImageService` ya infiere el MIME real desde la firma del archivo cuando la imagen llega como `application/octet-stream`
+  - el download autenticado también usa esa inferencia para no devolver `octet-stream` a previews válidas
+  - el import reproducible desde `ieris_app` también quedó endurecido para inferir mejor el `content_type` al crear `products_product_images`
+  - objetivo:
+    - no depender de que el import legacy haya adivinado bien el tipo MIME para que la UI muestre la foto
+  - validación repo:
+    - `backend.app.tests.test_products_services` amplía cobertura del fallback MIME y queda en `26 tests OK`
+
 - `products > Catálogo` ya resuelve la miniatura y la vista rápida por un carril más robusto:
   - endpoint nuevo:
     - `GET /tenant/products/catalog/{product_id}/images/{image_id}/preview`

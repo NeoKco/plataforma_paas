@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
@@ -14,7 +14,6 @@ import {
   deleteProductCatalogImage,
   deleteProductCatalogItem,
   downloadProductCatalogImage,
-  getProductCatalogImagePreview,
   getProductCatalogItems,
   setPrimaryProductCatalogImage,
   uploadProductCatalogImage,
@@ -77,6 +76,7 @@ export function CRMProductsPage() {
   const [rows, setRows] = useState<ProductCatalogItem[]>([]);
   const [form, setForm] = useState<ProductCatalogWriteRequest>(buildDefaultForm());
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -112,14 +112,31 @@ export function CRMProductsPage() {
     setEditingId(null);
     setForm(buildDefaultForm());
     setFeedback(null);
+    setError(null);
     setImageFile(null);
     setImageCaption("");
+    setIsEditorOpen(true);
   }
 
   function startEdit(item: ProductCatalogItem) {
     setEditingId(item.id);
     setForm(buildFormFromItem(item));
     setFeedback(null);
+    setError(null);
+    setImageFile(null);
+    setImageCaption("");
+    setIsEditorOpen(true);
+  }
+
+  function closeEditor() {
+    if (isSubmitting || isUploadingImage) {
+      return;
+    }
+    setIsEditorOpen(false);
+    setEditingId(null);
+    setForm(buildDefaultForm());
+    setImageFile(null);
+    setImageCaption("");
   }
 
   useEffect(() => {
@@ -215,16 +232,29 @@ export function CRMProductsPage() {
       const response = editingId
         ? await updateProductCatalogItem(session.accessToken, editingId, payload)
         : await createProductCatalogItem(session.accessToken, payload);
+      const createdOrUpdatedId = response.data.id;
+      if (!editingId && imageFile) {
+        setIsUploadingImage(true);
+        try {
+          const preparedFile = await prepareProductCatalogImageFile(imageFile);
+          await uploadProductCatalogImage(
+            session.accessToken,
+            createdOrUpdatedId,
+            preparedFile,
+            imageCaption || null,
+            true
+          );
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
       setFeedback(response.message);
       await loadRows();
-      if (editingId) {
-        startNew();
-      } else {
-        setEditingId(response.data.id);
-        setForm(buildFormFromItem(response.data));
-        setImageFile(null);
-        setImageCaption("");
-      }
+      setEditingId(createdOrUpdatedId);
+      setForm(buildFormFromItem(response.data));
+      setImageFile(null);
+      setImageCaption("");
+      setIsEditorOpen(true);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -250,7 +280,7 @@ export function CRMProductsPage() {
       const response = await deleteProductCatalogItem(session.accessToken, item.id);
       setFeedback(response.message);
       if (editingId === item.id) {
-        startNew();
+        closeEditor();
       }
       await loadRows();
     } catch (rawError) {
@@ -342,231 +372,6 @@ export function CRMProductsPage() {
       ) : null}
       {isLoading ? <LoadingBlock label={language === "es" ? "Cargando catálogo..." : "Loading catalog..."} /> : null}
 
-      <PanelCard
-        title={editingId ? (language === "es" ? "Editar producto" : "Edit product") : (language === "es" ? "Nuevo producto" : "New product")}
-        subtitle={
-          language === "es"
-            ? "Mantén atributos técnicos y comerciales que luego podrán reutilizarse en cotizaciones y proyectos."
-            : "Keep technical and commercial attributes that can later be reused in quotes and projects."
-        }
-      >
-        <form className="crm-form-grid" onSubmit={(event) => void handleSubmit(event)}>
-          <label>
-            <span>{language === "es" ? "Nombre" : "Name"}</span>
-            <input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} required />
-          </label>
-          <label>
-            <span>SKU</span>
-            <input value={form.sku || ""} onChange={(event) => setForm((current) => ({ ...current, sku: event.target.value || null }))} />
-          </label>
-          <label>
-            <span>{language === "es" ? "Tipo" : "Type"}</span>
-            <select value={form.product_type} onChange={(event) => setForm((current) => ({ ...current, product_type: event.target.value }))}>
-              <option value="service">{language === "es" ? "Servicio" : "Service"}</option>
-              <option value="product">{language === "es" ? "Producto" : "Product"}</option>
-            </select>
-          </label>
-          <label>
-            <span>{language === "es" ? "Unidad" : "Unit"}</span>
-            <input value={form.unit_label || ""} onChange={(event) => setForm((current) => ({ ...current, unit_label: event.target.value || null }))} />
-          </label>
-          <label>
-            <span>{language === "es" ? "Precio base" : "Base price"}</span>
-            <input type="number" min="0" step="0.01" value={form.unit_price} onChange={(event) => setForm((current) => ({ ...current, unit_price: Number(event.target.value) || 0 }))} />
-          </label>
-          <label>
-            <span>{language === "es" ? "Orden" : "Order"}</span>
-            <input type="number" min="0" value={form.sort_order} onChange={(event) => setForm((current) => ({ ...current, sort_order: Number(event.target.value) || 0 }))} />
-          </label>
-          <label className="crm-form-grid__full">
-            <span>{language === "es" ? "Descripción" : "Description"}</span>
-            <textarea value={form.description || ""} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value || null }))} rows={3} />
-          </label>
-
-          <div className="crm-form-grid__full">
-            <div className="crm-lines-header">
-              <div>
-                <strong>{language === "es" ? "Características" : "Characteristics"}</strong>
-                <div className="text-muted small">
-                  {language === "es"
-                    ? "Especificaciones breves para diferenciar el producto o servicio."
-                    : "Short specs to differentiate the product or service."}
-                </div>
-              </div>
-              <button className="btn btn-outline-secondary btn-sm" type="button" onClick={addCharacteristic}>
-                {language === "es" ? "Agregar característica" : "Add characteristic"}
-              </button>
-            </div>
-            <div className="crm-lines-list">
-              {form.characteristics.map((characteristic, index) => (
-                <div key={`${editingId || "new"}-characteristic-${index}`} className="crm-line-card">
-                  <div className="crm-line-grid">
-                    <label>
-                      <span>{language === "es" ? "Etiqueta" : "Label"}</span>
-                      <input value={characteristic.label} onChange={(event) => updateCharacteristic(index, { label: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>{language === "es" ? "Valor" : "Value"}</span>
-                      <input value={characteristic.value} onChange={(event) => updateCharacteristic(index, { value: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>{language === "es" ? "Orden" : "Order"}</span>
-                      <input type="number" min="0" value={characteristic.sort_order} onChange={(event) => updateCharacteristic(index, { sort_order: Number(event.target.value) || 0 })} />
-                    </label>
-                  </div>
-                  <div className="crm-line-card__footer">
-                    <span className="text-muted small">
-                      {language === "es"
-                        ? "Se muestra en catálogo y puede reaprovecharse en propuestas."
-                        : "Shown in catalog and reusable in proposals."}
-                    </span>
-                    <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => removeCharacteristic(index)}>
-                      {language === "es" ? "Quitar" : "Remove"}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <label className="crm-inline-check">
-            <input type="checkbox" checked={form.is_active} onChange={(event) => setForm((current) => ({ ...current, is_active: event.target.checked }))} />
-            <span>{language === "es" ? "Activo" : "Active"}</span>
-          </label>
-          <div className="crm-form-actions">
-            {editingId ? (
-              <button className="btn btn-outline-secondary" type="button" onClick={startNew}>
-                {language === "es" ? "Cancelar edición" : "Cancel edit"}
-              </button>
-            ) : null}
-            <button className="btn btn-primary" disabled={isSubmitting} type="submit">
-              {editingId
-                ? language === "es"
-                  ? "Guardar cambios"
-                  : "Save changes"
-                : language === "es"
-                  ? "Crear producto"
-                  : "Create product"}
-            </button>
-          </div>
-        </form>
-
-        <div className="mt-4">
-          <div className="crm-lines-header">
-            <div>
-              <strong>{language === "es" ? "Fotos del catálogo" : "Catalog photos"}</strong>
-              <div className="text-muted small">
-                {editingId
-                  ? language === "es"
-                    ? "Sube imágenes comprimidas en WEBP, JPEG o PNG. La primera queda como principal y podrás cambiarla después."
-                    : "Upload compressed WEBP, JPEG, or PNG images. The first one becomes primary and you can change it later."
-                  : language === "es"
-                    ? "Guarda primero el producto o servicio para poder cargar su galería."
-                    : "Save the product or service first before uploading its gallery."}
-              </div>
-            </div>
-          </div>
-
-          {editingId ? (
-            <>
-              <form className="crm-form-grid mt-3" onSubmit={(event) => void handleUploadImage(event)}>
-                <label className="crm-form-grid__full">
-                  <span>{language === "es" ? "Foto" : "Photo"}</span>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(event) => setImageFile(event.target.files?.[0] || null)}
-                  />
-                </label>
-                <label className="crm-form-grid__full">
-                  <span>{language === "es" ? "Pie de foto" : "Caption"}</span>
-                  <input
-                    value={imageCaption}
-                    onChange={(event) => setImageCaption(event.target.value)}
-                    placeholder={language === "es" ? "Opcional" : "Optional"}
-                  />
-                </label>
-                <div className="crm-form-actions">
-                  <button className="btn btn-primary" disabled={!imageFile || isUploadingImage} type="submit">
-                    {language === "es" ? "Subir foto" : "Upload photo"}
-                  </button>
-                </div>
-              </form>
-
-              {currentEditingItem?.images.length ? (
-                <div className="d-grid gap-3 mt-3">
-                  {currentEditingItem.images.map((image) => (
-                    <div key={image.id} className="crm-line-card">
-                      <div className="d-flex gap-3 align-items-start flex-wrap">
-                        {imagePreviewUrls[image.id] ? (
-                          <img
-                            src={imagePreviewUrls[image.id]}
-                            alt={image.caption || image.file_name}
-                            style={{
-                              width: "140px",
-                              height: "140px",
-                              objectFit: "cover",
-                              borderRadius: "12px",
-                              border: "1px solid rgba(15, 23, 42, 0.12)",
-                            }}
-                          />
-                        ) : (
-                          <div
-                            className="border rounded d-flex align-items-center justify-content-center text-muted"
-                            style={{ width: "140px", height: "140px" }}
-                          >
-                            {language === "es" ? "Sin preview" : "No preview"}
-                          </div>
-                        )}
-                        <div className="d-grid gap-2 flex-grow-1">
-                          <div>
-                            <strong>{image.file_name}</strong>
-                            <div className="text-muted small">
-                              {image.is_primary
-                                ? language === "es"
-                                  ? "Foto principal"
-                                  : "Primary photo"
-                                : language === "es"
-                                  ? "Foto secundaria"
-                                  : "Secondary photo"}
-                            </div>
-                            {image.caption ? <div className="small mt-1">{image.caption}</div> : null}
-                          </div>
-                          <div className="d-flex gap-2 flex-wrap">
-                            {!image.is_primary ? (
-                              <button
-                                className="btn btn-outline-secondary btn-sm"
-                                type="button"
-                                onClick={() => void handleSetPrimaryImage(image.id)}
-                              >
-                                {language === "es" ? "Usar como principal" : "Set as primary"}
-                              </button>
-                            ) : null}
-                            <button
-                              className="btn btn-outline-danger btn-sm"
-                              type="button"
-                              onClick={() => void handleDeleteImage(image.id)}
-                            >
-                              {language === "es" ? "Eliminar foto" : "Delete photo"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-muted small mt-3">
-                  {language === "es"
-                    ? "Todavía no hay fotos cargadas para este producto o servicio."
-                    : "There are no uploaded photos for this product or service yet."}
-                </div>
-              )}
-            </>
-          ) : null}
-        </div>
-      </PanelCard>
-
       <DataTableCard
         title={language === "es" ? "Catálogo activo" : "Active catalog"}
         subtitle={
@@ -657,6 +462,470 @@ export function CRMProductsPage() {
           onClose={() => setQuickViewItem(null)}
         />
       ) : null}
+
+      {isEditorOpen ? (
+        <CatalogEditorModal
+          language={language}
+          editingId={editingId}
+          isSubmitting={isSubmitting}
+          isUploadingImage={isUploadingImage}
+          error={error}
+          feedback={feedback}
+          form={form}
+          setForm={setForm}
+          onSubmit={handleSubmit}
+          onClose={closeEditor}
+          onAddCharacteristic={addCharacteristic}
+          onRemoveCharacteristic={removeCharacteristic}
+          onUpdateCharacteristic={updateCharacteristic}
+          imageFile={imageFile}
+          imageCaption={imageCaption}
+          setImageFile={setImageFile}
+          setImageCaption={setImageCaption}
+          onUploadImage={handleUploadImage}
+          currentEditingItem={currentEditingItem}
+          imagePreviewUrls={imagePreviewUrls}
+          onDeleteImage={handleDeleteImage}
+          onSetPrimaryImage={handleSetPrimaryImage}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function CatalogEditorModal({
+  language,
+  editingId,
+  isSubmitting,
+  isUploadingImage,
+  error,
+  feedback,
+  form,
+  setForm,
+  onSubmit,
+  onClose,
+  onAddCharacteristic,
+  onRemoveCharacteristic,
+  onUpdateCharacteristic,
+  imageFile,
+  imageCaption,
+  setImageFile,
+  setImageCaption,
+  onUploadImage,
+  currentEditingItem,
+  imagePreviewUrls,
+  onDeleteImage,
+  onSetPrimaryImage,
+}: {
+  language: "es" | "en";
+  editingId: number | null;
+  isSubmitting: boolean;
+  isUploadingImage: boolean;
+  error: ApiError | null;
+  feedback: string | null;
+  form: ProductCatalogWriteRequest;
+  setForm: Dispatch<SetStateAction<ProductCatalogWriteRequest>>;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  onClose: () => void;
+  onAddCharacteristic: () => void;
+  onRemoveCharacteristic: (index: number) => void;
+  onUpdateCharacteristic: (
+    index: number,
+    next: Partial<ProductCatalogProductCharacteristic>
+  ) => void;
+  imageFile: File | null;
+  imageCaption: string;
+  setImageFile: Dispatch<SetStateAction<File | null>>;
+  setImageCaption: Dispatch<SetStateAction<string>>;
+  onUploadImage: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  currentEditingItem: ProductCatalogItem | null;
+  imagePreviewUrls: Record<number, string>;
+  onDeleteImage: (imageId: number) => Promise<void>;
+  onSetPrimaryImage: (imageId: number) => Promise<void>;
+}) {
+  return (
+    <div className="confirm-dialog-backdrop" role="presentation" onClick={onClose}>
+      <div
+        className="confirm-dialog platform-admin-form-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={
+          editingId
+            ? language === "es"
+              ? "Editar producto o servicio"
+              : "Edit product or service"
+            : language === "es"
+              ? "Nuevo producto o servicio"
+              : "New product or service"
+        }
+        style={{ width: "min(1120px, 100%)", maxHeight: "92vh", overflow: "auto" }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <PanelCard
+          title={
+            editingId
+              ? language === "es"
+                ? "Editar producto o servicio"
+                : "Edit product or service"
+              : language === "es"
+                ? "Nuevo producto o servicio"
+                : "New product or service"
+          }
+          subtitle={
+            language === "es"
+              ? "Mantén atributos técnicos, comerciales y visuales reutilizables en cotizaciones y proyectos."
+              : "Keep technical, commercial, and visual attributes reusable in quotes and projects."
+          }
+        >
+          <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
+            <div className="text-muted small">
+              {editingId
+                ? language === "es"
+                  ? "Guarda cambios, ajusta características y administra la galería sin salir del catálogo."
+                  : "Save changes, adjust characteristics, and manage the gallery without leaving the catalog."
+                : language === "es"
+                  ? "Crea primero el artículo y luego podrás cargar sus fotos."
+                  : "Create the item first and then you will be able to upload its photos."}
+            </div>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting || isUploadingImage}
+            >
+              {language === "es" ? "Cerrar" : "Close"}
+            </button>
+          </div>
+
+          {feedback ? <div className="alert alert-success mb-3">{feedback}</div> : null}
+          {error ? (
+            <div className="alert alert-danger mb-3">
+              <div>{getApiErrorDisplayMessage(error)}</div>
+              {error.payload?.request_id ? (
+                <div className="small mt-1">request_id: {error.payload.request_id}</div>
+              ) : null}
+            </div>
+          ) : null}
+
+          <form className="crm-form-grid" onSubmit={(event) => void onSubmit(event)}>
+            <label>
+              <span>{language === "es" ? "Nombre" : "Name"}</span>
+              <input
+                value={form.name}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, name: event.target.value }))
+                }
+                required
+              />
+            </label>
+            <label>
+              <span>SKU</span>
+              <input
+                value={form.sku || ""}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, sku: event.target.value || null }))
+                }
+              />
+            </label>
+            <label>
+              <span>{language === "es" ? "Tipo" : "Type"}</span>
+              <select
+                value={form.product_type}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, product_type: event.target.value }))
+                }
+              >
+                <option value="service">{language === "es" ? "Servicio" : "Service"}</option>
+                <option value="product">{language === "es" ? "Producto" : "Product"}</option>
+              </select>
+            </label>
+            <label>
+              <span>{language === "es" ? "Unidad" : "Unit"}</span>
+              <input
+                value={form.unit_label || ""}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, unit_label: event.target.value || null }))
+                }
+              />
+            </label>
+            <label>
+              <span>{language === "es" ? "Precio base" : "Base price"}</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.unit_price}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    unit_price: Number(event.target.value) || 0,
+                  }))
+                }
+              />
+            </label>
+            <label>
+              <span>{language === "es" ? "Orden" : "Order"}</span>
+              <input
+                type="number"
+                min="0"
+                value={form.sort_order}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    sort_order: Number(event.target.value) || 0,
+                  }))
+                }
+              />
+            </label>
+            <label className="crm-form-grid__full">
+              <span>{language === "es" ? "Descripción" : "Description"}</span>
+              <textarea
+                value={form.description || ""}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    description: event.target.value || null,
+                  }))
+                }
+                rows={3}
+              />
+            </label>
+
+            <div className="crm-form-grid__full">
+              <div className="crm-lines-header">
+                <div>
+                  <strong>{language === "es" ? "Características" : "Characteristics"}</strong>
+                  <div className="text-muted small">
+                    {language === "es"
+                      ? "Especificaciones breves para diferenciar el producto o servicio."
+                      : "Short specs to differentiate the product or service."}
+                  </div>
+                </div>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  onClick={onAddCharacteristic}
+                >
+                  {language === "es" ? "Agregar característica" : "Add characteristic"}
+                </button>
+              </div>
+              <div className="crm-lines-list">
+                {form.characteristics.map((characteristic, index) => (
+                  <div
+                    key={`${editingId || "new"}-characteristic-${index}`}
+                    className="crm-line-card"
+                  >
+                    <div className="crm-line-grid">
+                      <label>
+                        <span>{language === "es" ? "Etiqueta" : "Label"}</span>
+                        <input
+                          value={characteristic.label}
+                          onChange={(event) =>
+                            onUpdateCharacteristic(index, { label: event.target.value })
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span>{language === "es" ? "Valor" : "Value"}</span>
+                        <input
+                          value={characteristic.value}
+                          onChange={(event) =>
+                            onUpdateCharacteristic(index, { value: event.target.value })
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span>{language === "es" ? "Orden" : "Order"}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={characteristic.sort_order}
+                          onChange={(event) =>
+                            onUpdateCharacteristic(index, {
+                              sort_order: Number(event.target.value) || 0,
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
+                    <div className="crm-line-card__footer">
+                      <span className="text-muted small">
+                        {language === "es"
+                          ? "Se muestra en catálogo y puede reaprovecharse en propuestas."
+                          : "Shown in catalog and reusable in proposals."}
+                      </span>
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        type="button"
+                        onClick={() => onRemoveCharacteristic(index)}
+                      >
+                        {language === "es" ? "Quitar" : "Remove"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <label className="crm-inline-check">
+              <input
+                type="checkbox"
+                checked={form.is_active}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, is_active: event.target.checked }))
+                }
+              />
+              <span>{language === "es" ? "Activo" : "Active"}</span>
+            </label>
+            <div className="crm-form-actions">
+              <button
+                className="btn btn-outline-secondary"
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting || isUploadingImage}
+              >
+                {language === "es" ? "Cerrar" : "Close"}
+              </button>
+              <button className="btn btn-primary" disabled={isSubmitting} type="submit">
+                {editingId
+                  ? language === "es"
+                    ? "Guardar cambios"
+                    : "Save changes"
+                  : language === "es"
+                    ? "Crear producto"
+                    : "Create product"}
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-4">
+            <div className="crm-lines-header">
+              <div>
+                <strong>{language === "es" ? "Fotos del catálogo" : "Catalog photos"}</strong>
+              <div className="text-muted small">
+                {editingId
+                  ? language === "es"
+                    ? "Sube imágenes comprimidas en WEBP, JPEG o PNG. La primera queda como principal y podrás cambiarla después."
+                    : "Upload compressed WEBP, JPEG, or PNG images. The first one becomes primary and you can change it later."
+                  : language === "es"
+                      ? "Puedes elegir la foto principal antes de guardar. Se subirá automáticamente apenas se cree el artículo."
+                      : "You can choose the primary photo before saving. It will upload automatically as soon as the item is created."}
+              </div>
+            </div>
+          </div>
+
+            <form className="crm-form-grid mt-3" onSubmit={(event) => void onUploadImage(event)}>
+              <label className="crm-form-grid__full">
+                <span>{language === "es" ? "Foto" : "Photo"}</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(event) => setImageFile(event.target.files?.[0] || null)}
+                />
+              </label>
+              <label className="crm-form-grid__full">
+                <span>{language === "es" ? "Pie de foto" : "Caption"}</span>
+                <input
+                  value={imageCaption}
+                  onChange={(event) => setImageCaption(event.target.value)}
+                  placeholder={language === "es" ? "Opcional" : "Optional"}
+                />
+              </label>
+              {editingId ? (
+                <div className="crm-form-actions">
+                  <button
+                    className="btn btn-primary"
+                    disabled={!imageFile || isUploadingImage}
+                    type="submit"
+                  >
+                    {language === "es" ? "Subir foto" : "Upload photo"}
+                  </button>
+                </div>
+              ) : imageFile ? (
+                <div className="text-muted small">
+                  {language === "es"
+                    ? "La foto seleccionada se cargará automáticamente al crear el producto o servicio."
+                    : "The selected photo will upload automatically when the product or service is created."}
+                </div>
+              ) : null}
+            </form>
+
+            {editingId ? (
+              <>
+                {currentEditingItem?.images.length ? (
+                  <div className="d-grid gap-3 mt-3">
+                    {currentEditingItem.images.map((image) => (
+                      <div key={image.id} className="crm-line-card">
+                        <div className="d-flex gap-3 align-items-start flex-wrap">
+                          {imagePreviewUrls[image.id] ? (
+                            <img
+                              src={imagePreviewUrls[image.id]}
+                              alt={image.caption || image.file_name}
+                              style={{
+                                width: "140px",
+                                height: "140px",
+                                objectFit: "cover",
+                                borderRadius: "12px",
+                                border: "1px solid rgba(15, 23, 42, 0.12)",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              className="border rounded d-flex align-items-center justify-content-center text-muted"
+                              style={{ width: "140px", height: "140px" }}
+                            >
+                              {language === "es" ? "Sin preview" : "No preview"}
+                            </div>
+                          )}
+                          <div className="d-grid gap-2 flex-grow-1">
+                            <div>
+                              <strong>{image.file_name}</strong>
+                              <div className="text-muted small">
+                                {image.is_primary
+                                  ? language === "es"
+                                    ? "Foto principal"
+                                    : "Primary photo"
+                                  : language === "es"
+                                    ? "Foto secundaria"
+                                    : "Secondary photo"}
+                              </div>
+                              {image.caption ? <div className="small mt-1">{image.caption}</div> : null}
+                            </div>
+                            <div className="d-flex gap-2 flex-wrap">
+                              {!image.is_primary ? (
+                                <button
+                                  className="btn btn-outline-secondary btn-sm"
+                                  type="button"
+                                  onClick={() => void onSetPrimaryImage(image.id)}
+                                >
+                                  {language === "es" ? "Usar como principal" : "Set as primary"}
+                                </button>
+                              ) : null}
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                type="button"
+                                onClick={() => void onDeleteImage(image.id)}
+                              >
+                                {language === "es" ? "Eliminar foto" : "Delete photo"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-muted small mt-3">
+                    {language === "es"
+                      ? "Todavía no hay fotos cargadas para este producto o servicio."
+                      : "There are no uploaded photos for this product or service yet."}
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
+        </PanelCard>
+      </div>
     </div>
   );
 }
@@ -716,8 +985,8 @@ function CatalogRowPreview({
 
     async function loadPreview() {
       try {
-        const result = await getProductCatalogImagePreview(token, item.id, imageId);
-        objectUrl = result.data_url;
+        const result = await downloadProductCatalogImage(token, item.id, imageId);
+        objectUrl = URL.createObjectURL(result.blob);
         if (!cancelled) {
           setImageUrl((current) => {
             if (current && current.startsWith("blob:")) {
@@ -835,8 +1104,8 @@ function CatalogQuickViewModal({
 
     async function loadPreview() {
       try {
-        const result = await getProductCatalogImagePreview(token, item.id, imageId);
-        objectUrl = result.data_url;
+        const result = await downloadProductCatalogImage(token, item.id, imageId);
+        objectUrl = URL.createObjectURL(result.blob);
         if (!cancelled) {
           setImageUrl((current) => {
             if (current && current.startsWith("blob:")) {

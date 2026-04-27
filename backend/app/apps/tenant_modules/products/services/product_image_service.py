@@ -1,4 +1,5 @@
 import base64
+import mimetypes
 from pathlib import Path
 from uuid import uuid4
 
@@ -183,7 +184,7 @@ class ProductCatalogImageService:
     ) -> dict[str, str | int | None]:
         image, absolute_path = self.get_image_file(tenant_db, product_id, image_id)
         content_bytes = absolute_path.read_bytes()
-        content_type = image.content_type or "application/octet-stream"
+        content_type = self._resolve_content_type(image, content_bytes, absolute_path)
         encoded = base64.b64encode(content_bytes).decode("ascii")
         return {
             "content_type": content_type,
@@ -191,6 +192,17 @@ class ProductCatalogImageService:
             "file_size": len(content_bytes),
             "data_url": f"data:{content_type};base64,{encoded}",
         }
+
+    def resolve_download_content_type(
+        self,
+        image: ProductCatalogImage,
+        absolute_path: Path,
+    ) -> str:
+        try:
+            content_bytes = absolute_path.read_bytes()
+        except OSError:
+            content_bytes = b""
+        return self._resolve_content_type(image, content_bytes, absolute_path)
 
     def _get_product(self, tenant_db, product_id: int) -> CRMProduct:
         item = tenant_db.get(CRMProduct, product_id)
@@ -218,3 +230,35 @@ class ProductCatalogImageService:
         if content_type == "image/webp":
             return ".webp"
         return ""
+
+    def _resolve_content_type(
+        self,
+        image: ProductCatalogImage,
+        content_bytes: bytes,
+        absolute_path: Path | None = None,
+    ) -> str:
+        normalized = (image.content_type or "").strip().lower()
+        if normalized and normalized != "application/octet-stream":
+            return normalized
+        inferred = self._infer_image_content_type(content_bytes)
+        if inferred:
+            return inferred
+        guessed = mimetypes.guess_type(image.file_name or "")[0] or mimetypes.guess_type(
+            str(absolute_path or image.storage_key)
+        )[0]
+        if guessed:
+            return guessed
+        return normalized or "application/octet-stream"
+
+    def _infer_image_content_type(self, content_bytes: bytes) -> str | None:
+        if content_bytes.startswith(b"\xff\xd8\xff"):
+            return "image/jpeg"
+        if content_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
+            return "image/png"
+        if content_bytes.startswith((b"GIF87a", b"GIF89a")):
+            return "image/gif"
+        if content_bytes[:4] == b"RIFF" and content_bytes[8:12] == b"WEBP":
+            return "image/webp"
+        if content_bytes.startswith(b"BM"):
+            return "image/bmp"
+        return None

@@ -21,6 +21,8 @@ Responsabilidades:
   - `backend/app/apps/tenant_modules/products`
 - frontend:
   - `frontend/src/apps/tenant_portal/modules/products`
+  - la página visible del catálogo sigue cableada desde:
+    - `frontend/src/apps/tenant_portal/modules/crm/pages/CRMProductsPage.tsx`
 
 ## Contratos públicos
 
@@ -218,6 +220,15 @@ Secuencia de reconstrucción:
    - `generic_ai_extraction_service.py` como orquestador
 8. reutilizar `ingestion runs` también para la URL única:
    - corrida asíncrona
+
+## Notas de implementación vigentes
+
+- `Catálogo` ya usa modal para alta y edición:
+  - `Nuevo producto/servicio` y `Editar` comparten el mismo modal
+  - la galería de fotos vive dentro de ese modal una vez que el artículo tiene `id`
+- las previews de fotos legacy no deben confiar solo en `content_type` persistido:
+  - `ProductCatalogImageService` ya infiere el MIME real desde la firma del archivo cuando recibe `application/octet-stream`
+  - el import reproducible de `ieris_app` también quedó ajustado para intentar inferir mejor el tipo al crear `products_product_images`
    - progreso visible
    - apertura automática del borrador al terminar
 9. exponer trazabilidad IA visible en el borrador:

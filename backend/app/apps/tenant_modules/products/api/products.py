@@ -305,7 +305,7 @@ def download_product_catalog_image(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return FileResponse(
         path=str(absolute_path),
-        media_type=image.content_type or "application/octet-stream",
+        media_type=image_service.resolve_download_content_type(image, absolute_path),
         filename=image.file_name,
     )
 

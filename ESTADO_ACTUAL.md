@@ -4,6 +4,20 @@
 
 - fecha: 2026-04-27
 - corte nuevo ya cerrado en repo y runtime:
+  - `products > Catálogo` ya usa modal para:
+    - `Nuevo producto/servicio`
+    - `Editar`
+  - la galería sigue administrándose dentro de ese mismo modal cuando el artículo ya existe
+  - las miniaturas y la vista rápida ya no dependen de que la foto legacy importada traiga `content_type` correcto:
+    - el backend ahora infiere el MIME real desde la firma del archivo si quedó como `application/octet-stream`
+  - validación runtime:
+    - backend redeployado:
+      - `staging` -> `588 tests OK`
+      - `production` -> `588 tests OK`
+    - frontend publicado en `staging` y `production`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- fecha: 2026-04-27
+- corte nuevo ya cerrado en repo y runtime:
   - `products > Catálogo` ya muestra la foto principal junto a `Características` en la tabla principal
   - la miniatura ya no depende del download directo del asset:
     - ahora usa preview inline autenticado desde backend

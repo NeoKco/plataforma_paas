@@ -3,10 +3,11 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
-  - revalidar en uso real el nuevo carril de preview inline en `products > Catálogo`:
-    - que las miniaturas sí aparezcan con el catálogo importado completo
-    - que la vista rápida al pinchar la foto sea suficiente como guía visual
-    - que la carga perezosa no degrade la tabla principal
+  - revalidar en uso real el flujo modal nuevo en `products > Catálogo`:
+    - alta en modal
+    - edición en modal
+    - subida de fotos desde el mismo modal después del primer guardado
+  - confirmar además que las miniaturas legacy importadas ya cargan bien en `ieris-ltda` sin placeholders `...`
   - si la UX queda correcta, el siguiente frente vuelve a ser:
     - abrir `projects` como consumidor fuerte de `products`
     - o profundizar `products` solo en integración comercial/operativa superior

@@ -1,5 +1,48 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-27 - `products` pasa alta/edición del catálogo a modal y corrige previews legacy sin MIME útil
+
+Contexto:
+
+- el usuario confirmó que la foto ya aparecía, pero pidió dos ajustes de UX:
+  - `Nuevo producto` debía abrir en modal
+  - `Editar` también debía abrir en modal
+- además, seguían existiendo filas del catálogo importado donde la miniatura quedaba en `...`
+- el problema real no estaba ya en la tabla, sino en fotos legacy importadas con `content_type=application/octet-stream`
+
+Cambios:
+
+- frontend:
+  - [CRMProductsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm/pages/CRMProductsPage.tsx)
+    - elimina el panel inline de creación/edición
+    - agrega `CatalogEditorModal` reutilizable para:
+      - `Nuevo producto/servicio`
+      - `Editar`
+    - mantiene la galería de fotos dentro del mismo modal cuando el artículo ya existe
+- backend:
+  - [product_image_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/product_image_service.py)
+    - agrega inferencia de MIME real desde firma de archivo cuando la imagen llega como `application/octet-stream`
+  - [products.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/api/products.py)
+    - el download autenticado ya usa esa inferencia también
+- reconstrucción/import future-proof:
+  - [import_ieris_products_catalog.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_products_catalog.py)
+    - el import legacy ya intenta inferir mejor `content_type` al crear `products_product_images`
+- tests:
+  - [test_products_services.py](/home/felipe/platform_paas/backend/app/tests/test_products_services.py)
+    - cobertura nueva para preview de imagen legacy con `application/octet-stream`
+
+Validación:
+
+- local:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `26 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- runtime:
+  - `staging` backend redeployado -> `588 tests OK`
+  - `production` backend redeployado -> `588 tests OK`
+  - frontend publicado en ambos carriles
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en `staging` y `production`
+  - `bash deploy/check_release_governance.sh` -> `OK`
+
 ## 2026-04-27 - `products` mueve la miniatura del catálogo a preview inline con vista rápida
 
 Contexto:

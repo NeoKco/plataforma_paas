@@ -330,6 +330,23 @@ def resolve_media_root(target_media_dir: Path | None) -> Path:
     return root
 
 
+def infer_image_content_type(file_name: str | None, content_bytes: bytes) -> str:
+    guessed = mimetypes.guess_type(file_name or "")[0]
+    if guessed:
+        return guessed
+    if content_bytes.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if content_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if content_bytes.startswith((b"GIF87a", b"GIF89a")):
+        return "image/gif"
+    if content_bytes[:4] == b"RIFF" and content_bytes[8:12] == b"WEBP":
+        return "image/webp"
+    if content_bytes.startswith(b"BM"):
+        return "image/bmp"
+    return "application/octet-stream"
+
+
 def build_legacy_image_path(legacy_app_dir: Path, file_name: str | None) -> Path | None:
     normalized = normalize_text(file_name)
     if not normalized:
@@ -623,7 +640,7 @@ def import_products_catalog(
             product_id=product.id,
             file_name=legacy_photo_name,
             storage_key=storage_key,
-            content_type=mimetypes.guess_type(legacy_photo_name)[0] or "application/octet-stream",
+            content_type=infer_image_content_type(legacy_photo_name, content_bytes),
             file_size=len(content_bytes),
             caption="Importado desde ieris_app",
             is_primary=len(existing_product_images) == 0,
