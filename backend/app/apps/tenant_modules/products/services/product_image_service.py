@@ -1,3 +1,4 @@
+import base64
 from pathlib import Path
 from uuid import uuid4
 
@@ -173,6 +174,23 @@ class ProductCatalogImageService:
         if not absolute_path.exists():
             raise ValueError("La foto del catálogo no está disponible en almacenamiento")
         return image, absolute_path
+
+    def build_image_data_url(
+        self,
+        tenant_db,
+        product_id: int,
+        image_id: int,
+    ) -> dict[str, str | int | None]:
+        image, absolute_path = self.get_image_file(tenant_db, product_id, image_id)
+        content_bytes = absolute_path.read_bytes()
+        content_type = image.content_type or "application/octet-stream"
+        encoded = base64.b64encode(content_bytes).decode("ascii")
+        return {
+            "content_type": content_type,
+            "file_name": image.file_name,
+            "file_size": len(content_bytes),
+            "data_url": f"data:{content_type};base64,{encoded}",
+        }
 
     def _get_product(self, tenant_db, product_id: int) -> CRMProduct:
         item = tenant_db.get(CRMProduct, product_id)

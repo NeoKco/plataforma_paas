@@ -10,6 +10,7 @@ from app.apps.tenant_modules.products.dependencies import (
 )
 from app.apps.tenant_modules.products.schemas import (
     ProductCatalogImageDeleteResponse,
+    ProductCatalogImagePreviewResponse,
     ProductCatalogImageMutationResponse,
     ProductCatalogMutationResponse,
     ProductCatalogProductsResponse,
@@ -306,4 +307,31 @@ def download_product_catalog_image(
         path=str(absolute_path),
         media_type=image.content_type or "application/octet-stream",
         filename=image.file_name,
+    )
+
+
+@router.get(
+    "/{product_id}/images/{image_id}/preview",
+    response_model=ProductCatalogImagePreviewResponse,
+)
+def preview_product_catalog_image(
+    product_id: int,
+    image_id: int,
+    current_user=Depends(require_products_read),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> ProductCatalogImagePreviewResponse:
+    try:
+        payload = image_service.build_image_data_url(tenant_db, product_id, image_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return ProductCatalogImagePreviewResponse(
+        success=True,
+        message="Preview de foto del catálogo recuperado correctamente",
+        requested_by=build_products_requested_by(current_user),
+        product_id=product_id,
+        image_id=image_id,
+        file_name=payload.get("file_name"),
+        content_type=payload.get("content_type"),
+        file_size=payload.get("file_size"),
+        data_url=payload["data_url"],
     )

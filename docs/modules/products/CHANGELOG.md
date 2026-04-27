@@ -2,6 +2,21 @@
 
 ## 2026-04-27
 
+- `products > Catálogo` ya resuelve la miniatura y la vista rápida por un carril más robusto:
+  - endpoint nuevo:
+    - `GET /tenant/products/catalog/{product_id}/images/{image_id}/preview`
+  - la miniatura ya no depende del download blob por fila
+  - ahora usa preview inline autenticado y carga perezosa por fila visible
+  - al pinchar la miniatura, ya abre una vista rápida del producto/servicio sin entrar a editar
+  - validación repo:
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `25 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - backend redeployado:
+      - `staging` -> `588 tests OK`
+      - `production` -> `588 tests OK`
+    - frontend publicado y `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+
 - `products > Catálogo` ya muestra la foto principal del artículo directamente junto a `Características` en la tabla principal:
   - la lista ya no se limita a `1 foto(s)` como texto
   - ahora descarga autenticadamente la foto principal y la presenta como miniatura visual por fila

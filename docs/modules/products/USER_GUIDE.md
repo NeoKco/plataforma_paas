@@ -60,6 +60,7 @@ En `Catálogo`, cada producto o servicio ya puede tener:
 - una o más fotos
 - una foto principal
 - una miniatura visible en la lista principal del catálogo, junto a sus características
+- una vista rápida al pinchar esa miniatura, sin entrar a editar
 - compresión previa en navegador antes de subir
 - borrado de fotos sin borrar el artículo
 
@@ -69,6 +70,7 @@ Regla operativa:
 - luego se cargan sus fotos desde la misma ficha en modo edición
 - la primera foto queda como principal por defecto
 - si borras la principal y hay otras, el sistema promueve automáticamente otra
+- en la lista principal, la miniatura carga de forma perezosa cuando la fila entra en pantalla
 
 En `Ingesta`, cada borrador ya puede mostrar:
 

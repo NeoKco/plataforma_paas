@@ -1,5 +1,42 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-27 - `products` mueve la miniatura del catálogo a preview inline con vista rápida
+
+Contexto:
+
+- la primera aproximación dejaba la miniatura en la tabla, pero seguía fallando en runtime y el usuario solo veía placeholders `...`
+- además, el usuario pidió que al pinchar la miniatura se abriera una vista ampliada rápida sin entrar a edición
+
+Cambios:
+
+- backend:
+  - [product_image_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/services/product_image_service.py)
+    - nuevo `build_image_data_url(...)` para resolver preview inline autenticado desde backend
+  - [products.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/api/products.py)
+    - endpoint nuevo:
+      - `GET /tenant/products/catalog/{product_id}/images/{image_id}/preview`
+  - [products.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/products/schemas/products.py)
+    - schema nuevo `ProductCatalogImagePreviewResponse`
+- frontend:
+  - [productsService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/products/services/productsService.ts)
+    - cliente nuevo `getProductCatalogImagePreview(...)`
+  - [CRMProductsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm/pages/CRMProductsPage.tsx)
+    - la miniatura ya no usa descarga blob por fila
+    - ahora usa preview inline
+    - carga perezosa por fila visible con `IntersectionObserver`
+    - al pinchar la miniatura abre modal de `vista rápida`
+
+Validación:
+
+- local:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_products_services -v` -> `25 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- runtime:
+  - `staging` backend redeployado -> `588 tests OK`
+  - `production` backend redeployado -> `588 tests OK`
+  - frontend publicado en ambos carriles
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en `staging` y `production`
+
 ## 2026-04-27 - `products` muestra miniatura visible en la lista principal del catálogo
 
 Contexto:

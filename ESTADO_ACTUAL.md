@@ -5,9 +5,15 @@
 - fecha: 2026-04-27
 - corte nuevo ya cerrado en repo y runtime:
   - `products > Catálogo` ya muestra la foto principal junto a `Características` en la tabla principal
-  - la miniatura se resuelve por descarga autenticada del asset principal
+  - la miniatura ya no depende del download directo del asset:
+    - ahora usa preview inline autenticado desde backend
+    - la carga es perezosa por fila visible
+  - al pinchar la miniatura, ya abre una vista rápida del producto/servicio sin entrar a editar
   - si el artículo no tiene foto, queda placeholder visual en la misma celda
   - validación runtime:
+    - backend redeployado:
+      - `staging` -> `588 tests OK`
+      - `production` -> `588 tests OK`
     - frontend publicado en `staging` y `production`
     - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - corte nuevo ya cerrado en repo y runtime:

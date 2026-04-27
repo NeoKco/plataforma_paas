@@ -21,6 +21,17 @@ export type ProductCatalogProductImage = {
   download_url: string;
 };
 
+export type ProductCatalogProductImagePreviewResponse = {
+  success: boolean;
+  message: string;
+  product_id: number;
+  image_id: number;
+  file_name: string | null;
+  content_type: string | null;
+  file_size: number | null;
+  data_url: string;
+};
+
 export type ProductCatalogItem = {
   id: number;
   sku: string | null;
@@ -801,6 +812,19 @@ export function downloadProductCatalogImage(
   return apiDownload(`/tenant/products/catalog/${productId}/images/${imageId}/download`, {
     token: accessToken,
   });
+}
+
+export function getProductCatalogImagePreview(
+  accessToken: string,
+  productId: number,
+  imageId: number
+) {
+  return apiRequest<ProductCatalogProductImagePreviewResponse>(
+    `/tenant/products/catalog/${productId}/images/${imageId}/preview`,
+    {
+      token: accessToken,
+    }
+  );
 }
 
 export function getProductCatalogConnectors(accessToken: string, includeInactive = true) {

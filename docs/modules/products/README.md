@@ -77,6 +77,7 @@ El módulo hoy incluye:
   - descripción
   - características técnicas/comerciales
   - miniatura visible de la foto principal en la tabla principal del catálogo
+  - vista rápida al pinchar la miniatura, sin entrar a edición
   - galería de fotos comprimidas:
     - `webp`, `jpeg`, `png`
     - una foto principal por artículo
@@ -160,6 +161,16 @@ El módulo hoy incluye:
   - badge `Extracción IA`
   - estrategia visible (`ai_full_generic`)
   - resumen visible en el borrador
+
+Regla visual del catálogo:
+
+- la tabla principal del catálogo no debe depender de descargar el archivo completo por cada fila
+- la miniatura se resuelve por `preview` inline autenticado y carga perezosa por fila visible
+- al pinchar la miniatura se abre una vista rápida del artículo:
+  - foto principal
+  - precio
+  - descripción
+  - características
 
 Queda fuera por ahora:
 

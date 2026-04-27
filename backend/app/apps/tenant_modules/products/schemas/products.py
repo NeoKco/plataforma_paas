@@ -277,6 +277,18 @@ class ProductCatalogImageMutationResponse(BaseModel):
     data: ProductCatalogProductImageItemResponse
 
 
+class ProductCatalogImagePreviewResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    product_id: int
+    image_id: int
+    file_name: str | None = None
+    content_type: str | None = None
+    file_size: int | None = None
+    data_url: str
+
+
 class ProductCatalogProductSourceCreateRequest(BaseModel):
     connector_id: int | None = None
     source_kind: str = "manual_capture"

@@ -3,9 +3,10 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
-  - revalidar en uso real la nueva miniatura del catálogo en `products > Catálogo`:
-    - que la foto principal abra una guía visual útil junto a las características
-    - que no degrade demasiado el tiempo de carga con el catálogo importado completo
+  - revalidar en uso real el nuevo carril de preview inline en `products > Catálogo`:
+    - que las miniaturas sí aparezcan con el catálogo importado completo
+    - que la vista rápida al pinchar la foto sea suficiente como guía visual
+    - que la carga perezosa no degrade la tabla principal
   - si la UX queda correcta, el siguiente frente vuelve a ser:
     - abrir `projects` como consumidor fuerte de `products`
     - o profundizar `products` solo en integración comercial/operativa superior

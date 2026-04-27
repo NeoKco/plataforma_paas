@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageHeader } from "../../../../../components/common/PageHeader";
 import { PanelCard } from "../../../../../components/common/PanelCard";
 import { DataTableCard } from "../../../../../components/data-display/DataTableCard";
@@ -14,6 +14,7 @@ import {
   deleteProductCatalogImage,
   deleteProductCatalogItem,
   downloadProductCatalogImage,
+  getProductCatalogImagePreview,
   getProductCatalogItems,
   setPrimaryProductCatalogImage,
   uploadProductCatalogImage,
@@ -673,9 +674,32 @@ function CatalogRowPreview({
 }) {
   const primaryImage = item.images.find((image) => image.is_primary) ?? item.images[0] ?? null;
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    if (!accessToken || !primaryImage) {
+    const node = containerRef.current;
+    if (!node || isVisible) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: "160px 0px",
+        threshold: 0.1,
+      }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!accessToken || !primaryImage || !isVisible) {
       setImageUrl((current) => {
         if (current) {
           URL.revokeObjectURL(current);
@@ -692,11 +716,11 @@ function CatalogRowPreview({
 
     async function loadPreview() {
       try {
-        const result = await downloadProductCatalogImage(token, item.id, imageId);
-        objectUrl = URL.createObjectURL(result.blob);
+        const result = await getProductCatalogImagePreview(token, item.id, imageId);
+        objectUrl = result.data_url;
         if (!cancelled) {
           setImageUrl((current) => {
-            if (current) {
+            if (current && current.startsWith("blob:")) {
               URL.revokeObjectURL(current);
             }
             return objectUrl;
@@ -705,12 +729,12 @@ function CatalogRowPreview({
       } catch {
         if (!cancelled) {
           setImageUrl((current) => {
-            if (current) {
+            if (current && current.startsWith("blob:")) {
               URL.revokeObjectURL(current);
             }
             return null;
           });
-        } else if (objectUrl) {
+        } else if (objectUrl && objectUrl.startsWith("blob:")) {
           URL.revokeObjectURL(objectUrl);
         }
       }
@@ -720,15 +744,16 @@ function CatalogRowPreview({
 
     return () => {
       cancelled = true;
-      if (objectUrl) {
+      if (objectUrl && objectUrl.startsWith("blob:")) {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [accessToken, item.id, primaryImage?.id]);
+  }, [accessToken, isVisible, item.id, primaryImage?.id]);
 
   const label = language === "es" ? "Sin foto" : "No photo";
   return (
     <button
+      ref={containerRef}
       className="btn btn-link p-0 border-0 text-start"
       type="button"
       onClick={() => onOpenQuickView(item)}
@@ -810,11 +835,11 @@ function CatalogQuickViewModal({
 
     async function loadPreview() {
       try {
-        const result = await downloadProductCatalogImage(token, item.id, imageId);
-        objectUrl = URL.createObjectURL(result.blob);
+        const result = await getProductCatalogImagePreview(token, item.id, imageId);
+        objectUrl = result.data_url;
         if (!cancelled) {
           setImageUrl((current) => {
-            if (current) {
+            if (current && current.startsWith("blob:")) {
               URL.revokeObjectURL(current);
             }
             return objectUrl;
@@ -823,12 +848,12 @@ function CatalogQuickViewModal({
       } catch {
         if (!cancelled) {
           setImageUrl((current) => {
-            if (current) {
+            if (current && current.startsWith("blob:")) {
               URL.revokeObjectURL(current);
             }
             return null;
           });
-        } else if (objectUrl) {
+        } else if (objectUrl && objectUrl.startsWith("blob:")) {
           URL.revokeObjectURL(objectUrl);
         }
       }
@@ -838,7 +863,7 @@ function CatalogQuickViewModal({
 
     return () => {
       cancelled = true;
-      if (objectUrl) {
+      if (objectUrl && objectUrl.startsWith("blob:")) {
         URL.revokeObjectURL(objectUrl);
       }
     };

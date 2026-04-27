@@ -159,6 +159,40 @@ class ProductsServicesTestCase(unittest.TestCase):
         self.assertTrue(secondary.is_primary)
         tenant_db.delete.assert_called_once_with(primary)
 
+    def test_build_product_image_data_url_reads_stored_file(self) -> None:
+        tenant_db = Mock()
+        product = CRMProduct(id=12, name="Cable RV-K")
+        image = ProductCatalogImage(
+            id=1,
+            product_id=12,
+            file_name="a.webp",
+            storage_key="product_12/a.webp",
+            content_type="image/webp",
+            file_size=10,
+            caption=None,
+            is_primary=True,
+            uploaded_by_user_id=1,
+        )
+        tenant_db.get.side_effect = lambda model, item_id: (
+            product
+            if model is CRMProduct and item_id == 12
+            else image
+            if model is ProductCatalogImage and item_id == 1
+            else None
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / image.storage_key
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"fake-image")
+            with patch.object(settings, "PRODUCTS_MEDIA_DIR", tmpdir):
+                service = ProductCatalogImageService()
+                payload = service.build_image_data_url(tenant_db, 12, 1)
+
+        self.assertEqual(payload["content_type"], "image/webp")
+        self.assertEqual(payload["file_name"], "a.webp")
+        self.assertTrue(str(payload["data_url"]).startswith("data:image/webp;base64,"))
+
     def test_create_connector_persists_profile(self) -> None:
         tenant_db = Mock()
         added_items: list[object] = []
