@@ -92,11 +92,28 @@ Reglas:
 Ubicación por entorno:
 
 - `development`:
-  - `.env` local o variable exportada del proceso backend
+  - `.runtime-ai-secrets.env`
 - `staging`:
-  - `/opt/platform_paas_staging/.env.staging`
+  - `/opt/platform_paas_staging/.runtime-ai-secrets.env`
 - `production`:
-  - `/opt/platform_paas/.env`
+  - `/opt/platform_paas/.runtime-ai-secrets.env`
+
+Administración operativa:
+
+- `Platform Admin -> Configuración -> Integración API IA`
+- el operador puede guardar:
+  - `API_IA_URL`
+  - `MANAGER_API_IA_KEY`
+  - `API_IA_MODEL_ID`
+  - `API_IA_MAX_TOKENS`
+  - `API_IA_TEMPERATURE`
+  - `API_IA_TIMEOUT`
+- el backend persiste esto en `AI_RUNTIME_SECRETS_FILE`
+- la UI solo devuelve:
+  - estado del archivo
+  - source actual
+  - key enmascarada
+  - validación de conexión
 
 ### Rotacion formal de credenciales tecnicas tenant
 

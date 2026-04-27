@@ -2,6 +2,33 @@
 
 ## 2026-04-26
 
+- `products` y `platform_admin` ya permiten administrar la configuración runtime de la API IA desde consola:
+  - backend nuevo:
+    - `backend/app/common/security/ai_runtime_secret_service.py`
+  - endpoints nuevos:
+    - `GET /platform/ai-runtime-config`
+    - `POST /platform/ai-runtime-config`
+    - `POST /platform/ai-runtime-config/validate`
+  - `Settings` ya expone:
+    - URL
+    - modelo
+    - timeout
+    - max tokens
+    - temperature
+    - API key con reemplazo seguro y valor enmascarado
+  - la key ya no necesita editarse a mano para la operación normal:
+    - se ingresa desde consola `superadmin`
+    - se persiste backend-side en `.runtime-ai-secrets.env`
+    - el navegador nunca vuelve a recibirla completa
+  - `products` ya consume esta fuente runtime en caliente para:
+    - extracción URL IA
+    - refresh
+    - scheduler/conectores `html_ai`
+    - enriquecimiento
+  - validación repo:
+    - `backend.app.tests.test_products_services + test_security_hardening` -> `40 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - `products` separa formalmente el pipeline genérico de IA:
   - nuevo `ai_preprocessing_service.py`
   - nuevo `ai_client_service.py`

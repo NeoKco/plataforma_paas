@@ -165,6 +165,12 @@ Ya quedó incluido además:
   - `ai_client_service.py`
   - `ai_postprocessing_service.py`
 - `generic_ai_extraction_service.py` ahora orquesta esas tres capas
+- la configuración runtime de API IA ya se administra también desde:
+  - `Platform Admin -> Configuración -> Integración API IA`
+- la key ya no necesita editarse a mano en el host para la operación normal:
+  - se ingresa desde consola
+  - se persiste backend-side en `AI_RUNTIME_SECRETS_FILE`
+  - el navegador solo vuelve a recibir estado + valor enmascarado
 - deduplicación accionable sobre catálogo ya publicado:
   - `Actualizar existente`
   - `Vincular existente`

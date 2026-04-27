@@ -14,6 +14,7 @@ from app.common.security.runtime_security_service import (  # noqa: E402
 )
 from app.common.auth.jwt_service import JWTService, create_access_token  # noqa: E402
 from app.common.config.settings import settings  # noqa: E402
+from app.common.security.ai_runtime_secret_service import AIRuntimeSecretService  # noqa: E402
 from app.common.security.tenant_secret_service import TenantSecretService  # noqa: E402
 
 
@@ -177,6 +178,132 @@ class RuntimeSecurityServiceTestCase(unittest.TestCase):
         self.assertEqual(summary["legacy_rescue_available_tenants"], 1)
         self.assertEqual(summary["missing_runtime_secret_slugs"], ["empresa-bootstrap"])
         self.assertEqual(summary["legacy_rescue_available_slugs"], ["empresa-bootstrap"])
+
+
+class AIRuntimeSecretServiceTestCase(unittest.TestCase):
+    def test_store_and_resolve_runtime_ai_config(self) -> None:
+        service = AIRuntimeSecretService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            fake_settings = SimpleNamespace(
+                APP_ENV="development",
+                BASE_DIR=base_dir,
+                AI_RUNTIME_SECRETS_FILE=str(base_dir / ".runtime-ai-secrets.env"),
+                API_IA_URL="http://legacy.local:11435",
+                MANAGER_API_IA_KEY="legacy-key",
+                API_IA_MODEL_ID="legacy-model",
+                API_IA_MAX_TOKENS=1000,
+                API_IA_TEMPERATURE=0.2,
+                API_IA_TIMEOUT=60,
+            )
+
+            saved = service.store_config(
+                fake_settings,
+                SimpleNamespace(
+                    api_url="http://runtime.local:11435",
+                    api_key="runtime-key-1234",
+                    replace_api_key=True,
+                    model_id="mistral-runtime",
+                    max_tokens=1400,
+                    temperature=0.3,
+                    timeout=300,
+                ),
+            )
+            resolved = service.resolve_config(fake_settings)
+
+        self.assertEqual(saved["source"], "runtime_ai_secrets_file")
+        self.assertTrue(saved["api_key_configured"])
+        self.assertEqual(resolved["api_url"], "http://runtime.local:11435")
+        self.assertEqual(resolved["api_key"], "runtime-key-1234")
+        self.assertEqual(resolved["model_id"], "mistral-runtime")
+        self.assertEqual(resolved["max_tokens"], 1400)
+        self.assertEqual(resolved["temperature"], 0.3)
+        self.assertEqual(resolved["timeout"], 300)
+
+    def test_build_public_config_masks_api_key(self) -> None:
+        service = AIRuntimeSecretService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            runtime_path = base_dir / ".runtime-ai-secrets.env"
+            runtime_path.write_text(
+                "\n".join(
+                    [
+                        "API_IA_URL=http://runtime.local:11435",
+                        "MANAGER_API_IA_KEY=runtime-key-1234",
+                        "API_IA_MODEL_ID=mistral-runtime",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            fake_settings = SimpleNamespace(
+                APP_ENV="development",
+                BASE_DIR=base_dir,
+                AI_RUNTIME_SECRETS_FILE=str(runtime_path),
+                API_IA_URL="",
+                MANAGER_API_IA_KEY="",
+                API_IA_MODEL_ID="",
+                API_IA_MAX_TOKENS=1200,
+                API_IA_TEMPERATURE=0.1,
+                API_IA_TIMEOUT=45,
+            )
+
+            public_config = service.build_public_config(fake_settings)
+
+        self.assertEqual(public_config["source"], "runtime_ai_secrets_file")
+        self.assertTrue(public_config["api_key_configured"])
+        self.assertEqual(public_config["api_key_masked"], "************1234")
+
+    def test_validate_connection_uses_runtime_payload(self) -> None:
+        service = AIRuntimeSecretService()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_dir = Path(temp_dir)
+            fake_settings = SimpleNamespace(
+                APP_ENV="development",
+                BASE_DIR=base_dir,
+                AI_RUNTIME_SECRETS_FILE=str(base_dir / ".runtime-ai-secrets.env"),
+                API_IA_URL="",
+                MANAGER_API_IA_KEY="",
+                API_IA_MODEL_ID="",
+                API_IA_MAX_TOKENS=1200,
+                API_IA_TEMPERATURE=0.1,
+                API_IA_TIMEOUT=45,
+            )
+
+            class FakeResponse:
+                ok = True
+
+                def __init__(self) -> None:
+                    self.text = '{"response":"ok"}'
+                    self.headers = {"Content-Type": "application/json"}
+
+                def json(self):
+                    return {"response": '{"status":"ok"}'}
+
+            post_mock = unittest.mock.Mock(return_value=FakeResponse())
+            with unittest.mock.patch.dict(
+                "sys.modules",
+                {"requests": SimpleNamespace(post=post_mock)},
+            ):
+                result = service.validate_connection(
+                    fake_settings,
+                    SimpleNamespace(
+                        api_url="http://runtime.local:11435",
+                        api_key="runtime-key-1234",
+                        replace_api_key=True,
+                        model_id="mistral-runtime",
+                        max_tokens=1400,
+                        temperature=0.2,
+                        timeout=300,
+                    ),
+                )
+
+        self.assertTrue(result["reachable"])
+        self.assertEqual(result["model_id"], "mistral-runtime")
+        post_mock.assert_called_once()
 
 
 class JWTSecurityServiceTestCase(unittest.TestCase):

@@ -4,6 +4,20 @@
 
 - fecha: 2026-04-26
 - slice técnico nuevo ya cerrado en repo:
+  - `platform_admin -> Configuración -> Integración API IA` ya existe
+  - el runtime de IA ya no depende de editar `.env` principal como camino normal de operación
+  - backend nuevo:
+    - `backend/app/common/security/ai_runtime_secret_service.py`
+  - endpoints nuevos:
+    - `GET /platform/ai-runtime-config`
+    - `POST /platform/ai-runtime-config`
+    - `POST /platform/ai-runtime-config/validate`
+  - persistencia nueva por ambiente:
+    - `development` -> `.runtime-ai-secrets.env`
+    - `staging` -> `/opt/platform_paas_staging/.runtime-ai-secrets.env`
+    - `production` -> `/opt/platform_paas/.runtime-ai-secrets.env`
+  - `products` ya consume esta configuración runtime en caliente para extracción URL, refresh y conectores `html_ai`
+- slice técnico nuevo ya cerrado en repo:
   - `products` ya separa explícitamente el pipeline IA en:
     - `ai_preprocessing_service.py`
     - `ai_client_service.py`

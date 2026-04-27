@@ -8,6 +8,7 @@ import { AppToolbar } from "../../../../design-system/AppLayout";
 import { ErrorState } from "../../../../components/feedback/ErrorState";
 import { LoadingBlock } from "../../../../components/feedback/LoadingBlock";
 import {
+  getPlatformAiRuntimeConfig,
   getPlatformCapabilities,
   getPlatformRootRecoveryStatus,
   getPlatformRuntimeSecretCampaigns,
@@ -15,7 +16,9 @@ import {
   getPlatformSecurityPosture,
   listPlatformUsers,
   rotatePlatformRuntimeDbCredentials,
+  savePlatformAiRuntimeConfig,
   syncPlatformRuntimeSecrets,
+  validatePlatformAiRuntimeConfig,
 } from "../../../../services/platform-api";
 import { API_BASE_URL, getDefaultApiBaseUrl } from "../../../../services/api";
 import { useAuth } from "../../../../store/auth-context";
@@ -24,6 +27,9 @@ import { displayPlatformCode } from "../../../../utils/platform-labels";
 import { formatDateTimeInTimeZone } from "../../../../utils/dateTimeLocal";
 import type {
   ApiError,
+  PlatformAiRuntimeConfigResponse,
+  PlatformAiRuntimeConfigValidateResponse,
+  PlatformAiRuntimeConfigWriteRequest,
   PlatformCapabilities,
   PlatformRootRecoveryStatusResponse,
   PlatformTenantDbCredentialsRotateBatchResponse,
@@ -42,6 +48,8 @@ export function SettingsPage() {
   const [platformUsers, setPlatformUsers] = useState<PlatformUser[]>([]);
   const [rootRecoveryStatus, setRootRecoveryStatus] =
     useState<PlatformRootRecoveryStatusResponse | null>(null);
+  const [aiRuntimeConfig, setAiRuntimeConfig] =
+    useState<PlatformAiRuntimeConfigResponse | null>(null);
   const [securityPosture, setSecurityPosture] =
     useState<PlatformRuntimeSecurityPostureResponse | null>(null);
   const [runtimeSecretPlan, setRuntimeSecretPlan] =
@@ -52,6 +60,7 @@ export function SettingsPage() {
   const [rootRecoveryStatusError, setRootRecoveryStatusError] = useState<ApiError | null>(
     null
   );
+  const [aiRuntimeConfigError, setAiRuntimeConfigError] = useState<ApiError | null>(null);
   const [securityPostureError, setSecurityPostureError] = useState<ApiError | null>(
     null
   );
@@ -60,14 +69,31 @@ export function SettingsPage() {
   );
   const [runtimeSecretCampaignsError, setRuntimeSecretCampaignsError] =
     useState<ApiError | null>(null);
+  const [aiRuntimeConfigFeedback, setAiRuntimeConfigFeedback] = useState<string | null>(
+    null
+  );
+  const [aiRuntimeValidationFeedback, setAiRuntimeValidationFeedback] = useState<
+    string | null
+  >(null);
   const [runtimeSyncFeedback, setRuntimeSyncFeedback] = useState<string | null>(null);
   const [runtimeRotateFeedback, setRuntimeRotateFeedback] = useState<string | null>(null);
+  const [aiRuntimeForm, setAiRuntimeForm] = useState<PlatformAiRuntimeConfigWriteRequest>({
+    api_url: "",
+    api_key: "",
+    replace_api_key: false,
+    model_id: "mistral-ollama",
+    max_tokens: 1200,
+    temperature: 0.1,
+    timeout: 300,
+  });
   const [selectedRuntimePlanTenants, setSelectedRuntimePlanTenants] = useState<string[]>([]);
   const [runtimePlanSelectionMode, setRuntimePlanSelectionMode] = useState<
     "include" | "exclude"
   >("include");
   const [isRuntimeSyncing, setIsRuntimeSyncing] = useState(false);
   const [isRuntimeRotating, setIsRuntimeRotating] = useState(false);
+  const [isSavingAiRuntimeConfig, setIsSavingAiRuntimeConfig] = useState(false);
+  const [isValidatingAiRuntimeConfig, setIsValidatingAiRuntimeConfig] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -137,6 +163,18 @@ export function SettingsPage() {
           ? `todos excepto ${selectedRuntimePlanTenants.length} tenant(s) excluidos`
           : `all except ${selectedRuntimePlanTenants.length} excluded tenant(s)`;
 
+  function applyAiRuntimeConfigToForm(config: PlatformAiRuntimeConfigResponse) {
+    setAiRuntimeForm({
+      api_url: config.api_url || "",
+      api_key: "",
+      replace_api_key: false,
+      model_id: config.model_id || "mistral-ollama",
+      max_tokens: config.max_tokens || 1200,
+      temperature: config.temperature || 0.1,
+      timeout: config.timeout || 300,
+    });
+  }
+
   async function loadSettings() {
     if (!session?.accessToken) {
       return;
@@ -145,6 +183,7 @@ export function SettingsPage() {
     setIsLoading(true);
     setError(null);
     setRootRecoveryStatusError(null);
+    setAiRuntimeConfigError(null);
     setSecurityPostureError(null);
     setRuntimeSecretPlanError(null);
     setRuntimeSecretCampaignsError(null);
@@ -154,6 +193,7 @@ export function SettingsPage() {
         capabilitiesResult,
         rootRecoveryResult,
         platformUsersResult,
+        aiRuntimeConfigResult,
         securityPostureResult,
         runtimeSecretPlanResult,
         runtimeSecretCampaignsResult,
@@ -162,6 +202,7 @@ export function SettingsPage() {
           getPlatformCapabilities(session.accessToken),
           getPlatformRootRecoveryStatus(session.accessToken),
           listPlatformUsers(session.accessToken),
+          getPlatformAiRuntimeConfig(session.accessToken),
           getPlatformSecurityPosture(session.accessToken),
           getPlatformRuntimeSecretPlan(session.accessToken),
           getPlatformRuntimeSecretCampaigns(session.accessToken),
@@ -184,6 +225,14 @@ export function SettingsPage() {
       } else {
         setRootRecoveryStatus(null);
         setRootRecoveryStatusError(rootRecoveryResult.reason as ApiError);
+      }
+
+      if (aiRuntimeConfigResult.status === "fulfilled") {
+        setAiRuntimeConfig(aiRuntimeConfigResult.value);
+        applyAiRuntimeConfigToForm(aiRuntimeConfigResult.value);
+      } else {
+        setAiRuntimeConfig(null);
+        setAiRuntimeConfigError(aiRuntimeConfigResult.reason as ApiError);
       }
 
       if (securityPostureResult.status === "fulfilled") {
@@ -210,6 +259,7 @@ export function SettingsPage() {
       if (
         capabilitiesResult.status === "rejected" &&
         platformUsersResult.status === "rejected" &&
+        aiRuntimeConfigResult.status === "rejected" &&
         securityPostureResult.status === "rejected" &&
         runtimeSecretPlanResult.status === "rejected" &&
         runtimeSecretCampaignsResult.status === "rejected"
@@ -220,11 +270,13 @@ export function SettingsPage() {
       setError(rawError as ApiError);
       setCapabilities(null);
       setRootRecoveryStatus(null);
+      setAiRuntimeConfig(null);
       setSecurityPosture(null);
       setRuntimeSecretPlan(null);
       setRuntimeSecretCampaigns([]);
       setPlatformUsers([]);
       setRootRecoveryStatusError(null);
+      setAiRuntimeConfigError(null);
       setSecurityPostureError(null);
       setRuntimeSecretPlanError(null);
       setRuntimeSecretCampaignsError(null);
@@ -313,6 +365,82 @@ export function SettingsPage() {
       );
     } finally {
       setIsRuntimeRotating(false);
+    }
+  }
+
+  function updateAiRuntimeForm<K extends keyof PlatformAiRuntimeConfigWriteRequest>(
+    key: K,
+    value: PlatformAiRuntimeConfigWriteRequest[K]
+  ) {
+    setAiRuntimeForm((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }
+
+  async function handleValidateAiRuntimeConfig() {
+    if (!session?.accessToken || isValidatingAiRuntimeConfig) {
+      return;
+    }
+
+    setAiRuntimeValidationFeedback(null);
+    setIsValidatingAiRuntimeConfig(true);
+    try {
+      const payload: PlatformAiRuntimeConfigWriteRequest = {
+        ...aiRuntimeForm,
+        api_key: aiRuntimeForm.api_key?.trim() || undefined,
+        replace_api_key: Boolean(aiRuntimeForm.api_key?.trim()),
+      };
+      const response: PlatformAiRuntimeConfigValidateResponse =
+        await validatePlatformAiRuntimeConfig(session.accessToken, payload);
+      const summary =
+        language === "es"
+          ? `${response.message}. Endpoint: ${response.endpoint || "n/d"}. Modelo: ${response.model_id || "n/d"}. Timeout: ${response.timeout}s.`
+          : `${response.message}. Endpoint: ${response.endpoint || "n/a"}. Model: ${response.model_id || "n/a"}. Timeout: ${response.timeout}s.`;
+      setAiRuntimeValidationFeedback(summary);
+    } catch (rawError) {
+      const typedError = rawError as ApiError;
+      setAiRuntimeValidationFeedback(
+        typedError.payload?.detail ||
+          typedError.message ||
+          (language === "es"
+            ? "No fue posible validar la conexión con API IA."
+            : "Could not validate the AI API connection.")
+      );
+    } finally {
+      setIsValidatingAiRuntimeConfig(false);
+    }
+  }
+
+  async function handleSaveAiRuntimeConfig() {
+    if (!session?.accessToken || isSavingAiRuntimeConfig) {
+      return;
+    }
+
+    setAiRuntimeConfigFeedback(null);
+    setIsSavingAiRuntimeConfig(true);
+    try {
+      const payload: PlatformAiRuntimeConfigWriteRequest = {
+        ...aiRuntimeForm,
+        api_key: aiRuntimeForm.api_key?.trim() || undefined,
+        replace_api_key: Boolean(aiRuntimeForm.api_key?.trim()),
+      };
+      const response = await savePlatformAiRuntimeConfig(session.accessToken, payload);
+      setAiRuntimeConfig(response);
+      applyAiRuntimeConfigToForm(response);
+      setAiRuntimeConfigFeedback(response.message);
+      await loadSettings();
+    } catch (rawError) {
+      const typedError = rawError as ApiError;
+      setAiRuntimeConfigFeedback(
+        typedError.payload?.detail ||
+          typedError.message ||
+          (language === "es"
+            ? "No fue posible guardar la configuración runtime de API IA."
+            : "Could not save the AI API runtime configuration.")
+      );
+    } finally {
+      setIsSavingAiRuntimeConfig(false);
     }
   }
 
@@ -542,6 +670,219 @@ export function SettingsPage() {
               {language === "es"
                 ? "La URL configurada viene de `VITE_API_BASE_URL`; la esperada se calcula con el host visible del navegador."
                 : "The configured URL comes from `VITE_API_BASE_URL`; the expected one is computed from the browser visible host."}
+            </div>
+          </div>
+        </PanelCard>
+
+        <PanelCard
+          icon="settings"
+          title={language === "es" ? "Integración API IA" : "AI API integration"}
+          subtitle={
+            language === "es"
+              ? "Administra la URL, key y parámetros runtime de la API IA sin exponer el secreto al navegador después de guardarlo."
+              : "Manage the runtime URL, key and parameters of the AI API without exposing the secret back to the browser after saving it."
+          }
+        >
+          <div className="tenant-detail-grid">
+            <DetailField
+              label={language === "es" ? "Entorno" : "Environment"}
+              value={aiRuntimeConfig?.app_env || "n/d"}
+            />
+            <DetailField
+              label={language === "es" ? "Ruta de secreto runtime" : "Runtime secret path"}
+              value={aiRuntimeConfig?.runtime_secret_file?.path || "n/d"}
+            />
+            <DetailField
+              label={language === "es" ? "Source actual" : "Current source"}
+              value={aiRuntimeConfig?.source || "n/d"}
+            />
+            <DetailField
+              label={language === "es" ? "Key configurada" : "Configured key"}
+              value={
+                aiRuntimeConfig?.api_key_configured
+                  ? aiRuntimeConfig.api_key_masked || "masked"
+                  : language === "es"
+                    ? "no"
+                    : "no"
+              }
+            />
+            <DetailField
+              label={language === "es" ? "Separado del .env legacy" : "Separated from legacy .env"}
+              value={
+                aiRuntimeConfig
+                  ? aiRuntimeConfig.isolated_from_legacy
+                    ? language === "es"
+                      ? "sí"
+                      : "yes"
+                    : language === "es"
+                      ? "no"
+                      : "no"
+                  : "n/d"
+              }
+            />
+            <DetailField
+              label={language === "es" ? "Runtime escribible" : "Runtime writable"}
+              value={
+                aiRuntimeConfig?.runtime_secret_file
+                  ? aiRuntimeConfig.runtime_secret_file.writable
+                    ? language === "es"
+                      ? "sí"
+                      : "yes"
+                    : language === "es"
+                      ? "no"
+                      : "no"
+                  : "n/d"
+              }
+            />
+          </div>
+          {aiRuntimeConfigError ? (
+            <div className="alert alert-warning mt-3 mb-0">
+              {language === "es"
+                ? "No fue posible leer ahora la configuración runtime de API IA."
+                : "The AI API runtime configuration could not be read right now."}
+            </div>
+          ) : null}
+          <div className="tenant-detail-grid mt-3">
+            <DetailField
+              label={language === "es" ? "URL runtime actual" : "Current runtime URL"}
+              value={aiRuntimeConfig?.api_url || "n/d"}
+            />
+            <DetailField
+              label={language === "es" ? "Modelo actual" : "Current model"}
+              value={aiRuntimeConfig?.model_id || "n/d"}
+            />
+            <DetailField
+              label={language === "es" ? "Timeout actual" : "Current timeout"}
+              value={aiRuntimeConfig ? `${aiRuntimeConfig.timeout}s` : "n/d"}
+            />
+          </div>
+          <div className="tenant-detail-grid mt-3">
+            <label className="form-label w-100">
+              <span>{language === "es" ? "API IA URL" : "AI API URL"}</span>
+              <input
+                className="form-control mt-1"
+                type="url"
+                value={aiRuntimeForm.api_url}
+                onChange={(event) => updateAiRuntimeForm("api_url", event.target.value)}
+                placeholder="http://127.0.0.1:11435"
+              />
+            </label>
+            <label className="form-label w-100">
+              <span>{language === "es" ? "Modelo" : "Model"}</span>
+              <input
+                className="form-control mt-1"
+                type="text"
+                value={aiRuntimeForm.model_id}
+                onChange={(event) => updateAiRuntimeForm("model_id", event.target.value)}
+                placeholder="mistral-ollama"
+              />
+            </label>
+            <label className="form-label w-100">
+              <span>{language === "es" ? "API key" : "API key"}</span>
+              <input
+                className="form-control mt-1"
+                type="password"
+                value={aiRuntimeForm.api_key || ""}
+                onChange={(event) => updateAiRuntimeForm("api_key", event.target.value)}
+                placeholder={
+                  language === "es"
+                    ? "Déjala vacía para conservar la actual"
+                    : "Leave empty to keep the current one"
+                }
+              />
+            </label>
+            <label className="form-label w-100">
+              <span>{language === "es" ? "Timeout (s)" : "Timeout (s)"}</span>
+              <input
+                className="form-control mt-1"
+                type="number"
+                min={30}
+                step={1}
+                value={aiRuntimeForm.timeout}
+                onChange={(event) =>
+                  updateAiRuntimeForm("timeout", Number(event.target.value || 0))
+                }
+              />
+            </label>
+            <label className="form-label w-100">
+              <span>{language === "es" ? "Max tokens" : "Max tokens"}</span>
+              <input
+                className="form-control mt-1"
+                type="number"
+                min={128}
+                step={1}
+                value={aiRuntimeForm.max_tokens}
+                onChange={(event) =>
+                  updateAiRuntimeForm("max_tokens", Number(event.target.value || 0))
+                }
+              />
+            </label>
+            <label className="form-label w-100">
+              <span>{language === "es" ? "Temperature" : "Temperature"}</span>
+              <input
+                className="form-control mt-1"
+                type="number"
+                min={0}
+                max={2}
+                step={0.1}
+                value={aiRuntimeForm.temperature}
+                onChange={(event) =>
+                  updateAiRuntimeForm("temperature", Number(event.target.value || 0))
+                }
+              />
+            </label>
+          </div>
+          <div className="d-flex justify-content-end gap-2 mt-3">
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              onClick={() => void handleValidateAiRuntimeConfig()}
+              disabled={!session?.accessToken || isValidatingAiRuntimeConfig}
+            >
+              {isValidatingAiRuntimeConfig
+                ? language === "es"
+                  ? "Validando..."
+                  : "Validating..."
+                : language === "es"
+                  ? "Probar conexión"
+                  : "Test connection"}
+            </button>
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => void handleSaveAiRuntimeConfig()}
+              disabled={!session?.accessToken || isSavingAiRuntimeConfig}
+            >
+              {isSavingAiRuntimeConfig
+                ? language === "es"
+                  ? "Guardando..."
+                  : "Saving..."
+                : language === "es"
+                  ? "Guardar configuración IA"
+                  : "Save AI configuration"}
+            </button>
+          </div>
+          {aiRuntimeValidationFeedback ? (
+            <div className="alert alert-info mt-3 mb-0">{aiRuntimeValidationFeedback}</div>
+          ) : null}
+          {aiRuntimeConfigFeedback ? (
+            <div className="alert alert-info mt-3 mb-0">{aiRuntimeConfigFeedback}</div>
+          ) : null}
+          <div className="dashboard-quick-hints mt-3">
+            <div>
+              {language === "es"
+                ? "La key se ingresa desde esta consola, pero se guarda solo del lado backend en `.runtime-ai-secrets.env`."
+                : "The key is entered from this console, but it is stored only backend-side in `.runtime-ai-secrets.env`."}
+            </div>
+            <div>
+              {language === "es"
+                ? "Después de guardarla, el navegador nunca vuelve a recibir la key completa; solo verás un valor enmascarado."
+                : "After saving it, the browser never receives the full key again; you only see a masked value."}
+            </div>
+            <div>
+              {language === "es"
+                ? "La extracción por URL de `Products` consume esta configuración runtime en caliente, sin depender de hardcodes en código."
+                : "The `Products` URL extraction consumes this runtime configuration live, without relying on hardcoded values in code."}
             </div>
           </div>
         </PanelCard>

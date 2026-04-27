@@ -216,6 +216,57 @@ export type PlatformRuntimeSecurityPostureResponse = {
   } | null;
 };
 
+export type PlatformAiRuntimeConfigWriteRequest = {
+  api_url: string;
+  api_key?: string | null;
+  replace_api_key?: boolean;
+  model_id: string;
+  max_tokens: number;
+  temperature: number;
+  timeout: number;
+};
+
+export type PlatformAiRuntimeConfigResponse = {
+  success: boolean;
+  message: string;
+  app_env: string;
+  runtime_secret_file: {
+    path: string;
+    classification: string;
+    exists: boolean;
+    readable: boolean;
+    writable: boolean;
+  };
+  legacy_env_file: {
+    path: string;
+    classification: string;
+    exists: boolean;
+    readable: boolean;
+    writable: boolean;
+  };
+  isolated_from_legacy: boolean;
+  source: string;
+  api_url: string;
+  model_id: string;
+  max_tokens: number;
+  temperature: number;
+  timeout: number;
+  api_key_configured: boolean;
+  api_key_masked: string | null;
+};
+
+export type PlatformAiRuntimeConfigValidateResponse = {
+  success: boolean;
+  message: string;
+  reachable: boolean;
+  endpoint: string | null;
+  source: string | null;
+  api_key_configured: boolean;
+  model_id: string | null;
+  timeout: number;
+  detail: string | null;
+};
+
 export type PlatformTenantRuntimeSecretBatchSyncItem = {
   tenant_id: number;
   tenant_slug: string;

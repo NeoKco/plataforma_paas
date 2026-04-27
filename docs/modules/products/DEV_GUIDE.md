@@ -229,18 +229,33 @@ Secuencia de reconstrucción:
 
 ## Secretos runtime de IA
 
-Ubicación correcta:
+Ubicación correcta actual:
 
-- `development`:
-  - `.env` local o variables exportadas del backend
-- `staging`:
-  - `/opt/platform_paas_staging/.env.staging`
-- `production`:
-  - `/opt/platform_paas/.env`
+- archivo separado por entorno:
+  - `development`:
+    - `.runtime-ai-secrets.env`
+  - `staging`:
+    - `/opt/platform_paas_staging/.runtime-ai-secrets.env`
+  - `production`:
+    - `/opt/platform_paas/.runtime-ai-secrets.env`
+
+Administración:
+
+- `Platform Admin -> Configuración -> Integración API IA`
+- endpoints:
+  - `GET /platform/ai-runtime-config`
+  - `POST /platform/ai-runtime-config`
+  - `POST /platform/ai-runtime-config/validate`
+
+Regla:
+
+- la key se ingresa desde consola admin
+- se persiste backend-side en `AI_RUNTIME_SECRETS_FILE`
+- después de guardada, el frontend solo recibe estado y valor enmascarado
 
 No usar:
 
-- frontend
+- frontend como almacén de secreto
 - tablas tenant
 - `TENANT_SECRETS_FILE`
 - hardcode en código

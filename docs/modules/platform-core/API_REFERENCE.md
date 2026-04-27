@@ -67,6 +67,9 @@ Activity:
 Capabilities:
 
 - `GET /platform/capabilities`
+- `GET /platform/ai-runtime-config`
+- `POST /platform/ai-runtime-config`
+- `POST /platform/ai-runtime-config/validate`
 - `GET /platform/security-posture`
 - `GET /platform/security-posture/runtime-secret-plan`
 - `GET /platform/security-posture/runtime-secret-campaigns`
@@ -99,6 +102,32 @@ Payload operativo actual de `GET /platform/security-posture`:
 - `tenant_secrets_legacy`
 - `tenant_secrets_isolated_from_legacy`
 - `tenant_secret_distribution_summary`
+
+Payload operativo actual de `GET /platform/ai-runtime-config`:
+
+- `app_env`
+- `runtime_secret_file`
+- `legacy_env_file`
+- `isolated_from_legacy`
+- `source`
+- `api_url`
+- `model_id`
+- `max_tokens`
+- `temperature`
+- `timeout`
+- `api_key_configured`
+- `api_key_masked`
+
+Mutaciones nuevas del carril IA runtime:
+
+- `POST /platform/ai-runtime-config`
+- `POST /platform/ai-runtime-config/validate`
+
+Regla operativa:
+
+- la key de la API IA se administra desde consola `superadmin`
+- se persiste backend-side en `AI_RUNTIME_SECRETS_FILE`
+- el navegador nunca vuelve a recibir la key completa
 
 Payload operativo actual de `GET /tenant/info`:
 

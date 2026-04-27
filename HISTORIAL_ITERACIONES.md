@@ -1,5 +1,45 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - `platform_admin` ya administra la API IA runtime
+
+Contexto:
+
+- el usuario no quería depender de acceso shell/backend para cambiar la key de la API IA
+- además, `products` ya necesitaba una fuente runtime separada del `.env` principal y consumible en caliente
+
+Cambios:
+
+- backend nuevo:
+  - `backend/app/common/security/ai_runtime_secret_service.py`
+- endpoints nuevos:
+  - `GET /platform/ai-runtime-config`
+  - `POST /platform/ai-runtime-config`
+  - `POST /platform/ai-runtime-config/validate`
+- `SettingsPage.tsx` ya expone:
+  - URL
+  - modelo
+  - timeout
+  - max tokens
+  - temperature
+  - API key con reemplazo seguro
+  - validación de conexión
+  - key enmascarada
+- la persistencia normal ya pasa a:
+  - `development` -> `.runtime-ai-secrets.env`
+  - `staging` -> `/opt/platform_paas_staging/.runtime-ai-secrets.env`
+  - `production` -> `/opt/platform_paas/.runtime-ai-secrets.env`
+- `products` ahora consume esa configuración runtime en caliente para:
+  - extracción URL IA
+  - refresh por artículo
+  - `html_ai` en conectores
+  - enriquecimiento
+
+Validación:
+
+- `python3 -m py_compile ...` de backend nuevo/tocado -> `OK`
+- `backend.app.tests.test_products_services + backend.app.tests.test_security_hardening` -> `40 tests OK`
+- `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-26 - `products` separa explícitamente el pipeline IA
 
 Contexto:

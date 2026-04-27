@@ -1,4 +1,7 @@
 import type {
+  PlatformAiRuntimeConfigResponse,
+  PlatformAiRuntimeConfigValidateResponse,
+  PlatformAiRuntimeConfigWriteRequest,
   PlatformCapabilities,
   PlatformLoginResponse,
   PlatformAuthAuditEventListResponse,
@@ -122,6 +125,37 @@ export function getPlatformSecurityPosture(accessToken: string) {
     "/platform/security-posture",
     {
       token: accessToken,
+    }
+  );
+}
+
+export function getPlatformAiRuntimeConfig(accessToken: string) {
+  return apiRequest<PlatformAiRuntimeConfigResponse>("/platform/ai-runtime-config", {
+    token: accessToken,
+  });
+}
+
+export function savePlatformAiRuntimeConfig(
+  accessToken: string,
+  payload: PlatformAiRuntimeConfigWriteRequest
+) {
+  return apiRequest<PlatformAiRuntimeConfigResponse>("/platform/ai-runtime-config", {
+    method: "POST",
+    token: accessToken,
+    body: payload,
+  });
+}
+
+export function validatePlatformAiRuntimeConfig(
+  accessToken: string,
+  payload: PlatformAiRuntimeConfigWriteRequest
+) {
+  return apiRequest<PlatformAiRuntimeConfigValidateResponse>(
+    "/platform/ai-runtime-config/validate",
+    {
+      method: "POST",
+      token: accessToken,
+      body: payload,
     }
   );
 }

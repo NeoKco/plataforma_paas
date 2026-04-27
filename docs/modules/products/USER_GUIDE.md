@@ -54,9 +54,11 @@ Regla operativa nueva para `Ingesta > URL`:
 - el carril normal ahora usa IA como primer camino, no como mejora opcional
 - si el runtime no tiene `API_IA_URL` o `MANAGER_API_IA_KEY`, la extracción debe fallar con mensaje explícito
 - si la IA tarda, la extracción puede tomar varios minutos antes de devolver el borrador
-- la credencial no se ingresa en pantalla:
+- la credencial no se ingresa en el portal tenant:
+  - se administra desde `Platform Admin -> Configuración -> Integración API IA`
+  - el backend la guarda backend-side en el archivo runtime de IA
   - el backend usa `MANAGER_API_IA_KEY` server-to-server
-  - el operador no debe pegar el token en el portal tenant
+  - el operador tenant no debe pegar el token en el portal tenant
 
 Además, el operador ya puede usar:
 
