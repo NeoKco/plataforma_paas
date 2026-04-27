@@ -7,6 +7,7 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
 `products` sirve para:
 
 - mantener el catálogo reusable de productos y servicios
+- recibir migraciones completas desde catálogos legacy como `ieris_app`
 - capturar productos desde URLs o carga manual
 - capturar productos desde cualquier URL usando scraping genérico + IA
 - revisar borradores antes de publicarlos
@@ -41,6 +42,18 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
   conectores vencidos, corridas recientes del scheduler y ejecución `run-due` por tenant
 
 ## Qué agrega este cierre
+
+Además del uso normal por operador, soporte/plataforma ya puede:
+
+- importar todo el catálogo legacy de `ieris_app` a un tenant del PaaS
+- conservar:
+  - productos
+  - servicios
+  - características
+  - fotos
+  - URL fuente
+  - precio base legado
+- rerunear el import sin duplicar el catálogo gracias a `external_reference=ieris:catalogo_items:<legacy_id>`
 
 En `Catálogo`, cada producto o servicio ya puede tener:
 

@@ -55,6 +55,18 @@ class ImportCounters:
         }
 
 
+@dataclass
+class CleanupCounters:
+    deleted_price_history: int = 0
+    deleted_images: int = 0
+
+    def as_dict(self) -> dict:
+        return {
+            "deleted_price_history": self.deleted_price_history,
+            "deleted_images": self.deleted_images,
+        }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -371,20 +383,13 @@ def import_products_catalog(
     images_counter = ImportCounters()
     price_history_counter = ImportCounters()
     characteristics_counter = ImportCounters()
-
-    existing_products = tenant_db.query(CRMProduct).all()
-    products_by_name = {normalize_token(row.name): row for row in existing_products}
+    cleanup_counter = CleanupCounters()
 
     existing_sources = tenant_db.query(ProductSource).all()
     sources_by_external_reference = {
         normalize_text(row.external_reference): row
         for row in existing_sources
         if normalize_text(row.external_reference)
-    }
-    sources_by_url = {
-        normalize_text(row.source_url): row
-        for row in existing_sources
-        if normalize_text(row.source_url)
     }
 
     existing_images = tenant_db.query(ProductCatalogImage).all()
@@ -402,19 +407,21 @@ def import_products_catalog(
         for row in tenant_db.query(ProductPriceHistory).all()
     }
 
+    legacy_items_by_reference = {
+        build_external_reference(int(row["id"])): row
+        for row in item_rows
+        if row.get("id") is not None
+    }
+
     for legacy_item in item_rows:
         legacy_id = int(legacy_item["id"])
         external_reference = build_external_reference(legacy_id)
         source_url = normalize_text(legacy_item.get("url_proveedor"))
         source = sources_by_external_reference.get(external_reference)
-        if source is None and source_url:
-            source = sources_by_url.get(source_url)
 
         product = None
         if source is not None:
             product = tenant_db.get(CRMProduct, source.product_id)
-        if product is None:
-            product = products_by_name.get(normalize_token(legacy_item.get("nombre")))
 
         characteristics_payload = build_characteristics_payload(
             characteristics_map.get(legacy_id, [])
@@ -446,7 +453,6 @@ def import_products_catalog(
             tenant_db.add(product)
             tenant_db.flush()
             products_counter.created += 1
-            products_by_name[normalize_token(product.name)] = product
         else:
             changed = False
             for field in (
@@ -527,8 +533,6 @@ def import_products_catalog(
             tenant_db.flush()
             sources_counter.created += 1
             sources_by_external_reference[external_reference] = source
-            if source_url:
-                sources_by_url[source_url] = source
         else:
             changed = False
             updates = {
@@ -560,8 +564,6 @@ def import_products_catalog(
             else:
                 sources_counter.existing += 1
             sources_by_external_reference[external_reference] = source
-            if source_url:
-                sources_by_url[source_url] = source
 
         price_key = (
             product.id,
@@ -636,6 +638,65 @@ def import_products_catalog(
         existing_product_images.append(image)
         images_counter.created += 1
 
+    imported_products = tenant_db.execute(
+        text(
+            """
+            SELECT DISTINCT product_id
+            FROM products_product_sources
+            WHERE external_reference LIKE :prefix
+            """
+        ),
+        {"prefix": f"{LEGACY_SOURCE_PREFIX}%"},
+    ).scalars().all()
+
+    for product_id in imported_products:
+        references = tenant_db.execute(
+            text(
+                """
+                SELECT external_reference
+                FROM products_product_sources
+                WHERE product_id = :product_id
+                  AND external_reference LIKE :prefix
+                """
+            ),
+            {"product_id": product_id, "prefix": f"{LEGACY_SOURCE_PREFIX}%"},
+        ).scalars().all()
+        allowed_references = {
+            normalize_text(value) for value in references if normalize_text(value)
+        }
+        allowed_notes = {f"legacy_import:{value}" for value in allowed_references}
+        allowed_photo_names = {
+            normalize_text(legacy_items_by_reference[value].get("foto"))
+            for value in allowed_references
+            if value in legacy_items_by_reference
+        }
+        allowed_photo_names = {value for value in allowed_photo_names if value}
+
+        stale_price_rows = tenant_db.query(ProductPriceHistory).filter(
+            ProductPriceHistory.product_id == product_id,
+            ProductPriceHistory.notes.like(f"legacy_import:{LEGACY_SOURCE_PREFIX}%"),
+        ).all()
+        for row in stale_price_rows:
+            note = normalize_text(row.notes)
+            if note and note not in allowed_notes:
+                tenant_db.delete(row)
+                cleanup_counter.deleted_price_history += 1
+
+        stale_image_rows = tenant_db.query(ProductCatalogImage).filter(
+            ProductCatalogImage.product_id == product_id,
+            ProductCatalogImage.caption == "Importado desde ieris_app",
+        ).all()
+        for row in stale_image_rows:
+            file_name = normalize_text(row.file_name)
+            if file_name and file_name not in allowed_photo_names:
+                absolute_path = media_root / row.storage_key
+                if absolute_path.exists():
+                    absolute_path.unlink()
+                tenant_db.delete(row)
+                cleanup_counter.deleted_images += 1
+
+        tenant_db.flush()
+
     return {
         "source_counts": legacy_data["source_counts"],
         "products": products_counter.as_dict(),
@@ -646,6 +707,7 @@ def import_products_catalog(
             "created": characteristics_counter.created,
             "expected": legacy_data["source_counts"]["characteristics"],
         },
+        "cleanup": cleanup_counter.as_dict(),
     }
 
 

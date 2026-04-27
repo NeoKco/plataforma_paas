@@ -1,5 +1,56 @@
 # Products Changelog
 
+## 2026-04-27
+
+- `products` ya puede importar el catálogo completo de `ieris_app` hacia un tenant del PaaS:
+  - script nuevo:
+    - `backend/app/scripts/import_ieris_products_catalog.py`
+  - soporte nuevo:
+    - `backend/app/scripts/run_single_tenant_migrations.py`
+    - `backend/migrations/tenant/v0053_products_catalog_images_postgres_identity_fix.py`
+    - `backend/app/tests/test_import_ieris_products_catalog.py`
+  - el import trae:
+    - productos
+    - servicios
+    - características
+    - URLs fuente
+    - historial base de precio
+    - fotos
+  - clave de idempotencia:
+    - `products_product_sources.external_reference = ieris:catalogo_items:<legacy_id>`
+  - regla correctiva nueva:
+    - no consolidar items legacy distintos solo porque comparten nombre o URL
+    - cada `legacy_id` entra como artículo propio
+    - las reejecuciones limpian residuos antiguos de precio/foto si una corrida vieja había fusionado dos items por error
+  - validación repo:
+    - `python3 -m py_compile backend/app/scripts/import_ieris_products_catalog.py backend/app/scripts/run_single_tenant_migrations.py backend/migrations/tenant/v0053_products_catalog_images_postgres_identity_fix.py` -> `OK`
+    - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_import_ieris_products_catalog backend.app.tests.test_migration_flow -v` -> `OK`
+  - validación runtime real en `production` sobre `ieris-ltda`:
+    - backup PostgreSQL previo obligatorio ejecutado tres veces:
+      - antes del primer apply
+      - antes de la corrección del faltante
+      - antes de la pasada final de reconciliación
+    - migración tenant puntual aplicada:
+      - `0053_products_catalog_images_postgres_identity_fix`
+    - primer apply:
+      - `116 created + 1 updated`
+      - detectó una consolidación previa indebida causada por dos filas legacy con mismo nombre y URL
+    - corrección aplicada al import y segunda pasada:
+      - crea el artículo legacy faltante como producto propio
+    - pasada final de reconciliación:
+      - `deleted_price_history=1`
+      - `deleted_images=1`
+    - auditoría final directa en tenant DB:
+      - `products=117`
+      - `characteristics=647`
+      - `sources=117`
+      - `price_history=117`
+      - `images=117`
+      - `services=6`
+      - `legacy_sources=117`
+      - `legacy_price_history=117`
+      - `legacy_images=117`
+
 ## 2026-04-26
 
 - `products > Catálogo` ya soporta fotos comprimidas por producto/servicio también en runtime:

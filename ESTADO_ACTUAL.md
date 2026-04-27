@@ -2,6 +2,36 @@
 
 ## Última actualización
 
+- fecha: 2026-04-27
+- corte nuevo ya cerrado en repo y runtime:
+  - `products` ya importó completamente el catálogo legacy de `ieris_app` dentro de `ieris-ltda`
+  - cierre verificado directo sobre la tenant DB:
+    - `products=117`
+    - `characteristics=647`
+    - `sources=117`
+    - `price_history=117`
+    - `images=117`
+    - `services=6`
+    - `legacy_sources=117`
+    - `legacy_price_history=117`
+    - `legacy_images=117`
+  - artefactos nuevos:
+    - `backend/app/scripts/import_ieris_products_catalog.py`
+    - `backend/app/scripts/run_single_tenant_migrations.py`
+    - `backend/migrations/tenant/v0053_products_catalog_images_postgres_identity_fix.py`
+    - `backend/app/tests/test_import_ieris_products_catalog.py`
+    - `docs/runbooks/import-ieris-products-catalog.md`
+  - regla nueva del import:
+    - cada `legacy_id` entra como artículo propio
+    - ya no se consolida por nombre o URL compartida
+    - las reejecuciones limpian residuos de precio/foto heredados de corridas previas
+  - validación runtime real:
+    - backups PostgreSQL previos obligatorios ejecutados antes de cada apply correctivo en `production`
+    - backup adicional explícito de `ieris-ltda`
+    - migración tenant puntual `0053_products_catalog_images_postgres_identity_fix` aplicada a `ieris-ltda`
+    - pasada final de reconciliación:
+      - `deleted_price_history=1`
+      - `deleted_images=1`
 - fecha: 2026-04-26
 - slice técnico nuevo ya cerrado en repo y runtime:
   - `products > Catálogo` ya soporta fotos comprimidas por producto/servicio

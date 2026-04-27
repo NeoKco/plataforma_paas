@@ -63,6 +63,7 @@ En este slice el módulo también pasa a ser dueño funcional de:
 - conectores de ingesta
 - fuentes por producto
 - eventos de precio por producto
+- importación/reconciliación de catálogo legacy hacia tenants del PaaS
 
 ## Slice nuevo ya cerrado
 
@@ -258,6 +259,49 @@ No usar:
 - frontend como almacén de secreto
 - tablas tenant
 - `TENANT_SECRETS_FILE`
+
+## Importación legacy desde `ieris_app`
+
+Script canónico:
+
+- `backend/app/scripts/import_ieris_products_catalog.py`
+
+Objetivo:
+
+- traer al tenant destino todos los productos/servicios legacy con:
+  - características
+  - URLs fuente
+  - precio base
+  - fotos
+
+Clave de idempotencia:
+
+- `products_product_sources.external_reference = ieris:catalogo_items:<legacy_id>`
+
+Reglas de implementación:
+
+- no consolidar items legacy distintos solo porque comparten nombre o URL
+- cada `legacy_id` debe entrar como artículo propio
+- si ya existe una fuente con ese `external_reference`, se actualiza
+- si la corrida previa dejó residuos por una consolidación antigua, el script debe reconciliar:
+  - `products_price_history.notes = legacy_import:ieris:catalogo_items:<legacy_id>`
+  - `products_product_images.caption = Importado desde ieris_app`
+
+Secuencia segura de ejecución:
+
+1. backup PostgreSQL previo del tenant
+2. dry-run del import
+3. aplicar migraciones tenant pendientes si falta esquema
+4. correr import `--apply`
+5. auditar conteos finales
+6. dejar memoria viva y changelog al día
+
+Artefactos relacionados:
+
+- `backend/app/scripts/run_single_tenant_migrations.py`
+- `backend/migrations/tenant/v0053_products_catalog_images_postgres_identity_fix.py`
+- `backend/app/tests/test_import_ieris_products_catalog.py`
+- `docs/runbooks/import-ieris-products-catalog.md`
 - hardcode en código
 
 ## Operación programada

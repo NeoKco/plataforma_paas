@@ -1,5 +1,63 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-27 - import completo del catálogo `ieris_app` a `ieris-ltda`
+
+Contexto:
+
+- el usuario pidió traer al PaaS todos los productos/servicios legacy con fotos, características y demás datos desde `ieris_app`
+- la primera implementación del import cargó casi todo, pero consolidó indebidamente dos filas legacy que compartían nombre y URL
+- eso dejó un cierre parcial de `116 products / 642 characteristics / 116 sources`
+
+Cambios:
+
+- backend:
+  - script nuevo:
+    - `backend/app/scripts/import_ieris_products_catalog.py`
+  - helper nuevo:
+    - `backend/app/scripts/run_single_tenant_migrations.py`
+  - migración nueva:
+    - `backend/migrations/tenant/v0053_products_catalog_images_postgres_identity_fix.py`
+  - tests nuevos:
+    - `backend/app/tests/test_import_ieris_products_catalog.py`
+- runbook nuevo:
+  - `docs/runbooks/import-ieris-products-catalog.md`
+- corrección clave del import:
+  - ya no se consolida por nombre o URL
+  - cada `legacy_id` entra como artículo propio vía `external_reference=ieris:catalogo_items:<legacy_id>`
+  - las reejecuciones limpian residuos legacy sobrantes en:
+    - `products_price_history`
+    - `products_product_images`
+
+Incidente real resuelto:
+
+- en legacy había dos filas distintas con mismo nombre y misma URL:
+  - `catalogo_items.id=6`
+  - `catalogo_items.id=116`
+- el primer apply fusionó temporalmente ambas por coincidencia de URL/nombre
+- luego se corrigió el import, se creó el artículo faltante y se ejecutó una pasada final de reconciliación
+
+Validación:
+
+- repo:
+  - `python3 -m py_compile backend/app/scripts/import_ieris_products_catalog.py backend/app/scripts/run_single_tenant_migrations.py backend/migrations/tenant/v0053_products_catalog_images_postgres_identity_fix.py` -> `OK`
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_import_ieris_products_catalog backend.app.tests.test_migration_flow -v` -> `OK`
+- runtime `production` sobre `ieris-ltda`:
+  - backup PostgreSQL previo obligatorio ejecutado antes de cada mutación
+  - backup adicional explícito de `ieris-ltda`
+  - auditoría final directa en tenant DB:
+    - `products=117`
+    - `characteristics=647`
+    - `sources=117`
+    - `price_history=117`
+    - `images=117`
+    - `services=6`
+    - `legacy_sources=117`
+    - `legacy_price_history=117`
+    - `legacy_images=117`
+  - pasada final de reconciliación:
+    - `deleted_price_history=1`
+    - `deleted_images=1`
+
 ## 2026-04-26 - `products` suma fotos comprimidas por producto/servicio
 
 Contexto:

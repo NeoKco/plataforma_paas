@@ -3,6 +3,17 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
+  - revalidar en UI tenant `ieris-ltda` que el catálogo importado desde `ieris_app` quedó utilizable de punta a punta:
+    - productos/servicios visibles
+    - características visibles
+    - fotos visibles
+    - fuentes/precios visibles
+  - ya no queda trabajo pendiente de importación sobre ese tenant:
+    - el cierre DB ya coincide exactamente con el legacy
+  - después de esa verificación funcional, el siguiente frente vuelve a ser:
+    - abrir `projects` como consumidor fuerte de `products`
+    - o profundizar `products` solo en integración comercial/operativa superior
+- prioridad inmediata real:
   - revalidar en uso real la carga de fotos comprimidas en `products > Catálogo`
   - verificar en runtime:
     - creación de producto y subida posterior de galería

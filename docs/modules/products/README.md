@@ -10,6 +10,7 @@ Estado actual:
 
 - módulo tenant independiente ya operativo en repo y runtime
 - concentra:
+  - importación completa del catálogo legacy de `ieris_app` hacia tenants del PaaS
   - catálogo técnico-comercial reusable
   - scraping/ingesta asistida
   - actualización viva por artículo desde URL
@@ -43,6 +44,13 @@ Objetivo del módulo:
 - previsualizar y ejecutar conectores vencidos desde una superficie gobernada por tenant
 - validar conectores antes de dejarlos como origen operativo
 - dejar una base reusable para cotizaciones, proyectos y otros dominios sin amarrarla a CRM
+- permitir migrar catálogos legacy completos sin perder:
+  - productos
+  - servicios
+  - características
+  - fotos
+  - URLs fuente
+  - historial base de precio
 
 Regla base del módulo:
 
@@ -218,6 +226,17 @@ Ya quedó incluido además:
   - `mercadolibre`
   - referencia externa desde URL
   - prioridad a JSON-LD + metadata + hints específicos
+- importador legacy reusable:
+  - `backend/app/scripts/import_ieris_products_catalog.py`
+  - trae desde `ieris_app`:
+    - `117` artículos legacy en el caso real de `ieris-ltda`
+    - productos y servicios
+    - `crm_product_characteristics`
+    - `products_product_sources`
+    - `products_price_history`
+    - `products_product_images`
+  - usa `external_reference=ieris:catalogo_items:<legacy_id>` como clave canónica de idempotencia
+  - ya incorpora reconciliación de residuos de corridas previas cuando antes existió una consolidación accidental por nombre/URL
   - características extra como `Condición`, `Vendedor` y `Disponibilidad` cuando la fuente lo expone
 - extracción proveedor reforzada además para:
   - `sodimac`

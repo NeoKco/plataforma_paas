@@ -13,6 +13,7 @@ El módulo ya cubre:
 - ingesta asistida con borradores manuales
 - extracción rápida por URL
 - corridas batch por múltiples URLs
+- importación legacy completa desde `ieris_app`
 - conectores multi-fuente configurables
 - presets de conectores por proveedor
 - perfiles runtime por proveedor
@@ -31,6 +32,7 @@ El módulo ya cubre:
 - enriquecimiento controlado de borradores con heurística + IA opcional
 - extracción IA genérica como carril principal para URL y batch
 - fotos comprimidas por artículo con imagen principal
+- reconciliación idempotente de catálogo legacy por `legacy_id`
 
 ## Cerrado en el alcance actual
 
@@ -126,7 +128,13 @@ El módulo ya cubre:
   - timeout largo para capturas lentas
   - preferencia por el título principal de la página para evitar arrastrar subtítulos/leyendas al nombre del producto
   - extracción rápida por URL convertida a corrida asíncrona con progreso visible y apertura automática del borrador
-  - trazabilidad visible de IA en el borrador (`Extracción IA`, estrategia y resumen)
+- trazabilidad visible de IA en el borrador (`Extracción IA`, estrategia y resumen)
+- import de `ieris_app` validado sobre `ieris-ltda` con cierre exacto:
+  - `117 products`
+  - `647 characteristics`
+  - `117 sources`
+  - `117 price_history`
+  - `117 images`
 
 ## Backlog posterior al cierre
 
