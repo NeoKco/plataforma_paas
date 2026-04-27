@@ -3,12 +3,11 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
-  - revalidar en uso real el flujo modal nuevo en `products > Catálogo`:
-    - alta en modal
-    - edición en modal
-    - subida de fotos desde el mismo modal después del primer guardado
-  - confirmar además que las miniaturas legacy importadas ya cargan bien en `ieris-ltda` sin placeholders `...`
-  - si la UX queda correcta, el siguiente frente vuelve a ser:
+  - confirmar en uso real de `ieris-ltda` que el modal nuevo de `products > Catálogo` ya queda conforme con:
+    - foto principal inicial elegible desde el alta
+    - previsualización local antes del primer guardado
+    - vista rápida mostrando foto + características desde ficha fresca
+  - si ese cierre UX queda conforme, el siguiente frente vuelve a ser:
     - abrir `projects` como consumidor fuerte de `products`
     - o profundizar `products` solo en integración comercial/operativa superior
 - prioridad inmediata real:

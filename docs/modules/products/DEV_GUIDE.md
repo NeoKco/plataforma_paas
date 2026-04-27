@@ -225,10 +225,15 @@ Secuencia de reconstrucción:
 
 - `Catálogo` ya usa modal para alta y edición:
   - `Nuevo producto/servicio` y `Editar` comparten el mismo modal
+  - el alta ya acepta una foto principal inicial antes del primer guardado
+  - esa foto se previsualiza localmente y se sube automáticamente después del `POST` exitoso
   - la galería de fotos vive dentro de ese modal una vez que el artículo tiene `id`
 - las previews de fotos legacy no deben confiar solo en `content_type` persistido:
   - `ProductCatalogImageService` ya infiere el MIME real desde la firma del archivo cuando recibe `application/octet-stream`
   - el import reproducible de `ieris_app` también quedó ajustado para intentar inferir mejor el tipo al crear `products_product_images`
+- la vista rápida del catálogo tampoco debe confiar ciegamente en la fila ya cargada:
+  - al abrirse rehidrata el artículo con `GET /tenant/products/catalog/{product_id}`
+  - después resuelve la foto principal desde esa ficha fresca
    - progreso visible
    - apertura automática del borrador al terminar
 9. exponer trazabilidad IA visible en el borrador:
@@ -314,6 +319,10 @@ Artefactos relacionados:
 - `backend/app/tests/test_import_ieris_products_catalog.py`
 - `docs/runbooks/import-ieris-products-catalog.md`
 - hardcode en código
+
+Regla adicional de reconstrucción:
+
+- si el import encuentra una fila de `products_product_images` ya existente pero el archivo físico falta en storage, debe restaurar el archivo desde `ieris_app/uploads/productos` en vez de dejar la referencia rota
 
 ## Operación programada
 

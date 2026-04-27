@@ -1,5 +1,52 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-27 - `products` corrige la vista rápida de fotos y permite foto principal inicial en el alta
+
+Contexto:
+
+- en `ieris-ltda`, el catálogo ya mostraba miniaturas, pero algunos artículos seguían cayendo en `Sin foto disponible` dentro de la vista rápida
+- además, el usuario pidió no depender de entrar a `Editar` después del alta para recién poder cargar la primera foto
+
+Diagnóstico:
+
+- el conteo negativo inicial de imágenes faltantes vino de ejecutar scripts del repo con `PRODUCTS_MEDIA_DIR` local y no con la ruta runtime real
+- al contrastar contra `production` con `PRODUCTS_MEDIA_DIR=/opt/platform_paas/storage/products_media`, el resultado real fue:
+  - `total_imported=117`
+  - `missing_count=0`
+- el problema visible estaba en la UI:
+  - la vista rápida dependía demasiado de la fila ya cargada
+  - y el alta todavía no hacía visible de inmediato la foto principal inicial
+
+Cambios:
+
+- frontend:
+  - [CRMProductsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm/pages/CRMProductsPage.tsx)
+    - la vista rápida ahora rehidrata el artículo con `GET /tenant/products/catalog/{product_id}`
+    - después descarga la foto principal desde la ficha fresca
+    - el modal de alta ya permite elegir una foto principal inicial
+    - esa foto se previsualiza localmente antes del primer guardado
+    - al crear el artículo, la foto se sube automáticamente como principal
+  - [productsService.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/products/services/productsService.ts)
+    - nuevo cliente `getProductCatalogItem(...)`
+- reconstrucción/import future-proof:
+  - [import_ieris_products_catalog.py](/home/felipe/platform_paas/backend/app/scripts/import_ieris_products_catalog.py)
+    - si existe la fila legacy de imagen pero falta el archivo físico, el import ahora debe restaurarlo desde `ieris_app`
+    - la verificación de imágenes ya cuenta también `updated`
+
+Validación:
+
+- repo:
+  - `backend.app.tests.test_products_services` -> `26 tests OK`
+  - `python3 -m py_compile backend/app/scripts/import_ieris_products_catalog.py` -> `OK`
+  - `cd frontend && npm run build` -> `OK`
+- runtime:
+  - backup PostgreSQL explícito previo de `ieris-ltda` en `production`
+  - import correctivo reejecutado sobre `production` sin inconsistencias
+  - verificación real de storage runtime: `missing_count=0`
+  - frontend republicado en `staging` y `production`
+  - `production` readiness -> `0 fallos, 0 advertencias`
+  - `staging` readiness -> `0 fallos, 1 advertencia` esperable por `API_BASE_URL` published distinto al del checker local
+
 ## 2026-04-27 - `products` pasa alta/edición del catálogo a modal y corrige previews legacy sin MIME útil
 
 Contexto:

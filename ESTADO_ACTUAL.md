@@ -4,6 +4,15 @@
 
 - fecha: 2026-04-27
 - corte nuevo ya cerrado en repo y runtime:
+  - `products > Catálogo` ya permite elegir la foto principal inicial dentro del mismo modal de alta
+  - esa foto se previsualiza antes del primer guardado y se sube automáticamente al crear el artículo
+  - la vista rápida ahora rehidrata la ficha real del producto/servicio antes de resolver la imagen, para no depender de una fila stale del listado
+  - verificación runtime real:
+    - `production` con `PRODUCTS_MEDIA_DIR=/opt/platform_paas/storage/products_media` -> `missing_count=0` sobre las `117` fotos legacy importadas
+    - frontend republicado en `staging` y `production`
+    - `production` readiness -> `0 fallos, 0 advertencias`
+    - `staging` readiness -> `0 fallos, 1 advertencia` solo por diferencia esperada del `API_BASE_URL` publicado frente al checker local
+- corte nuevo ya cerrado en repo y runtime:
   - `products > Catálogo` ya usa modal para:
     - `Nuevo producto/servicio`
     - `Editar`

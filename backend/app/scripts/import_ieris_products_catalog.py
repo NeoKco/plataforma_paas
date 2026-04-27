@@ -621,8 +621,49 @@ def import_products_catalog(
             continue
 
         existing_product_images = images_by_product.setdefault(product.id, [])
-        if any(row.file_name == legacy_photo_name for row in existing_product_images):
-            images_counter.existing += 1
+        existing_image = next(
+            (row for row in existing_product_images if row.file_name == legacy_photo_name),
+            None,
+        )
+        if existing_image is not None:
+            absolute_path = media_root / existing_image.storage_key
+            if not absolute_path.exists():
+                if not apply_files:
+                    images_counter.updated += 1
+                    continue
+                content_bytes = legacy_photo_path.read_bytes()
+                absolute_path.parent.mkdir(parents=True, exist_ok=True)
+                absolute_path.write_bytes(content_bytes)
+                existing_image.file_size = len(content_bytes)
+                existing_image.content_type = infer_image_content_type(
+                    legacy_photo_name,
+                    content_bytes,
+                )
+                if not existing_image.caption:
+                    existing_image.caption = "Importado desde ieris_app"
+                tenant_db.add(existing_image)
+                tenant_db.flush()
+                images_counter.updated += 1
+                continue
+
+            changed = False
+            content_bytes = legacy_photo_path.read_bytes()
+            inferred_content_type = infer_image_content_type(legacy_photo_name, content_bytes)
+            if existing_image.file_size != len(content_bytes):
+                existing_image.file_size = len(content_bytes)
+                changed = True
+            if existing_image.content_type != inferred_content_type:
+                existing_image.content_type = inferred_content_type
+                changed = True
+            if not existing_image.caption:
+                existing_image.caption = "Importado desde ieris_app"
+                changed = True
+            if changed:
+                tenant_db.add(existing_image)
+                tenant_db.flush()
+                images_counter.updated += 1
+            else:
+                images_counter.existing += 1
             continue
 
         if not apply_files:
@@ -753,6 +794,7 @@ def verify_import_summary(result: dict) -> dict:
             "expected": int(source_counts["with_photo"]),
             "processed": int(
                 result["images"]["created"]
+                + result["images"]["updated"]
                 + result["images"]["existing"]
                 + result["images"]["skipped"]
                 + result["images"]["missing_files"]

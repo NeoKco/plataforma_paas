@@ -725,6 +725,12 @@ export function getProductCatalogItems(accessToken: string) {
   });
 }
 
+export function getProductCatalogItem(accessToken: string, productId: number) {
+  return apiRequest<ProductCatalogMutationResponse>(`/tenant/products/catalog/${productId}`, {
+    token: accessToken,
+  });
+}
+
 export function createProductCatalogItem(accessToken: string, payload: ProductCatalogWriteRequest) {
   return apiRequest<ProductCatalogMutationResponse>("/tenant/products/catalog", {
     method: "POST",

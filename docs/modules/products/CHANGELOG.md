@@ -2,6 +2,17 @@
 
 ## 2026-04-27
 
+- `products > Catálogo` ya corrige el caso donde la tabla insinuaba foto pero la vista rápida seguía mostrando `Sin foto disponible`:
+  - la vista rápida ahora rehidrata la ficha con `GET /tenant/products/catalog/{product_id}` antes de descargar la foto principal
+  - el alta ya permite elegir una foto principal inicial desde el mismo modal
+  - esa foto se previsualiza localmente y se sube automáticamente después del primer guardado
+  - el import reproducible desde `ieris_app` ya repara archivos físicos faltantes cuando existe la fila legacy pero no el asset en storage
+  - verificación runtime real sobre `production`:
+    - `PRODUCTS_MEDIA_DIR=/opt/platform_paas/storage/products_media` -> `missing_count=0`
+    - frontend republicado en `staging` y `production`
+    - `production` readiness -> `0 fallos, 0 advertencias`
+    - `staging` readiness -> `0 fallos, 1 advertencia` esperable por `API_BASE_URL` published distinto del checker local
+
 - `products > Catálogo` ya mueve `Nuevo producto/servicio` y `Editar` a un modal reutilizable:
   - la creación ya no usa panel inline
   - la edición ya no saca al operador de la tabla

@@ -14,6 +14,7 @@ import {
   deleteProductCatalogImage,
   deleteProductCatalogItem,
   downloadProductCatalogImage,
+  getProductCatalogItem,
   getProductCatalogItems,
   setPrimaryProductCatalogImage,
   uploadProductCatalogImage,
@@ -543,6 +544,30 @@ function CatalogEditorModal({
   onDeleteImage: (imageId: number) => Promise<void>;
   onSetPrimaryImage: (imageId: number) => Promise<void>;
 }) {
+  const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setSelectedImagePreviewUrl((current) => {
+        if (current && current.startsWith("blob:")) {
+          URL.revokeObjectURL(current);
+        }
+        return null;
+      });
+      return;
+    }
+    const objectUrl = URL.createObjectURL(imageFile);
+    setSelectedImagePreviewUrl((current) => {
+      if (current && current.startsWith("blob:")) {
+        URL.revokeObjectURL(current);
+      }
+      return objectUrl;
+    });
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [imageFile]);
+
   return (
     <div className="confirm-dialog-backdrop" role="presentation" onClick={onClose}>
       <div
@@ -808,8 +833,8 @@ function CatalogEditorModal({
                     ? "Sube imágenes comprimidas en WEBP, JPEG o PNG. La primera queda como principal y podrás cambiarla después."
                     : "Upload compressed WEBP, JPEG, or PNG images. The first one becomes primary and you can change it later."
                   : language === "es"
-                      ? "Puedes elegir la foto principal antes de guardar. Se subirá automáticamente apenas se cree el artículo."
-                      : "You can choose the primary photo before saving. It will upload automatically as soon as the item is created."}
+                    ? "Puedes elegir la foto principal de inmediato. Se previsualiza aquí y se subirá automáticamente apenas se cree el artículo."
+                    : "You can choose the primary photo right away. It previews here and uploads automatically as soon as the item is created."}
               </div>
             </div>
           </div>
@@ -849,6 +874,31 @@ function CatalogEditorModal({
                 </div>
               ) : null}
             </form>
+
+            {selectedImagePreviewUrl ? (
+              <div className="mt-3 d-flex align-items-start gap-3 flex-wrap">
+                <img
+                  src={selectedImagePreviewUrl}
+                  alt={language === "es" ? "Foto seleccionada" : "Selected photo"}
+                  style={{
+                    width: "140px",
+                    height: "140px",
+                    objectFit: "cover",
+                    borderRadius: "12px",
+                    border: "1px solid rgba(15, 23, 42, 0.12)",
+                  }}
+                />
+                <div className="text-muted small">
+                  {editingId
+                    ? language === "es"
+                      ? "Vista previa de la nueva foto que subirás al catálogo."
+                      : "Preview of the new photo you will upload to the catalog."
+                    : language === "es"
+                      ? "Vista previa de la foto principal inicial. Se guardará automáticamente al crear el producto o servicio."
+                      : "Preview of the initial primary photo. It will be saved automatically when the product or service is created."}
+                </div>
+              </div>
+            ) : null}
 
             {editingId ? (
               <>
@@ -1083,8 +1133,38 @@ function CatalogQuickViewModal({
   language: "es" | "en";
   onClose: () => void;
 }) {
-  const primaryImage = item.images.find((image) => image.is_primary) ?? item.images[0] ?? null;
+  const [resolvedItem, setResolvedItem] = useState<ProductCatalogItem>(item);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const primaryImage =
+    resolvedItem.images.find((image) => image.is_primary) ?? resolvedItem.images[0] ?? null;
+
+  useEffect(() => {
+    setResolvedItem(item);
+  }, [item]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+    let cancelled = false;
+    const token = accessToken;
+    async function loadCurrentItem() {
+      try {
+        const response = await getProductCatalogItem(token, item.id);
+        if (!cancelled) {
+          setResolvedItem(response.data);
+        }
+      } catch {
+        if (!cancelled) {
+          setResolvedItem(item);
+        }
+      }
+    }
+    void loadCurrentItem();
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, item]);
 
   useEffect(() => {
     if (!accessToken || !primaryImage) {
@@ -1136,7 +1216,7 @@ function CatalogQuickViewModal({
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [accessToken, item.id, primaryImage?.id]);
+  }, [accessToken, resolvedItem.id, primaryImage?.id]);
 
   return (
     <div
@@ -1170,10 +1250,11 @@ function CatalogQuickViewModal({
               {language === "es" ? "Vista rápida del catálogo" : "Catalog quick view"}
             </div>
             <h3 className="mb-1" style={{ fontSize: 24 }}>
-              {item.name}
+              {resolvedItem.name}
             </h3>
             <div className="text-muted small">
-              {item.product_type} · {item.unit_price.toLocaleString()} {item.unit_label || ""}
+              {resolvedItem.product_type} · {resolvedItem.unit_price.toLocaleString()}{" "}
+              {resolvedItem.unit_label || ""}
             </div>
           </div>
           <button className="btn btn-outline-secondary btn-sm" type="button" onClick={onClose}>
@@ -1199,7 +1280,7 @@ function CatalogQuickViewModal({
               {imageUrl ? (
                 <img
                   src={imageUrl}
-                  alt={item.name}
+                  alt={resolvedItem.name}
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
               ) : (
@@ -1211,19 +1292,19 @@ function CatalogQuickViewModal({
           </div>
 
           <div className="d-flex flex-column gap-3">
-            {item.description ? (
+            {resolvedItem.description ? (
               <div>
                 <strong>{language === "es" ? "Descripción" : "Description"}</strong>
                 <div className="small mt-2" style={{ whiteSpace: "pre-wrap" }}>
-                  {item.description}
+                  {resolvedItem.description}
                 </div>
               </div>
             ) : null}
             <div>
               <strong>{language === "es" ? "Características" : "Characteristics"}</strong>
-              {item.characteristics.length > 0 ? (
+              {resolvedItem.characteristics.length > 0 ? (
                 <div className="crm-chip-list mt-2">
-                  {item.characteristics.map((characteristic) => (
+                  {resolvedItem.characteristics.map((characteristic) => (
                     <span key={characteristic.id || characteristic.label} className="crm-chip">
                       {characteristic.label}: {characteristic.value}
                     </span>

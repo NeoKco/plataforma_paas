@@ -64,7 +64,9 @@ Regla base del módulo:
 - las fotos del catálogo no viven en `ingesta`:
   - pertenecen al artículo ya creado/publicado
   - se administran en `Catálogo`
-  - el producto debe existir antes de cargar su galería
+  - el operador ya puede elegir una foto principal inicial antes del primer guardado
+  - esa foto se previsualiza localmente y se sube automáticamente al crear el artículo
+  - después la galería sigue administrándose dentro del modal de edición
 
 ## Alcance actual
 
@@ -172,10 +174,12 @@ Regla visual del catálogo:
   - precio
   - descripción
   - características
+  - la vista rápida rehidrata la ficha con `GET /tenant/products/catalog/{product_id}` antes de resolver la foto
 - el alta y la edición del artículo ya no usan un panel inline:
   - `Nuevo producto/servicio` abre modal
   - `Editar` abre el mismo modal sobre el artículo existente
   - la galería sigue administrándose dentro de ese modal una vez que el artículo ya existe
+  - el alta ya deja seleccionar la foto principal inicial sin esperar a entrar luego a `Editar`
 
 Queda fuera por ahora:
 
