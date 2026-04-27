@@ -30,6 +30,16 @@ Validación:
 
 - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `44 tests OK`
 - `cd frontend && npm run build` -> `OK`
+- cierre runtime:
+  - backups PostgreSQL tenant previos en `staging` y `production`
+  - backup adicional explícito de `ieris-ltda` en `production`
+  - backend redeployado:
+    - `staging` -> `588 tests OK`
+    - `production` -> `588 tests OK`
+  - convergencia tenant:
+    - `staging` -> `processed=4, synced=4, skipped=0, failed=0`
+    - `production` -> `processed=4, synced=4, skipped=0, failed=0`
+  - frontend publicado y `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 
 ## 2026-04-26 - `products` ya permite eliminar borradores no aprobados
 

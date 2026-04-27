@@ -8,6 +8,9 @@
     - creación de producto y subida posterior de galería
     - promoción automática de principal al borrar la foto principal
     - compresión efectiva `webp` desde navegador
+  - estado de publicación:
+    - backend redeployado en `staging` y `production`
+    - frontend publicado y static readiness verde en ambos carriles
   - después de eso, el siguiente paso sobre `products` vuelve a ser elegir entre:
     - profundizar conectores propietarios/autenticados
     - institucionalizar el scheduler por entorno

@@ -3,7 +3,7 @@
 ## Última actualización
 
 - fecha: 2026-04-26
-- slice técnico nuevo ya cerrado en repo:
+- slice técnico nuevo ya cerrado en repo y runtime:
   - `products > Catálogo` ya soporta fotos comprimidas por producto/servicio
   - se implementó galería simple por artículo con una foto principal
   - la compresión ocurre browser-side antes de subir:
@@ -19,6 +19,15 @@
   - validación repo:
     - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `44 tests OK`
     - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - backups PostgreSQL tenant previos ejecutados en `staging` y `production`
+    - backup adicional explícito de `ieris-ltda` en `production`
+    - `staging` backend redeployado con `588 tests OK`
+    - `production` backend redeployado con `588 tests OK`
+    - convergencia tenant:
+      - `staging` -> `processed=4, synced=4, skipped=0, failed=0`
+      - `production` -> `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado y `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
 - slice técnico nuevo ya cerrado en repo:
   - `products > Ingesta` ya permite eliminar borradores no aprobados
   - endpoint nuevo:

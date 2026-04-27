@@ -2,6 +2,24 @@
 
 ## 2026-04-26
 
+- `products > Catálogo` ya soporta fotos comprimidas por producto/servicio también en runtime:
+  - galería simple por artículo con foto principal y secundarias
+  - compresión browser-side previa a upload con persistencia backend por tenant
+  - la UI solo habilita la subida después de crear/guardar el producto, para no dejar archivos huérfanos
+  - validación runtime:
+    - backup PostgreSQL tenant previo ejecutado en `staging` y `production`
+    - backup adicional explícito de `ieris-ltda` en `production`
+    - `staging` backend redeployado con `588 tests OK`
+    - `production` backend redeployado con `588 tests OK`
+    - convergencia tenant:
+      - `staging` -> `processed=4, synced=4, skipped=0, failed=0`
+      - `production` -> `processed=4, synced=4, skipped=0, failed=0`
+    - frontend publicado:
+      - `staging`: `ProductsCatalogPage-qVMJG_fs.js`, `productsService-jIGsQhub.js`, `SettingsPage-W-e1HlXI.js`, `TenantsPage-C4hVrJP2.js`, `index-CrdFqM5f.js`
+      - `production`: `ProductsCatalogPage-BDdYQHqo.js`, `productsService-jIGsQhub.js`, `SettingsPage-CI4SB4gy.js`, `TenantsPage-CKLwvh55.js`, `index-CQxpc1C1.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+    - `bash deploy/check_release_governance.sh` -> `OK`
+
 - `products > Ingesta` ya permite eliminar borradores no aprobados:
   - endpoint nuevo:
     - `DELETE /tenant/products/ingestion/drafts/{draft_id}`

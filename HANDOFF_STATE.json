@@ -1,6 +1,6 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-26T23:05:00-04:00",
+  "updated_at": "2026-04-26T23:36:00-04:00",
   "handoff_status": "active",
   "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. En `products`, el carril base `Ingesta > URL` ya quedó resuelto como genérico e IA-first, visible en la UI y separado internamente en preprocesado, cliente IA y postprocesado. Además, `Platform Admin -> Configuración` ya administra la configuración runtime de la API IA, `products > Ingesta` ya permite eliminar borradores no aprobados y `products > Catálogo` ya soporta galería comprimida por producto/servicio con foto principal.",
   "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada. `products` sigue siendo el módulo en foco porque su carril `Ingesta > URL` ya usa IA real de forma genérica y ahora además depende de un carril runtime administrable desde consola. El siguiente hito inmediato es publicar y revalidar en runtime este nuevo carril `Integración API IA`.",
