@@ -42,6 +42,7 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
     def create_run(self, tenant_db, payload, *, actor_user_id: int | None = None):
         connector = self._connector_service.get_connector(tenant_db, payload.connector_id) if payload.connector_id else None
         run = super().create_run(tenant_db, payload, actor_user_id=actor_user_id)
+        run.source_mode = "url_single" if len(payload.entries or []) == 1 else "url_batch"
         run.connector_id = connector.id if connector else None
         tenant_db.add(run)
         tenant_db.flush()

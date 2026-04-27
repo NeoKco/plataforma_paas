@@ -17,6 +17,7 @@ from app.apps.tenant_modules.products.schemas import (  # noqa: E402
     ProductCatalogConnectorCreateRequest,
     ProductCatalogIngestionDraftCreateRequest,
     ProductCatalogIngestionExtractUrlRequest,
+    ProductCatalogIngestionRunCreateRequest,
 )
 from app.apps.tenant_modules.products.services.connector_service import (  # noqa: E402
     ProductConnectorService,
@@ -551,6 +552,32 @@ class ProductsServicesTestCase(unittest.TestCase):
         self.assertEqual(created_payload.characteristics[0].label, "Voltaje")
         self.assertEqual(created_payload.characteristics[0].value, "0.6/1kV")
         self.assertEqual(created_payload.characteristics[0].sort_order, 10)
+
+    def test_create_run_marks_single_entry_runs_as_url_single(self) -> None:
+        tenant_db = Mock()
+        service = ProductCatalogIngestionRunService()
+        service._connector_service.get_connector = Mock(return_value=None)
+        tenant_db.add.side_effect = lambda _item: None
+        tenant_db.flush.side_effect = lambda: None
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.side_effect = lambda _item: None
+
+        run = service.create_run(
+            tenant_db,
+            ProductCatalogIngestionRunCreateRequest(
+                entries=[
+                    {
+                        "source_url": "https://proveedor.local/demo",
+                        "source_label": "Demo",
+                        "connector_id": None,
+                        "external_reference": None,
+                    }
+                ]
+            ),
+            actor_user_id=5,
+        )
+
+        self.assertEqual(run.source_mode, "url_single")
 
     def test_connector_sync_does_not_reinvoke_ai_after_full_ai_extraction(self) -> None:
         tenant_db = Mock()

@@ -3,7 +3,11 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
-  - el carril base `products > Ingesta > URL` ya quedó cerrado como `URL genérica + IA`
+  - publicar en runtime el cierre UX de `products > Ingesta > URL`:
+    - corrida asíncrona para URL única
+    - progreso visible
+    - apertura automática del borrador
+    - trazabilidad visible de IA en el borrador
   - el siguiente paso sobre `products` ya no es corregir la extracción genérica, sino elegir entre:
     - profundizar conectores propietarios/autenticados
     - institucionalizar el scheduler por entorno

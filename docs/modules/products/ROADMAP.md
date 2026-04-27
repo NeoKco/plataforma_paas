@@ -121,6 +121,8 @@ El módulo ya cubre:
   - error explícito si la IA no está configurada
   - timeout largo para capturas lentas
   - preferencia por el título principal de la página para evitar arrastrar subtítulos/leyendas al nombre del producto
+  - extracción rápida por URL convertida a corrida asíncrona con progreso visible y apertura automática del borrador
+  - trazabilidad visible de IA en el borrador (`Extracción IA`, estrategia y resumen)
 
 ## Backlog posterior al cierre
 

@@ -66,6 +66,7 @@ El módulo hoy incluye:
 - ingesta asistida con:
   - borradores manuales
   - extracción IA por URL
+  - corrida asíncrona de una sola URL con apertura automática del borrador al terminar
   - corridas batch por URLs
   - selección opcional de conector
   - normalización mínima previa
@@ -136,6 +137,10 @@ El módulo hoy incluye:
     - `backend/app/scripts/run_products_refresh_scheduler.py`
     - `--dry-run`
     - `--json-output`
+- trazabilidad visible de extracción:
+  - badge `Extracción IA`
+  - estrategia visible (`ai_full_generic`)
+  - resumen visible en el borrador
 
 Queda fuera por ahora:
 

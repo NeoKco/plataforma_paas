@@ -2,6 +2,21 @@
 
 ## 2026-04-26
 
+- `products` cierra la UX de `Ingesta > URL` para que el uso de IA quede visible y no parezca scraping síncrono opaco:
+  - la captura rápida por URL ya no dispara una request larga “ciega”
+  - ahora crea una corrida asíncrona de una sola URL reutilizando `ingestion runs`
+  - la UI muestra progreso de esa corrida
+  - al terminar, abre automáticamente el borrador resultante
+  - el borrador ya deja visible:
+    - `Extracción IA`
+    - estrategia (`ai_full_generic`)
+    - resumen de extracción
+  - ajuste backend menor:
+    - corridas de una sola URL ya quedan marcadas como `url_single`
+  - validación repo:
+    - `backend.app.tests.test_products_services` -> `20 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+
 - ajuste final del carril genérico IA de `products` para dejarlo explícitamente como comportamiento base del módulo:
   - `Ingesta > URL` ya no debe entenderse como un flujo atado a conectores específicos; el camino normal es `URL genérica + IA`
   - el runtime de `production` quedó revalidado con la URL real del usuario y confirmó:

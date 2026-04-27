@@ -16,7 +16,6 @@ import {
   createProductCatalogIngestionDraft,
   createProductCatalogIngestionRun,
   enrichProductCatalogIngestionDraft,
-  extractProductCatalogUrl,
   getProductCatalogConnectors,
   getProductCatalogIngestionDrafts,
   getProductCatalogIngestionOverview,
@@ -32,6 +31,12 @@ import {
   updateProductCatalogIngestionDraftStatus,
 } from "../../products/services/productsService";
 import { ProductsModuleNav } from "../../products/components/common/ProductsModuleNav";
+
+type IngestionTraceSummary = {
+  usedAi: boolean;
+  strategy: string | null;
+  summary: string | null;
+};
 
 function buildCharacteristic(index: number): ProductCatalogIngestionCharacteristic {
   return {
@@ -76,6 +81,28 @@ function getPreferredCatalogCandidate(row: ProductCatalogIngestionDraft): Produc
   return row.duplicate_candidates.find((candidate) => candidate.candidate_kind === "catalog_product") || null;
 }
 
+function parseIngestionTrace(notes: string | null | undefined): IngestionTraceSummary {
+  const text = (notes || "").trim();
+  if (!text) {
+    return { usedAi: false, strategy: null, summary: null };
+  }
+  const strategyMatch = text.match(/\[products-enrichment:([^\]]+)\]/i);
+  const summaryLine = text
+    .split("\n")
+    .map((item) => item.trim())
+    .find((item) => item && !item.startsWith("[products-enrichment:"));
+  return {
+    usedAi: /ia/i.test(text) || Boolean(strategyMatch),
+    strategy: strategyMatch?.[1] || null,
+    summary: summaryLine || null,
+  };
+}
+
+function buildRunProgressPercent(run: ProductCatalogIngestionRun): number {
+  if (!run.requested_count) return 0;
+  return Math.max(0, Math.min(100, Math.round((run.processed_count / run.requested_count) * 100)));
+}
+
 export function CRMProductIngestionPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
@@ -95,6 +122,7 @@ export function CRMProductIngestionPage() {
   const [batchLabel, setBatchLabel] = useState("");
   const [batchConnectorId, setBatchConnectorId] = useState("");
   const [batchUrls, setBatchUrls] = useState("");
+  const [activeUrlRunId, setActiveUrlRunId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -145,6 +173,56 @@ export function CRMProductIngestionPage() {
     }, 5000);
     return () => window.clearInterval(timer);
   }, [runs, session?.accessToken, statusFilter, query]);
+
+  useEffect(() => {
+    if (!activeUrlRunId) return;
+    const run = runs.find((item) => item.id === activeUrlRunId);
+    if (!run || run.status === "queued" || run.status === "running") return;
+
+    const firstDraftId = run.items.find((item) => item.draft_id)?.draft_id || null;
+    if (run.status === "completed" && firstDraftId) {
+      const matchedDraft = rows.find((item) => item.id === firstDraftId);
+      if (matchedDraft) {
+        startEdit(matchedDraft);
+        setFeedback(
+          language === "es"
+            ? `Extracción completada con ${run.completed_count}/${run.requested_count} URL procesadas.`
+            : `Extraction completed with ${run.completed_count}/${run.requested_count} URLs processed.`,
+        );
+        setActiveUrlRunId(null);
+      }
+      return;
+    }
+
+    if (run.status === "completed" && !firstDraftId && run.error_count > 0) {
+      setError({
+        status: 400,
+        message: run.last_error || (language === "es" ? "La extracción terminó con errores" : "Extraction finished with errors"),
+        payload: {
+          detail: run.last_error || null,
+        },
+      } as ApiError);
+      setActiveUrlRunId(null);
+      return;
+    }
+
+    if (run.status === "failed") {
+      setError({
+        status: 400,
+        message: run.last_error || (language === "es" ? "La extracción falló" : "Extraction failed"),
+        payload: {
+          detail: run.last_error || null,
+        },
+      } as ApiError);
+      setActiveUrlRunId(null);
+      return;
+    }
+
+    if (run.status === "cancelled") {
+      setFeedback(language === "es" ? "La extracción fue cancelada." : "The extraction was cancelled.");
+      setActiveUrlRunId(null);
+    }
+  }, [activeUrlRunId, rows, runs, language]);
 
   function startNew() {
     setEditingId(null);
@@ -240,18 +318,30 @@ export function CRMProductIngestionPage() {
     setError(null);
     setFeedback(null);
     try {
-      const response = await extractProductCatalogUrl(session.accessToken, {
-        source_url: extractUrl.trim(),
+      const response = await createProductCatalogIngestionRun(session.accessToken, {
         source_label: extractSourceLabel.trim() || null,
         connector_id: extractConnectorId ? Number(extractConnectorId) : null,
-        external_reference: extractReference.trim() || null,
+        entries: [
+          {
+            source_url: extractUrl.trim(),
+            source_label: extractSourceLabel.trim() || null,
+            connector_id: extractConnectorId ? Number(extractConnectorId) : null,
+            external_reference: extractReference.trim() || null,
+          },
+        ],
       });
-      setFeedback(response.message);
+      setFeedback(
+        language === "es"
+          ? "Extracción IA iniciada. La corrida aparecerá abajo y el borrador se abrirá al terminar."
+          : "AI extraction started. The run will appear below and the draft will open when it finishes.",
+      );
+      setActiveUrlRunId(response.data.id);
       setExtractUrl("");
       setExtractSourceLabel("");
       setExtractConnectorId("");
       setExtractReference("");
       await loadData();
+      setRuns((current) => [response.data, ...current.filter((item) => item.id !== response.data.id)]);
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -380,6 +470,8 @@ export function CRMProductIngestionPage() {
   }
 
   const metrics = overview?.metrics;
+  const activeUrlRun = activeUrlRunId ? runs.find((item) => item.id === activeUrlRunId) || null : null;
+  const currentTrace = parseIngestionTrace(form.extraction_notes);
   const statusLabelMap = useMemo(
     () => ({
       draft: language === "es" ? "borrador" : "draft",
@@ -463,10 +555,31 @@ export function CRMProductIngestionPage() {
         title={language === "es" ? "Extracción rápida por URL" : "Quick extraction by URL"}
         subtitle={
           language === "es"
-            ? "Usa scraping genérico + IA para convertir cualquier URL en borrador revisable. Puede tardar varios minutos."
-            : "Uses generic scraping + AI to convert any URL into a reviewable draft. It can take several minutes."
+            ? "Usa scraping genérico + IA para cualquier página utilizable. Se lanza como corrida asíncrona y puede tardar varios minutos."
+            : "Uses generic scraping + AI for any usable page. It runs asynchronously and can take several minutes."
         }
       >
+        {activeUrlRun ? (
+          <div className="alert alert-info mb-3">
+            <div className="d-flex flex-wrap justify-content-between gap-2 align-items-center">
+              <strong>
+                {language === "es" ? "Extracción IA en curso" : "AI extraction in progress"} · run-{activeUrlRun.id}
+              </strong>
+              <span>{statusLabelMap[activeUrlRun.status as keyof typeof statusLabelMap] || activeUrlRun.status}</span>
+            </div>
+            <div className="small mt-2">
+              {language === "es"
+                ? "Esta URL está corriendo por el carril genérico IA (`ai_full_generic`). El borrador se abrirá automáticamente al terminar."
+                : "This URL is running through the generic AI path (`ai_full_generic`). The draft will open automatically when it finishes."}
+            </div>
+            <div className="mt-2">
+              <progress value={activeUrlRun.processed_count} max={Math.max(activeUrlRun.requested_count, 1)} style={{ width: "100%" }} />
+            </div>
+            <div className="small text-muted mt-1">
+              {language === "es" ? "Progreso" : "Progress"}: {activeUrlRun.processed_count}/{activeUrlRun.requested_count} ({buildRunProgressPercent(activeUrlRun)}%)
+            </div>
+          </div>
+        ) : null}
         <div className="crm-form-grid">
           <label className="crm-form-grid__full">
             <span>URL</span>
@@ -493,7 +606,7 @@ export function CRMProductIngestionPage() {
           </label>
           <div className="crm-form-actions crm-form-grid__full">
             <button className="btn btn-primary" type="button" disabled={isSubmitting || !extractUrl.trim()} onClick={() => void handleExtractUrl()}>
-              {language === "es" ? "Extraer y crear borrador" : "Extract and create draft"}
+              {language === "es" ? "Iniciar extracción IA" : "Start AI extraction"}
             </button>
           </div>
         </div>
@@ -685,6 +798,26 @@ export function CRMProductIngestionPage() {
             <span>{language === "es" ? "Notas de extracción" : "Extraction notes"}</span>
             <textarea rows={3} value={form.extraction_notes || ""} onChange={(event) => setForm((current) => ({ ...current, extraction_notes: event.target.value || null }))} />
           </label>
+          {currentTrace.usedAi ? (
+            <div className="crm-form-grid__full">
+              <div className="alert alert-info mb-0">
+                <strong>{language === "es" ? "Trazabilidad IA" : "AI traceability"}</strong>
+                <div className="small mt-2">
+                  {language === "es" ? "Estrategia" : "Strategy"}: {currentTrace.strategy || "ai"}
+                </div>
+                {currentTrace.summary ? (
+                  <div className="small">
+                    {language === "es" ? "Resumen" : "Summary"}: {currentTrace.summary}
+                  </div>
+                ) : null}
+                <div className="small text-muted mt-1">
+                  {language === "es"
+                    ? "Este borrador se creó usando la API IA del backend antes de quedar disponible para revisión."
+                    : "This draft was created using the backend AI API before it became available for review."}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className="crm-form-grid__full">
             <div className="crm-lines-header">
@@ -786,6 +919,14 @@ export function CRMProductIngestionPage() {
               <div>
                 <strong>{row.name || row.source_label || "—"}</strong>
                 <div className="text-muted small">{row.connector_name || row.brand || row.category_label || "—"}</div>
+                {parseIngestionTrace(row.extraction_notes).usedAi ? (
+                  <div className="small text-primary">
+                    {language === "es" ? "Extracción IA" : "AI extraction"}
+                    {parseIngestionTrace(row.extraction_notes).strategy
+                      ? ` · ${parseIngestionTrace(row.extraction_notes).strategy}`
+                      : ""}
+                  </div>
+                ) : null}
                 {row.duplicate_summary && row.duplicate_summary.status !== "none" ? (
                   <div className="small text-danger">
                     {language === "es" ? "Posible duplicado" : "Possible duplicate"} · {row.duplicate_summary.top_score}/100

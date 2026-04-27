@@ -1,5 +1,29 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - `products` hace visible el uso de IA en `Ingesta > URL`
+
+Contexto:
+
+- aunque el backend ya estaba usando `ai_full_generic`, la UX seguía pareciendo una captura síncrona opaca
+- el usuario seguía viendo “resultados parecidos” sin una prueba visual clara de que hubiese IA de por medio
+
+Cambios:
+
+- la captura rápida por URL ahora reutiliza `ingestion runs` como corrida asíncrona de una sola entrada
+- la pantalla muestra progreso explícito mientras corre
+- al terminar, abre automáticamente el borrador generado
+- el borrador ya muestra trazabilidad visible:
+  - `Extracción IA`
+  - estrategia
+  - resumen
+- backend:
+  - corridas de una sola URL quedan marcadas como `url_single`
+
+Validación:
+
+- `backend.app.tests.test_products_services` -> `20 tests OK`
+- `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-26 - `products` cierra el carril base `URL genérica + IA`
 
 Contexto:

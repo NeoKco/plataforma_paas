@@ -293,6 +293,13 @@ Antes de esa capa, la regla normal del módulo sigue siendo esta:
   - vive en backend runtime
   - se usa server-to-server con `MANAGER_API_IA_KEY`
 
+Y ahora la captura rápida por URL ya no se comporta como request opaca:
+
+- al iniciar la extracción se crea una corrida asíncrona de una sola URL
+- la UI muestra progreso
+- al terminar, abre automáticamente el borrador generado
+- el borrador deja visible si la captura pasó por IA y qué estrategia usó
+
 El primer conector específico profundizado es `Mercado Libre`.
 
 Hoy ese preset ya hace mejor lectura que el scraping genérico porque:

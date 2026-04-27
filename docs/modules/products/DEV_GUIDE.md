@@ -211,9 +211,17 @@ Secuencia de reconstrucción:
    - prompt técnico
    - `/analyze`
    - postproceso estructurado
-8. cablear presets por proveedor y perfil runtime en UI como mejora adicional
-9. profundizar extractores específicos (`mercadolibre`, `sodimac`, `easy`) encima del carril genérico
-10. revalidar tests + build + deploy con backup tenant previo
+8. reutilizar `ingestion runs` también para la URL única:
+   - corrida asíncrona
+   - progreso visible
+   - apertura automática del borrador al terminar
+9. exponer trazabilidad IA visible en el borrador:
+   - badge
+   - estrategia
+   - resumen
+10. cablear presets por proveedor y perfil runtime en UI como mejora adicional
+11. profundizar extractores específicos (`mercadolibre`, `sodimac`, `easy`) encima del carril genérico
+12. revalidar tests + build + deploy con backup tenant previo
 
 ## Operación programada
 

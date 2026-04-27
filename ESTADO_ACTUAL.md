@@ -21,6 +21,18 @@
   - regla vigente:
     - si faltan `API_IA_URL` o `MANAGER_API_IA_KEY`, la captura URL y el batch URL deben fallar explícitamente
     - ya no corresponde simular éxito degradando silenciosamente al heurístico
+- slice adicional ya cerrado en repo y pendiente de publish runtime:
+  - `products > Ingesta > URL` ya deja visible el uso real de IA
+  - la extracción rápida por URL ahora:
+    - crea una corrida asíncrona de una sola URL
+    - muestra progreso visible
+    - abre automáticamente el borrador al terminar
+  - el borrador ya deja visible:
+    - `Extracción IA`
+    - estrategia usada
+    - resumen de extracción
+  - ajuste backend menor:
+    - corridas de una sola URL quedan como `url_single`
 - hotfix operativo final recién cerrado:
   - `products > Ingesta > Extracción rápida por URL` ya no falla por validación tipada de `characteristics`
   - el incidente reportado en `production` con `request_id=fd02b4536c3b40e84bc9ea22767927c1` quedó identificado y corregido
