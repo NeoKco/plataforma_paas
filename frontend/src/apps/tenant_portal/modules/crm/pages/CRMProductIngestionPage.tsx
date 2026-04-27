@@ -15,6 +15,7 @@ import {
   cancelProductCatalogIngestionRun,
   createProductCatalogIngestionDraft,
   createProductCatalogIngestionRun,
+  deleteProductCatalogIngestionDraft,
   enrichProductCatalogIngestionDraft,
   getProductCatalogConnectors,
   getProductCatalogIngestionDrafts,
@@ -262,6 +263,10 @@ export function CRMProductIngestionPage() {
     setReviewNotes(item.review_notes || "");
   }
 
+  function getEditingRow() {
+    return editingId ? rows.find((item) => item.id === editingId) || null : null;
+  }
+
   function updateCharacteristic(index: number, next: Partial<ProductCatalogIngestionCharacteristic>) {
     setForm((current) => ({
       ...current,
@@ -457,6 +462,39 @@ export function CRMProductIngestionPage() {
     }
   }
 
+  async function handleDeleteDraft(item: ProductCatalogIngestionDraft) {
+    if (!session?.accessToken) return;
+    if (item.capture_status === "approved" || item.published_product_id) {
+      setError({
+        status: 400,
+        message: language === "es" ? "No se puede eliminar un borrador ya aprobado." : "Approved drafts cannot be deleted.",
+        payload: { detail: null },
+      } as unknown as ApiError);
+      return;
+    }
+    const confirmed = window.confirm(
+      language === "es"
+        ? `¿Eliminar el borrador "${item.name || item.source_label || `#${item.id}`}"? Esta acción no se puede deshacer.`
+        : `Delete draft "${item.name || item.source_label || `#${item.id}`}"? This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+    setIsSubmitting(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      const response = await deleteProductCatalogIngestionDraft(session.accessToken, item.id);
+      if (editingId === item.id) {
+        startNew();
+      }
+      setFeedback(response.message);
+      await loadData();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleCancelRun(item: ProductCatalogIngestionRun) {
     if (!session?.accessToken) return;
     try {
@@ -471,6 +509,7 @@ export function CRMProductIngestionPage() {
 
   const metrics = overview?.metrics;
   const activeUrlRun = activeUrlRunId ? runs.find((item) => item.id === activeUrlRunId) || null : null;
+  const editingRow = getEditingRow();
   const currentTrace = parseIngestionTrace(form.extraction_notes);
   const statusLabelMap = useMemo(
     () => ({
@@ -874,6 +913,11 @@ export function CRMProductIngestionPage() {
                 {language === "es" ? "Cancelar edición" : "Cancel edit"}
               </button>
             ) : null}
+            {editingRow && editingRow.capture_status !== "approved" ? (
+              <button className="btn btn-outline-danger" type="button" disabled={isSubmitting} onClick={() => void handleDeleteDraft(editingRow)}>
+                {language === "es" ? "Eliminar borrador" : "Delete draft"}
+              </button>
+            ) : null}
             <button className="btn btn-primary" disabled={isSubmitting} type="submit">
               {editingId
                 ? language === "es"
@@ -1022,12 +1066,20 @@ export function CRMProductIngestionPage() {
                     <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => void handleStatus(row, "discarded")}>
                       {language === "es" ? "Descartar" : "Discard"}
                     </button>
+                    <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => void handleDeleteDraft(row)}>
+                      {language === "es" ? "Eliminar" : "Delete"}
+                    </button>
                   </>
                 ) : null}
                 {row.capture_status === "discarded" ? (
-                  <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => void handleStatus(row, "draft")}>
-                    {language === "es" ? "Reabrir" : "Reopen"}
-                  </button>
+                  <>
+                    <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => void handleStatus(row, "draft")}>
+                      {language === "es" ? "Reabrir" : "Reopen"}
+                    </button>
+                    <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => void handleDeleteDraft(row)}>
+                      {language === "es" ? "Eliminar" : "Delete"}
+                    </button>
+                  </>
                 ) : null}
               </div>
             ),

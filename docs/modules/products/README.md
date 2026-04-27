@@ -71,6 +71,7 @@ El módulo hoy incluye:
   - selección opcional de conector
   - normalización mínima previa
   - descarte y reapertura
+  - eliminación física de borradores no aprobados
   - aprobación al catálogo central
 - conectores de fuente con:
   - nombre

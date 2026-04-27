@@ -98,6 +98,15 @@ class ProductCatalogIngestionService(CRMProductIngestionService):
         tenant_db.refresh(product)
         return draft, product
 
+    def delete_draft(self, tenant_db, draft_id: int):
+        draft = self.get_draft(tenant_db, draft_id)
+        connector_id = draft.connector_id
+        deleted = super().delete_draft(tenant_db, draft_id)
+        if connector_id:
+            self._connector_service.touch_connector_sync(tenant_db, connector_id, status="ready")
+            tenant_db.commit()
+        return deleted
+
     def build_overview(self, tenant_db) -> dict[str, int]:
         base = super().build_overview(tenant_db)
         source_metrics = self._source_service.build_metrics(tenant_db)

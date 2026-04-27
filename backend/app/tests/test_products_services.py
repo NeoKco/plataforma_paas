@@ -579,6 +579,50 @@ class ProductsServicesTestCase(unittest.TestCase):
 
         self.assertEqual(run.source_mode, "url_single")
 
+    def test_delete_draft_removes_non_approved_draft(self) -> None:
+        tenant_db = Mock()
+        draft = CRMProductIngestionDraft(
+            id=41,
+            connector_id=7,
+            capture_status="draft",
+            published_product_id=None,
+            source_kind="url_reference",
+            product_type="product",
+            unit_price=0,
+            currency_code="CLP",
+        )
+        service = ProductCatalogIngestionService()
+        service._connector_service.touch_connector_sync = Mock()
+        service.get_draft = Mock(return_value=draft)
+
+        deleted = service.delete_draft(tenant_db, 41)
+
+        self.assertIs(deleted, draft)
+        tenant_db.delete.assert_called_once_with(draft)
+        self.assertGreaterEqual(tenant_db.commit.call_count, 1)
+        service._connector_service.touch_connector_sync.assert_called_once_with(tenant_db, 7, status="ready")
+
+    def test_delete_draft_rejects_approved_draft(self) -> None:
+        tenant_db = Mock()
+        draft = CRMProductIngestionDraft(
+            id=42,
+            connector_id=None,
+            capture_status="approved",
+            published_product_id=88,
+            source_kind="url_reference",
+            product_type="product",
+            unit_price=0,
+            currency_code="CLP",
+        )
+        service = ProductCatalogIngestionService()
+        service.get_draft = Mock(return_value=draft)
+
+        with self.assertRaises(ValueError) as exc:
+            service.delete_draft(tenant_db, 42)
+
+        self.assertIn("No se puede eliminar un borrador ya aprobado", str(exc.exception))
+        tenant_db.delete.assert_not_called()
+
     def test_connector_sync_does_not_reinvoke_ai_after_full_ai_extraction(self) -> None:
         tenant_db = Mock()
         connector = ProductConnector(

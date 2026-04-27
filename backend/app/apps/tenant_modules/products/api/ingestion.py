@@ -16,6 +16,7 @@ from app.apps.tenant_modules.products.schemas import (
     ProductCatalogDuplicateResolutionRequest,
     ProductCatalogIngestionApprovalResponse,
     ProductCatalogIngestionDraftCreateRequest,
+    ProductCatalogIngestionDraftDeleteResponse,
     ProductCatalogIngestionEnrichRequest,
     ProductCatalogIngestionDraftMutationResponse,
     ProductCatalogIngestionDraftsResponse,
@@ -284,6 +285,24 @@ def update_product_catalog_ingestion_draft(
         message="Borrador actualizado correctamente",
         requested_by=build_products_requested_by(current_user),
         data=_build_draft_payloads(tenant_db, [item])[0],
+    )
+
+
+@router.delete("/drafts/{draft_id}", response_model=ProductCatalogIngestionDraftDeleteResponse)
+def delete_product_catalog_ingestion_draft(
+    draft_id: int,
+    current_user=Depends(require_products_manage),
+    tenant_db: Session = Depends(get_tenant_db),
+) -> ProductCatalogIngestionDraftDeleteResponse:
+    try:
+        deleted = service.delete_draft(tenant_db, draft_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ProductCatalogIngestionDraftDeleteResponse(
+        success=True,
+        message="Borrador eliminado correctamente",
+        requested_by=build_products_requested_by(current_user),
+        deleted_id=deleted.id,
     )
 
 

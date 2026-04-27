@@ -25,6 +25,7 @@ El módulo ya cubre:
 - historial de eventos de precio
 - aprobación al catálogo central
 - descarte y reapertura
+- eliminación física de borradores no aprobados
 - deduplicación sugerida entre borradores y catálogo
 - enriquecimiento controlado de borradores con heurística + IA opcional
 - extracción IA genérica como carril principal para URL y batch
@@ -47,6 +48,7 @@ El módulo ya cubre:
 - vista `Fuentes/precios`
 - vista `Conectores`
 - persistencia automática de fuente/precio al aprobar o vincular borradores
+- eliminación visible de borradores basura desde `Ingesta` sin tocar aprobados
 - overview con métricas y lecturas recientes de:
   - fuentes
   - precios

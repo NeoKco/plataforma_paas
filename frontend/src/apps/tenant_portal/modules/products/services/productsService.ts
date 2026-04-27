@@ -414,6 +414,12 @@ type ProductCatalogIngestionDraftMutationResponse = {
   data: ProductCatalogIngestionDraft;
 };
 
+type ProductCatalogIngestionDraftDeleteResponse = {
+  success: boolean;
+  message: string;
+  deleted_id: number;
+};
+
 type ProductCatalogIngestionApprovalResponse = {
   success: boolean;
   message: string;
@@ -962,6 +968,13 @@ export function updateProductCatalogIngestionDraft(
     method: "PUT",
     token: accessToken,
     body: payload,
+  });
+}
+
+export function deleteProductCatalogIngestionDraft(accessToken: string, draftId: number) {
+  return apiRequest<ProductCatalogIngestionDraftDeleteResponse>(`/tenant/products/ingestion/drafts/${draftId}`, {
+    method: "DELETE",
+    token: accessToken,
   });
 }
 

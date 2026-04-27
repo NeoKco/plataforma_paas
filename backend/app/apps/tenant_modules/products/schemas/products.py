@@ -688,6 +688,13 @@ class ProductCatalogIngestionDraftMutationResponse(BaseModel):
     data: ProductCatalogIngestionDraftItemResponse
 
 
+class ProductCatalogIngestionDraftDeleteResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    deleted_id: int
+
+
 class ProductCatalogIngestionApprovalResponse(BaseModel):
     success: bool
     message: str

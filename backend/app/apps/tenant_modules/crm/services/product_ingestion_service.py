@@ -140,6 +140,14 @@ class CRMProductIngestionService:
         tenant_db.refresh(item)
         return item
 
+    def delete_draft(self, tenant_db, draft_id: int) -> CRMProductIngestionDraft:
+        item = self.get_draft(tenant_db, draft_id)
+        if item.capture_status == "approved" or item.published_product_id:
+            raise ValueError("No se puede eliminar un borrador ya aprobado")
+        tenant_db.delete(item)
+        tenant_db.commit()
+        return item
+
     def approve_draft(
         self,
         tenant_db,

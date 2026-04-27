@@ -4,6 +4,21 @@
 
 - fecha: 2026-04-26
 - slice técnico nuevo ya cerrado en repo:
+  - `products > Ingesta` ya permite eliminar borradores no aprobados
+  - endpoint nuevo:
+    - `DELETE /tenant/products/ingestion/drafts/{draft_id}`
+  - regla nueva:
+    - los borradores `draft` y `discarded` se pueden borrar físicamente
+    - un borrador `approved` no se puede eliminar
+  - la UI ya expone `Eliminar` en:
+    - tabla de borradores
+    - panel de edición del borrador
+  - objetivo:
+    - evitar acumulación de capturas fallidas o basura operativa en catálogo/ingesta
+  - validación repo:
+    - `backend.app.tests.test_products_services` -> `22 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+- slice técnico nuevo ya cerrado en repo:
   - `platform_admin -> Configuración -> Integración API IA` ya existe
   - el runtime de IA ya no depende de editar `.env` principal como camino normal de operación
   - backend nuevo:

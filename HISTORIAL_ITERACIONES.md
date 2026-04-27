@@ -1,5 +1,30 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - `products` ya permite eliminar borradores no aprobados
+
+Contexto:
+
+- el usuario detectó una deuda operativa real: `Products > Ingesta` permitía crear, descartar o reabrir borradores, pero no borrarlos físicamente
+- eso dejaba acumulación innecesaria de capturas fallidas o basura operativa
+
+Cambios:
+
+- backend:
+  - endpoint nuevo:
+    - `DELETE /tenant/products/ingestion/drafts/{draft_id}`
+  - regla de negocio:
+    - se pueden borrar borradores `draft` y `discarded`
+    - un borrador `approved` no se puede eliminar
+- frontend:
+  - botón `Eliminar` en la tabla de borradores
+  - botón `Eliminar borrador` dentro del panel de edición
+  - confirmación explícita antes del borrado
+
+Validación:
+
+- `backend.app.tests.test_products_services` -> `22 tests OK`
+- `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-26 - `platform_admin` ya administra la API IA runtime
 
 Contexto:

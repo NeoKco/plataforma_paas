@@ -72,6 +72,8 @@ Además, el operador ya puede usar:
   publica el producto al catálogo final
 - `Descartar` / `Reabrir`
   controla el carril revisable sin borrar historial operativo
+- `Eliminar`
+  borra físicamente un borrador no aprobado cuando fue una captura fallida, duplicada o sin valor operativo
 
 ## Fuentes y precios
 

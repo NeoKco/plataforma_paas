@@ -3,17 +3,12 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
-  - publicar y revalidar en runtime el nuevo carril `Platform Admin -> Configuración -> Integración API IA`
-  - verificar en uso real:
-    - guardado backend-side de la key
-    - validación de conexión
-    - consumo en caliente por `products > Ingesta > URL`
-  - revalidar en uso real el cierre UX de `products > Ingesta > URL`:
-    - corrida asíncrona para URL única
-    - progreso visible
-    - apertura automática del borrador
-    - trazabilidad visible de IA en el borrador
-  - el siguiente paso sobre `products` ya no es corregir la extracción genérica, sino elegir entre:
+  - revalidar en uso real el borrado de borradores no aprobados en `products > Ingesta`
+  - verificar en runtime:
+    - eliminación desde tabla
+    - eliminación desde panel de edición
+    - rechazo correcto sobre borradores aprobados
+  - después de eso, el siguiente paso sobre `products` vuelve a ser elegir entre:
     - profundizar conectores propietarios/autenticados
     - institucionalizar el scheduler por entorno
     - o abrir `projects` como consumidor fuerte del catálogo

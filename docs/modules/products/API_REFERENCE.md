@@ -19,6 +19,7 @@
 - `GET /tenant/products/ingestion/drafts`
 - `POST /tenant/products/ingestion/drafts`
 - `PUT /tenant/products/ingestion/drafts/{draft_id}`
+- `DELETE /tenant/products/ingestion/drafts/{draft_id}`
 - `POST /tenant/products/ingestion/drafts/{draft_id}/enrich`
 - `POST /tenant/products/ingestion/drafts/{draft_id}/resolve-duplicate`
 - `PATCH /tenant/products/ingestion/drafts/{draft_id}/status`

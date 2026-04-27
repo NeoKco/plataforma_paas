@@ -2,6 +2,20 @@
 
 ## 2026-04-26
 
+- `products > Ingesta` ya permite eliminar borradores no aprobados:
+  - endpoint nuevo:
+    - `DELETE /tenant/products/ingestion/drafts/{draft_id}`
+  - la UI ya expone `Eliminar` en:
+    - la tabla de borradores
+    - el panel de edición del borrador
+  - regla aplicada:
+    - solo se pueden eliminar borradores `draft` o `discarded`
+    - un borrador ya aprobado no se puede borrar
+  - objetivo:
+    - evitar acumulación de capturas fallidas o basura operativa en el carril de ingesta
+  - validación repo:
+    - `backend.app.tests.test_products_services` cubre borrado permitido y rechazo sobre aprobados
+
 - `products` y `platform_admin` ya permiten administrar la configuración runtime de la API IA desde consola:
   - backend nuevo:
     - `backend/app/common/security/ai_runtime_secret_service.py`
