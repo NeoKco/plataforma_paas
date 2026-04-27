@@ -4,6 +4,7 @@ from app.apps.tenant_modules.products.schemas import (
     ProductCatalogDuplicateCandidateResponse,
     ProductCatalogDuplicateSummaryResponse,
     ProductCatalogConnectorItemResponse,
+    ProductCatalogProductImageItemResponse,
     ProductCatalogSchedulerConnectorItemResponse,
     ProductCatalogConnectorSyncItemResponse,
     ProductCatalogEnrichmentStateResponse,
@@ -26,6 +27,7 @@ def build_product_catalog_item(
     *,
     characteristics: list | None = None,
     health: dict | None = None,
+    images: list | None = None,
 ) -> ProductCatalogItemResponse:
     health = health or {}
     return ProductCatalogItemResponse(
@@ -55,6 +57,21 @@ def build_product_catalog_item(
                 created_at=getattr(characteristic, "created_at", None),
             )
             for characteristic in (characteristics or [])
+        ],
+        images=[
+            ProductCatalogProductImageItemResponse(
+                id=image.id,
+                product_id=image.product_id,
+                file_name=image.file_name,
+                content_type=image.content_type,
+                file_size=image.file_size,
+                caption=image.caption,
+                is_primary=bool(image.is_primary),
+                uploaded_by_user_id=image.uploaded_by_user_id,
+                created_at=image.created_at,
+                download_url=f"/tenant/products/catalog/{image.product_id}/images/{image.id}/download",
+            )
+            for image in (images or [])
         ],
     )
 

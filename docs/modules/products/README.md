@@ -28,6 +28,7 @@ Estado actual:
   - comparación multi-fuente por producto
   - historial de fuentes por producto
   - historial de eventos de precio por producto
+  - galería comprimida por producto/servicio
   - revisión previa a publicación
 - otros módulos lo consumen, pero no lo poseen:
   - `crm`
@@ -52,6 +53,10 @@ Regla base del módulo:
   - postproceso estructurado
   - borrador revisable antes de publicar
 - los conectores específicos por proveedor son una mejora adicional sobre ese carril base, no su reemplazo
+- las fotos del catálogo no viven en `ingesta`:
+  - pertenecen al artículo ya creado/publicado
+  - se administran en `Catálogo`
+  - el producto debe existir antes de cargar su galería
 
 ## Alcance actual
 
@@ -63,6 +68,10 @@ El módulo hoy incluye:
   - precio unitario base
   - descripción
   - características técnicas/comerciales
+  - galería de fotos comprimidas:
+    - `webp`, `jpeg`, `png`
+    - una foto principal por artículo
+    - eliminación y reemplazo desde la ficha
 - ingesta asistida con:
   - borradores manuales
   - extracción IA por URL

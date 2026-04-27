@@ -151,6 +151,9 @@ class Settings(BaseSettings):
     TECHDOCS_ATTACHMENTS_DIR: str = str(
         BASE_DIR / "storage" / "techdocs_attachments"
     )
+    PRODUCTS_MEDIA_DIR: str = str(
+        BASE_DIR / "storage" / "products_media"
+    )
     API_IA_URL: str = ""
     MANAGER_API_IA_KEY: str = ""
     API_IA_MODEL_ID: str = ""

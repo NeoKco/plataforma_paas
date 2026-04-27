@@ -11,6 +11,10 @@
 - `PUT /tenant/products/catalog/{product_id}`
 - `PATCH /tenant/products/catalog/{product_id}/status`
 - `DELETE /tenant/products/catalog/{product_id}`
+- `POST /tenant/products/catalog/{product_id}/images`
+- `PATCH /tenant/products/catalog/{product_id}/images/{image_id}/primary`
+- `DELETE /tenant/products/catalog/{product_id}/images/{image_id}`
+- `GET /tenant/products/catalog/{product_id}/images/{image_id}/download`
 - `POST /tenant/products/catalog/{product_id}/refresh`
 
 ## Ingestion
@@ -28,6 +32,21 @@
 - `GET /tenant/products/ingestion/runs`
 - `POST /tenant/products/ingestion/runs`
 - `POST /tenant/products/ingestion/runs/{run_id}/cancel`
+
+Notas nuevas del catálogo:
+
+- `POST /tenant/products/catalog/{product_id}/images`
+  - acepta solo:
+    - `image/webp`
+    - `image/jpeg`
+    - `image/png`
+  - tamaño máximo backend:
+    - `5 MB`
+  - pensado para recibir ya la imagen comprimida desde el navegador
+- `PATCH /tenant/products/catalog/{product_id}/images/{image_id}/primary`
+  - deja una foto marcada como principal
+- `DELETE /tenant/products/catalog/{product_id}/images/{image_id}`
+  - borra la foto del almacenamiento y de la BD
 
 ## Sources and Price History
 

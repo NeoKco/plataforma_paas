@@ -4,6 +4,22 @@
 
 - fecha: 2026-04-26
 - slice técnico nuevo ya cerrado en repo:
+  - `products > Catálogo` ya soporta fotos comprimidas por producto/servicio
+  - se implementó galería simple por artículo con una foto principal
+  - la compresión ocurre browser-side antes de subir:
+    - `image/webp`
+    - límite final backend `5 MB`
+  - endpoints nuevos:
+    - `POST /tenant/products/catalog/{product_id}/images`
+    - `PATCH /tenant/products/catalog/{product_id}/images/{image_id}/primary`
+    - `DELETE /tenant/products/catalog/{product_id}/images/{image_id}`
+    - `GET /tenant/products/catalog/{product_id}/images/{image_id}/download`
+  - migración nueva:
+    - `v0052_products_catalog_images`
+  - validación repo:
+    - `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `44 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+- slice técnico nuevo ya cerrado en repo:
   - `products > Ingesta` ya permite eliminar borradores no aprobados
   - endpoint nuevo:
     - `DELETE /tenant/products/ingestion/drafts/{draft_id}`

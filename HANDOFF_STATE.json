@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-26T22:05:00-04:00",
+  "updated_at": "2026-04-26T23:05:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. En `products`, el carril base `Ingesta > URL` ya quedó resuelto como genérico e IA-first, visible en la UI y separado internamente en preprocesado, cliente IA y postprocesado. Además, `Platform Admin -> Configuración` ya administra la configuración runtime de la API IA y `products > Ingesta` ya permite eliminar borradores no aprobados para evitar acumulación de capturas fallidas.",
+  "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. En `products`, el carril base `Ingesta > URL` ya quedó resuelto como genérico e IA-first, visible en la UI y separado internamente en preprocesado, cliente IA y postprocesado. Además, `Platform Admin -> Configuración` ya administra la configuración runtime de la API IA, `products > Ingesta` ya permite eliminar borradores no aprobados y `products > Catálogo` ya soporta galería comprimida por producto/servicio con foto principal.",
   "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada. `products` sigue siendo el módulo en foco porque su carril `Ingesta > URL` ya usa IA real de forma genérica y ahora además depende de un carril runtime administrable desde consola. El siguiente hito inmediato es publicar y revalidar en runtime este nuevo carril `Integración API IA`.",
   "active_modules": [
     "platform-core",
@@ -448,7 +448,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "revalidar en runtime el borrado de borradores no aprobados en `products > Ingesta`; después decidir si el siguiente frente abre `projects` como consumidor fuerte de `products` o si se reabre `products` solo para conectores propietarios con autenticación propia y scheduler institucionalizado por entorno",
+  "next_decision_required": "revalidar en uso real la carga de fotos comprimidas en `products > Catálogo`; después decidir si el siguiente frente abre `projects` como consumidor fuerte de `products` o si se reabre `products` solo para conectores propietarios con autenticación propia y scheduler institucionalizado por entorno",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

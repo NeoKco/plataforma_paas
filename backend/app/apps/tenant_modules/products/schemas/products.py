@@ -30,6 +30,22 @@ class ProductCatalogProductCharacteristicItemResponse(BaseModel):
         from_attributes = True
 
 
+class ProductCatalogProductImageItemResponse(BaseModel):
+    id: int
+    product_id: int
+    file_name: str
+    content_type: str | None = None
+    file_size: int
+    caption: str | None = None
+    is_primary: bool
+    uploaded_by_user_id: int | None = None
+    created_at: datetime | None = None
+    download_url: str
+
+    class Config:
+        from_attributes = True
+
+
 class ProductCatalogProductCreateRequest(BaseModel):
     sku: str | None = None
     name: str
@@ -225,6 +241,7 @@ class ProductCatalogItemResponse(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     characteristics: list[ProductCatalogProductCharacteristicItemResponse] = Field(default_factory=list)
+    images: list[ProductCatalogProductImageItemResponse] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -243,6 +260,21 @@ class ProductCatalogMutationResponse(BaseModel):
     message: str
     requested_by: TenantUserContextResponse
     data: ProductCatalogItemResponse
+
+
+class ProductCatalogImageDeleteResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    product_id: int
+    deleted_id: int
+
+
+class ProductCatalogImageMutationResponse(BaseModel):
+    success: bool
+    message: str
+    requested_by: TenantUserContextResponse
+    data: ProductCatalogProductImageItemResponse
 
 
 class ProductCatalogProductSourceCreateRequest(BaseModel):

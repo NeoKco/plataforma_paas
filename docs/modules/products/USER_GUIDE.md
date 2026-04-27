@@ -26,6 +26,7 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
   lectura rápida de catálogo e ingesta
 - `Catálogo`
   CRUD del catálogo base
+  - fotos comprimidas por producto/servicio
 - `Ingesta`
   captura manual, extracción IA por URL y corridas batch
 - `Fuentes/precios`
@@ -40,6 +41,20 @@ Guía operativa del módulo `products` (`Catálogo de productos`) para usuarios 
   conectores vencidos, corridas recientes del scheduler y ejecución `run-due` por tenant
 
 ## Qué agrega este cierre
+
+En `Catálogo`, cada producto o servicio ya puede tener:
+
+- una o más fotos
+- una foto principal
+- compresión previa en navegador antes de subir
+- borrado de fotos sin borrar el artículo
+
+Regla operativa:
+
+- primero se crea el producto/servicio
+- luego se cargan sus fotos desde la misma ficha en modo edición
+- la primera foto queda como principal por defecto
+- si borras la principal y hay otras, el sistema promueve automáticamente otra
 
 En `Ingesta`, cada borrador ya puede mostrar:
 

@@ -23,12 +23,14 @@ El módulo ya cubre:
 - corridas batch de refresh con progreso
 - fuentes persistidas por producto
 - historial de eventos de precio
+- galería comprimida por producto/servicio
 - aprobación al catálogo central
 - descarte y reapertura
 - eliminación física de borradores no aprobados
 - deduplicación sugerida entre borradores y catálogo
 - enriquecimiento controlado de borradores con heurística + IA opcional
 - extracción IA genérica como carril principal para URL y batch
+- fotos comprimidas por artículo con imagen principal
 
 ## Cerrado en el alcance actual
 

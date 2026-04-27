@@ -1,10 +1,24 @@
 import { apiRequest } from "../../../../../services/api";
+import { apiDownload } from "../../../../../services/api";
 
 export type ProductCatalogProductCharacteristic = {
   id: number | null;
   label: string;
   value: string;
   sort_order: number;
+};
+
+export type ProductCatalogProductImage = {
+  id: number;
+  product_id: number;
+  file_name: string;
+  content_type: string | null;
+  file_size: number;
+  caption: string | null;
+  is_primary: boolean;
+  uploaded_by_user_id: number | null;
+  created_at: string | null;
+  download_url: string;
 };
 
 export type ProductCatalogItem = {
@@ -25,6 +39,7 @@ export type ProductCatalogItem = {
   created_at: string | null;
   updated_at: string | null;
   characteristics: ProductCatalogProductCharacteristic[];
+  images: ProductCatalogProductImage[];
 };
 
 export type ProductCatalogConnector = {
@@ -335,6 +350,19 @@ type ProductCatalogMutationResponse = {
   success: boolean;
   message: string;
   data: ProductCatalogItem;
+};
+
+type ProductCatalogImageMutationResponse = {
+  success: boolean;
+  message: string;
+  data: ProductCatalogProductImage;
+};
+
+type ProductCatalogImageDeleteResponse = {
+  success: boolean;
+  message: string;
+  product_id: number;
+  deleted_id: number;
 };
 
 type ProductCatalogConnectorsResponse = {
@@ -713,6 +741,64 @@ export function updateProductCatalogItemStatus(accessToken: string, productId: n
 export function deleteProductCatalogItem(accessToken: string, productId: number) {
   return apiRequest<ProductCatalogMutationResponse>(`/tenant/products/catalog/${productId}`, {
     method: "DELETE",
+    token: accessToken,
+  });
+}
+
+export function uploadProductCatalogImage(
+  accessToken: string,
+  productId: number,
+  file: File,
+  caption: string | null,
+  isPrimary = false
+) {
+  const body = new FormData();
+  body.append("file", file);
+  if (caption && caption.trim()) {
+    body.append("caption", caption.trim());
+  }
+  body.append("is_primary", String(isPrimary));
+  return apiRequest<ProductCatalogImageMutationResponse>(`/tenant/products/catalog/${productId}/images`, {
+    method: "POST",
+    token: accessToken,
+    body,
+  });
+}
+
+export function setPrimaryProductCatalogImage(
+  accessToken: string,
+  productId: number,
+  imageId: number
+) {
+  return apiRequest<ProductCatalogImageMutationResponse>(
+    `/tenant/products/catalog/${productId}/images/${imageId}/primary`,
+    {
+      method: "PATCH",
+      token: accessToken,
+    }
+  );
+}
+
+export function deleteProductCatalogImage(
+  accessToken: string,
+  productId: number,
+  imageId: number
+) {
+  return apiRequest<ProductCatalogImageDeleteResponse>(
+    `/tenant/products/catalog/${productId}/images/${imageId}`,
+    {
+      method: "DELETE",
+      token: accessToken,
+    }
+  );
+}
+
+export function downloadProductCatalogImage(
+  accessToken: string,
+  productId: number,
+  imageId: number
+) {
+  return apiDownload(`/tenant/products/catalog/${productId}/images/${imageId}/download`, {
     token: accessToken,
   });
 }

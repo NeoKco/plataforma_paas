@@ -1,5 +1,7 @@
 import os
+import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -9,6 +11,7 @@ os.environ["APP_ENV"] = "test"
 from app.apps.tenant_modules.crm.models import CRMProduct, CRMProductIngestionDraft  # noqa: E402
 from app.apps.tenant_modules.products.models import (  # noqa: E402
     ProductConnector,
+    ProductCatalogImage,
     ProductPriceHistory,
     ProductRefreshRunItem,
     ProductSource,
@@ -40,6 +43,9 @@ from app.apps.tenant_modules.products.services.ingestion_run_service import (  #
 from app.apps.tenant_modules.products.services.ingestion_service import (  # noqa: E402
     ProductCatalogIngestionService,
 )
+from app.apps.tenant_modules.products.services.product_image_service import (  # noqa: E402
+    ProductCatalogImageService,
+)
 from app.apps.tenant_modules.products.services.connector_scheduler_service import (  # noqa: E402
     ProductConnectorSchedulerService,
 )
@@ -55,9 +61,104 @@ from app.apps.tenant_modules.products.services.refresh_service import (  # noqa:
 from app.apps.tenant_modules.products.services.source_service import (  # noqa: E402
     ProductSourceService,
 )
+from app.common.config.settings import settings  # noqa: E402
 
 
 class ProductsServicesTestCase(unittest.TestCase):
+    def test_create_product_image_persists_primary_image(self) -> None:
+        tenant_db = Mock()
+        product = CRMProduct(id=12, name="Cable RV-K")
+        tenant_db.get.side_effect = lambda model, item_id: (
+            product if model is CRMProduct and item_id == 12 else None
+        )
+
+        query = Mock()
+        tenant_db.query.return_value = query
+        query.filter.return_value = query
+        query.order_by.return_value = query
+        query.all.return_value = []
+
+        added_items: list[object] = []
+        tenant_db.add.side_effect = lambda item: added_items.append(item)
+        tenant_db.commit.return_value = None
+        tenant_db.refresh.return_value = None
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(settings, "PRODUCTS_MEDIA_DIR", tmpdir):
+                service = ProductCatalogImageService()
+                image = service.create_image(
+                    tenant_db,
+                    12,
+                    file_name="cable.webp",
+                    content_type="image/webp",
+                    content_bytes=b"fake-image",
+                    caption="principal",
+                    is_primary=True,
+                    actor_user_id=9,
+                )
+
+                self.assertEqual(image.product_id, 12)
+                self.assertTrue(image.is_primary)
+                self.assertEqual(image.caption, "principal")
+                self.assertTrue(any(isinstance(item, ProductCatalogImage) for item in added_items))
+                stored = next(item for item in added_items if isinstance(item, ProductCatalogImage))
+                self.assertTrue((Path(tmpdir) / stored.storage_key).exists())
+
+    def test_delete_product_image_promotes_replacement(self) -> None:
+        tenant_db = Mock()
+        product = CRMProduct(id=12, name="Cable RV-K")
+        primary = ProductCatalogImage(
+            id=1,
+            product_id=12,
+            file_name="a.webp",
+            storage_key="product_12/a.webp",
+            content_type="image/webp",
+            file_size=10,
+            caption=None,
+            is_primary=True,
+            uploaded_by_user_id=1,
+        )
+        secondary = ProductCatalogImage(
+            id=2,
+            product_id=12,
+            file_name="b.webp",
+            storage_key="product_12/b.webp",
+            content_type="image/webp",
+            file_size=10,
+            caption=None,
+            is_primary=False,
+            uploaded_by_user_id=1,
+        )
+        tenant_db.get.side_effect = lambda model, item_id: (
+            product
+            if model is CRMProduct and item_id == 12
+            else primary
+            if model is ProductCatalogImage and item_id == 1
+            else secondary
+            if model is ProductCatalogImage and item_id == 2
+            else None
+        )
+        query = Mock()
+        tenant_db.query.return_value = query
+        query.filter.return_value = query
+        query.order_by.return_value = query
+        query.all.return_value = [primary, secondary]
+        query.first.return_value = secondary
+        tenant_db.commit.return_value = None
+        tenant_db.flush.return_value = None
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / primary.storage_key
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"fake-image")
+            with patch.object(settings, "PRODUCTS_MEDIA_DIR", tmpdir):
+                service = ProductCatalogImageService()
+                deleted = service.delete_image(tenant_db, 12, 1)
+
+        self.assertEqual(deleted.id, 1)
+        self.assertTrue(secondary.is_primary)
+        tenant_db.delete.assert_called_once_with(primary)
+
     def test_create_connector_persists_profile(self) -> None:
         tenant_db = Mock()
         added_items: list[object] = []

@@ -40,6 +40,9 @@ from app.apps.tenant_modules.products.services.overview_service import (
 from app.apps.tenant_modules.products.services.product_service import (
     ProductCatalogService,
 )
+from app.apps.tenant_modules.products.services.product_image_service import (
+    ProductCatalogImageService,
+)
 from app.apps.tenant_modules.products.services.refresh_run_service import (
     ProductCatalogRefreshRunService,
 )
@@ -61,6 +64,7 @@ __all__ = [
     "ProductCatalogIngestionService",
     "ProductCatalogOverviewService",
     "ProductCatalogService",
+    "ProductCatalogImageService",
     "ProductCatalogRefreshRunService",
     "ProductCatalogRefreshService",
     "ProductConnectorService",

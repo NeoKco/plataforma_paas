@@ -706,3 +706,15 @@
     - `TenantsPage-BkgcbE0p.js`
     - `index-Mb6PvFRu.js`
   - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+# 2026-04-26
+
+- `products > Catálogo` ya soporta fotos comprimidas por producto/servicio
+- nueva galería por artículo con imagen principal
+- compresión browser-side a `webp` reutilizando el patrón validado en `finance`
+- endpoints nuevos:
+  - `POST /tenant/products/catalog/{product_id}/images`
+  - `PATCH /tenant/products/catalog/{product_id}/images/{image_id}/primary`
+  - `DELETE /tenant/products/catalog/{product_id}/images/{image_id}`
+  - `GET /tenant/products/catalog/{product_id}/images/{image_id}/download`
+- migración nueva:
+  - `v0052_products_catalog_images`

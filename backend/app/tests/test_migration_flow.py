@@ -51,6 +51,7 @@ from migrations.tenant import v0048_products_connector_automation
 from migrations.tenant import v0049_products_live_refresh
 from migrations.tenant import v0050_products_connector_scheduler_and_provider_profiles
 from migrations.tenant import v0051_products_connector_runtime_profiles
+from migrations.tenant import v0052_products_catalog_images
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -240,6 +241,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0049_products_live_refresh",
                 "0050_products_connector_scheduler_and_provider_profiles",
                 "0051_products_connector_runtime_profiles",
+                "0052_products_catalog_images",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -266,6 +268,7 @@ class MigrationFlowTestCase(unittest.TestCase):
         self.assertIn("business_organizations", tables)
         self.assertIn("social_community_groups", tables)
         self.assertIn("products_connectors", tables)
+        self.assertIn("products_product_images", tables)
         self.assertIn("products_product_sources", tables)
         self.assertIn("products_price_history", tables)
         self.assertIn("products_refresh_runs", tables)
@@ -749,6 +752,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0049_products_live_refresh",
                 "0050_products_connector_scheduler_and_provider_profiles",
                 "0051_products_connector_runtime_profiles",
+                "0052_products_catalog_images",
             ],
         )
 

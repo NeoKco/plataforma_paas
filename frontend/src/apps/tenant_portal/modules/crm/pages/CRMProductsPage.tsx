@@ -11,8 +11,12 @@ import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import {
   createProductCatalogItem,
+  deleteProductCatalogImage,
   deleteProductCatalogItem,
+  downloadProductCatalogImage,
   getProductCatalogItems,
+  setPrimaryProductCatalogImage,
+  uploadProductCatalogImage,
   updateProductCatalogItem,
   updateProductCatalogItemStatus,
   type ProductCatalogItem,
@@ -44,6 +48,28 @@ function buildDefaultForm(): ProductCatalogWriteRequest {
   };
 }
 
+function buildFormFromItem(item: ProductCatalogItem): ProductCatalogWriteRequest {
+  return {
+    sku: item.sku,
+    name: item.name,
+    product_type: item.product_type,
+    unit_label: item.unit_label,
+    unit_price: item.unit_price,
+    description: item.description,
+    is_active: item.is_active,
+    sort_order: item.sort_order,
+    characteristics:
+      item.characteristics.length > 0
+        ? item.characteristics.map((characteristic) => ({
+            id: characteristic.id,
+            label: characteristic.label,
+            value: characteristic.value,
+            sort_order: characteristic.sort_order,
+          }))
+        : [buildDefaultCharacteristic(0)],
+  };
+}
+
 export function CRMProductsPage() {
   const { session } = useTenantAuth();
   const { language } = useLanguage();
@@ -52,8 +78,15 @@ export function CRMProductsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageCaption, setImageCaption] = useState("");
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<Record<number, string>>({});
+
+  const currentEditingItem =
+    editingId != null ? rows.find((item) => item.id === editingId) ?? null : null;
 
   async function loadRows() {
     if (!session?.accessToken) return;
@@ -77,31 +110,66 @@ export function CRMProductsPage() {
     setEditingId(null);
     setForm(buildDefaultForm());
     setFeedback(null);
+    setImageFile(null);
+    setImageCaption("");
   }
 
   function startEdit(item: ProductCatalogItem) {
     setEditingId(item.id);
-    setForm({
-      sku: item.sku,
-      name: item.name,
-      product_type: item.product_type,
-      unit_label: item.unit_label,
-      unit_price: item.unit_price,
-      description: item.description,
-      is_active: item.is_active,
-      sort_order: item.sort_order,
-      characteristics:
-        item.characteristics.length > 0
-          ? item.characteristics.map((characteristic) => ({
-              id: characteristic.id,
-              label: characteristic.label,
-              value: characteristic.value,
-              sort_order: characteristic.sort_order,
-            }))
-          : [buildDefaultCharacteristic(0)],
-    });
+    setForm(buildFormFromItem(item));
     setFeedback(null);
   }
+
+  useEffect(() => {
+    if (!session?.accessToken || !currentEditingItem) {
+      setImagePreviewUrls((current) => {
+        Object.values(current).forEach((url) => URL.revokeObjectURL(url));
+        return {};
+      });
+      return;
+    }
+    let cancelled = false;
+    const createdUrls: string[] = [];
+    const accessToken = session.accessToken;
+    const editingItem = currentEditingItem;
+
+    async function loadPreviews() {
+      const entries = await Promise.all(
+        editingItem.images.map(async (image) => {
+          try {
+            const result = await downloadProductCatalogImage(
+              accessToken,
+              editingItem.id,
+              image.id
+            );
+            const previewUrl = URL.createObjectURL(result.blob);
+            createdUrls.push(previewUrl);
+            return [image.id, previewUrl] as const;
+          } catch {
+            return null;
+          }
+        })
+      );
+      if (cancelled) {
+        createdUrls.forEach((url) => URL.revokeObjectURL(url));
+        return;
+      }
+      setImagePreviewUrls((current) => {
+        Object.values(current).forEach((url) => URL.revokeObjectURL(url));
+        return Object.fromEntries(entries.filter(Boolean) as Array<readonly [number, string]>);
+      });
+    }
+
+    void loadPreviews();
+    return () => {
+      cancelled = true;
+      createdUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [
+    session?.accessToken,
+    currentEditingItem?.id,
+    currentEditingItem?.images.map((image) => image.id).join(":"),
+  ]);
 
   function updateCharacteristic(index: number, next: Partial<ProductCatalogProductCharacteristic>) {
     setForm((current) => ({
@@ -146,8 +214,15 @@ export function CRMProductsPage() {
         ? await updateProductCatalogItem(session.accessToken, editingId, payload)
         : await createProductCatalogItem(session.accessToken, payload);
       setFeedback(response.message);
-      startNew();
       await loadRows();
+      if (editingId) {
+        startNew();
+      } else {
+        setEditingId(response.data.id);
+        setForm(buildFormFromItem(response.data));
+        setImageFile(null);
+        setImageCaption("");
+      }
     } catch (rawError) {
       setError(rawError as ApiError);
     } finally {
@@ -175,6 +250,57 @@ export function CRMProductsPage() {
       if (editingId === item.id) {
         startNew();
       }
+      await loadRows();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
+  async function handleUploadImage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session?.accessToken || editingId == null || !imageFile) return;
+    setIsUploadingImage(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      const preparedFile = await prepareProductCatalogImageFile(imageFile);
+      const response = await uploadProductCatalogImage(
+        session.accessToken,
+        editingId,
+        preparedFile,
+        imageCaption || null,
+        !currentEditingItem || currentEditingItem.images.length === 0
+      );
+      setFeedback(response.message);
+      setImageFile(null);
+      setImageCaption("");
+      await loadRows();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }
+
+  async function handleDeleteImage(imageId: number) {
+    if (!session?.accessToken || editingId == null) return;
+    if (!window.confirm(language === "es" ? "¿Eliminar la foto del catálogo?" : "Delete catalog photo?")) {
+      return;
+    }
+    try {
+      const response = await deleteProductCatalogImage(session.accessToken, editingId, imageId);
+      setFeedback(response.message);
+      await loadRows();
+    } catch (rawError) {
+      setError(rawError as ApiError);
+    }
+  }
+
+  async function handleSetPrimaryImage(imageId: number) {
+    if (!session?.accessToken || editingId == null) return;
+    try {
+      const response = await setPrimaryProductCatalogImage(session.accessToken, editingId, imageId);
+      setFeedback(response.message);
       await loadRows();
     } catch (rawError) {
       setError(rawError as ApiError);
@@ -322,6 +448,121 @@ export function CRMProductsPage() {
             </button>
           </div>
         </form>
+
+        <div className="mt-4">
+          <div className="crm-lines-header">
+            <div>
+              <strong>{language === "es" ? "Fotos del catálogo" : "Catalog photos"}</strong>
+              <div className="text-muted small">
+                {editingId
+                  ? language === "es"
+                    ? "Sube imágenes comprimidas en WEBP, JPEG o PNG. La primera queda como principal y podrás cambiarla después."
+                    : "Upload compressed WEBP, JPEG, or PNG images. The first one becomes primary and you can change it later."
+                  : language === "es"
+                    ? "Guarda primero el producto o servicio para poder cargar su galería."
+                    : "Save the product or service first before uploading its gallery."}
+              </div>
+            </div>
+          </div>
+
+          {editingId ? (
+            <>
+              <form className="crm-form-grid mt-3" onSubmit={(event) => void handleUploadImage(event)}>
+                <label className="crm-form-grid__full">
+                  <span>{language === "es" ? "Foto" : "Photo"}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(event) => setImageFile(event.target.files?.[0] || null)}
+                  />
+                </label>
+                <label className="crm-form-grid__full">
+                  <span>{language === "es" ? "Pie de foto" : "Caption"}</span>
+                  <input
+                    value={imageCaption}
+                    onChange={(event) => setImageCaption(event.target.value)}
+                    placeholder={language === "es" ? "Opcional" : "Optional"}
+                  />
+                </label>
+                <div className="crm-form-actions">
+                  <button className="btn btn-primary" disabled={!imageFile || isUploadingImage} type="submit">
+                    {language === "es" ? "Subir foto" : "Upload photo"}
+                  </button>
+                </div>
+              </form>
+
+              {currentEditingItem?.images.length ? (
+                <div className="d-grid gap-3 mt-3">
+                  {currentEditingItem.images.map((image) => (
+                    <div key={image.id} className="crm-line-card">
+                      <div className="d-flex gap-3 align-items-start flex-wrap">
+                        {imagePreviewUrls[image.id] ? (
+                          <img
+                            src={imagePreviewUrls[image.id]}
+                            alt={image.caption || image.file_name}
+                            style={{
+                              width: "140px",
+                              height: "140px",
+                              objectFit: "cover",
+                              borderRadius: "12px",
+                              border: "1px solid rgba(15, 23, 42, 0.12)",
+                            }}
+                          />
+                        ) : (
+                          <div
+                            className="border rounded d-flex align-items-center justify-content-center text-muted"
+                            style={{ width: "140px", height: "140px" }}
+                          >
+                            {language === "es" ? "Sin preview" : "No preview"}
+                          </div>
+                        )}
+                        <div className="d-grid gap-2 flex-grow-1">
+                          <div>
+                            <strong>{image.file_name}</strong>
+                            <div className="text-muted small">
+                              {image.is_primary
+                                ? language === "es"
+                                  ? "Foto principal"
+                                  : "Primary photo"
+                                : language === "es"
+                                  ? "Foto secundaria"
+                                  : "Secondary photo"}
+                            </div>
+                            {image.caption ? <div className="small mt-1">{image.caption}</div> : null}
+                          </div>
+                          <div className="d-flex gap-2 flex-wrap">
+                            {!image.is_primary ? (
+                              <button
+                                className="btn btn-outline-secondary btn-sm"
+                                type="button"
+                                onClick={() => void handleSetPrimaryImage(image.id)}
+                              >
+                                {language === "es" ? "Usar como principal" : "Set as primary"}
+                              </button>
+                            ) : null}
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              type="button"
+                              onClick={() => void handleDeleteImage(image.id)}
+                            >
+                              {language === "es" ? "Eliminar foto" : "Delete photo"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-muted small mt-3">
+                  {language === "es"
+                    ? "Todavía no hay fotos cargadas para este producto o servicio."
+                    : "There are no uploaded photos for this product or service yet."}
+                </div>
+              )}
+            </>
+          ) : null}
+        </div>
       </PanelCard>
 
       <DataTableCard
@@ -340,6 +581,15 @@ export function CRMProductsPage() {
               <div>
                 <strong>{row.name}</strong>
                 <div className="text-muted small">{row.sku || "—"}</div>
+                <div className="text-muted small">
+                  {row.images.length > 0
+                    ? language === "es"
+                      ? `${row.images.length} foto(s)`
+                      : `${row.images.length} photo(s)`
+                    : language === "es"
+                      ? "Sin fotos"
+                      : "No photos"}
+                </div>
               </div>
             ),
           },
@@ -390,4 +640,43 @@ export function CRMProductsPage() {
       />
     </div>
   );
+}
+
+async function prepareProductCatalogImageFile(file: File): Promise<File> {
+  if (!file.type.startsWith("image/")) {
+    return file;
+  }
+  return compressImageFile(file);
+}
+
+async function compressImageFile(file: File): Promise<File> {
+  const imageBitmap = await createImageBitmap(file);
+  const maxDimension = 1800;
+  const scale = Math.min(1, maxDimension / Math.max(imageBitmap.width, imageBitmap.height));
+  const targetWidth = Math.max(1, Math.round(imageBitmap.width * scale));
+  const targetHeight = Math.max(1, Math.round(imageBitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return file;
+  }
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, targetWidth, targetHeight);
+  context.drawImage(imageBitmap, 0, 0, targetWidth, targetHeight);
+  imageBitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((result) => resolve(result), "image/webp", 0.82);
+  });
+  if (!blob) {
+    return file;
+  }
+
+  const baseName = file.name.replace(/\.[^.]+$/, "") || "product-image";
+  return new File([blob], `${baseName}.webp`, {
+    type: "image/webp",
+    lastModified: Date.now(),
+  });
 }

@@ -3,15 +3,21 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
+  - revalidar en uso real la carga de fotos comprimidas en `products > Catálogo`
+  - verificar en runtime:
+    - creación de producto y subida posterior de galería
+    - promoción automática de principal al borrar la foto principal
+    - compresión efectiva `webp` desde navegador
+  - después de eso, el siguiente paso sobre `products` vuelve a ser elegir entre:
+    - profundizar conectores propietarios/autenticados
+    - institucionalizar el scheduler por entorno
+    - o abrir `projects` como consumidor fuerte del catálogo
+- prioridad inmediata previa:
   - revalidar en uso real el borrado de borradores no aprobados en `products > Ingesta`
   - verificar en runtime:
     - eliminación desde tabla
     - eliminación desde panel de edición
     - rechazo correcto sobre borradores aprobados
-  - después de eso, el siguiente paso sobre `products` vuelve a ser elegir entre:
-    - profundizar conectores propietarios/autenticados
-    - institucionalizar el scheduler por entorno
-    - o abrir `projects` como consumidor fuerte del catálogo
 - cambio de criterio sobre `products > Ingesta`:
   - ya no se acepta como comportamiento válido un borrador “más o menos útil” construido solo por heurística HTML
   - el carril normal por URL debe comportarse como en `ieris_app`:

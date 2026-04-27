@@ -1,5 +1,36 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - `products` suma fotos comprimidas por producto/servicio
+
+Contexto:
+
+- el catálogo `products` ya permitía crear productos/servicios, pero no tenía una galería real como en `ieris_app`
+- el usuario pidió poder cargar fotos comprimidas para no inflar almacenamiento ni depender de adjuntos genéricos
+
+Cambios:
+
+- backend:
+  - migración nueva:
+    - `v0052_products_catalog_images`
+  - tabla nueva:
+    - `products_product_images`
+  - servicio nuevo:
+    - `product_image_service.py`
+  - endpoints nuevos:
+    - `POST /tenant/products/catalog/{product_id}/images`
+    - `PATCH /tenant/products/catalog/{product_id}/images/{image_id}/primary`
+    - `DELETE /tenant/products/catalog/{product_id}/images/{image_id}`
+    - `GET /tenant/products/catalog/{product_id}/images/{image_id}/download`
+- frontend:
+  - compresión browser-side a `webp`
+  - subida desde la ficha del producto ya creado
+  - galería simple con foto principal y borrado
+
+Validación:
+
+- `backend.app.tests.test_products_services + backend.app.tests.test_migration_flow` -> `44 tests OK`
+- `cd frontend && npm run build` -> `OK`
+
 ## 2026-04-26 - `products` ya permite eliminar borradores no aprobados
 
 Contexto:
