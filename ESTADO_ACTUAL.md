@@ -3,6 +3,17 @@
 ## Última actualización
 
 - fecha: 2026-04-26
+- slice técnico nuevo ya cerrado en repo:
+  - `products` ya separa explícitamente el pipeline IA en:
+    - `ai_preprocessing_service.py`
+    - `ai_client_service.py`
+    - `ai_postprocessing_service.py`
+  - `generic_ai_extraction_service.py` queda como orquestador
+  - `MANAGER_API_IA_KEY` ya queda documentado como secreto de runtime backend:
+    - `development` -> `.env` local
+    - `staging` -> `/opt/platform_paas_staging/.env.staging`
+    - `production` -> `/opt/platform_paas/.env`
+  - no corresponde usar frontend, tablas tenant ni `TENANT_SECRETS_FILE` para esa credencial
 - slice nuevo ya cerrado en repo y runtime:
   - `products > Ingesta > Extracción rápida por URL` ya quedó alineado al comportamiento real esperado desde `ieris_app`
   - el carril base del módulo ahora es:
@@ -21,7 +32,7 @@
   - regla vigente:
     - si faltan `API_IA_URL` o `MANAGER_API_IA_KEY`, la captura URL y el batch URL deben fallar explícitamente
     - ya no corresponde simular éxito degradando silenciosamente al heurístico
-- slice adicional ya cerrado en repo y pendiente de publish runtime:
+- slice adicional ya cerrado en repo y runtime:
   - `products > Ingesta > URL` ya deja visible el uso real de IA
   - la extracción rápida por URL ahora:
     - crea una corrida asíncrona de una sola URL

@@ -171,6 +171,10 @@ Regla nueva de implementación:
 - `Products > Ingesta > URL` y sus corridas batch deben usar scraping genérico + IA como carril principal
 - el parser HTML/base puede seguir aportando SKU/marca/categoría como soporte, pero no reemplaza el paso IA
 - si falta `API_IA_URL` o `MANAGER_API_IA_KEY`, el backend debe responder error explícito y no “simular éxito” con heurística pobre
+- el pipeline debe mantenerse separado en:
+  - preprocesado
+  - cliente IA
+  - postprocesado
 
 Regla de implementación:
 
@@ -207,10 +211,10 @@ Secuencia de reconstrucción:
 5. agregar validación explícita del conector desde `connectors.py`
 6. mantener runner cross-tenant separado del request path normal
 7. cablear primero el carril base `URL genérica + IA`:
-   - `generic_ai_extraction_service.py`
-   - prompt técnico
-   - `/analyze`
-   - postproceso estructurado
+   - `ai_preprocessing_service.py`
+   - `ai_client_service.py`
+   - `ai_postprocessing_service.py`
+   - `generic_ai_extraction_service.py` como orquestador
 8. reutilizar `ingestion runs` también para la URL única:
    - corrida asíncrona
    - progreso visible
@@ -222,6 +226,24 @@ Secuencia de reconstrucción:
 10. cablear presets por proveedor y perfil runtime en UI como mejora adicional
 11. profundizar extractores específicos (`mercadolibre`, `sodimac`, `easy`) encima del carril genérico
 12. revalidar tests + build + deploy con backup tenant previo
+
+## Secretos runtime de IA
+
+Ubicación correcta:
+
+- `development`:
+  - `.env` local o variables exportadas del backend
+- `staging`:
+  - `/opt/platform_paas_staging/.env.staging`
+- `production`:
+  - `/opt/platform_paas/.env`
+
+No usar:
+
+- frontend
+- tablas tenant
+- `TENANT_SECRETS_FILE`
+- hardcode en código
 
 ## Operación programada
 

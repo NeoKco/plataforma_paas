@@ -3,7 +3,7 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
-  - publicar en runtime el cierre UX de `products > Ingesta > URL`:
+  - revalidar en uso real el cierre UX de `products > Ingesta > URL`:
     - corrida asíncrona para URL única
     - progreso visible
     - apertura automática del borrador

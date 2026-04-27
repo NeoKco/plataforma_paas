@@ -160,6 +160,11 @@ Ya quedó incluido además:
   - normalización heurística base
 - uso obligatorio del carril IA para `Ingesta > URL` y corridas batch por URL
 - si falta `API_IA_URL` o `MANAGER_API_IA_KEY`, la extracción por URL falla de forma explícita en vez de caer silenciosamente al heurístico
+- el pipeline IA ya quedó separado explícitamente en:
+  - `ai_preprocessing_service.py`
+  - `ai_client_service.py`
+  - `ai_postprocessing_service.py`
+- `generic_ai_extraction_service.py` ahora orquesta esas tres capas
 - deduplicación accionable sobre catálogo ya publicado:
   - `Actualizar existente`
   - `Vincular existente`
@@ -240,6 +245,11 @@ Piezas canónicas de este cierre:
 - API tenant:
   - `backend/app/apps/tenant_modules/products/api/connectors.py`
   - `backend/app/apps/tenant_modules/products/api/scheduler.py`
+- pipeline IA:
+  - `backend/app/apps/tenant_modules/products/services/ai_preprocessing_service.py`
+  - `backend/app/apps/tenant_modules/products/services/ai_client_service.py`
+  - `backend/app/apps/tenant_modules/products/services/ai_postprocessing_service.py`
+  - `backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py`
 - servicios:
   - `services/connector_service.py`
   - `services/connector_scheduler_service.py`
@@ -264,3 +274,32 @@ Regla de recreación:
 7. profundizar el extractor de proveedores ya priorizados (`mercadolibre`, `sodimac`, `easy`)
 8. validar repo
 9. hacer backup PostgreSQL tenant previo antes de mutar `staging` o `production`
+
+## Secretos de la API IA
+
+`MANAGER_API_IA_KEY` no pertenece al tenant ni al frontend.
+
+Debe vivir solo como secreto de runtime del backend:
+
+- `development`:
+  - `.env` local del repo o variables exportadas del proceso backend
+- `staging`:
+  - `/opt/platform_paas_staging/.env.staging`
+- `production`:
+  - `/opt/platform_paas/.env`
+
+Variables esperadas:
+
+- `API_IA_URL`
+- `MANAGER_API_IA_KEY`
+- `API_IA_MODEL_ID`
+- `API_IA_MAX_TOKENS`
+- `API_IA_TEMPERATURE`
+- `API_IA_TIMEOUT`
+
+No corresponde:
+
+- hardcodear `MANAGER_API_IA_KEY` en código
+- exponerlo al frontend
+- guardarlo en tablas tenant
+- guardarlo en `TENANT_SECRETS_FILE`

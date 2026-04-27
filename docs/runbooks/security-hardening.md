@@ -78,6 +78,26 @@ Resolucion actual:
 
 Esto permite que el provisioning cree secretos tenant dinámicos después de la instalación inicial y que el backend pueda resolverlos tras reinicios, sin tratar el `.env` principal como carril normal de escritura.
 
+### Secreto de la API IA
+
+`MANAGER_API_IA_KEY` no es un secreto tenant.
+
+Reglas:
+
+- vive como secreto de runtime del backend
+- no debe guardarse en tablas tenant
+- no debe viajar al frontend
+- no debe vivir en `TENANT_SECRETS_FILE`
+
+Ubicación por entorno:
+
+- `development`:
+  - `.env` local o variable exportada del proceso backend
+- `staging`:
+  - `/opt/platform_paas_staging/.env.staging`
+- `production`:
+  - `/opt/platform_paas/.env`
+
 ### Rotacion formal de credenciales tecnicas tenant
 
 Desde `Tenants` ya existe una accion explicita para rotar la password tecnica de DB tenant cuando la base del tenant ya esta configurada.

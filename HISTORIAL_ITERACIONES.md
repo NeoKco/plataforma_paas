@@ -1,5 +1,30 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-26 - `products` separa explícitamente el pipeline IA
+
+Contexto:
+
+- el flujo ya hacía preprocesado, llamada IA y postprocesado
+- pero en `products` seguía demasiado encapsulado y era más difícil reconstruirlo o depurarlo
+
+Cambios:
+
+- se separa el pipeline en tres servicios:
+  - `ai_preprocessing_service.py`
+  - `ai_client_service.py`
+  - `ai_postprocessing_service.py`
+- `generic_ai_extraction_service.py` queda como orquestador
+- se documenta además el contrato del secreto IA:
+  - `MANAGER_API_IA_KEY` vive en runtime backend
+  - no va en frontend
+  - no va en secretos tenant
+  - su ubicación correcta es `.env` local, `/opt/platform_paas_staging/.env.staging` y `/opt/platform_paas/.env`
+
+Validación:
+
+- `python3 -m py_compile backend/app/apps/tenant_modules/products/services/ai_preprocessing_service.py backend/app/apps/tenant_modules/products/services/ai_client_service.py backend/app/apps/tenant_modules/products/services/ai_postprocessing_service.py backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py backend/app/apps/tenant_modules/products/services/__init__.py` -> `OK`
+- `backend.app.tests.test_products_services` -> `20 tests OK`
+
 ## 2026-04-26 - `products` hace visible el uso de IA en `Ingesta > URL`
 
 Contexto:

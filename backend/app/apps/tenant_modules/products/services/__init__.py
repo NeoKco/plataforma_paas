@@ -13,6 +13,15 @@ from app.apps.tenant_modules.products.services.connector_sync_service import (
 from app.apps.tenant_modules.products.services.connector_validation_service import (
     ProductConnectorValidationService,
 )
+from app.apps.tenant_modules.products.services.ai_client_service import (
+    ProductCatalogAiClientService,
+)
+from app.apps.tenant_modules.products.services.ai_postprocessing_service import (
+    ProductCatalogAiPostprocessingService,
+)
+from app.apps.tenant_modules.products.services.ai_preprocessing_service import (
+    ProductCatalogAiPreprocessingService,
+)
 from app.apps.tenant_modules.products.services.ingestion_extraction_service import (
     ProductCatalogIngestionExtractionService,
 )
@@ -43,6 +52,9 @@ from app.apps.tenant_modules.products.services.source_service import (
 
 __all__ = [
     "ProductCatalogEnrichmentService",
+    "ProductCatalogAiClientService",
+    "ProductCatalogAiPostprocessingService",
+    "ProductCatalogAiPreprocessingService",
     "ProductCatalogComparisonService",
     "ProductCatalogIngestionExtractionService",
     "ProductCatalogIngestionRunService",

@@ -2,6 +2,20 @@
 
 ## 2026-04-26
 
+- `products` separa formalmente el pipeline genérico de IA:
+  - nuevo `ai_preprocessing_service.py`
+  - nuevo `ai_client_service.py`
+  - nuevo `ai_postprocessing_service.py`
+  - `generic_ai_extraction_service.py` queda como orquestador
+  - se documenta la política correcta del secreto:
+    - `development` -> `.env` local
+    - `staging` -> `/opt/platform_paas_staging/.env.staging`
+    - `production` -> `/opt/platform_paas/.env`
+  - `MANAGER_API_IA_KEY` no debe quedar hardcodeado, no viaja al frontend y no pertenece a secretos tenant
+  - validación repo:
+    - `python3 -m py_compile backend/app/apps/tenant_modules/products/services/ai_preprocessing_service.py backend/app/apps/tenant_modules/products/services/ai_client_service.py backend/app/apps/tenant_modules/products/services/ai_postprocessing_service.py backend/app/apps/tenant_modules/products/services/generic_ai_extraction_service.py backend/app/apps/tenant_modules/products/services/__init__.py` -> `OK`
+    - `backend.app.tests.test_products_services` -> `20 tests OK`
+
 - `products` cierra la UX de `Ingesta > URL` para que el uso de IA quede visible y no parezca scraping síncrono opaco:
   - la captura rápida por URL ya no dispara una request larga “ciega”
   - ahora crea una corrida asíncrona de una sola URL reutilizando `ingestion runs`
