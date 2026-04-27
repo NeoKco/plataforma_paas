@@ -52,6 +52,7 @@ from migrations.tenant import v0049_products_live_refresh
 from migrations.tenant import v0050_products_connector_scheduler_and_provider_profiles
 from migrations.tenant import v0051_products_connector_runtime_profiles
 from migrations.tenant import v0052_products_catalog_images
+from migrations.tenant import v0053_products_catalog_images_postgres_identity_fix
 
 
 class MigrationFlowTestCase(unittest.TestCase):
@@ -242,6 +243,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0050_products_connector_scheduler_and_provider_profiles",
                 "0051_products_connector_runtime_profiles",
                 "0052_products_catalog_images",
+                "0053_products_catalog_images_postgres_identity_fix",
             ],
         )
         self.assertIn("tenant_info", tables)
@@ -753,6 +755,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0050_products_connector_scheduler_and_provider_profiles",
                 "0051_products_connector_runtime_profiles",
                 "0052_products_catalog_images",
+                "0053_products_catalog_images_postgres_identity_fix",
             ],
         )
 
