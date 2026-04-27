@@ -84,7 +84,7 @@ export function CRMProductsPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageCaption, setImageCaption] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<Record<number, string>>({});
-  const [catalogPreviewUrls, setCatalogPreviewUrls] = useState<Record<number, string>>({});
+  const [quickViewItem, setQuickViewItem] = useState<ProductCatalogItem | null>(null);
 
   const currentEditingItem =
     editingId != null ? rows.find((item) => item.id === editingId) ?? null : null;
@@ -170,81 +170,6 @@ export function CRMProductsPage() {
     session?.accessToken,
     currentEditingItem?.id,
     currentEditingItem?.images.map((image) => image.id).join(":"),
-  ]);
-
-  useEffect(() => {
-    if (!session?.accessToken || rows.length === 0) {
-      setCatalogPreviewUrls((current) => {
-        Object.values(current).forEach((url) => URL.revokeObjectURL(url));
-        return {};
-      });
-      return;
-    }
-
-    const productsWithPrimaryImage = rows
-      .map((row) => ({
-        productId: row.id,
-        image:
-          row.images.find((image) => image.is_primary) ??
-          row.images[0] ??
-          null,
-      }))
-      .filter(
-        (entry): entry is { productId: number; image: NonNullable<(typeof entry)["image"]> } =>
-          entry.image != null
-      );
-
-    if (productsWithPrimaryImage.length === 0) {
-      setCatalogPreviewUrls((current) => {
-        Object.values(current).forEach((url) => URL.revokeObjectURL(url));
-        return {};
-      });
-      return;
-    }
-
-    let cancelled = false;
-    const createdUrls: string[] = [];
-    const accessToken = session.accessToken;
-
-    async function loadCatalogPreviews() {
-      const entries = await Promise.all(
-        productsWithPrimaryImage.map(async ({ productId, image }) => {
-          try {
-            const result = await downloadProductCatalogImage(accessToken, productId, image.id);
-            const previewUrl = URL.createObjectURL(result.blob);
-            createdUrls.push(previewUrl);
-            return [productId, previewUrl] as const;
-          } catch {
-            return null;
-          }
-        })
-      );
-
-      if (cancelled) {
-        createdUrls.forEach((url) => URL.revokeObjectURL(url));
-        return;
-      }
-
-      setCatalogPreviewUrls((current) => {
-        Object.values(current).forEach((url) => URL.revokeObjectURL(url));
-        return Object.fromEntries(entries.filter(Boolean) as Array<readonly [number, string]>);
-      });
-    }
-
-    void loadCatalogPreviews();
-
-    return () => {
-      cancelled = true;
-      createdUrls.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [
-    rows
-      .map((row) => {
-        const primaryImage = row.images.find((image) => image.is_primary) ?? row.images[0];
-        return primaryImage ? `${row.id}:${primaryImage.id}` : `${row.id}:none`;
-      })
-      .join("|"),
-    session?.accessToken,
   ]);
 
   function updateCharacteristic(index: number, next: Partial<ProductCatalogProductCharacteristic>) {
@@ -678,10 +603,10 @@ export function CRMProductsPage() {
               row.characteristics.length > 0 || row.images.length > 0 ? (
                 <div className="d-flex align-items-start gap-3 flex-wrap">
                   <CatalogRowPreview
-                    imageUrl={catalogPreviewUrls[row.id] || null}
-                    alt={row.name}
-                    hasImage={row.images.length > 0}
+                    accessToken={session?.accessToken || null}
+                    item={row}
                     language={language}
+                    onOpenQuickView={setQuickViewItem}
                   />
                   <div className="crm-chip-list">
                     {row.characteristics.slice(0, 3).map((item) => (
@@ -722,61 +647,301 @@ export function CRMProductsPage() {
           },
         ]}
       />
+
+      {quickViewItem ? (
+        <CatalogQuickViewModal
+          accessToken={session?.accessToken || null}
+          item={quickViewItem}
+          language={language}
+          onClose={() => setQuickViewItem(null)}
+        />
+      ) : null}
     </div>
   );
 }
 
 function CatalogRowPreview({
-  imageUrl,
-  alt,
-  hasImage,
+  accessToken,
+  item,
   language,
+  onOpenQuickView,
 }: {
-  imageUrl: string | null;
-  alt: string;
-  hasImage: boolean;
+  accessToken: string | null;
+  item: ProductCatalogItem;
   language: "es" | "en";
+  onOpenQuickView: (item: ProductCatalogItem) => void;
 }) {
+  const primaryImage = item.images.find((image) => image.is_primary) ?? item.images[0] ?? null;
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!accessToken || !primaryImage) {
+      setImageUrl((current) => {
+        if (current) {
+          URL.revokeObjectURL(current);
+        }
+        return null;
+      });
+      return;
+    }
+
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    const token = accessToken;
+    const imageId = primaryImage.id;
+
+    async function loadPreview() {
+      try {
+        const result = await downloadProductCatalogImage(token, item.id, imageId);
+        objectUrl = URL.createObjectURL(result.blob);
+        if (!cancelled) {
+          setImageUrl((current) => {
+            if (current) {
+              URL.revokeObjectURL(current);
+            }
+            return objectUrl;
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setImageUrl((current) => {
+            if (current) {
+              URL.revokeObjectURL(current);
+            }
+            return null;
+          });
+        } else if (objectUrl) {
+          URL.revokeObjectURL(objectUrl);
+        }
+      }
+    }
+
+    void loadPreview();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [accessToken, item.id, primaryImage?.id]);
+
   const label = language === "es" ? "Sin foto" : "No photo";
+  return (
+    <button
+      className="btn btn-link p-0 border-0 text-start"
+      type="button"
+      onClick={() => onOpenQuickView(item)}
+      title={language === "es" ? "Ver ficha rápida" : "Open quick view"}
+      style={{ textDecoration: "none" }}
+    >
+      <div
+        style={{
+          width: 72,
+          minWidth: 72,
+          height: 72,
+          borderRadius: 12,
+          overflow: "hidden",
+          border: "1px solid rgba(148, 163, 184, 0.35)",
+          background: "linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={item.name}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+        ) : (
+          <span
+            style={{
+              fontSize: 11,
+              color: "#64748b",
+              textAlign: "center",
+              lineHeight: 1.2,
+              padding: "0 8px",
+            }}
+          >
+            {primaryImage ? "…" : label}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function CatalogQuickViewModal({
+  accessToken,
+  item,
+  language,
+  onClose,
+}: {
+  accessToken: string | null;
+  item: ProductCatalogItem;
+  language: "es" | "en";
+  onClose: () => void;
+}) {
+  const primaryImage = item.images.find((image) => image.is_primary) ?? item.images[0] ?? null;
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!accessToken || !primaryImage) {
+      setImageUrl((current) => {
+        if (current) {
+          URL.revokeObjectURL(current);
+        }
+        return null;
+      });
+      return;
+    }
+
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    const token = accessToken;
+    const imageId = primaryImage.id;
+
+    async function loadPreview() {
+      try {
+        const result = await downloadProductCatalogImage(token, item.id, imageId);
+        objectUrl = URL.createObjectURL(result.blob);
+        if (!cancelled) {
+          setImageUrl((current) => {
+            if (current) {
+              URL.revokeObjectURL(current);
+            }
+            return objectUrl;
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setImageUrl((current) => {
+            if (current) {
+              URL.revokeObjectURL(current);
+            }
+            return null;
+          });
+        } else if (objectUrl) {
+          URL.revokeObjectURL(objectUrl);
+        }
+      }
+    }
+
+    void loadPreview();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [accessToken, item.id, primaryImage?.id]);
+
   return (
     <div
       style={{
-        width: 72,
-        minWidth: 72,
-        height: 72,
-        borderRadius: 12,
-        overflow: "hidden",
-        border: "1px solid rgba(148, 163, 184, 0.35)",
-        background: "linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)",
+        position: "fixed",
+        inset: 0,
+        background: "rgba(15, 23, 42, 0.55)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        padding: 24,
+        zIndex: 1100,
       }}
+      onClick={onClose}
     >
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={alt}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-          }}
-        />
-      ) : (
-        <span
-          style={{
-            fontSize: 11,
-            color: "#64748b",
-            textAlign: "center",
-            lineHeight: 1.2,
-            padding: "0 8px",
-          }}
-        >
-          {hasImage ? "…" : label}
-        </span>
-      )}
+      <div
+        style={{
+          width: "min(920px, 100%)",
+          maxHeight: "90vh",
+          overflow: "auto",
+          background: "#ffffff",
+          borderRadius: 18,
+          boxShadow: "0 24px 70px rgba(15, 23, 42, 0.24)",
+          padding: 24,
+        }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
+          <div>
+            <div className="text-muted small">
+              {language === "es" ? "Vista rápida del catálogo" : "Catalog quick view"}
+            </div>
+            <h3 className="mb-1" style={{ fontSize: 24 }}>
+              {item.name}
+            </h3>
+            <div className="text-muted small">
+              {item.product_type} · {item.unit_price.toLocaleString()} {item.unit_label || ""}
+            </div>
+          </div>
+          <button className="btn btn-outline-secondary btn-sm" type="button" onClick={onClose}>
+            {language === "es" ? "Cerrar" : "Close"}
+          </button>
+        </div>
+
+        <div className="d-grid gap-4" style={{ gridTemplateColumns: "minmax(260px, 320px) 1fr" }}>
+          <div>
+            <div
+              style={{
+                width: "100%",
+                aspectRatio: "1 / 1",
+                borderRadius: 18,
+                overflow: "hidden",
+                border: "1px solid rgba(148, 163, 184, 0.35)",
+                background: "linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={item.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+              ) : (
+                <span className="text-muted small">
+                  {language === "es" ? "Sin foto disponible" : "No image available"}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="d-flex flex-column gap-3">
+            {item.description ? (
+              <div>
+                <strong>{language === "es" ? "Descripción" : "Description"}</strong>
+                <div className="small mt-2" style={{ whiteSpace: "pre-wrap" }}>
+                  {item.description}
+                </div>
+              </div>
+            ) : null}
+            <div>
+              <strong>{language === "es" ? "Características" : "Characteristics"}</strong>
+              {item.characteristics.length > 0 ? (
+                <div className="crm-chip-list mt-2">
+                  {item.characteristics.map((characteristic) => (
+                    <span key={characteristic.id || characteristic.label} className="crm-chip">
+                      {characteristic.label}: {characteristic.value}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-muted small mt-2">—</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
