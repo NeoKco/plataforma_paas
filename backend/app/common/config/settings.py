@@ -31,6 +31,7 @@ class Settings(BaseSettings):
 
     INSTALL_FLAG_FILE: str = str(BASE_DIR / ".platform_installed")
     TENANT_SECRETS_FILE: str = str(BASE_DIR / ".tenant-secrets.env")
+    AI_RUNTIME_SECRETS_FILE: str = str(BASE_DIR / ".runtime-ai-secrets.env")
 
     CONTROL_DB_HOST: str = "127.0.0.1"
     CONTROL_DB_PORT: int = 5432

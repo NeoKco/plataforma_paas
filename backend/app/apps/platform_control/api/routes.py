@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.apps.platform_control.schemas import (
+    PlatformAiRuntimeConfigResponse,
+    PlatformAiRuntimeConfigValidateResponse,
+    PlatformAiRuntimeConfigWriteRequest,
     PlatformCapabilityCatalogResponse,
     PlatformTenantDbCredentialsRotateBatchResponse,
     PlatformRuntimeSecurityPostureResponse,
@@ -26,12 +29,14 @@ from app.common.auth.dependencies import get_current_token_payload
 from app.common.auth.role_dependencies import require_role
 from app.common.config.settings import settings
 from app.common.db.session_manager import get_control_db
+from app.common.security.ai_runtime_secret_service import AIRuntimeSecretService
 from app.common.security.runtime_security_service import RuntimeSecurityService
 
 router = APIRouter(prefix="/platform", tags=["platform-control"])
 platform_runtime_service = PlatformRuntimeService()
 platform_capability_service = PlatformCapabilityService()
 runtime_security_service = RuntimeSecurityService()
+ai_runtime_secret_service = AIRuntimeSecretService()
 tenant_repository = TenantRepository()
 tenant_service = TenantService()
 auth_audit_service = AuthAuditService()
@@ -70,6 +75,92 @@ def get_platform_capabilities(
         success=True,
         message="Catalogo de capacidades de backend recuperado correctamente",
         **catalog,
+    )
+
+
+@router.get(
+    "/ai-runtime-config",
+    response_model=PlatformAiRuntimeConfigResponse,
+)
+def get_platform_ai_runtime_config(
+    _token: dict = Depends(require_role("superadmin")),
+) -> PlatformAiRuntimeConfigResponse:
+    config = ai_runtime_secret_service.build_public_config(settings)
+    return PlatformAiRuntimeConfigResponse(
+        success=True,
+        message="Configuración runtime de API IA recuperada correctamente",
+        **config,
+    )
+
+
+@router.post(
+    "/ai-runtime-config",
+    response_model=PlatformAiRuntimeConfigResponse,
+)
+def save_platform_ai_runtime_config(
+    payload: PlatformAiRuntimeConfigWriteRequest,
+    db: Session = Depends(get_control_db),
+    token: dict = Depends(require_role("superadmin")),
+) -> PlatformAiRuntimeConfigResponse:
+    try:
+        config = ai_runtime_secret_service.store_config(settings, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    auth_audit_service.log_event(
+        db=db,
+        event_type="platform.ai_runtime_config_update",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=token.get("user_id"),
+        email=token.get("email"),
+        token_jti=token.get("jti"),
+        detail=(
+            f"source={config['source']} "
+            f"api_key_configured={config['api_key_configured']} "
+            f"runtime_path={config['runtime_secret_file']['path']}"
+        ),
+    )
+    return PlatformAiRuntimeConfigResponse(
+        success=True,
+        message="Configuración runtime de API IA guardada correctamente",
+        **config,
+    )
+
+
+@router.post(
+    "/ai-runtime-config/validate",
+    response_model=PlatformAiRuntimeConfigValidateResponse,
+)
+def validate_platform_ai_runtime_config(
+    payload: PlatformAiRuntimeConfigWriteRequest,
+    db: Session = Depends(get_control_db),
+    token: dict = Depends(require_role("superadmin")),
+) -> PlatformAiRuntimeConfigValidateResponse:
+    try:
+        result = ai_runtime_secret_service.validate_connection(settings, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    auth_audit_service.log_event(
+        db=db,
+        event_type="platform.ai_runtime_config_validate",
+        subject_scope="platform",
+        outcome="success",
+        subject_user_id=token.get("user_id"),
+        email=token.get("email"),
+        token_jti=token.get("jti"),
+        detail=(
+            f"reachable={result['reachable']} endpoint={result['endpoint']} "
+            f"source={result['source']} model_id={result['model_id']}"
+        ),
+    )
+    return PlatformAiRuntimeConfigValidateResponse(
+        success=True,
+        message="Conexión con API IA validada correctamente",
+        **result,
     )
 
 

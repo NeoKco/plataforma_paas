@@ -14,6 +14,7 @@ from app.apps.tenant_modules.products.services.ai_postprocessing_service import 
 from app.apps.tenant_modules.products.services.ai_preprocessing_service import (
     ProductCatalogAiPreprocessingService,
 )
+from app.common.security.ai_runtime_secret_service import AIRuntimeSecretService
 
 
 class ProductCatalogGenericAiExtractionService:
@@ -21,6 +22,7 @@ class ProductCatalogGenericAiExtractionService:
         self._preprocessing_service = ProductCatalogAiPreprocessingService()
         self._ai_client_service = ProductCatalogAiClientService()
         self._postprocessing_service = ProductCatalogAiPostprocessingService()
+        self._ai_runtime_secret_service = AIRuntimeSecretService()
 
     def extract_from_url(
         self,
@@ -78,9 +80,10 @@ class ProductCatalogGenericAiExtractionService:
         *,
         timeout_seconds: int | None = None,
     ) -> tuple[str, str, list[tuple[str, str]]]:
+        ai_config = self._ai_runtime_secret_service.resolve_config(settings)
         return self._preprocessing_service.preprocess_url(
             url,
-            timeout_seconds=max(int(timeout_seconds or settings.API_IA_TIMEOUT or 30), 10),
+            timeout_seconds=max(int(timeout_seconds or ai_config["timeout"] or 30), 10),
         )
 
     def _build_prompt(

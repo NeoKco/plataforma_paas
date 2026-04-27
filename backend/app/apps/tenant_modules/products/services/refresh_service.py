@@ -7,6 +7,7 @@ from app.apps.tenant_modules.products.services.generic_ai_extraction_service imp
 from app.apps.tenant_modules.products.services.product_service import ProductCatalogService
 from app.apps.tenant_modules.products.services.source_service import ProductSourceService
 from app.common.config.settings import settings
+from app.common.security.ai_runtime_secret_service import AIRuntimeSecretService
 
 
 class ProductCatalogRefreshService:
@@ -15,6 +16,7 @@ class ProductCatalogRefreshService:
         self._source_service = ProductSourceService()
         self._connector_sync_service = ProductConnectorSyncService()
         self._generic_ai_extraction_service = ProductCatalogGenericAiExtractionService()
+        self._ai_runtime_secret_service = AIRuntimeSecretService()
 
     def refresh_product(
         self,
@@ -123,9 +125,10 @@ class ProductCatalogRefreshService:
                 url=source.source_url,
                 source_label=source.source_label,
             )
+        ai_config = self._ai_runtime_secret_service.resolve_config(settings)
         ai_payload = self._generic_ai_extraction_service.extract_from_url(
             source.source_url,
-            timeout_seconds=max(int(settings.API_IA_TIMEOUT or 45), 300),
+            timeout_seconds=max(int(ai_config["timeout"] or 45), 300),
             prompt_override=getattr(source, "refresh_prompt", None),
         )
         try:

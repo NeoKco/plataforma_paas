@@ -17,6 +17,7 @@ from app.apps.tenant_modules.products.services.ingestion_extraction_service impo
 )
 from app.apps.tenant_modules.products.services.source_service import ProductSourceService
 from app.common.config.settings import settings
+from app.common.security.ai_runtime_secret_service import AIRuntimeSecretService
 
 
 class ProductConnectorSyncService:
@@ -28,6 +29,7 @@ class ProductConnectorSyncService:
         self._extraction_service = ProductCatalogIngestionExtractionService()
         self._enrichment_service = ProductCatalogEnrichmentService()
         self._generic_ai_extraction_service = ProductCatalogGenericAiExtractionService()
+        self._ai_runtime_secret_service = AIRuntimeSecretService()
 
     def sync_connector(
         self,
@@ -245,9 +247,10 @@ class ProductConnectorSyncService:
                 if strategy == "json_feed":
                     return self._extract_from_json_feed(url, timeout_seconds=timeout_seconds)
                 if strategy == "html_ai":
+                    ai_config = self._ai_runtime_secret_service.resolve_config(settings)
                     ai_payload = self._generic_ai_extraction_service.extract_from_url(
                         url,
-                        timeout_seconds=max(timeout_seconds, int(settings.API_IA_TIMEOUT or 45)),
+                        timeout_seconds=max(timeout_seconds, int(ai_config["timeout"] or 45)),
                         prompt_override=getattr(connector, "config_notes", None),
                     )
                     try:

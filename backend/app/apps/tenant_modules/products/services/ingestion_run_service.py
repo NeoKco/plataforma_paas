@@ -18,6 +18,7 @@ from app.apps.tenant_modules.crm.services.product_ingestion_run_service import (
 )
 from app.apps.tenant_modules.products.schemas import ProductCatalogIngestionDraftCreateRequest
 from app.common.config.settings import settings
+from app.common.security.ai_runtime_secret_service import AIRuntimeSecretService
 
 
 class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
@@ -33,6 +34,7 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
         self._connector_service = ProductConnectorService()
         self._enrichment_service = ProductCatalogEnrichmentService()
         self._generic_ai_extraction_service = ProductCatalogGenericAiExtractionService()
+        self._ai_runtime_secret_service = AIRuntimeSecretService()
         super().__init__(
             extraction_service=extraction_service or ProductCatalogIngestionExtractionService(),
             ingestion_service=ingestion_service or ProductCatalogIngestionService(),
@@ -70,9 +72,10 @@ class ProductCatalogIngestionRunService(CRMProductIngestionRunService):
 
     def extract_url_to_draft(self, tenant_db, payload, *, actor_user_id: int | None = None):
         connector = self._connector_service.get_connector(tenant_db, payload.connector_id) if payload.connector_id else None
+        ai_config = self._ai_runtime_secret_service.resolve_config(settings)
         timeout_seconds = max(
             int(getattr(connector, "request_timeout_seconds", None) or 0),
-            int(settings.API_IA_TIMEOUT or 45),
+            int(ai_config["timeout"] or 45),
             self.URL_EXTRACTION_AI_TIMEOUT_SECONDS,
         )
         generic_ai_payload = self._generic_ai_extraction_service.extract_from_url(

@@ -19,6 +19,7 @@ from app.apps.tenant_modules.products.services.product_service import (
     ProductCatalogService,
 )
 from app.common.config.settings import settings
+from app.common.security.ai_runtime_secret_service import AIRuntimeSecretService
 
 
 class ProductCatalogEnrichmentService:
@@ -26,6 +27,7 @@ class ProductCatalogEnrichmentService:
 
     def __init__(self) -> None:
         self._product_service = ProductCatalogService()
+        self._ai_runtime_secret_service = AIRuntimeSecretService()
 
     def build_duplicate_analysis_map(
         self,
@@ -51,6 +53,7 @@ class ProductCatalogEnrichmentService:
         }
 
     def build_enrichment_state(self, draft: CRMProductIngestionDraft) -> dict[str, Any]:
+        ai_config = self._ai_runtime_secret_service.resolve_config(settings)
         notes = draft.extraction_notes or ""
         marker_kind = None
         marker_summary = None
@@ -66,13 +69,13 @@ class ProductCatalogEnrichmentService:
                 "status": "ready",
                 "strategy": marker_kind,
                 "summary": marker_summary,
-                "ai_available": bool(settings.API_IA_URL.strip()),
+                "ai_available": bool((ai_config["api_url"] or "").strip()),
             }
         return {
             "status": "pending",
             "strategy": None,
             "summary": None,
-            "ai_available": bool(settings.API_IA_URL.strip()),
+            "ai_available": bool((ai_config["api_url"] or "").strip()),
         }
 
     def enrich_capture_payload(
@@ -374,7 +377,8 @@ class ProductCatalogEnrichmentService:
         prompt_override: str | None = None,
         timeout_seconds: int | None = None,
     ) -> dict[str, Any] | None:
-        if not settings.API_IA_URL.strip():
+        ai_config = self._ai_runtime_secret_service.resolve_config(settings)
+        if not str(ai_config["api_url"]).strip():
             return None
         try:
             import requests
@@ -385,17 +389,18 @@ class ProductCatalogEnrichmentService:
             draft,
             characteristics,
             prompt_override=prompt_override,
+            ai_config=ai_config,
         )
         headers = {"Content-Type": "application/json"}
-        if settings.MANAGER_API_IA_KEY.strip():
-            headers["Authorization"] = f"Bearer {settings.MANAGER_API_IA_KEY.strip()}"
+        if str(ai_config["api_key"]).strip():
+            headers["Authorization"] = f"Bearer {str(ai_config['api_key']).strip()}"
 
         try:
             response = requests.post(
-                settings.API_IA_URL.rstrip("/") + "/analyze",
+                str(ai_config["api_url"]).rstrip("/") + "/analyze",
                 json=payload,
                 headers=headers,
-                timeout=max(int(timeout_seconds or settings.API_IA_TIMEOUT or 45), 10),
+                timeout=max(int(timeout_seconds or ai_config["timeout"] or 45), 10),
             )
             response.raise_for_status()
             parsed = self._parse_ai_response(response.json())
@@ -449,7 +454,9 @@ class ProductCatalogEnrichmentService:
         characteristics: list[CRMProductIngestionCharacteristic],
         *,
         prompt_override: str | None = None,
+        ai_config: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        config = ai_config or self._ai_runtime_secret_service.resolve_config(settings)
         structured_characteristics = [
             {"label": item.label, "value": item.value, "sort_order": item.sort_order}
             for item in characteristics
@@ -469,9 +476,9 @@ class ProductCatalogEnrichmentService:
         if (prompt_override or "").strip():
             prompt = f"{prompt}\n\nInstrucción adicional del conector/fuente:\n{prompt_override.strip()}"
         return {
-            "model": settings.API_IA_MODEL_ID or None,
-            "max_tokens": int(settings.API_IA_MAX_TOKENS or 1200),
-            "temperature": float(settings.API_IA_TEMPERATURE or 0.1),
+            "model": config["model_id"] or None,
+            "max_tokens": int(config["max_tokens"] or 1200),
+            "temperature": float(config["temperature"] or 0.1),
             "prompt": prompt,
             "input": {
                 "name": draft.name,

@@ -221,6 +221,45 @@ class PlatformRuntimeSecurityPostureResponse(BaseModel):
     tenant_secret_distribution_summary: dict | None = None
 
 
+class PlatformAiRuntimeConfigWriteRequest(BaseModel):
+    api_url: str
+    api_key: str | None = None
+    replace_api_key: bool = False
+    model_id: str
+    max_tokens: int = 1200
+    temperature: float = 0.1
+    timeout: int = 45
+
+
+class PlatformAiRuntimeConfigResponse(BaseModel):
+    success: bool
+    message: str
+    app_env: str
+    runtime_secret_file: dict
+    legacy_env_file: dict
+    isolated_from_legacy: bool
+    source: str
+    api_url: str
+    model_id: str
+    max_tokens: int
+    temperature: float
+    timeout: int
+    api_key_configured: bool
+    api_key_masked: str | None = None
+
+
+class PlatformAiRuntimeConfigValidateResponse(BaseModel):
+    success: bool
+    message: str
+    reachable: bool
+    endpoint: str | None = None
+    source: str | None = None
+    api_key_configured: bool
+    model_id: str | None = None
+    timeout: int
+    detail: str | None = None
+
+
 class PlatformTenantRuntimeSecretBatchSyncItemResponse(BaseModel):
     tenant_id: int
     tenant_slug: str
