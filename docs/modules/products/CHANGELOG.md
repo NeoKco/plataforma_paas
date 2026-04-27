@@ -2,6 +2,20 @@
 
 ## 2026-04-27
 
+- `products > Catálogo` ya muestra la foto principal del artículo directamente junto a `Características` en la tabla principal:
+  - la lista ya no se limita a `1 foto(s)` como texto
+  - ahora descarga autenticadamente la foto principal y la presenta como miniatura visual por fila
+  - si el artículo no tiene foto, mantiene placeholder
+  - objetivo:
+    - dar guía visual inmediata del producto/servicio sin entrar a editar
+  - validación repo:
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - frontend publicado:
+      - `staging`: `ProductsCatalogPage-Dpt2Iagx.js`, `productsService-D3oWxeTs.js`, `SettingsPage-B3qzKX6h.js`, `TenantsPage-B0zhp7Za.js`, `index-Bol2xsd0.js`
+      - `production`: `ProductsCatalogPage-Dpt2Iagx.js`, `productsService-D3oWxeTs.js`, `SettingsPage-B3qzKX6h.js`, `TenantsPage-B0zhp7Za.js`, `index-Bol2xsd0.js`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en `staging` y `production`
+
 - `products` ya puede importar el catálogo completo de `ieris_app` hacia un tenant del PaaS:
   - script nuevo:
     - `backend/app/scripts/import_ieris_products_catalog.py`

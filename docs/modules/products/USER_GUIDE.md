@@ -59,6 +59,7 @@ En `Catálogo`, cada producto o servicio ya puede tener:
 
 - una o más fotos
 - una foto principal
+- una miniatura visible en la lista principal del catálogo, junto a sus características
 - compresión previa en navegador antes de subir
 - borrado de fotos sin borrar el artículo
 

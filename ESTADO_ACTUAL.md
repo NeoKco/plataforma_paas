@@ -4,6 +4,13 @@
 
 - fecha: 2026-04-27
 - corte nuevo ya cerrado en repo y runtime:
+  - `products > Catálogo` ya muestra la foto principal junto a `Características` en la tabla principal
+  - la miniatura se resuelve por descarga autenticada del asset principal
+  - si el artículo no tiene foto, queda placeholder visual en la misma celda
+  - validación runtime:
+    - frontend publicado en `staging` y `production`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+- corte nuevo ya cerrado en repo y runtime:
   - `products` ya importó completamente el catálogo legacy de `ieris_app` dentro de `ieris-ltda`
   - cierre verificado directo sobre la tenant DB:
     - `products=117`

@@ -84,6 +84,7 @@ export function CRMProductsPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageCaption, setImageCaption] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<Record<number, string>>({});
+  const [catalogPreviewUrls, setCatalogPreviewUrls] = useState<Record<number, string>>({});
 
   const currentEditingItem =
     editingId != null ? rows.find((item) => item.id === editingId) ?? null : null;
@@ -169,6 +170,81 @@ export function CRMProductsPage() {
     session?.accessToken,
     currentEditingItem?.id,
     currentEditingItem?.images.map((image) => image.id).join(":"),
+  ]);
+
+  useEffect(() => {
+    if (!session?.accessToken || rows.length === 0) {
+      setCatalogPreviewUrls((current) => {
+        Object.values(current).forEach((url) => URL.revokeObjectURL(url));
+        return {};
+      });
+      return;
+    }
+
+    const productsWithPrimaryImage = rows
+      .map((row) => ({
+        productId: row.id,
+        image:
+          row.images.find((image) => image.is_primary) ??
+          row.images[0] ??
+          null,
+      }))
+      .filter(
+        (entry): entry is { productId: number; image: NonNullable<(typeof entry)["image"]> } =>
+          entry.image != null
+      );
+
+    if (productsWithPrimaryImage.length === 0) {
+      setCatalogPreviewUrls((current) => {
+        Object.values(current).forEach((url) => URL.revokeObjectURL(url));
+        return {};
+      });
+      return;
+    }
+
+    let cancelled = false;
+    const createdUrls: string[] = [];
+    const accessToken = session.accessToken;
+
+    async function loadCatalogPreviews() {
+      const entries = await Promise.all(
+        productsWithPrimaryImage.map(async ({ productId, image }) => {
+          try {
+            const result = await downloadProductCatalogImage(accessToken, productId, image.id);
+            const previewUrl = URL.createObjectURL(result.blob);
+            createdUrls.push(previewUrl);
+            return [productId, previewUrl] as const;
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      if (cancelled) {
+        createdUrls.forEach((url) => URL.revokeObjectURL(url));
+        return;
+      }
+
+      setCatalogPreviewUrls((current) => {
+        Object.values(current).forEach((url) => URL.revokeObjectURL(url));
+        return Object.fromEntries(entries.filter(Boolean) as Array<readonly [number, string]>);
+      });
+    }
+
+    void loadCatalogPreviews();
+
+    return () => {
+      cancelled = true;
+      createdUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [
+    rows
+      .map((row) => {
+        const primaryImage = row.images.find((image) => image.is_primary) ?? row.images[0];
+        return primaryImage ? `${row.id}:${primaryImage.id}` : `${row.id}:none`;
+      })
+      .join("|"),
+    session?.accessToken,
   ]);
 
   function updateCharacteristic(index: number, next: Partial<ProductCatalogProductCharacteristic>) {
@@ -599,16 +675,24 @@ export function CRMProductsPage() {
             key: "characteristics",
             header: language === "es" ? "Características" : "Characteristics",
             render: (row) =>
-              row.characteristics.length > 0 ? (
-                <div className="crm-chip-list">
-                  {row.characteristics.slice(0, 3).map((item) => (
-                    <span key={item.id || item.label} className="crm-chip">
-                      {item.label}: {item.value}
-                    </span>
-                  ))}
-                  {row.characteristics.length > 3 ? (
-                    <span className="crm-chip">+{row.characteristics.length - 3}</span>
-                  ) : null}
+              row.characteristics.length > 0 || row.images.length > 0 ? (
+                <div className="d-flex align-items-start gap-3 flex-wrap">
+                  <CatalogRowPreview
+                    imageUrl={catalogPreviewUrls[row.id] || null}
+                    alt={row.name}
+                    hasImage={row.images.length > 0}
+                    language={language}
+                  />
+                  <div className="crm-chip-list">
+                    {row.characteristics.slice(0, 3).map((item) => (
+                      <span key={item.id || item.label} className="crm-chip">
+                        {item.label}: {item.value}
+                      </span>
+                    ))}
+                    {row.characteristics.length > 3 ? (
+                      <span className="crm-chip">+{row.characteristics.length - 3}</span>
+                    ) : null}
+                  </div>
                 </div>
               ) : (
                 "—"
@@ -638,6 +722,61 @@ export function CRMProductsPage() {
           },
         ]}
       />
+    </div>
+  );
+}
+
+function CatalogRowPreview({
+  imageUrl,
+  alt,
+  hasImage,
+  language,
+}: {
+  imageUrl: string | null;
+  alt: string;
+  hasImage: boolean;
+  language: "es" | "en";
+}) {
+  const label = language === "es" ? "Sin foto" : "No photo";
+  return (
+    <div
+      style={{
+        width: 72,
+        minWidth: 72,
+        height: 72,
+        borderRadius: 12,
+        overflow: "hidden",
+        border: "1px solid rgba(148, 163, 184, 0.35)",
+        background: "linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={alt}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      ) : (
+        <span
+          style={{
+            fontSize: 11,
+            color: "#64748b",
+            textAlign: "center",
+            lineHeight: 1.2,
+            padding: "0 8px",
+          }}
+        >
+          {hasImage ? "…" : label}
+        </span>
+      )}
     </div>
   );
 }

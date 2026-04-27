@@ -1,5 +1,35 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-27 - `products` muestra miniatura visible en la lista principal del catálogo
+
+Contexto:
+
+- el catálogo ya tenía fotos por artículo, pero en la tabla principal solo mostraba `1 foto(s)` como texto
+- el usuario pidió ver la foto al lado de las características para tener guía visual inmediata del producto/servicio
+
+Cambios:
+
+- frontend:
+  - [CRMProductsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm/pages/CRMProductsPage.tsx)
+    - descarga autenticadamente la foto principal de cada fila
+    - genera blob URLs locales para la lista
+    - muestra miniatura junto a la columna `Características`
+    - deja placeholder si el artículo no tiene foto
+- se mantiene el componente compartido que usa `products`, evitando duplicar una segunda página solo para esta variación visual
+
+Validación:
+
+- `cd frontend && npm run build` -> `OK`
+- publish runtime:
+  - `staging`:
+    - `API_BASE_URL=http://192.168.7.42:8081 ALLOW_STAGING_API=1 RUN_NPM_INSTALL=false bash deploy/build_frontend.sh` -> `OK`
+    - publish en `/opt/platform_paas_staging/frontend/dist`
+    - `EXPECTED_API_BASE_URL=http://192.168.7.42:8081 DIST_DIR=/opt/platform_paas_staging/frontend/dist bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `production`:
+    - `API_BASE_URL=https://orkestia.ddns.net RUN_NPM_INSTALL=false bash deploy/build_frontend.sh` -> `OK`
+    - publish en `/opt/platform_paas/frontend/dist`
+    - `EXPECTED_API_BASE_URL=https://orkestia.ddns.net DIST_DIR=/opt/platform_paas/frontend/dist bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+
 ## 2026-04-27 - import completo del catálogo `ieris_app` a `ieris-ltda`
 
 Contexto:

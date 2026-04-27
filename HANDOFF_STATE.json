@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-27T00:10:00-04:00",
+  "updated_at": "2026-04-27T00:35:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. En `products`, además del carril base `Ingesta > URL` IA-first y la galería comprimida, ya quedó cerrada la importación completa del catálogo legacy de `ieris_app` dentro de `ieris-ltda`: `117 products`, `647 characteristics`, `117 sources`, `117 price_history`, `117 images` y `6 services`, con reconciliación automática de residuos legacy por `legacy_id`.",
-  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada. `products` sigue siendo el módulo en foco porque ya cubre catálogo vivo, IA genérica, scheduler y ahora también migración/import legacy reproducible desde `ieris_app`.",
+  "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. En `products`, además del carril base `Ingesta > URL` IA-first, la galería comprimida y la importación legacy completa desde `ieris_app`, el catálogo principal ya muestra la foto principal junto a `Características` como guía visual por fila.",
+  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada. `products` sigue siendo el módulo en foco porque ya cubre catálogo vivo, IA genérica, scheduler, migración/import legacy reproducible desde `ieris_app` y ahora una lectura visual más útil del catálogo importado.",
   "active_modules": [
     "platform-core",
     "finance",
@@ -448,7 +448,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "revalidar funcionalmente en UI tenant el catálogo importado de `ieris-ltda`; después decidir si el siguiente frente abre `projects` como consumidor fuerte de `products` o si `products` se reabre solo para profundización comercial/operativa superior",
+  "next_decision_required": "revalidar en uso real la nueva miniatura del catálogo de `products` con el catálogo completo importado de `ieris-ltda`; después decidir si el siguiente frente abre `projects` como consumidor fuerte de `products` o si `products` se reabre solo para profundización comercial/operativa superior",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

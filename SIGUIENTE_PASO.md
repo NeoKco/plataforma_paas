@@ -3,6 +3,13 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
+  - revalidar en uso real la nueva miniatura del catálogo en `products > Catálogo`:
+    - que la foto principal abra una guía visual útil junto a las características
+    - que no degrade demasiado el tiempo de carga con el catálogo importado completo
+  - si la UX queda correcta, el siguiente frente vuelve a ser:
+    - abrir `projects` como consumidor fuerte de `products`
+    - o profundizar `products` solo en integración comercial/operativa superior
+- prioridad inmediata real:
   - revalidar en UI tenant `ieris-ltda` que el catálogo importado desde `ieris_app` quedó utilizable de punta a punta:
     - productos/servicios visibles
     - características visibles

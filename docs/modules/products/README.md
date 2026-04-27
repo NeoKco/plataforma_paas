@@ -76,6 +76,7 @@ El módulo hoy incluye:
   - precio unitario base
   - descripción
   - características técnicas/comerciales
+  - miniatura visible de la foto principal en la tabla principal del catálogo
   - galería de fotos comprimidas:
     - `webp`, `jpeg`, `png`
     - una foto principal por artículo
