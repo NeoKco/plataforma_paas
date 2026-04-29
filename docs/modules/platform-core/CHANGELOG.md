@@ -1673,3 +1673,13 @@ Resumen curado del bloque central.
       - `tenant_runtime_secret_campaigns.id`
       - `tenant_runtime_secret_campaign_items.id`
       ya quedan con `nextval(...::regclass)`
+- 2026-04-28
+  - `platform-core` suma un slice tenant-side de permisos efectivos por usuario con overrides explícitos:
+    - grants
+    - revokes
+    - herencia por rol
+  - `GET /tenant/info` ya expone permisos efectivos consumibles por el portal tenant
+  - `Usuarios` pasa a ser la superficie tenant-side de administración de permisos finos por usuario
+  - el sidebar tenant ya se filtra por permiso efectivo de lectura por módulo
+  - el siguiente frente abierto queda explícito:
+    - ownership scoping de datos en `finance`, `business-core`, `maintenance` y módulos relacionados

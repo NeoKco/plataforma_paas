@@ -100,6 +100,12 @@ Comportamiento importante:
 - si un usuario tiene `tenant.taskops.create_own` pero no `tenant.users.read`, el módulo sigue funcionando para tareas propias
 - en ese caso el modal no intenta cargar el catálogo completo de usuarios del tenant
 - la asignación a terceros solo aparece cuando el permiso efectivo realmente existe
+- la superficie visible se aclara así:
+  - módulo: `Tareas`
+  - pestaña operativa: `Asignación`
+  - botón principal:
+    - `Asignar tarea` para perfiles con capacidad de asignar a terceros
+    - `Nueva tarea propia` para perfiles con creación propia solamente
 
 Queda fuera por ahora:
 

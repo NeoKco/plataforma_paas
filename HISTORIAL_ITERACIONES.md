@@ -6234,6 +6234,31 @@ Resultado:
   - las programaciones creadas sin mantención cerrada en 2026 fueron removidas con cleanup explícito
   - la regla vigente ya no debe leerse desde esta entrada histórica, sino desde la corrección posterior
 
+# 2026-04-28 - Permisos efectivos tenant-side y publish frontend final
+
+- objetivo:
+  - cerrar el primer slice real de permisos por usuario dentro del tenant y dejar el frontend publicado de verdad en `staging` y `production`
+- diagnóstico:
+  - el backend ya había quedado redeployado con `589 tests OK`, pero el operador seguía viendo pantallas que parecían exigir `tenant.users.read`
+  - la causa real era que el `dist` publicado seguía desalineado respecto del build local que ya contenía los guards por permiso
+- cambios principales:
+  - `Tareas`:
+    - el módulo mantiene nombre `Tareas`
+    - la pestaña operativa pasa a llamarse `Asignación`
+    - el botón principal ya cambia entre `Asignar tarea` y `Nueva tarea propia`
+    - el modal deja de requerir catálogo global de usuarios para casos de tarea propia
+  - `Agenda`, `Mantenciones`, `Expediente técnico` y `Chat` quedan apoyados en guards frontend para no pedir `tenant.users.read` salvo que el caso real requiera listar otros usuarios
+  - el frontend se reconstruye y republica por carril con `API_BASE_URL` explícita
+- validaciones:
+  - publish `staging` en `/opt/platform_paas_staging/frontend/dist`
+  - `EXPECTED_API_BASE_URL=http://192.168.7.42:8081 DIST_DIR=/opt/platform_paas_staging/frontend/dist bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - publish `production` en `/opt/platform_paas/frontend/dist`
+  - `EXPECTED_API_BASE_URL=https://orkestia.ddns.net DIST_DIR=/opt/platform_paas/frontend/dist bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+  - `bash deploy/check_release_governance.sh` -> `OK`
+- resultado:
+  - el primer slice de permisos efectivos tenant-side queda realmente visible en runtime
+  - el siguiente corte deja de ser de navegación/permiso superficial y pasa a ownership scoping de datos por módulo
+
 # 2026-04-22 - Homologación por similitud en Nombre común (corte intermedio luego supersedido)
 
 - objetivo:

@@ -227,6 +227,10 @@ Si reporta que no puede asignar a otro usuario:
 - revisar si su perfil tiene `tenant.taskops.assign_others`
 - o `tenant.taskops.manage`
 - si no lo tiene, el comportamiento correcto es permitirle solo tareas propias
+- en ese caso la UI debe verse como:
+  - pestaña `Asignación`
+  - botón `Nueva tarea propia`
+  - selector `Responsable` bloqueado en sí mismo o sin listado global de usuarios
 
 Si reporta que no puede asociar clientes:
 

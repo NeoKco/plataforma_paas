@@ -92,3 +92,8 @@ Nota de integración:
 
 - `tenant.users.read` ya no debe tratarse como precondición funcional del módulo `taskops`
 - solo corresponde cuando realmente se necesita administrar o listar otros usuarios
+- un actor con `tenant.taskops.create_own` pero sin `tenant.users.read` debe poder:
+  - abrir `Asignación`
+  - crear tarea propia
+  - abrir detalle de su tarea
+  - cerrar su tarea

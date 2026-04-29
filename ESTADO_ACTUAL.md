@@ -3,6 +3,29 @@
 ## Última actualización
 
 - fecha: 2026-04-28
+- cierre operacional ya confirmado en runtime:
+  - el frontend corregido de permisos tenant-side ya quedó efectivamente publicado en `staging` y `production`
+  - el operador ya no debería seguir viendo errores `tenant.users.read` en:
+    - `Tareas`
+    - `Agenda`
+    - `Mantenciones`
+    - `Expediente técnico`
+    cuando el caso real no exige listar otros usuarios del tenant
+  - el root publicado también quedó republicado con `API_BASE_URL` correcta por carril:
+    - `staging` -> `http://192.168.7.42:8081`
+    - `production` -> `https://orkestia.ddns.net`
+  - validación runtime final:
+    - publish `staging` en `/opt/platform_paas_staging/frontend/dist`
+    - `EXPECTED_API_BASE_URL=http://192.168.7.42:8081 DIST_DIR=/opt/platform_paas_staging/frontend/dist bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+    - publish `production` en `/opt/platform_paas/frontend/dist`
+    - `EXPECTED_API_BASE_URL=https://orkestia.ddns.net DIST_DIR=/opt/platform_paas/frontend/dist bash deploy/check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+    - `bash deploy/check_release_governance.sh` -> `OK`
+  - bundles visibles principales del cierre:
+    - `production`: `TaskOpsTasksPage-BRzLSET6.js`, `TaskOpsKanbanPage-DDmgS2oM.js`, `TaskOpsHistoryPage-CIfh9hFz.js`, `TaskOpsTaskModal-Cc5hC3DE.js`, `MaintenanceCalendarPage-B7dlNCWc.js`, `MaintenanceDueItemsPage-CgkJXH7i.js`, `MaintenanceWorkOrdersPage-BHB7AlGp.js`, `MaintenanceHistoryPage-Dfv9GcT8.js`, `TechDocsDossiersPage-BSMkQN81.js`, `ChatConversationsPage-CSp8fsyG.js`, `TenantUsersPage-C5f6tXuR.js`, `index-E2nk6agS.js`
+  - estado funcional real:
+    - el admin tenant ya tiene una primera superficie útil para otorgar/revocar permisos por usuario desde `Usuarios`
+    - el siguiente frente ya no es otro republish ni hotfix visual: pasa a ownership scoping de datos por módulo
+- fecha: 2026-04-28
 - corte nuevo ya cerrado en repo y runtime:
   - el tenant ya soporta overrides explícitos de permisos por usuario:
     - `granted_permissions_json`

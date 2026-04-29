@@ -64,3 +64,8 @@
   - `Nueva tarea propia`
 - el modal operativo ya no se cae para usuarios sin `tenant.users.read` cuando el caso real es solo crear/editar tareas propias
 - el módulo deja explícito que la asignación a terceros no depende del rol visible, sino de permisos efectivos resueltos por backend
+- publish runtime final de este slice:
+  - `staging` frontend republicado con `API_BASE_URL=http://192.168.7.42:8081`
+  - `production` frontend republicado con `API_BASE_URL=https://orkestia.ddns.net`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - el operador ya no debe ver errores `tenant.users.read` en `Tareas` cuando solo opera tareas propias

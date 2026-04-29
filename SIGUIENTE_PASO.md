@@ -3,6 +3,23 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
+  - abrir el siguiente slice de ownership scoping tenant-side ya sobre la base publicada:
+    - `finance`
+    - `business-core`
+    - `maintenance`
+    - `crm`
+  - criterio objetivo:
+    - el usuario mínimo solo ve lo suyo
+    - el admin tenant amplía alcance mediante grants explícitos
+    - el sidebar ya no es el problema; ahora falta filtrar datos, métricas y agregados
+  - no reabrir este frente salvo bug real:
+    - `Tareas`
+    - `Agenda`
+    - `Mantenciones`
+    - `Expediente técnico`
+    - `Chat`
+    ya quedaron publicados con gating frontend sin dependencia obligatoria de `tenant.users.read`
+- prioridad inmediata real:
   - abrir el siguiente slice de permisos tenant-side:
     - visibilidad por propiedad de datos
   - objetivo funcional:
