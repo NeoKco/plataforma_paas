@@ -541,6 +541,7 @@ def tenant_info(
             email=request.state.tenant_email,
             role=request.state.tenant_role,
             permissions=sorted(current_user.get("permissions", [])),
+            effective_permissions=sorted(current_user.get("permissions", [])),
             timezone=user_timezone,
             effective_timezone=effective_timezone,
         ),

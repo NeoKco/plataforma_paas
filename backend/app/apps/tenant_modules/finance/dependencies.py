@@ -4,7 +4,7 @@ from app.common.auth.dependencies import require_tenant_permission
 
 require_finance_read = require_tenant_permission("tenant.finance.read")
 require_finance_create = require_tenant_permission("tenant.finance.create")
-require_finance_manage = require_finance_create
+require_finance_manage = require_tenant_permission("tenant.finance.manage")
 
 
 def build_finance_requested_by(context: dict) -> TenantUserContextResponse:
@@ -15,3 +15,8 @@ def build_finance_requested_by(context: dict) -> TenantUserContextResponse:
         tenant_slug=context["tenant_slug"],
         token_scope=context["token_scope"],
     )
+
+
+def can_manage_all_finance(context: dict | None) -> bool:
+    permissions = set((context or {}).get("permissions", []) or [])
+    return "tenant.finance.manage" in permissions

@@ -119,6 +119,7 @@ class TenantUserData(BaseModel):
     email: str
     role: str
     permissions: list[str] = []
+    effective_permissions: list[str] = []
     timezone: str | None = None
     effective_timezone: str | None = None
 

@@ -48,10 +48,25 @@ class FinanceTransactionRepository:
             .all()
         )
 
+    def list_all_for_owner(
+        self,
+        tenant_db: Session,
+        *,
+        owner_user_id: int | None = None,
+    ) -> list[FinanceTransaction]:
+        query = self._query(tenant_db)
+        if owner_user_id is not None:
+            query = query.filter(FinanceTransaction.created_by_user_id == owner_user_id)
+        return query.order_by(
+            FinanceTransaction.transaction_at.desc(),
+            FinanceTransaction.id.desc(),
+        ).all()
+
     def list_filtered(
         self,
         tenant_db: Session,
         *,
+        owner_user_id: int | None = None,
         transaction_type: str | None = None,
         account_id: int | None = None,
         category_id: int | None = None,
@@ -61,6 +76,8 @@ class FinanceTransactionRepository:
         search: str | None = None,
     ) -> list[FinanceTransaction]:
         query = self._query(tenant_db)
+        if owner_user_id is not None:
+            query = query.filter(FinanceTransaction.created_by_user_id == owner_user_id)
 
         if transaction_type:
             query = query.filter(
@@ -145,29 +162,32 @@ class FinanceTransactionRepository:
         tenant_db: Session,
         transaction_id: int,
         *,
+        owner_user_id: int | None = None,
         include_voided: bool = True,
     ) -> FinanceTransaction | None:
-        return (
-            self._query(tenant_db, include_voided=include_voided)
-            .filter(FinanceTransaction.id == transaction_id)
-            .first()
+        query = self._query(tenant_db, include_voided=include_voided).filter(
+            FinanceTransaction.id == transaction_id
         )
+        if owner_user_id is not None:
+            query = query.filter(FinanceTransaction.created_by_user_id == owner_user_id)
+        return query.first()
 
     def list_by_ids(
         self,
         tenant_db: Session,
         transaction_ids: list[int],
         *,
+        owner_user_id: int | None = None,
         include_voided: bool = False,
     ) -> list[FinanceTransaction]:
         if not transaction_ids:
             return []
-        return (
-            self._query(tenant_db, include_voided=include_voided)
-            .filter(FinanceTransaction.id.in_(transaction_ids))
-            .order_by(FinanceTransaction.id.asc())
-            .all()
+        query = self._query(tenant_db, include_voided=include_voided).filter(
+            FinanceTransaction.id.in_(transaction_ids)
         )
+        if owner_user_id is not None:
+            query = query.filter(FinanceTransaction.created_by_user_id == owner_user_id)
+        return query.order_by(FinanceTransaction.id.asc()).all()
 
     def persist(self, tenant_db: Session, transaction: FinanceTransaction) -> FinanceTransaction:
         tenant_db.add(transaction)

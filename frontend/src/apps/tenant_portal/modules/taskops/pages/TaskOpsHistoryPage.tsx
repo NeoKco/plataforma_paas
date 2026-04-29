@@ -11,7 +11,7 @@ import type { ApiError } from "../../../../../types";
 import { TaskOpsModuleNav } from "../components/common/TaskOpsModuleNav";
 import { TaskOpsTaskModal } from "../components/common/TaskOpsTaskModal";
 import { getTaskOpsHistory, type TaskOpsTask } from "../services/taskopsService";
-import { hasTenantPermission } from "../../../utils/tenant-permissions";
+import { getTenantPermissionSet, hasTenantPermission } from "../../../utils/tenant-permissions";
 
 function formatDateTime(value: string | null, language: "es" | "en") {
   if (!value) return "—";
@@ -38,14 +38,14 @@ export function TaskOpsHistoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const permissionSet = useMemo(
-    () => new Set(tenantUser?.permissions ?? []),
-    [tenantUser?.permissions]
-  );
+  const permissionSet = useMemo(() => getTenantPermissionSet(tenantUser), [tenantUser]);
   const canAssignOthers =
     permissionSet.has("tenant.taskops.assign_others") ||
     permissionSet.has("tenant.taskops.manage");
   const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
+  const canReadCRM = hasTenantPermission(tenantUser, "tenant.crm.read");
+  const canReadMaintenance = hasTenantPermission(tenantUser, "tenant.maintenance.read");
 
   async function loadRows(search = "") {
     if (!session?.accessToken) return;
@@ -178,6 +178,9 @@ export function TaskOpsHistoryPage() {
         currentUserId={tenantUser?.id ?? null}
         canAssignOthers={canAssignOthers}
         canReadUsers={canReadUsers}
+        canReadBusinessCore={canReadBusinessCore}
+        canReadCRM={canReadCRM}
+        canReadMaintenance={canReadMaintenance}
         onClose={() => setModalTaskId(null)}
         onChanged={loadRows}
       />

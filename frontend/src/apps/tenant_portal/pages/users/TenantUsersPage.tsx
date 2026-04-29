@@ -73,7 +73,7 @@ const PERMISSION_GROUPS: Array<{
   {
     key: "finance",
     title: { es: "Finanzas", en: "Finance" },
-    permissions: ["tenant.finance.read", "tenant.finance.create"],
+    permissions: ["tenant.finance.read", "tenant.finance.create", "tenant.finance.manage"],
   },
   {
     key: "products",

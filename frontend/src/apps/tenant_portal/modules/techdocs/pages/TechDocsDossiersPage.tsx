@@ -11,9 +11,18 @@ import { getTenantUsers } from "../../../../../services/tenant-api";
 import { useLanguage } from "../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError, TenantUsersItem } from "../../../../../types";
-import { getTenantBusinessClients } from "../../business_core/services/clientsService";
-import { getTenantBusinessOrganizations } from "../../business_core/services/organizationsService";
-import { getTenantBusinessSites } from "../../business_core/services/sitesService";
+import {
+  getTenantBusinessClients,
+  type TenantBusinessClient,
+} from "../../business_core/services/clientsService";
+import {
+  getTenantBusinessOrganizations,
+  type TenantBusinessOrganization,
+} from "../../business_core/services/organizationsService";
+import {
+  getTenantBusinessSites,
+  type TenantBusinessSite,
+} from "../../business_core/services/sitesService";
 import { getCRMOpportunities, type CRMOpportunity } from "../../crm/services/crmService";
 import {
   getTenantMaintenanceInstallations,
@@ -161,7 +170,11 @@ function formatBytes(value: number) {
 export function TechDocsDossiersPage() {
   const { session, tenantUser } = useTenantAuth();
   const { language } = useLanguage();
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
+  const canReadCRM = hasTenantPermission(tenantUser, "tenant.crm.read");
   const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
+  const canReadMaintenance = hasTenantPermission(tenantUser, "tenant.maintenance.read");
+  const canReadTaskOps = hasTenantPermission(tenantUser, "tenant.taskops.read");
   const [rows, setRows] = useState<TechDocsDossier[]>([]);
   const [detail, setDetail] = useState<TechDocsDossierDetail | null>(null);
   const [selectedDossierId, setSelectedDossierId] = useState<number | null>(null);
@@ -211,13 +224,25 @@ export function TechDocsDossiersPage() {
         canReadUsers
           ? getTenantUsers(session.accessToken)
           : Promise.resolve({ data: [] as TenantUsersItem[] }),
-        getTenantBusinessClients(session.accessToken, { includeInactive: true }),
-        getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
-        getTenantBusinessSites(session.accessToken, { includeInactive: true }),
+        canReadBusinessCore
+          ? getTenantBusinessClients(session.accessToken, { includeInactive: true })
+          : Promise.resolve({ data: [] as TenantBusinessClient[] }),
+        canReadBusinessCore
+          ? getTenantBusinessOrganizations(session.accessToken, { includeInactive: true })
+          : Promise.resolve({ data: [] as TenantBusinessOrganization[] }),
+        canReadBusinessCore
+          ? getTenantBusinessSites(session.accessToken, { includeInactive: true })
+          : Promise.resolve({ data: [] as TenantBusinessSite[] }),
         getTenantMaintenanceInstallations(session.accessToken, { includeInactive: true }),
-        getTenantMaintenanceWorkOrders(session.accessToken),
-        getCRMOpportunities(session.accessToken),
-        getTaskOpsTasks(session.accessToken, { includeInactive: true, includeClosed: true }),
+        canReadMaintenance
+          ? getTenantMaintenanceWorkOrders(session.accessToken)
+          : Promise.resolve({ data: [] as TenantMaintenanceWorkOrder[] }),
+        canReadCRM
+          ? getCRMOpportunities(session.accessToken)
+          : Promise.resolve({ data: [] as CRMOpportunity[] }),
+        canReadTaskOps
+          ? getTaskOpsTasks(session.accessToken, { includeInactive: true, includeClosed: true })
+          : Promise.resolve({ data: [] as TaskOpsTask[] }),
       ]);
 
       const organizationMap = new Map(

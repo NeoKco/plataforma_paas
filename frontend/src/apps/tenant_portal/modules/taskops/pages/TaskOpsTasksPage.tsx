@@ -11,7 +11,7 @@ import type { ApiError } from "../../../../../types";
 import { TaskOpsModuleNav } from "../components/common/TaskOpsModuleNav";
 import { TaskOpsTaskModal } from "../components/common/TaskOpsTaskModal";
 import { getTaskOpsTasks, type TaskOpsTask } from "../services/taskopsService";
-import { hasTenantPermission } from "../../../utils/tenant-permissions";
+import { getTenantPermissionSet, hasTenantPermission } from "../../../utils/tenant-permissions";
 
 function getStatusLabel(status: string, language: "es" | "en") {
   const labels: Record<string, string> =
@@ -54,15 +54,15 @@ export function TaskOpsTasksPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const permissionSet = useMemo(
-    () => new Set(tenantUser?.permissions ?? []),
-    [tenantUser?.permissions]
-  );
+  const permissionSet = useMemo(() => getTenantPermissionSet(tenantUser), [tenantUser]);
   const canCreateOwn = permissionSet.has("tenant.taskops.create_own");
   const canAssignOthers =
     permissionSet.has("tenant.taskops.assign_others") ||
     permissionSet.has("tenant.taskops.manage");
   const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
+  const canReadCRM = hasTenantPermission(tenantUser, "tenant.crm.read");
+  const canReadMaintenance = hasTenantPermission(tenantUser, "tenant.maintenance.read");
 
   async function loadRows() {
     if (!session?.accessToken) return;
@@ -106,7 +106,15 @@ export function TaskOpsTasksPage() {
     <div className="taskops-page">
       <PageHeader
         eyebrow={language === "es" ? "TAREAS" : "TASKS"}
-        title={language === "es" ? "Asignación" : "Assignment"}
+        title={
+          language === "es"
+            ? canAssignOthers
+              ? "Asignación"
+              : "Mis tareas"
+            : canAssignOthers
+              ? "Assignment"
+              : "My tasks"
+        }
         description={
           language === "es"
             ? "Revisa tus tareas activas y, si tu perfil lo permite, crea o asigna trabajo operativo a otros usuarios."
@@ -244,6 +252,9 @@ export function TaskOpsTasksPage() {
         currentUserId={tenantUser?.id ?? null}
         canAssignOthers={canAssignOthers}
         canReadUsers={canReadUsers}
+        canReadBusinessCore={canReadBusinessCore}
+        canReadCRM={canReadCRM}
+        canReadMaintenance={canReadMaintenance}
         onClose={() => setIsCreateModalOpen(false)}
         onChanged={loadRows}
       />
@@ -255,6 +266,9 @@ export function TaskOpsTasksPage() {
         currentUserId={tenantUser?.id ?? null}
         canAssignOthers={canAssignOthers}
         canReadUsers={canReadUsers}
+        canReadBusinessCore={canReadBusinessCore}
+        canReadCRM={canReadCRM}
+        canReadMaintenance={canReadMaintenance}
         onClose={() => setModalTaskId(null)}
         onChanged={loadRows}
       />

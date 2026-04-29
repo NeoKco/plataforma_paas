@@ -1,9 +1,16 @@
 import { NavLink } from "react-router-dom";
 import { AppIcon } from "../../../../../../design-system/AppIcon";
 import { useLanguage } from "../../../../../../store/language-context";
+import { useTenantAuth } from "../../../../../../store/tenant-auth-context";
+import { getTenantPermissionSet } from "../../../utils/tenant-permissions";
 
 export function TaskOpsModuleNav() {
   const { language } = useLanguage();
+  const { tenantUser } = useTenantAuth();
+  const permissionSet = getTenantPermissionSet(tenantUser);
+  const canAssignOthers =
+    permissionSet.has("tenant.taskops.assign_others") ||
+    permissionSet.has("tenant.taskops.manage");
   const items = [
     {
       to: "/tenant-portal/taskops",
@@ -12,7 +19,14 @@ export function TaskOpsModuleNav() {
     },
     {
       to: "/tenant-portal/taskops/tasks",
-      label: language === "es" ? "Asignación" : "Assignment",
+      label:
+        language === "es"
+          ? canAssignOthers
+            ? "Asignación"
+            : "Mis tareas"
+          : canAssignOthers
+            ? "Assignment"
+            : "My tasks",
       icon: "taskops" as const,
     },
     {

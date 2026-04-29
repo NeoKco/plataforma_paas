@@ -389,6 +389,24 @@ class FinanceService:
         self._attach_tag_ids(tenant_db, entries)
         return entries
 
+    def list_entries_for_viewer(
+        self,
+        tenant_db: Session,
+        *,
+        viewer_user_id: int | None = None,
+        viewer_can_manage_all: bool = False,
+    ) -> list[FinanceTransaction]:
+        entries = (
+            self.transaction_repository.list_all(tenant_db)
+            if viewer_can_manage_all or viewer_user_id is None
+            else self.transaction_repository.list_all_for_owner(
+                tenant_db,
+                owner_user_id=viewer_user_id,
+            )
+        )
+        self._attach_tag_ids(tenant_db, entries)
+        return entries
+
     def list_transactions(self, tenant_db: Session) -> list[FinanceTransaction]:
         transactions = self.transaction_repository.list_all(tenant_db)
         self._attach_tag_ids(tenant_db, transactions)
@@ -398,6 +416,8 @@ class FinanceService:
         self,
         tenant_db: Session,
         *,
+        viewer_user_id: int | None = None,
+        viewer_can_manage_all: bool = False,
         transaction_type: str | None = None,
         account_id: int | None = None,
         category_id: int | None = None,
@@ -408,6 +428,7 @@ class FinanceService:
     ) -> list[FinanceTransaction]:
         transactions = self.transaction_repository.list_filtered(
             tenant_db,
+            owner_user_id=None if viewer_can_manage_all else viewer_user_id,
             transaction_type=transaction_type,
             account_id=account_id,
             category_id=category_id,
@@ -423,8 +444,15 @@ class FinanceService:
         self,
         tenant_db: Session,
         transaction_id: int,
+        *,
+        viewer_user_id: int | None = None,
+        viewer_can_manage_all: bool = False,
     ) -> tuple[FinanceTransaction, list, list[FinanceTransactionAttachment]]:
-        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        transaction = self.transaction_repository.get_by_id(
+            tenant_db,
+            transaction_id,
+            owner_user_id=None if viewer_can_manage_all else viewer_user_id,
+        )
         if transaction is None:
             raise ValueError("La transaccion financiera no existe")
 
@@ -449,8 +477,13 @@ class FinanceService:
         content_bytes: bytes,
         notes: str | None = None,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = False,
     ) -> FinanceTransactionAttachment:
-        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        transaction = self.transaction_repository.get_by_id(
+            tenant_db,
+            transaction_id,
+            owner_user_id=None if actor_can_manage_all else actor_user_id,
+        )
         self._raise_if_missing_or_voided(transaction)
 
         normalized_file_name = self._normalize_attachment_file_name(file_name)
@@ -511,8 +544,13 @@ class FinanceService:
         attachment_id: int,
         *,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = False,
     ) -> FinanceTransactionAttachment:
-        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        transaction = self.transaction_repository.get_by_id(
+            tenant_db,
+            transaction_id,
+            owner_user_id=None if actor_can_manage_all else actor_user_id,
+        )
         if transaction is None:
             raise ValueError("La transaccion financiera no existe")
 
@@ -546,8 +584,15 @@ class FinanceService:
         tenant_db: Session,
         transaction_id: int,
         attachment_id: int,
+        *,
+        viewer_user_id: int | None = None,
+        viewer_can_manage_all: bool = False,
     ) -> tuple[FinanceTransactionAttachment, Path]:
-        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        transaction = self.transaction_repository.get_by_id(
+            tenant_db,
+            transaction_id,
+            owner_user_id=None if viewer_can_manage_all else viewer_user_id,
+        )
         self._raise_if_missing_or_voided(transaction)
 
         attachment = self.transaction_attachment_repository.get_by_id(
@@ -569,8 +614,13 @@ class FinanceService:
         *,
         is_favorite: bool,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = False,
     ) -> FinanceTransaction:
-        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        transaction = self.transaction_repository.get_by_id(
+            tenant_db,
+            transaction_id,
+            owner_user_id=None if actor_can_manage_all else actor_user_id,
+        )
         self._raise_if_missing_or_voided(transaction)
 
         transaction.is_favorite = is_favorite
@@ -595,8 +645,13 @@ class FinanceService:
         *,
         reason: str | None = None,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = False,
     ) -> FinanceTransaction:
-        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        transaction = self.transaction_repository.get_by_id(
+            tenant_db,
+            transaction_id,
+            owner_user_id=None if actor_can_manage_all else actor_user_id,
+        )
         self._raise_if_missing_or_voided(transaction)
         if transaction.source_type in {"loan_installment_payment", "loan_installment_reversal"}:
             raise ValueError(
@@ -634,8 +689,13 @@ class FinanceService:
         reason_code: str | None = None,
         note: str | None = None,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = False,
     ) -> FinanceTransaction:
-        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        transaction = self.transaction_repository.get_by_id(
+            tenant_db,
+            transaction_id,
+            owner_user_id=None if actor_can_manage_all else actor_user_id,
+        )
         if transaction is None:
             raise ValueError("La transaccion financiera no existe")
 
@@ -666,8 +726,13 @@ class FinanceService:
         *,
         is_favorite: bool,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = False,
     ) -> list[FinanceTransaction]:
-        transactions = self._get_transactions_for_batch(tenant_db, transaction_ids)
+        transactions = self._get_transactions_for_batch(
+            tenant_db,
+            transaction_ids,
+            owner_user_id=None if actor_can_manage_all else actor_user_id,
+        )
         for transaction in transactions:
             transaction.is_favorite = is_favorite
             transaction.favorite_flag = is_favorite
@@ -694,8 +759,13 @@ class FinanceService:
         reason_code: str | None = None,
         note: str | None = None,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = False,
     ) -> list[FinanceTransaction]:
-        transactions = self._get_transactions_for_batch(tenant_db, transaction_ids)
+        transactions = self._get_transactions_for_batch(
+            tenant_db,
+            transaction_ids,
+            owner_user_id=None if actor_can_manage_all else actor_user_id,
+        )
         effective_reconciled_at = datetime.now(timezone.utc) if is_reconciled else None
         normalized_note = note.strip() if note and note.strip() else None
         normalized_reason_code = self._normalize_reconciliation_reason_code(reason_code)
@@ -899,19 +969,38 @@ class FinanceService:
         self,
         tenant_db: Session,
         transaction_ids: list[int],
+        *,
+        owner_user_id: int | None = None,
     ) -> list[FinanceTransaction]:
         normalized_ids = list(dict.fromkeys(transaction_ids))
         if not normalized_ids:
             raise ValueError("Debes indicar al menos una transaccion")
-        transactions = self.transaction_repository.list_by_ids(tenant_db, normalized_ids)
+        transactions = self.transaction_repository.list_by_ids(
+            tenant_db,
+            normalized_ids,
+            owner_user_id=owner_user_id,
+        )
         loaded_ids = {transaction.id for transaction in transactions}
         missing_ids = [transaction_id for transaction_id in normalized_ids if transaction_id not in loaded_ids]
         if missing_ids:
             raise ValueError("Una o mas transacciones financieras no existen")
         return transactions
 
-    def get_summary(self, tenant_db: Session) -> dict[str, float | int]:
-        entries = self.transaction_repository.list_all(tenant_db)
+    def get_summary(
+        self,
+        tenant_db: Session,
+        *,
+        viewer_user_id: int | None = None,
+        viewer_can_manage_all: bool = False,
+    ) -> dict[str, float | int]:
+        entries = (
+            self.transaction_repository.list_all(tenant_db)
+            if viewer_can_manage_all or viewer_user_id is None
+            else self.transaction_repository.list_all_for_owner(
+                tenant_db,
+                owner_user_id=viewer_user_id,
+            )
+        )
         total_income = sum(
             entry.amount
             for entry in entries
@@ -925,7 +1014,11 @@ class FinanceService:
             == "expense"
         )
         net_result = total_income - total_expense
-        total_account_balance = self._get_visible_total_account_balance(tenant_db)
+        total_account_balance = (
+            self._get_visible_total_account_balance(tenant_db)
+            if viewer_can_manage_all
+            else 0.0
+        )
 
         return {
             "total_income": total_income,
@@ -940,9 +1033,20 @@ class FinanceService:
         self,
         tenant_db: Session,
         *,
+        viewer_user_id: int | None = None,
+        viewer_can_manage_all: bool = False,
         max_entries: int | None = None,
     ) -> dict:
-        used_entries = self.transaction_repository.count_all(tenant_db)
+        used_entries = (
+            self.transaction_repository.count_all(tenant_db)
+            if viewer_can_manage_all or viewer_user_id is None
+            else len(
+                self.transaction_repository.list_all_for_owner(
+                    tenant_db,
+                    owner_user_id=viewer_user_id,
+                )
+            )
+        )
         unlimited = max_entries is None or max_entries <= 0
         effective_max_entries = None if unlimited else max_entries
         remaining_entries = (

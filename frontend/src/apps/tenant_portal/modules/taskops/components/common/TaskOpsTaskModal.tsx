@@ -44,6 +44,9 @@ type TaskOpsTaskModalProps = {
   currentUserId: number | null;
   canAssignOthers: boolean;
   canReadUsers: boolean;
+  canReadBusinessCore: boolean;
+  canReadCRM: boolean;
+  canReadMaintenance: boolean;
   initialStatus?: string;
   onClose: () => void;
   onChanged: () => Promise<void> | void;
@@ -140,6 +143,9 @@ export function TaskOpsTaskModal({
   currentUserId,
   canAssignOthers,
   canReadUsers,
+  canReadBusinessCore,
+  canReadCRM,
+  canReadMaintenance,
   initialStatus = "todo",
   onClose,
   onChanged,
@@ -187,14 +193,24 @@ export function TaskOpsTaskModal({
       opportunitiesResponse,
       workOrdersResponse,
     ] = await Promise.all([
-      getTenantBusinessClients(accessToken, { includeInactive: false }),
-      getTenantBusinessOrganizations(accessToken, { includeInactive: false }),
-      getTenantBusinessWorkGroups(accessToken, { includeInactive: false }),
+      canReadBusinessCore
+        ? getTenantBusinessClients(accessToken, { includeInactive: false })
+        : Promise.resolve({ data: [] as TenantBusinessClient[] }),
+      canReadBusinessCore
+        ? getTenantBusinessOrganizations(accessToken, { includeInactive: false })
+        : Promise.resolve({ data: [] as TenantBusinessOrganization[] }),
+      canReadBusinessCore
+        ? getTenantBusinessWorkGroups(accessToken, { includeInactive: false })
+        : Promise.resolve({ data: [] as TenantBusinessWorkGroup[] }),
       canReadUsers
         ? getTenantUsers(accessToken)
         : Promise.resolve({ data: [] as TenantUsersItem[] }),
-      getCRMOpportunities(accessToken),
-      getTenantMaintenanceWorkOrders(accessToken),
+      canReadCRM
+        ? getCRMOpportunities(accessToken)
+        : Promise.resolve({ data: [] as CRMOpportunity[] }),
+      canReadMaintenance
+        ? getTenantMaintenanceWorkOrders(accessToken)
+        : Promise.resolve({ data: [] as TenantMaintenanceWorkOrder[] }),
     ]);
     setClients(clientsResponse.data);
     setOrganizations(organizationsResponse.data);
@@ -555,31 +571,54 @@ export function TaskOpsTaskModal({
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">{language === "es" ? "Responsable" : "Assigned user"}</label>
-                  <select
-                    className="form-select"
-                    value={form.assigned_user_id ?? ""}
-                    disabled={!canAssignOthers}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, assigned_user_id: event.target.value ? Number(event.target.value) : null }))
-                    }
-                  >
-                    <option value="">{language === "es" ? "Sin responsable" : "No assignee"}</option>
-                    {tenantUsers
-                      .filter((item) => item.is_active)
-                      .map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.full_name}
-                        </option>
-                      ))}
-                  </select>
-                  {!canAssignOthers ? (
-                    <div className="form-text">
-                      {language === "es"
-                        ? "Tu perfil actual solo permite crear o editar tareas propias."
-                        : "Your current profile only allows creating or editing your own tasks."}
-                    </div>
-                  ) : null}
+                  <label className="form-label">
+                    {canAssignOthers
+                      ? language === "es"
+                        ? "Responsable"
+                        : "Assigned user"
+                      : language === "es"
+                        ? "Tarea propia"
+                        : "Own task"}
+                  </label>
+                  {canAssignOthers ? (
+                    <select
+                      className="form-select"
+                      value={form.assigned_user_id ?? ""}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          assigned_user_id: event.target.value ? Number(event.target.value) : null,
+                        }))
+                      }
+                    >
+                      <option value="">{language === "es" ? "Sin responsable" : "No assignee"}</option>
+                      {tenantUsers
+                        .filter((item) => item.is_active)
+                        .map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.full_name}
+                          </option>
+                        ))}
+                    </select>
+                  ) : (
+                    <>
+                      <input
+                        className="form-control"
+                        value={
+                          language === "es"
+                            ? "Se registrará para tu usuario"
+                            : "It will be registered for your user"
+                        }
+                        disabled
+                        readOnly
+                      />
+                      <div className="form-text">
+                        {language === "es"
+                          ? "Tu perfil actual solo permite crear o editar tareas propias."
+                          : "Your current profile only allows creating or editing your own tasks."}
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">{language === "es" ? "Grupo de trabajo" : "Work group"}</label>

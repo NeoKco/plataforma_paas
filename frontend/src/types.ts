@@ -1384,6 +1384,7 @@ export type TenantUserData = {
   email: string;
   role: string;
   permissions: string[];
+  effective_permissions: string[];
   timezone: string | null;
   effective_timezone: string | null;
 };

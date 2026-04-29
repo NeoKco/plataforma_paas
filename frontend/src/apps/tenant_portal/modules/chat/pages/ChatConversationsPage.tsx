@@ -32,6 +32,7 @@ import {
   type TenantMaintenanceWorkOrder,
 } from "../../maintenance/services/workOrdersService";
 import { getTaskOpsTasks, type TaskOpsTask } from "../../taskops/services/taskopsService";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 type ContextType = "general" | "client" | "opportunity" | "work_order" | "task";
 
@@ -44,8 +45,13 @@ function formatDateTime(value: string | null, language: "es" | "en") {
 }
 
 export function ChatConversationsPage() {
-  const { session } = useTenantAuth();
+  const { session, tenantUser } = useTenantAuth();
   const { language } = useLanguage();
+  const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
+  const canReadCRM = hasTenantPermission(tenantUser, "tenant.crm.read");
+  const canReadMaintenance = hasTenantPermission(tenantUser, "tenant.maintenance.read");
+  const canReadTaskOps = hasTenantPermission(tenantUser, "tenant.taskops.read");
   const [rows, setRows] = useState<ChatConversation[]>([]);
   const [detail, setDetail] = useState<ChatConversationDetail | null>(null);
   const [users, setUsers] = useState<TenantUsersItem[]>([]);
@@ -113,15 +119,27 @@ export function ChatConversationsPage() {
             includeArchived,
             q: search || undefined,
           }),
-          getTenantUsers(session.accessToken),
-          getTenantBusinessClients(session.accessToken, { includeInactive: false }),
-          getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
-          getCRMOpportunities(session.accessToken),
-          getTenantMaintenanceWorkOrders(session.accessToken),
-          getTaskOpsTasks(session.accessToken, {
-            includeInactive: false,
-            includeClosed: false,
-          }),
+          canReadUsers
+            ? getTenantUsers(session.accessToken)
+            : Promise.resolve({ data: [] as TenantUsersItem[] }),
+          canReadBusinessCore
+            ? getTenantBusinessClients(session.accessToken, { includeInactive: false })
+            : Promise.resolve({ data: [] as TenantBusinessClient[] }),
+          canReadBusinessCore
+            ? getTenantBusinessOrganizations(session.accessToken, { includeInactive: false })
+            : Promise.resolve({ data: [] as TenantBusinessOrganization[] }),
+          canReadCRM
+            ? getCRMOpportunities(session.accessToken)
+            : Promise.resolve({ data: [] as CRMOpportunity[] }),
+          canReadMaintenance
+            ? getTenantMaintenanceWorkOrders(session.accessToken)
+            : Promise.resolve({ data: [] as TenantMaintenanceWorkOrder[] }),
+          canReadTaskOps
+            ? getTaskOpsTasks(session.accessToken, {
+                includeInactive: false,
+                includeClosed: false,
+              })
+            : Promise.resolve({ data: [] as TaskOpsTask[] }),
         ]);
         setRows(conversationResponse.data);
         setUsers(userResponse.data);

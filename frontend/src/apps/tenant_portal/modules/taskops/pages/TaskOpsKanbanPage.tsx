@@ -9,7 +9,7 @@ import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { TaskOpsModuleNav } from "../components/common/TaskOpsModuleNav";
 import { TaskOpsTaskModal } from "../components/common/TaskOpsTaskModal";
-import { hasTenantPermission } from "../../../utils/tenant-permissions";
+import { getTenantPermissionSet, hasTenantPermission } from "../../../utils/tenant-permissions";
 import {
   getTaskOpsKanban,
   type TaskOpsKanbanColumn,
@@ -48,12 +48,15 @@ export function TaskOpsKanbanPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const permissionSet = new Set(tenantUser?.permissions ?? []);
+  const permissionSet = getTenantPermissionSet(tenantUser);
   const canCreateOwn = permissionSet.has("tenant.taskops.create_own");
   const canAssignOthers =
     permissionSet.has("tenant.taskops.assign_others") ||
     permissionSet.has("tenant.taskops.manage");
   const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
+  const canReadCRM = hasTenantPermission(tenantUser, "tenant.crm.read");
+  const canReadMaintenance = hasTenantPermission(tenantUser, "tenant.maintenance.read");
 
   async function loadKanban() {
     if (!session?.accessToken) return;
@@ -179,6 +182,9 @@ export function TaskOpsKanbanPage() {
         currentUserId={tenantUser?.id ?? null}
         canAssignOthers={canAssignOthers}
         canReadUsers={canReadUsers}
+        canReadBusinessCore={canReadBusinessCore}
+        canReadCRM={canReadCRM}
+        canReadMaintenance={canReadMaintenance}
         initialStatus={createStatus}
         onClose={() => setIsCreateModalOpen(false)}
         onChanged={loadKanban}
@@ -191,6 +197,9 @@ export function TaskOpsKanbanPage() {
         currentUserId={tenantUser?.id ?? null}
         canAssignOthers={canAssignOthers}
         canReadUsers={canReadUsers}
+        canReadBusinessCore={canReadBusinessCore}
+        canReadCRM={canReadCRM}
+        canReadMaintenance={canReadMaintenance}
         onClose={() => setModalTaskId(null)}
         onChanged={loadKanban}
       />

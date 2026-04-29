@@ -258,6 +258,7 @@ export function MaintenanceCalendarPage({
 }: MaintenanceCalendarPageProps) {
   const { session, tenantUser, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
   const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
@@ -549,12 +550,22 @@ export function MaintenanceCalendarPage({
         tenantUsersResponse,
       ] = await Promise.all([
         getTenantMaintenanceWorkOrders(session.accessToken),
-        getTenantBusinessClients(session.accessToken, { includeInactive: false }),
-        getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
-        getTenantBusinessSites(session.accessToken, { includeInactive: false }),
+        canReadBusinessCore
+          ? getTenantBusinessClients(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessClient[] }),
+        canReadBusinessCore
+          ? getTenantBusinessOrganizations(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessOrganization[] }),
+        canReadBusinessCore
+          ? getTenantBusinessSites(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessSite[] }),
         getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
-        getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
-        getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false }),
+        canReadBusinessCore
+          ? getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessWorkGroup[] }),
+        canReadBusinessCore
+          ? getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessTaskType[] }),
         getTenantMaintenanceSchedules(session.accessToken, { includeInactive: true }),
         canReadUsers
           ? getTenantUsers(session.accessToken)

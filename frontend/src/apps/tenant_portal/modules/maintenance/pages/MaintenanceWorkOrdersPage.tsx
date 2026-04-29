@@ -241,6 +241,7 @@ export function MaintenanceWorkOrdersPage() {
   const { session, tenantUser, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
   const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceWorkOrder[]>([]);
@@ -526,13 +527,25 @@ export function MaintenanceWorkOrdersPage() {
           ...(requestedClientId > 0 ? { clientId: requestedClientId } : {}),
           ...(requestedSiteId > 0 ? { siteId: requestedSiteId } : {}),
         }),
-        getTenantBusinessClients(session.accessToken, { includeInactive: false }),
-        getTenantBusinessContacts(session.accessToken, { includeInactive: false }),
-        getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
-        getTenantBusinessSites(session.accessToken, { includeInactive: false }),
+        canReadBusinessCore
+          ? getTenantBusinessClients(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessClient[] }),
+        canReadBusinessCore
+          ? getTenantBusinessContacts(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessContact[] }),
+        canReadBusinessCore
+          ? getTenantBusinessOrganizations(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessOrganization[] }),
+        canReadBusinessCore
+          ? getTenantBusinessSites(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessSite[] }),
         getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
-        getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
-        getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false }),
+        canReadBusinessCore
+          ? getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessWorkGroup[] }),
+        canReadBusinessCore
+          ? getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false })
+          : Promise.resolve({ data: [] as TenantBusinessTaskType[] }),
         getTenantMaintenanceSchedules(session.accessToken, { includeInactive: true }),
         canReadUsers
           ? getTenantUsers(session.accessToken)
