@@ -3,6 +3,21 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
+  - revalidar en navegador real de `ieris-ltda` que `Tareas` ya quedó claro operativamente:
+    - pestaña `Asignación`
+    - botón `Asignar tarea` solo para perfiles con `tenant.taskops.assign_others` o `tenant.taskops.manage`
+    - botón `Nueva tarea propia` para perfiles con solo `tenant.taskops.create_own`
+  - si ese cierre UX queda conforme, `taskops` vuelve a quedar cerrado y el siguiente frente sigue siendo:
+    - abrir `projects` como consumidor fuerte de `products`
+    - o reabrir `products` solo para expansión explícita de conectores/integraciones
+- prioridad inmediata real:
+  - revalidar en navegador real que el root `https://orkestia.ddns.net/` ya sale del guard inicial sin `504`
+  - el hotfix de disponibilidad ya quedó aplicado:
+    - backend `production` ahora corre con `uvicorn --workers 5`
+    - backend `staging` ahora corre con `uvicorn --workers 2`
+    - `/health` vuelve a responder `200` por localhost y por nginx
+  - si el root ya quedó sano, el siguiente frente vuelve a ser `products` o `projects` según priorización funcional
+- prioridad inmediata real:
   - confirmar en uso real de `ieris-ltda` que el modal nuevo de `products > Catálogo` ya queda conforme con:
     - foto principal inicial elegible desde el alta
     - previsualización local antes del primer guardado

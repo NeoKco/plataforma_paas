@@ -19,7 +19,7 @@ Estado actual:
   - trazabilidad de cambios de estado
 - frontend tenant ya entrega lectura y captura para:
   - `Resumen`
-  - `Tareas`
+  - `Asignación`
   - `Kanban`
   - `Histórico`
 - el detalle operativo ya vive en modal desde `Tareas`, `Kanban` e `Histórico`
@@ -81,6 +81,17 @@ Permisos visibles del módulo:
 - `tenant.taskops.create_own`
 - `tenant.taskops.assign_others`
 - `tenant.taskops.manage`
+
+Lectura práctica:
+
+- `tenant.taskops.read`
+  - ve `Resumen`, `Asignación`, `Kanban` e `Histórico`
+- `tenant.taskops.create_own`
+  - crea y opera tareas propias
+- `tenant.taskops.assign_others`
+  - asigna o reasigna tareas a otros usuarios y ve el tenant completo
+- `tenant.taskops.manage`
+  - hereda capacidad de asignación global y gestión completa
 
 Queda fuera por ahora:
 

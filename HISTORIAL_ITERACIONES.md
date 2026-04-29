@@ -1,5 +1,98 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-28 - `taskops` alinea asignación al permiso real y `production` se republica con build correcto
+
+Contexto:
+
+- el usuario pidió dejar más claro quién realmente puede asignar tareas y evitar que la UI siguiera insinuando esa capacidad solo por rol visible
+- además, tras el ajuste frontend, `production` quedó con un publish incorrecto del root y el guard inicial empezó a fallar hasta republicar el `dist` correcto con `API_BASE_URL` explícita
+
+Cambios:
+
+- backend:
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py)
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/schemas.py)
+  - `/tenant/info` ahora expone `tenantUser.permissions`
+- frontend:
+  - [types.ts](/home/felipe/platform_paas/frontend/src/types.ts)
+  - [TaskOpsModuleNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops/components/common/TaskOpsModuleNav.tsx)
+  - [TaskOpsTasksPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops/pages/TaskOpsTasksPage.tsx)
+  - [TaskOpsKanbanPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops/pages/TaskOpsKanbanPage.tsx)
+  - [TaskOpsHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops/pages/TaskOpsHistoryPage.tsx)
+  - `canAssignOthers` ya depende de:
+    - `tenant.taskops.assign_others`
+    - `tenant.taskops.manage`
+  - `canCreateOwn` ya depende de:
+    - `tenant.taskops.create_own`
+  - la pestaña operativa visible pasa de `Tareas` a `Asignación`
+  - el botón principal pasa a:
+    - `Asignar tarea`
+    - o `Nueva tarea propia`
+- documentación:
+  - [docs/modules/taskops/README.md](/home/felipe/platform_paas/docs/modules/taskops/README.md)
+  - [docs/modules/taskops/USER_GUIDE.md](/home/felipe/platform_paas/docs/modules/taskops/USER_GUIDE.md)
+  - [docs/modules/taskops/API_REFERENCE.md](/home/felipe/platform_paas/docs/modules/taskops/API_REFERENCE.md)
+  - [docs/modules/taskops/CHANGELOG.md](/home/felipe/platform_paas/docs/modules/taskops/CHANGELOG.md)
+
+Validación:
+
+- repo:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_tenant_flow backend.app.tests.test_taskops_services -v` -> `103 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- runtime:
+  - `staging` backend redeployado -> `588 tests OK`
+  - `production` backend redeployado -> `588 tests OK`
+  - frontend reconstruido y republicado por carril con API base explícita:
+    - `staging` -> `http://192.168.7.42:8081`
+    - `production` -> `https://orkestia.ddns.net`
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - `curl -k -i --max-time 20 https://orkestia.ddns.net/health` -> `200`
+
+## 2026-04-28 - hotfix de disponibilidad: backend `production` pasa a 5 workers y `staging` queda en 2
+
+Contexto:
+
+- después del último publish frontend, el root `https://orkestia.ddns.net/` quedó mostrando:
+  - `No se pudo verificar la instalación`
+  - `Request failed with status 504`
+- la pantalla fallaba en `GET /health`, no en `products`
+
+Diagnóstico:
+
+- `RequireInstalled` llama a `GET /health`
+- nginx sí recibía la request, pero registraba:
+  - `upstream timed out (110: Connection timed out) while reading response header from upstream`
+  - upstream: `http://127.0.0.1:8000/health`
+- el backend de `production` estaba levantado con:
+  - `uvicorn ... --port 8000`
+  - sin `--workers`
+- con un solo worker, una request larga podía bloquear todo el backend, incluyendo `/health`
+
+Cambios:
+
+- runtime/infra:
+  - [platform-paas-backend.service](/home/felipe/platform_paas/infra/systemd/platform-paas-backend.service)
+  - [platform-paas-backend-staging.service](/home/felipe/platform_paas/infra/systemd/platform-paas-backend-staging.service)
+  - configuración final:
+    - `production` -> `uvicorn ... --workers 5`
+    - `staging` -> `uvicorn ... --workers 2`
+- instalación runtime:
+  - copia de los units a `/etc/systemd/system`
+  - `systemctl daemon-reload`
+  - restart de:
+    - `platform-paas-backend.service`
+    - `platform-paas-backend-staging.service`
+
+Validación:
+
+- `ss -ltnp` confirmó el backend de `production` en `127.0.0.1:8000`
+- `curl -i --max-time 10 http://127.0.0.1:8000/health` -> `200`
+- `curl -k -i --max-time 20 https://orkestia.ddns.net/health` -> `200`
+- `systemctl status platform-paas-backend.service`:
+  - activo con `--workers 5`
+- `systemctl status platform-paas-backend-staging.service`:
+  - activo con `--workers 2`
+
 ## 2026-04-27 - `products` deja el nombre del artículo como segundo disparador de la vista rápida
 
 Contexto:

@@ -118,6 +118,7 @@ class TenantUserData(BaseModel):
     id: int
     email: str
     role: str
+    permissions: list[str] = []
     timezone: str | None = None
     effective_timezone: str | None = None
 
@@ -226,6 +227,8 @@ class TenantUserCreateRequest(BaseModel):
     role: str = "operator"
     is_active: bool = True
     timezone: str | None = None
+    granted_permissions: list[str] = []
+    revoked_permissions: list[str] = []
 
 
 class TenantUserUpdateRequest(BaseModel):
@@ -234,6 +237,8 @@ class TenantUserUpdateRequest(BaseModel):
     role: str
     password: str | None = None
     timezone: str | None = None
+    granted_permissions: list[str] = []
+    revoked_permissions: list[str] = []
 
 
 class TenantTimezoneUpdateRequest(BaseModel):
@@ -269,6 +274,9 @@ class TenantUsersItemResponse(BaseModel):
     role: str
     timezone: str | None = None
     effective_timezone: str | None = None
+    granted_permissions: list[str] = []
+    revoked_permissions: list[str] = []
+    effective_permissions: list[str] = []
     is_active: bool
 
 

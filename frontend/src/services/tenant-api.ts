@@ -219,6 +219,8 @@ export function createTenantUser(
     role: string;
     is_active: boolean;
     timezone?: string | null;
+    granted_permissions?: string[];
+    revoked_permissions?: string[];
   }
 ) {
   return apiRequest<TenantUserMutationResponse>("/tenant/users", {
@@ -251,6 +253,8 @@ export function updateTenantUser(
     role: string;
     password?: string | null;
     timezone?: string | null;
+    granted_permissions?: string[];
+    revoked_permissions?: string[];
   }
 ) {
   return apiRequest<TenantUserMutationResponse>(`/tenant/users/${userId}`, {

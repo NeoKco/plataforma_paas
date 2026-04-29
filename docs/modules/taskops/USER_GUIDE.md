@@ -36,7 +36,8 @@ Base esperada:
   - tareas recientes
   - histórico reciente
 - `Tareas`
-  - tabla operativa
+  - ahora visible como `Asignación`
+  - tabla operativa de trabajo
   - alta y edición
   - detalle con comentarios, adjuntos y trazabilidad
 - `Kanban`
@@ -87,7 +88,7 @@ Lectura práctica:
 
 ## Cómo usar cada frente
 
-### Tareas
+### Asignación
 
 Úsalo para el CRUD principal.
 
@@ -108,6 +109,7 @@ Cada tarea puede llevar:
 Notas:
 
 - si el perfil solo tiene permiso para tareas propias, no podrá asignar la tarea a otro usuario
+- si el perfil tiene `tenant.taskops.assign_others` o `tenant.taskops.manage`, podrá asignar a otros usuarios y ver el tenant completo
 - el detalle de la tarea se abre en modal y desde ahí también puedes:
   - editar
   - subir archivos
@@ -201,6 +203,7 @@ Si el usuario reporta que no ve el módulo:
 Si reporta que no puede asignar a otro usuario:
 
 - revisar si su perfil tiene `tenant.taskops.assign_others`
+- o `tenant.taskops.manage`
 - si no lo tiene, el comportamiento correcto es permitirle solo tareas propias
 
 Si reporta que no puede asociar clientes:

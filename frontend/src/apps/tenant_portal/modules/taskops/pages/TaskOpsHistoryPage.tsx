@@ -37,7 +37,13 @@ export function TaskOpsHistoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const canAssignOthers = tenantUser?.role === "admin" || tenantUser?.role === "manager";
+  const permissionSet = useMemo(
+    () => new Set(tenantUser?.permissions ?? []),
+    [tenantUser?.permissions]
+  );
+  const canAssignOthers =
+    permissionSet.has("tenant.taskops.assign_others") ||
+    permissionSet.has("tenant.taskops.manage");
 
   async function loadRows(search = "") {
     if (!session?.accessToken) return;

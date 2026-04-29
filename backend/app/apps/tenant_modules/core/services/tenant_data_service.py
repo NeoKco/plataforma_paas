@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -13,6 +14,10 @@ from app.apps.tenant_modules.core.repositories.tenant_info_repository import (
     TenantInfoRepository,
 )
 from app.apps.tenant_modules.core.repositories.user_repository import UserRepository
+from app.apps.tenant_modules.core.permissions import (
+    normalize_permission_codes,
+    resolve_effective_permissions,
+)
 from app.common.timezone_utils import normalize_timezone, resolve_effective_timezone
 from app.common.policies.module_limit_catalog import (
     CORE_USERS_ACTIVE_LIMIT_KEY,
@@ -190,6 +195,33 @@ class TenantDataService:
     def get_user_by_id(self, tenant_db: Session, user_id: int) -> User | None:
         return self.user_repository.get_by_id(tenant_db, user_id)
 
+    def get_user_granted_permissions(self, user: User | None) -> list[str]:
+        return self._parse_permissions_json(
+            None if user is None else getattr(user, "granted_permissions_json", None)
+        )
+
+    def get_user_revoked_permissions(self, user: User | None) -> list[str]:
+        return self._parse_permissions_json(
+            None if user is None else getattr(user, "revoked_permissions_json", None)
+        )
+
+    def get_effective_permissions(
+        self,
+        user: User | None,
+        *,
+        fallback_role: str | None = None,
+    ) -> list[str]:
+        if user is None and not fallback_role:
+            return []
+        role = getattr(user, "role", None) or fallback_role or ""
+        return sorted(
+            resolve_effective_permissions(
+                role,
+                granted_permissions=self.get_user_granted_permissions(user),
+                revoked_permissions=self.get_user_revoked_permissions(user),
+            )
+        )
+
     def _get_finance_account_or_raise(self, tenant_db: Session, account_id: int) -> FinanceAccount:
         account = (
             tenant_db.query(FinanceAccount)
@@ -350,6 +382,8 @@ class TenantDataService:
         role: str,
         is_active: bool = True,
         timezone: str | None = None,
+        granted_permissions: list[str] | None = None,
+        revoked_permissions: list[str] | None = None,
         max_users: int | None = None,
         max_active_users: int | None = None,
         max_monthly_users: int | None = None,
@@ -405,6 +439,8 @@ class TenantDataService:
             password_hash=hash_password(password),
             role=normalized_role,
             timezone=normalize_timezone(timezone, allow_none=True),
+            granted_permissions_json=self._dump_permissions_json(granted_permissions),
+            revoked_permissions_json=self._dump_permissions_json(revoked_permissions),
             is_active=is_active,
         )
         return self.user_repository.save(tenant_db, user)
@@ -418,6 +454,8 @@ class TenantDataService:
         role: str,
         password: str | None = None,
         timezone: str | None = None,
+        granted_permissions: list[str] | None = None,
+        revoked_permissions: list[str] | None = None,
         role_module_limits: dict[str, int] | None = None,
     ) -> User:
         user = self.user_repository.get_by_id(tenant_db, user_id)
@@ -462,6 +500,8 @@ class TenantDataService:
         user.email = email
         user.role = normalized_role
         user.timezone = normalize_timezone(timezone, allow_none=True)
+        user.granted_permissions_json = self._dump_permissions_json(granted_permissions)
+        user.revoked_permissions_json = self._dump_permissions_json(revoked_permissions)
 
         if password:
             user.password_hash = hash_password(password)
@@ -584,3 +624,20 @@ class TenantDataService:
     def _get_current_month_start(self) -> datetime:
         now = datetime.now(timezone.utc)
         return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    def _parse_permissions_json(self, raw_value: str | None) -> list[str]:
+        if not raw_value:
+            return []
+        try:
+            parsed = json.loads(raw_value)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return []
+        if not isinstance(parsed, list):
+            return []
+        return normalize_permission_codes(parsed)
+
+    def _dump_permissions_json(self, values: list[str] | None) -> str | None:
+        normalized = normalize_permission_codes(values)
+        if not normalized:
+            return None
+        return json.dumps(normalized, ensure_ascii=True)

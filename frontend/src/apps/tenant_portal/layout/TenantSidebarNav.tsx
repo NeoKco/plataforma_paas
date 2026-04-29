@@ -6,73 +6,73 @@ import { isTenantPortalSectionVisible } from "../utils/module-visibility";
 
 export function TenantSidebarNav() {
   const { language } = useLanguage();
-  const { tenantInfo } = useTenantAuth();
+  const { tenantInfo, tenantUser } = useTenantAuth();
   const navItems = [
     {
       to: "/tenant-portal",
       label: language === "es" ? "Resumen" : "Overview",
       icon: "overview" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "overview"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "overview"),
     },
     {
       to: "/tenant-portal/users",
       label: language === "es" ? "Usuarios" : "Users",
       icon: "users" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "users"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "users"),
     },
     {
       to: "/tenant-portal/business-core",
       label: language === "es" ? "Core negocio" : "Business core",
       icon: "business-core" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "business-core"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "business-core"),
     },
     {
       to: "/tenant-portal/finance",
       label: language === "es" ? "Finanzas" : "Finance",
       icon: "finance" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "finance"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "finance"),
     },
     {
       to: "/tenant-portal/products",
       label: language === "es" ? "Catálogo" : "Catalog",
       icon: "products" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "products"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "products"),
     },
     {
       to: "/tenant-portal/chat",
       label: language === "es" ? "Chat interno" : "Internal chat",
       icon: "chat" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "chat"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "chat"),
     },
     {
       to: "/tenant-portal/crm",
       label: language === "es" ? "CRM" : "CRM",
       icon: "crm" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "crm"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "crm"),
     },
     {
       to: "/tenant-portal/taskops",
       label: language === "es" ? "Tareas" : "Tasks",
       icon: "taskops" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "taskops"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "taskops"),
     },
     {
       to: "/tenant-portal/techdocs",
       label: language === "es" ? "Expediente técnico" : "Technical dossier",
       icon: "techdocs" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "techdocs"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "techdocs"),
     },
     {
       to: "/tenant-portal/agenda",
       label: language === "es" ? "Agenda" : "Agenda",
       icon: "planning" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "agenda"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "agenda"),
     },
     {
       to: "/tenant-portal/maintenance",
       label: language === "es" ? "Mantenciones" : "Maintenance",
       icon: "maintenance" as AppIconName,
-      visible: isTenantPortalSectionVisible(tenantInfo, "maintenance"),
+      visible: isTenantPortalSectionVisible(tenantInfo, tenantUser, "maintenance"),
     },
   ];
 

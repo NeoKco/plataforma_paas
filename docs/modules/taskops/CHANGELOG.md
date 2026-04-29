@@ -44,3 +44,21 @@
     - cierre con confirmación
   - al cerrar la tarea, el flujo operativo la mueve a `Histórico`
   - el histórico ahora reutiliza el mismo detalle modal para lectura completa de tareas cerradas
+
+## 2026-04-28
+
+- `taskops` alinea frontend con permisos reales del backend:
+  - `tenant.taskops.read`
+  - `tenant.taskops.create_own`
+  - `tenant.taskops.assign_others`
+  - `tenant.taskops.manage`
+- `/tenant/info` ahora expone `user.permissions` para el portal tenant
+- la UI deja de inferir asignación solo por `role=admin|manager`
+- la pestaña operativa repetida `Tareas` pasa a mostrarse como `Asignación`
+- el copy visible cambia según permiso:
+  - lectura operativa
+  - tareas propias
+  - asignación a terceros
+- botones de creación también cambian según permiso:
+  - `Asignar tarea`
+  - `Nueva tarea propia`

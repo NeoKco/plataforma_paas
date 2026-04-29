@@ -43,6 +43,7 @@ type TaskOpsTaskModalProps = {
   taskId: number | null;
   currentUserId: number | null;
   canAssignOthers: boolean;
+  canReadUsers: boolean;
   initialStatus?: string;
   onClose: () => void;
   onChanged: () => Promise<void> | void;
@@ -138,6 +139,7 @@ export function TaskOpsTaskModal({
   taskId,
   currentUserId,
   canAssignOthers,
+  canReadUsers,
   initialStatus = "todo",
   onClose,
   onChanged,
@@ -188,7 +190,9 @@ export function TaskOpsTaskModal({
       getTenantBusinessClients(accessToken, { includeInactive: false }),
       getTenantBusinessOrganizations(accessToken, { includeInactive: false }),
       getTenantBusinessWorkGroups(accessToken, { includeInactive: false }),
-      getTenantUsers(accessToken),
+      canReadUsers
+        ? getTenantUsers(accessToken)
+        : Promise.resolve({ data: [] as TenantUsersItem[] }),
       getCRMOpportunities(accessToken),
       getTenantMaintenanceWorkOrders(accessToken),
     ]);
@@ -240,7 +244,7 @@ export function TaskOpsTaskModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, accessToken, taskId, currentUserId, canAssignOthers, initialStatus]);
+  }, [isOpen, accessToken, taskId, currentUserId, canAssignOthers, canReadUsers, initialStatus]);
 
   if (!isOpen) {
     return null;

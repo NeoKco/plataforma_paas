@@ -12,7 +12,7 @@ export function TaskOpsModuleNav() {
     },
     {
       to: "/tenant-portal/taskops/tasks",
-      label: language === "es" ? "Tareas" : "Tasks",
+      label: language === "es" ? "Asignación" : "Assignment",
       icon: "taskops" as const,
     },
     {

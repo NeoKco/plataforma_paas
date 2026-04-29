@@ -1,4 +1,5 @@
-import type { TenantInfoData } from "../../../types";
+import type { TenantInfoData, TenantUserData } from "../../../types";
+import { hasTenantPermission } from "./tenant-permissions";
 
 export type TenantPortalModuleSection =
   | "overview"
@@ -12,6 +13,19 @@ export type TenantPortalModuleSection =
   | "finance"
   | "agenda"
   | "maintenance";
+
+const SECTION_READ_PERMISSIONS: Partial<Record<TenantPortalModuleSection, string>> = {
+  users: "tenant.users.read",
+  "business-core": "tenant.business_core.read",
+  products: "tenant.products.read",
+  chat: "tenant.chat.read",
+  crm: "tenant.crm.read",
+  taskops: "tenant.taskops.read",
+  techdocs: "tenant.techdocs.read",
+  finance: "tenant.finance.read",
+  agenda: "tenant.maintenance.read",
+  maintenance: "tenant.maintenance.read",
+};
 
 const SECTION_MODULE_KEYS: Record<
   TenantPortalModuleSection,
@@ -34,6 +48,7 @@ const SECTION_MODULE_KEYS: Record<
 
 export function isTenantPortalSectionVisible(
   tenantInfo: TenantInfoData | null,
+  tenantUser: TenantUserData | null,
   section: TenantPortalModuleSection
 ) {
   if (section === "overview") {
@@ -49,5 +64,13 @@ export function isTenantPortalSectionVisible(
     enabledModules.map((value) => value.trim().toLowerCase()).filter(Boolean)
   );
 
-  return SECTION_MODULE_KEYS[section].some((value) => normalizedModules.has(value));
+  const moduleVisible = SECTION_MODULE_KEYS[section].some((value) => normalizedModules.has(value));
+  if (!moduleVisible) {
+    return false;
+  }
+  const requiredPermission = SECTION_READ_PERMISSIONS[section];
+  if (!requiredPermission) {
+    return true;
+  }
+  return hasTenantPermission(tenantUser, requiredPermission);
 }

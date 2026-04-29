@@ -3,6 +3,15 @@ from typing import Any, Dict
 from fastapi import HTTPException, Request, status
 
 from app.apps.tenant_modules.core.permissions import get_permissions_for_role
+from app.apps.tenant_modules.core.services.tenant_connection_service import (
+    TenantConnectionService,
+)
+from app.apps.tenant_modules.core.services.tenant_data_service import TenantDataService
+from app.common.db.control_database import ControlSessionLocal
+
+
+tenant_connection_service = TenantConnectionService()
+tenant_data_service = TenantDataService()
 
 
 def get_current_token_payload(request: Request) -> Dict[str, Any]:
@@ -55,6 +64,15 @@ def get_current_tenant_context(request: Request) -> Dict[str, Any]:
             detail="Contexto tenant sin role",
         )
 
+    permissions = getattr(request.state, "tenant_effective_permissions", None)
+    if permissions is None:
+        permissions = _resolve_tenant_effective_permissions(
+            tenant_slug=tenant_slug,
+            tenant_user_id=tenant_user_id,
+            fallback_role=tenant_role,
+        )
+        request.state.tenant_effective_permissions = permissions
+
     return {
         "user_id": tenant_user_id,
         "email": tenant_email,
@@ -62,7 +80,7 @@ def get_current_tenant_context(request: Request) -> Dict[str, Any]:
         "tenant_slug": tenant_slug,
         "token_scope": token_scope,
         "maintenance_mode": bool(maintenance_mode),
-        "permissions": sorted(get_permissions_for_role(tenant_role)),
+        "permissions": permissions,
     }
 
 
@@ -130,3 +148,31 @@ def require_tenant_permission(permission: str):
         return current_user
 
     return dependency
+
+
+def _resolve_tenant_effective_permissions(
+    *,
+    tenant_slug: str,
+    tenant_user_id: int,
+    fallback_role: str,
+) -> list[str]:
+    control_db = ControlSessionLocal()
+    tenant_db = None
+    try:
+        tenant = tenant_connection_service.get_tenant_by_slug(control_db, tenant_slug)
+        if tenant is None:
+            return sorted(get_permissions_for_role(fallback_role))
+
+        tenant_session_factory = tenant_connection_service.get_tenant_session(tenant)
+        tenant_db = tenant_session_factory()
+        user = tenant_data_service.get_user_by_id(tenant_db, tenant_user_id)
+        return tenant_data_service.get_effective_permissions(
+            user,
+            fallback_role=fallback_role,
+        )
+    except Exception:
+        return sorted(get_permissions_for_role(fallback_role))
+    finally:
+        if tenant_db is not None:
+            tenant_db.close()
+        control_db.close()

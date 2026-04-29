@@ -157,6 +157,9 @@ def _build_tenant_user_item(
             tenant_timezone or DEFAULT_TENANT_TIMEZONE,
             getattr(user, "timezone", None),
         ),
+        granted_permissions=tenant_data_service.get_user_granted_permissions(user),
+        revoked_permissions=tenant_data_service.get_user_revoked_permissions(user),
+        effective_permissions=tenant_data_service.get_effective_permissions(user),
         is_active=user.is_active,
     )
 
@@ -537,6 +540,7 @@ def tenant_info(
             id=request.state.tenant_user_id,
             email=request.state.tenant_email,
             role=request.state.tenant_role,
+            permissions=sorted(current_user.get("permissions", [])),
             timezone=user_timezone,
             effective_timezone=effective_timezone,
         ),
@@ -970,6 +974,8 @@ def tenant_create_user(
             role=payload.role,
             is_active=payload.is_active,
             timezone=payload.timezone,
+            granted_permissions=payload.granted_permissions,
+            revoked_permissions=payload.revoked_permissions,
             max_users=(
                 getattr(
                     request.state,
@@ -1036,6 +1042,8 @@ def tenant_update_user(
             role=payload.role,
             password=payload.password,
             timezone=payload.timezone,
+            granted_permissions=payload.granted_permissions,
+            revoked_permissions=payload.revoked_permissions,
             role_module_limits=(
                 getattr(
                     request.state,

@@ -9,7 +9,7 @@ Referencia resumida del módulo `taskops`.
   - tareas abiertas recientes
   - histórico reciente
 
-## Tasks
+## Assignment / Tasks
 
 - `GET /tenant/taskops/tasks`
 - `POST /tenant/taskops/tasks`
@@ -33,6 +33,7 @@ Notas:
 - `POST` y `PUT` respetan permisos separados:
   - `tenant.taskops.create_own`
   - `tenant.taskops.assign_others`
+- en la UI tenant esta superficie se presenta como `Asignación`
 
 ## Kanban
 

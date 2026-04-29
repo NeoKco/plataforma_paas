@@ -53,7 +53,14 @@ export function TaskOpsTasksPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const canAssignOthers = tenantUser?.role === "admin" || tenantUser?.role === "manager";
+  const permissionSet = useMemo(
+    () => new Set(tenantUser?.permissions ?? []),
+    [tenantUser?.permissions]
+  );
+  const canCreateOwn = permissionSet.has("tenant.taskops.create_own");
+  const canAssignOthers =
+    permissionSet.has("tenant.taskops.assign_others") ||
+    permissionSet.has("tenant.taskops.manage");
 
   async function loadRows() {
     if (!session?.accessToken) return;
@@ -97,11 +104,11 @@ export function TaskOpsTasksPage() {
     <div className="taskops-page">
       <PageHeader
         eyebrow={language === "es" ? "TAREAS" : "TASKS"}
-        title={language === "es" ? "Tareas" : "Tasks"}
+        title={language === "es" ? "Asignación" : "Assignment"}
         description={
           language === "es"
-            ? "Revisa las tareas que te asignaron, crea tareas propias y entra rápido al detalle operativo."
-            : "Review tasks assigned to you, create your own tasks and jump quickly into operational detail."
+            ? "Revisa tus tareas activas y, si tu perfil lo permite, crea o asigna trabajo operativo a otros usuarios."
+            : "Review your active tasks and, if your profile allows it, create or assign operational work to other users."
         }
         icon="taskops"
       />
@@ -117,10 +124,14 @@ export function TaskOpsTasksPage() {
           language === "es"
             ? canAssignOthers
               ? "Vista operativa del tenant. Si tu perfil lo permite, puedes asignar tareas a otros usuarios."
-              : "Vista de tus tareas activas. Puedes crear y cerrar tus propias tareas."
+              : canCreateOwn
+                ? "Vista de tus tareas activas. Puedes crear y cerrar tus propias tareas."
+                : "Vista de tus tareas activas y asignadas. Tu perfil actual es de lectura operativa."
             : canAssignOthers
               ? "Operational tenant view. If your profile allows it, you can assign tasks to other users."
-              : "View of your active tasks. You can create and close your own tasks."
+              : canCreateOwn
+                ? "View of your active tasks. You can create and close your own tasks."
+                : "View of your active assigned tasks. Your current profile is read-only."
         }
         rows={visibleRows}
         actions={
@@ -145,9 +156,17 @@ export function TaskOpsTasksPage() {
             <button className="btn btn-outline-secondary" type="button" onClick={() => void loadRows()}>
               {language === "es" ? "Filtrar" : "Filter"}
             </button>
-            <button className="btn btn-primary" type="button" onClick={() => setIsCreateModalOpen(true)}>
-              {language === "es" ? "Nueva tarea" : "New task"}
-            </button>
+            {canCreateOwn ? (
+              <button className="btn btn-primary" type="button" onClick={() => setIsCreateModalOpen(true)}>
+                {language === "es"
+                  ? canAssignOthers
+                    ? "Asignar tarea"
+                    : "Nueva tarea propia"
+                  : canAssignOthers
+                    ? "Assign task"
+                    : "New own task"}
+              </button>
+            ) : null}
           </div>
         }
         columns={[

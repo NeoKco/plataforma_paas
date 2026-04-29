@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.common.db.tenant_base import TenantBase
@@ -13,6 +13,8 @@ class User(TenantBase):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), nullable=False, default="admin")
     timezone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    granted_permissions_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    revoked_permissions_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),

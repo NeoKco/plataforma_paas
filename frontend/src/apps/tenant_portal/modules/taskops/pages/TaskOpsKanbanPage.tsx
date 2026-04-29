@@ -47,7 +47,11 @@ export function TaskOpsKanbanPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const canAssignOthers = tenantUser?.role === "admin" || tenantUser?.role === "manager";
+  const permissionSet = new Set(tenantUser?.permissions ?? []);
+  const canCreateOwn = permissionSet.has("tenant.taskops.create_own");
+  const canAssignOthers =
+    permissionSet.has("tenant.taskops.assign_others") ||
+    permissionSet.has("tenant.taskops.manage");
 
   async function loadKanban() {
     if (!session?.accessToken) return;
@@ -106,16 +110,26 @@ export function TaskOpsKanbanPage() {
 
       <div className="taskops-kanban__toolbar">
         <button className="btn btn-primary" type="button" onClick={() => openCreateModal("todo")}>
-          {language === "es" ? "Registrar tarea" : "Register task"}
+          {language === "es"
+            ? canAssignOthers
+              ? "Asignar tarea"
+              : "Nueva tarea propia"
+            : canAssignOthers
+              ? "Assign task"
+              : "New own task"}
         </button>
         <div className="small text-muted">
           {language === "es"
             ? canAssignOthers
               ? "Tu perfil puede crear tareas propias y asignarlas a otros usuarios."
-              : "Tu perfil puede crear tareas propias; la asignación a otros usuarios depende de permisos."
+              : canCreateOwn
+                ? "Tu perfil puede crear tareas propias; la asignación a otros usuarios depende de permisos."
+                : "Tu perfil actual puede revisar el tablero, pero no crear ni asignar tareas."
             : canAssignOthers
               ? "Your profile can create tasks and assign them to other users."
-              : "Your profile can create your own tasks; assigning others depends on permissions."}
+              : canCreateOwn
+                ? "Your profile can create your own tasks; assigning others depends on permissions."
+                : "Your profile can review the board, but not create or assign tasks."}
         </div>
       </div>
 
@@ -127,9 +141,11 @@ export function TaskOpsKanbanPage() {
                 <strong>{getStatusLabel(column.status, language)}</strong>
                 <div className="small text-muted">{column.total}</div>
               </div>
-              <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => openCreateModal(column.status)}>
-                {language === "es" ? "Nueva" : "New"}
-              </button>
+              {canCreateOwn ? (
+                <button className="btn btn-outline-secondary btn-sm" type="button" onClick={() => openCreateModal(column.status)}>
+                  {language === "es" ? "Crear" : "Create"}
+                </button>
+              ) : null}
             </div>
             <div className="taskops-kanban__list">
               {column.items.map((item) => (

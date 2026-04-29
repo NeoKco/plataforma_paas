@@ -1383,6 +1383,7 @@ export type TenantUserData = {
   id: number;
   email: string;
   role: string;
+  permissions: string[];
   timezone: string | null;
   effective_timezone: string | null;
 };
@@ -1421,6 +1422,9 @@ export type TenantUsersItem = {
   role: string;
   timezone: string | null;
   effective_timezone: string | null;
+  granted_permissions: string[];
+  revoked_permissions: string[];
+  effective_permissions: string[];
   is_active: boolean;
 };
 

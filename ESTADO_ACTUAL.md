@@ -2,6 +2,47 @@
 
 ## Última actualización
 
+- fecha: 2026-04-28
+- corte nuevo ya cerrado en repo y runtime:
+  - `taskops` ya deja de inferir asignación por `role=admin|manager` en frontend
+  - `/tenant/info` ahora expone `tenantUser.permissions` para alinear la UI con permisos reales de backend
+  - la pestaña operativa repetida `Tareas` ahora se presenta como `Asignación`
+  - el botón principal ahora se adapta al permiso real:
+    - `Asignar tarea` si el usuario tiene `tenant.taskops.assign_others` o `tenant.taskops.manage`
+    - `Nueva tarea propia` si solo tiene `tenant.taskops.create_own`
+  - validación repo:
+    - `backend.app.tests.test_tenant_flow + backend.app.tests.test_taskops_services` -> `103 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - `staging` backend redeployado -> `588 tests OK`
+    - `production` backend redeployado -> `588 tests OK`
+    - frontend republicado con API base correcta por carril:
+      - `staging` -> `http://192.168.7.42:8081`
+      - `production` -> `https://orkestia.ddns.net`
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+    - `curl -k https://orkestia.ddns.net/health` -> `200`
+- fecha: 2026-04-28
+- hotfix operativo de disponibilidad ya cerrado en runtime:
+  - `production` backend quedó promovido a `uvicorn --workers 5`
+  - `staging` backend quedó promovido a `uvicorn --workers 2`
+  - causa real del incidente:
+    - el backend estaba corriendo con un solo worker
+    - una request larga podía bloquear todo el proceso y hasta `/health`
+    - nginx terminaba devolviendo `504` en `https://orkestia.ddns.net/health`
+  - corrección aplicada:
+    - actualización persistente de los units:
+      - `infra/systemd/platform-paas-backend.service`
+      - `infra/systemd/platform-paas-backend-staging.service`
+    - instalación en:
+      - `/etc/systemd/system/platform-paas-backend.service`
+      - `/etc/systemd/system/platform-paas-backend-staging.service`
+    - `systemctl daemon-reload`
+    - reinicio de ambos servicios backend
+  - validación runtime:
+    - `curl http://127.0.0.1:8000/health` -> `200`
+    - `curl https://orkestia.ddns.net/health` -> `200`
+    - `platform-paas-backend.service` activo con `--workers 5`
+    - `platform-paas-backend-staging.service` activo con `--workers 2`
 - fecha: 2026-04-27
 - microajuste UX ya publicado en runtime:
   - en `products > Catálogo`, el nombre del producto/servicio ya abre la misma vista rápida que la miniatura
