@@ -62,3 +62,5 @@
 - botones de creación también cambian según permiso:
   - `Asignar tarea`
   - `Nueva tarea propia`
+- el modal operativo ya no se cae para usuarios sin `tenant.users.read` cuando el caso real es solo crear/editar tareas propias
+- el módulo deja explícito que la asignación a terceros no depende del rol visible, sino de permisos efectivos resueltos por backend

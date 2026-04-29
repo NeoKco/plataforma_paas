@@ -1,5 +1,22 @@
 # Platform Core Changelog
 
+## 2026-04-28
+
+- el core tenant ya suma overrides explícitos de permisos por usuario:
+  - `granted_permissions_json`
+  - `revoked_permissions_json`
+- la resolución efectiva de permisos tenant ya mezcla:
+  - permisos base por rol
+  - grants explícitos
+  - revokes explícitos
+- `Usuarios` ya pasa a ser superficie tenant-side para administrar estos overrides
+- el sidebar tenant y varias pantallas operativas dejan de depender solo del módulo habilitado y pasan a respetar permisos de lectura por módulo
+- `taskops`, `maintenance` y `techdocs` ya no se caen por intentar cargar catálogos de usuarios cuando el caso operativo no requiere `tenant.users.read`
+- validación runtime:
+  - `staging` backend redeployado con `589 tests OK`
+  - `production` backend redeployado con `589 tests OK`
+  - ambos carriles convergidos a la migración tenant `0054_tenant_user_permission_overrides`
+
 ## 2026-04-24
 
 - se formaliza la regla transversal de protección de datos tenant:

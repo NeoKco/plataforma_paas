@@ -1,5 +1,87 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-28 - permisos efectivos por usuario tenant y superficies operatorias dejan de depender de `tenant.users.read`
+
+Contexto:
+
+- el usuario reportó que un operador seguía viendo superficies de asignación y filtros que conceptualmente no le correspondían
+- además, varias páginas tenant-side estaban fallando solo porque intentaban cargar el catálogo completo de usuarios, aunque el caso operativo real no necesitara ver a otros usuarios
+- también quedó explicitada una necesidad más grande:
+  - el tenant admin debe poder decidir qué ve y opera cada usuario desde una superficie propia
+
+Cambios:
+
+- backend:
+  - [permissions.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/permissions.py)
+    - nuevo catálogo base de permisos tenant
+    - resolución efectiva `rol + grants - revokes`
+  - [user.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/models/user.py)
+    - columnas nuevas:
+      - `granted_permissions_json`
+      - `revoked_permissions_json`
+  - [tenant_data_service.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/services/tenant_data_service.py)
+    - soporte para grants/revokes por usuario
+  - [schemas.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/schemas.py)
+  - [tenant_routes.py](/home/felipe/platform_paas/backend/app/apps/tenant_modules/core/api/tenant_routes.py)
+    - `Usuarios` ya expone:
+      - permisos otorgados
+      - permisos revocados
+      - permisos efectivos
+  - [dependencies.py](/home/felipe/platform_paas/backend/app/common/auth/dependencies.py)
+    - la request tenant ya resuelve permisos efectivos desde la DB del tenant
+  - migración nueva:
+    - [v0054_tenant_user_permission_overrides.py](/home/felipe/platform_paas/backend/migrations/tenant/v0054_tenant_user_permission_overrides.py)
+- frontend:
+  - [tenant-permissions.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/utils/tenant-permissions.ts)
+    - helpers y catálogo de permisos visibles
+  - [module-visibility.ts](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/utils/module-visibility.ts)
+    - el sidebar ya exige permiso de lectura por módulo
+  - [TenantSidebarNav.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/layout/TenantSidebarNav.tsx)
+    - el render del menú ya depende de permisos efectivos del usuario tenant
+  - [TenantUsersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/pages/users/TenantUsersPage.tsx)
+    - nuevo editor tenant-side de permisos por usuario:
+      - `inherit`
+      - `grant`
+      - `revoke`
+  - `taskops`:
+    - [TaskOpsTaskModal.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops/components/common/TaskOpsTaskModal.tsx)
+    - [TaskOpsTasksPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops/pages/TaskOpsTasksPage.tsx)
+    - [TaskOpsKanbanPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops/pages/TaskOpsKanbanPage.tsx)
+    - [TaskOpsHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/taskops/pages/TaskOpsHistoryPage.tsx)
+    - el operador que solo crea tareas propias ya no requiere `tenant.users.read` para abrir el modal
+  - `maintenance`:
+    - [MaintenanceDueItemsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceDueItemsPage.tsx)
+    - [MaintenanceWorkOrdersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceWorkOrdersPage.tsx)
+    - [MaintenanceCalendarPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceCalendarPage.tsx)
+    - [MaintenanceHistoryPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/maintenance/pages/MaintenanceHistoryPage.tsx)
+  - `techdocs`:
+    - [TechDocsDossiersPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/techdocs/pages/TechDocsDossiersPage.tsx)
+    - estas superficies ya no se caen por filtros opcionales de usuario
+
+Validación:
+
+- repo:
+  - `PYTHONPATH=backend ./platform_paas_venv/bin/python -m unittest backend.app.tests.test_migration_flow backend.app.tests.test_tenant_flow -v` -> `117 tests OK`
+  - `cd frontend && npm run build` -> `OK`
+- runtime:
+  - backup PostgreSQL previo de tenants en `staging`
+  - backup PostgreSQL previo de tenants en `production`
+  - backup adicional explícito de `ieris-ltda` en `production`
+  - `staging` backend redeployado -> `589 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - `production` backend redeployado -> `589 tests OK`, convergencia `processed=4, synced=4, skipped=0, failed=0`
+  - frontend republicado en ambos carriles
+  - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias`
+
+Alcance cerrado:
+
+- ya queda resuelto el control por permiso de página y acción dentro del tenant
+- ya existe una superficie tenant admin para ajustar permisos por usuario
+
+Pendiente explícito:
+
+- todavía no queda resuelto el ownership scoping de registros de negocio y finanzas
+- esa siguiente fase debe filtrar listas, agregados y métricas para que un usuario mínimo vea solo lo propio salvo grant explícito
+
 ## 2026-04-28 - `taskops` alinea asignación al permiso real y `production` se republica con build correcto
 
 Contexto:

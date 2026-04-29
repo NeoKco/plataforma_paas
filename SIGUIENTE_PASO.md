@@ -3,6 +3,26 @@
 ## Prioridad vigente
 
 - prioridad inmediata real:
+  - abrir el siguiente slice de permisos tenant-side:
+    - visibilidad por propiedad de datos
+  - objetivo funcional:
+    - un usuario mínimo no debería ver por defecto datos de terceros en:
+      - `finance`
+      - `business-core`
+      - `maintenance`
+      - `crm`
+    - debería ver solo:
+      - sus tareas
+      - sus asignaciones
+      - sus registros/entidades propias cuando el módulo lo soporte
+    - un administrador tenant podrá ampliar ese alcance desde `Usuarios`
+  - este corte recién cerrado ya resuelve:
+    - acceso a páginas por permiso
+    - acciones por permiso
+    - administración de grants/revokes por usuario
+  - lo siguiente ya no es otro hotfix UI:
+    - pasa a ownership scoping real de listas, filtros, métricas y agregados
+- prioridad inmediata real:
   - revalidar en navegador real de `ieris-ltda` que `Tareas` ya quedó claro operativamente:
     - pestaña `Asignación`
     - botón `Asignar tarea` solo para perfiles con `tenant.taskops.assign_others` o `tenant.taskops.manage`

@@ -4,6 +4,51 @@
 
 - fecha: 2026-04-28
 - corte nuevo ya cerrado en repo y runtime:
+  - el tenant ya soporta overrides explícitos de permisos por usuario:
+    - `granted_permissions_json`
+    - `revoked_permissions_json`
+  - `Usuarios` pasa a ser la superficie de administración tenant-side para definir qué puede ver y operar cada usuario
+  - la resolución efectiva ya mezcla:
+    - permisos base por rol tenant
+    - grants explícitos
+    - revokes explícitos
+  - el sidebar tenant ahora deja de depender solo del módulo habilitado y también exige permiso de lectura por módulo:
+    - `tenant.users.read`
+    - `tenant.business_core.read`
+    - `tenant.finance.read`
+    - `tenant.products.read`
+    - `tenant.chat.read`
+    - `tenant.crm.read`
+    - `tenant.taskops.read`
+    - `tenant.techdocs.read`
+    - `tenant.maintenance.read`
+  - `taskops` ya no intenta cargar usuarios del tenant para operadores que solo pueden crear tareas propias:
+    - un operador con `tenant.taskops.create_own` pero sin `tenant.users.read` ya puede abrir `Asignación`, `Kanban` e `Histórico` sin caer por catálogos auxiliares
+  - el mismo ajuste ya se aplicó a superficies que solo usaban usuarios para filtros opcionales:
+    - `maintenance`:
+      - `Pendientes`
+      - `Mantenciones`
+      - `Agenda`
+      - `Historial`
+    - `techdocs`:
+      - `Expediente técnico`
+  - `production` y `staging` ya quedaron convergidos a la migración tenant:
+    - `0054_tenant_user_permission_overrides`
+  - validación repo:
+    - `backend.app.tests.test_migration_flow + test_tenant_flow` -> `117 tests OK`
+    - `cd frontend && npm run build` -> `OK`
+  - validación runtime:
+    - backups PostgreSQL previos ejecutados en `staging` y `production`
+    - backup adicional explícito de `ieris-ltda` en `production`
+    - `staging` backend redeployado -> `589 tests OK`
+    - `production` backend redeployado -> `589 tests OK`
+    - frontend republicado con API base correcta por carril
+    - `check_frontend_static_readiness.sh` -> `0 fallos, 0 advertencias` en ambos carriles
+  - alcance real del slice:
+    - ya queda resuelto el control por permiso de página/acción
+    - todavía no queda resuelto el filtrado por propiedad de datos en `finance`, `business-core` y otros módulos
+- fecha: 2026-04-28
+- corte nuevo ya cerrado en repo y runtime:
   - `taskops` ya deja de inferir asignación por `role=admin|manager` en frontend
   - `/tenant/info` ahora expone `tenantUser.permissions` para alinear la UI con permisos reales de backend
   - la pestaña operativa repetida `Tareas` ahora se presenta como `Asignación`

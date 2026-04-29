@@ -1,9 +1,9 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-28T22:25:00-04:00",
+  "updated_at": "2026-04-28T23:20:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. `taskops` ya alinea la asignación a permisos reales (`tenant.taskops.create_own`, `tenant.taskops.assign_others`, `tenant.taskops.manage`) y la superficie operativa visible ahora se presenta como `Asignación`. El hotfix operativo más reciente ya estabilizó disponibilidad dejando `production` con `uvicorn --workers 5` y `staging` con `uvicorn --workers 2`, y `production` ya quedó además republicado con el frontend correcto y `/health` en `200` tras el rebuild con `API_BASE_URL=https://orkestia.ddns.net`.",
-  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada. `products` sigue siendo el módulo en foco porque ya cubre catálogo vivo, IA genérica, scheduler, migración/import legacy reproducible desde `ieris_app` y ahora una lectura visual más útil del catálogo importado.",
+  "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime, y ahora suma un primer slice serio de permisos efectivos por usuario dentro del tenant. `Usuarios` ya permite grants/revokes por usuario, el sidebar tenant ya respeta permisos de lectura por módulo y `taskops`/`maintenance`/`techdocs` ya no dependen de `tenant.users.read` cuando el caso operativo real no exige ver otros usuarios. El siguiente frente lógico ya no es otro hotfix UI: pasa a ownership scoping de datos en `finance`, `business-core` y módulos relacionados.",
+  "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada y a endurecimiento funcional por permisos tenant-side. `products` sigue siendo un módulo fuerte del portfolio, pero el foco inmediato de plataforma pasa a control fino por usuario y luego a visibilidad por propiedad de datos.",
   "active_modules": [
     "platform-core",
     "finance",
@@ -16,7 +16,8 @@
     "products"
   ],
   "module_in_focus": [
-    "products"
+    "platform-core",
+    "taskops"
   ],
   "decisions_closed": [
     "antes de modificar datos de cualquier tenant en development, staging o production ya es obligatorio tomar backup PostgreSQL del tenant afectado",
@@ -448,7 +449,7 @@
     "frontend staging reconstruido con API_BASE_URL=http://192.168.7.42:8081 y static readiness OK para este corte"
   ],
   "blocking_issues": [],
-  "next_decision_required": "confirmar en navegador real que el root `https://orkestia.ddns.net/` ya sale del guard inicial sin `504`; luego cerrar validación UX de `products > Catálogo` y decidir si el siguiente frente abre `projects` como consumidor fuerte de `products` o si `products` se reabre solo para profundización comercial/operativa superior",
+  "next_decision_required": "abrir el siguiente slice de ownership scoping tenant-side: definir y aplicar cómo `finance`, `business-core`, `maintenance` y módulos relacionados filtran listas, métricas y agregados para que un usuario mínimo vea solo lo propio salvo grants explícitos del tenant admin desde `Usuarios`",
   "next_step_if_prod_host_exists": [
     "mantener produccion estable",
     "usar staging como carril previo real",

@@ -244,11 +244,15 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0051_products_connector_runtime_profiles",
                 "0052_products_catalog_images",
                 "0053_products_catalog_images_postgres_identity_fix",
+                "0054_tenant_user_permission_overrides",
             ],
         )
         self.assertIn("tenant_info", tables)
         self.assertIn("roles", tables)
         self.assertIn("users", tables)
+        user_columns = {column["name"] for column in inspect(engine).get_columns("users")}
+        self.assertIn("granted_permissions_json", user_columns)
+        self.assertIn("revoked_permissions_json", user_columns)
         self.assertIn("finance_entries", tables)
         self.assertIn("finance_accounts", tables)
         self.assertIn("finance_categories", tables)
@@ -756,6 +760,7 @@ class MigrationFlowTestCase(unittest.TestCase):
                 "0051_products_connector_runtime_profiles",
                 "0052_products_catalog_images",
                 "0053_products_catalog_images_postgres_identity_fix",
+                "0054_tenant_user_permission_overrides",
             ],
         )
 

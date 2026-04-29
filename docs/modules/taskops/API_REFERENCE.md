@@ -34,6 +34,7 @@ Notas:
   - `tenant.taskops.create_own`
   - `tenant.taskops.assign_others`
 - en la UI tenant esta superficie se presenta como `Asignación`
+- la UI ya no debe requerir `tenant.users.read` para abrir el modal si el actor solo crea tareas propias
 
 ## Kanban
 
@@ -85,4 +86,9 @@ Restricciones actuales:
 - asignación a otros:
   - `tenant.taskops.assign_others`
 - gestión global:
-  - `tenant.taskops.manage`
+- `tenant.taskops.manage`
+
+Nota de integración:
+
+- `tenant.users.read` ya no debe tratarse como precondición funcional del módulo `taskops`
+- solo corresponde cuando realmente se necesita administrar o listar otros usuarios

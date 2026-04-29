@@ -109,12 +109,34 @@ Cada tarea puede llevar:
 Notas:
 
 - si el perfil solo tiene permiso para tareas propias, no podrá asignar la tarea a otro usuario
+- si además no tiene `tenant.users.read`, el modal seguirá funcionando igual para tareas propias; simplemente no cargará la lista global de usuarios
 - si el perfil tiene `tenant.taskops.assign_others` o `tenant.taskops.manage`, podrá asignar a otros usuarios y ver el tenant completo
 - el detalle de la tarea se abre en modal y desde ahí también puedes:
   - editar
   - subir archivos
   - borrar
   - cerrar
+
+## Administración de permisos
+
+El tenant admin ya puede ajustar permisos por usuario desde `Usuarios`.
+
+Qué puede hacer ahí:
+
+- dejar un permiso heredado del rol base
+- otorgarlo explícitamente
+- revocarlo explícitamente
+
+Eso ya controla, por ejemplo:
+
+- quién ve `Tareas`
+- quién solo crea tareas propias
+- quién puede asignar a otros
+
+Importante:
+
+- este corte controla acceso a páginas y acciones
+- todavía no controla por completo la visibilidad por propiedad de datos en módulos como `Finanzas` o `Core de negocio`
 
 ### Kanban
 

@@ -28,6 +28,8 @@ Estado actual:
   - oportunidades de `crm`
   - OT de `maintenance`
 - el módulo ya entra al catálogo contractual como add-on tenant (`taskops`)
+- la carga del modal de alta/edición ya no exige `tenant.users.read` cuando el usuario solo puede operar tareas propias
+- el tenant admin ya puede ajustar permisos usuario por usuario desde `Usuarios`, sin depender solo del rol base
 
 Objetivo del módulo:
 
@@ -92,6 +94,12 @@ Lectura práctica:
   - asigna o reasigna tareas a otros usuarios y ve el tenant completo
 - `tenant.taskops.manage`
   - hereda capacidad de asignación global y gestión completa
+
+Comportamiento importante:
+
+- si un usuario tiene `tenant.taskops.create_own` pero no `tenant.users.read`, el módulo sigue funcionando para tareas propias
+- en ese caso el modal no intenta cargar el catálogo completo de usuarios del tenant
+- la asignación a terceros solo aparece cuando el permiso efectivo realmente existe
 
 Queda fuera por ahora:
 
