@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { AppIcon } from "../../../../../../design-system/AppIcon";
 import { useLanguage } from "../../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../../store/tenant-auth-context";
-import { getTenantPermissionSet } from "../../../utils/tenant-permissions";
+import { getTenantPermissionSet } from "../../../../utils/tenant-permissions";
 
 export function TaskOpsModuleNav() {
   const { language } = useLanguage();

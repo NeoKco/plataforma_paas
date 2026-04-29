@@ -3,7 +3,7 @@ import { useLanguage } from "../../../../../../store/language-context";
 import { useTenantAuth } from "../../../../../../store/tenant-auth-context";
 import { getFinanceModuleLabel } from "../../utils/presentation";
 import { FinanceIcon, type FinanceIconName } from "./FinanceIcon";
-import { hasTenantPermission } from "../../../utils/tenant-permissions";
+import { hasTenantPermission } from "../../../../utils/tenant-permissions";
 
 export function FinanceModuleNav() {
   const { language } = useLanguage();

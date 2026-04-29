@@ -54,6 +54,7 @@ import {
   getTenantMaintenanceWorkOrders,
   type TenantMaintenanceWorkOrder,
 } from "../services/workOrdersService";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 function buildMonthValue(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -131,8 +132,9 @@ type HistoricalMaintenanceReportRow = {
 };
 
 export function MaintenanceReportsPage() {
-  const { session, effectiveTimeZone } = useTenantAuth();
+  const { session, tenantUser, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
   const [periodMonth, setPeriodMonth] = useState(buildMonthValue());
   const [equipmentTypeFilter, setEquipmentTypeFilter] = useState("all");
   const [organizationFilter, setOrganizationFilter] = useState("all");
@@ -199,11 +201,21 @@ export function MaintenanceReportsPage() {
           getTenantMaintenanceHistory(session.accessToken),
           getTenantMaintenanceInstallations(session.accessToken),
           getTenantMaintenanceEquipmentTypes(session.accessToken),
-          getTenantBusinessClients(session.accessToken, { includeInactive: true }),
-          getTenantBusinessContacts(session.accessToken, { includeInactive: true }),
-          getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
-          getTenantSocialCommunityGroups(session.accessToken, { includeInactive: true }),
-          getTenantBusinessSites(session.accessToken, { includeInactive: true }),
+          canReadBusinessCore
+            ? getTenantBusinessClients(session.accessToken, { includeInactive: true })
+            : Promise.resolve({ data: [] as TenantBusinessClient[] }),
+          canReadBusinessCore
+            ? getTenantBusinessContacts(session.accessToken, { includeInactive: true })
+            : Promise.resolve({ data: [] as TenantBusinessContact[] }),
+          canReadBusinessCore
+            ? getTenantBusinessOrganizations(session.accessToken, { includeInactive: true })
+            : Promise.resolve({ data: [] as TenantBusinessOrganization[] }),
+          canReadBusinessCore
+            ? getTenantSocialCommunityGroups(session.accessToken, { includeInactive: true })
+            : Promise.resolve({ data: [] as TenantSocialCommunityGroup[] }),
+          canReadBusinessCore
+            ? getTenantBusinessSites(session.accessToken, { includeInactive: true })
+            : Promise.resolve({ data: [] as TenantBusinessSite[] }),
         ]);
         setWorkOrders(workOrdersResponse.data);
         setHistoryRows(historyResponse.data);

@@ -322,10 +322,15 @@ class FinanceService:
         payload: FinanceTransactionUpdateRequest,
         *,
         actor_user_id: int | None = None,
+        actor_can_manage_all: bool = False,
         allow_accountless: bool = False,
         commit: bool = True,
     ) -> FinanceTransaction:
-        transaction = self.transaction_repository.get_by_id(tenant_db, transaction_id)
+        transaction = self.transaction_repository.get_by_id(
+            tenant_db,
+            transaction_id,
+            owner_user_id=None if actor_can_manage_all else actor_user_id,
+        )
         self._raise_if_missing_or_voided(transaction)
 
         transaction_values = self._build_transaction_values(

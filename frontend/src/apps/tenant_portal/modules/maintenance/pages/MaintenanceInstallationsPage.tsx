@@ -34,6 +34,7 @@ import {
 } from "../../business_core/services/organizationsService";
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 type MaintenanceInstallationForm = TenantMaintenanceInstallationWriteRequest & {
   client_id: number;
@@ -69,8 +70,9 @@ function localizeDynamic(language: string, es: string, en: string): string {
 }
 
 export function MaintenanceInstallationsPage() {
-  const { session, effectiveTimeZone } = useTenantAuth();
+  const { session, tenantUser, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
   const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -134,9 +136,15 @@ export function MaintenanceInstallationsPage() {
       const [installationsResponse, sitesResponse, clientsResponse, organizationsResponse, equipmentTypesResponse] =
         await Promise.all([
           getTenantMaintenanceInstallations(session.accessToken),
-          getTenantBusinessSites(session.accessToken, { includeInactive: false }),
-          getTenantBusinessClients(session.accessToken, { includeInactive: false }),
-          getTenantBusinessOrganizations(session.accessToken, { includeInactive: false }),
+          canReadBusinessCore
+            ? getTenantBusinessSites(session.accessToken, { includeInactive: false })
+            : Promise.resolve({ data: [] as TenantBusinessSite[] }),
+          canReadBusinessCore
+            ? getTenantBusinessClients(session.accessToken, { includeInactive: false })
+            : Promise.resolve({ data: [] as TenantBusinessClient[] }),
+          canReadBusinessCore
+            ? getTenantBusinessOrganizations(session.accessToken, { includeInactive: false })
+            : Promise.resolve({ data: [] as TenantBusinessOrganization[] }),
           getTenantMaintenanceEquipmentTypes(session.accessToken, { includeInactive: false }),
         ]);
       setRows(installationsResponse.data);

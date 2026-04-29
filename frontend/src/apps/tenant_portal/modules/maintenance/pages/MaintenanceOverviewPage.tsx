@@ -56,6 +56,7 @@ import {
   getTenantMaintenanceHistory,
   type TenantMaintenanceHistoryWorkOrder,
 } from "../services/historyService";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 function formatDateTime(
   value: string | null,
@@ -129,8 +130,9 @@ function buildMaintenanceFinanceConfigForm(
 }
 
 export function MaintenanceOverviewPage() {
-  const { session, tenantInfo, effectiveTimeZone, refreshTenantInfo } = useTenantAuth();
+  const { session, tenantInfo, tenantUser, effectiveTimeZone, refreshTenantInfo } = useTenantAuth();
   const { language } = useLanguage();
+  const canReadBusinessCore = hasTenantPermission(tenantUser, "tenant.business_core.read");
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [historyRows, setHistoryRows] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
@@ -276,9 +278,15 @@ export function MaintenanceOverviewPage() {
         await Promise.all([
           getTenantMaintenanceWorkOrders(session.accessToken),
           getTenantMaintenanceHistory(session.accessToken),
-          getTenantBusinessClients(session.accessToken, { includeInactive: true }),
-          getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
-          getTenantBusinessSites(session.accessToken, { includeInactive: true }),
+          canReadBusinessCore
+            ? getTenantBusinessClients(session.accessToken, { includeInactive: true })
+            : Promise.resolve({ data: [] as TenantBusinessClient[] }),
+          canReadBusinessCore
+            ? getTenantBusinessOrganizations(session.accessToken, { includeInactive: true })
+            : Promise.resolve({ data: [] as TenantBusinessOrganization[] }),
+          canReadBusinessCore
+            ? getTenantBusinessSites(session.accessToken, { includeInactive: true })
+            : Promise.resolve({ data: [] as TenantBusinessSite[] }),
         ]);
       setWorkOrders(workOrdersResponse.data);
       setHistoryRows(historyResponse.data);

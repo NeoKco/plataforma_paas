@@ -73,10 +73,16 @@ export function getTenantPermissionSet(
   if (!user) {
     return new Set();
   }
-  if ("effective_permissions" in user) {
+  if (
+    "effective_permissions" in user &&
+    Array.isArray(user.effective_permissions)
+  ) {
     return new Set(user.effective_permissions ?? []);
   }
-  return new Set(user.permissions ?? []);
+  if ("permissions" in user && Array.isArray(user.permissions)) {
+    return new Set(user.permissions ?? []);
+  }
+  return new Set();
 }
 
 export function hasTenantPermission(

@@ -10,6 +10,7 @@ from app.apps.tenant_modules.finance.api.error_handling import (
     raise_finance_schema_http_error,
 )
 from app.apps.tenant_modules.finance.dependencies import (
+    can_manage_all_finance,
     require_finance_create,
     require_finance_read,
 )
@@ -152,7 +153,11 @@ def list_finance_entries(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceEntriesResponse:
-    entries = finance_service.list_entries(tenant_db)
+    entries = finance_service.list_entries_for_viewer(
+        tenant_db,
+        viewer_user_id=current_user["user_id"],
+        viewer_can_manage_all=can_manage_all_finance(current_user),
+    )
 
     return FinanceEntriesResponse(
         success=True,
@@ -178,6 +183,8 @@ def list_finance_transactions(
     try:
         entries = finance_service.list_transactions_filtered(
             tenant_db,
+            viewer_user_id=current_user["user_id"],
+            viewer_can_manage_all=can_manage_all_finance(current_user),
             transaction_type=transaction_type,
             account_id=account_id,
             category_id=category_id,
@@ -256,6 +263,7 @@ def update_finance_transaction(
             transaction_id,
             payload,
             actor_user_id=current_user["user_id"],
+            actor_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -282,6 +290,8 @@ def get_finance_transaction_detail(
         transaction, audit_events, attachments = finance_service.get_transaction_detail(
             tenant_db,
             transaction_id,
+            viewer_user_id=current_user["user_id"],
+            viewer_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -324,6 +334,7 @@ async def create_finance_transaction_attachment(
             content_bytes=await file.read(),
             notes=notes,
             actor_user_id=current_user["user_id"],
+            actor_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -356,6 +367,7 @@ def delete_finance_transaction_attachment(
             transaction_id,
             attachment_id,
             actor_user_id=current_user["user_id"],
+            actor_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -385,6 +397,8 @@ def download_finance_transaction_attachment(
             tenant_db,
             transaction_id,
             attachment_id,
+            viewer_user_id=current_user["user_id"],
+            viewer_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -414,6 +428,7 @@ def void_finance_transaction(
             transaction_id,
             reason=payload.reason,
             actor_user_id=current_user["user_id"],
+            actor_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -446,6 +461,7 @@ def update_finance_transaction_favorite(
             transaction_id,
             is_favorite=payload.is_favorite,
             actor_user_id=current_user["user_id"],
+            actor_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -475,6 +491,7 @@ def update_finance_transactions_favorite_batch(
             payload.transaction_ids,
             is_favorite=payload.is_favorite,
             actor_user_id=current_user["user_id"],
+            actor_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -510,6 +527,7 @@ def update_finance_transaction_reconciliation(
             reason_code=getattr(payload, "reason_code", None),
             note=getattr(payload, "note", None),
             actor_user_id=current_user["user_id"],
+            actor_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -541,6 +559,7 @@ def update_finance_transactions_reconciliation_batch(
             reason_code=getattr(payload, "reason_code", None),
             note=getattr(payload, "note", None),
             actor_user_id=current_user["user_id"],
+            actor_can_manage_all=can_manage_all_finance(current_user),
         )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
@@ -609,6 +628,11 @@ def finance_account_balances(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceAccountBalancesResponse:
+    if not can_manage_all_finance(current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="Se requiere permiso tenant: tenant.finance.manage",
+        )
     try:
         accounts = finance_service.account_repository.list_all(
             tenant_db, include_inactive=True
@@ -642,7 +666,11 @@ def finance_summary(
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceSummaryResponse:
     try:
-        summary = finance_service.get_summary(tenant_db)
+        summary = finance_service.get_summary(
+            tenant_db,
+            viewer_user_id=current_user["user_id"],
+            viewer_can_manage_all=can_manage_all_finance(current_user),
+        )
     except (ProgrammingError, OperationalError) as exc:
         raise_finance_schema_http_error(exc)
 
@@ -673,6 +701,8 @@ def finance_usage(
     try:
         usage = finance_service.get_usage(
             tenant_db,
+            viewer_user_id=current_user["user_id"],
+            viewer_can_manage_all=can_manage_all_finance(current_user),
             max_entries=effective_module_limits.get(FinanceService.MODULE_LIMIT_KEY),
         )
     except (ProgrammingError, OperationalError) as exc:
