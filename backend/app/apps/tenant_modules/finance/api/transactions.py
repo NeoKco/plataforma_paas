@@ -628,11 +628,6 @@ def finance_account_balances(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceAccountBalancesResponse:
-    if not can_manage_all_finance(current_user):
-        raise HTTPException(
-            status_code=403,
-            detail="Se requiere permiso tenant: tenant.finance.manage",
-        )
     try:
         accounts = finance_service.account_repository.list_all(
             tenant_db, include_inactive=True

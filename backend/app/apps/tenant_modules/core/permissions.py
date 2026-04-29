@@ -48,8 +48,11 @@ TENANT_ROLE_PERMISSIONS: dict[str, set[str]] = {
         "tenant.techdocs.manage",
     },
     "operator": {
+        "tenant.finance.read",
+        "tenant.business_core.read",
         "tenant.products.read",
         "tenant.chat.read",
+        "tenant.crm.read",
         "tenant.maintenance.read",
         "tenant.taskops.read",
         "tenant.taskops.create_own",
