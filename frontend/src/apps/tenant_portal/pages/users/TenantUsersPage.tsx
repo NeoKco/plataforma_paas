@@ -32,6 +32,12 @@ import {
   getTimeZoneLabel,
 } from "../../../../utils/timezone-options";
 import type { ApiError, TenantUsersItem, TenantUsersResponse } from "../../../../types";
+import {
+  TENANT_PERMISSION_CATALOG,
+  getTenantPermissionLabel,
+  hasTenantPermission,
+  type TenantPermissionCode,
+} from "../../utils/tenant-permissions";
 
 type ActionFeedback = {
   scope: string;
@@ -39,7 +45,103 @@ type ActionFeedback = {
   message: string;
 };
 
+type PermissionOverrideMode = "inherit" | "grant" | "revoke";
+type PermissionOverrideState = Record<string, PermissionOverrideMode>;
+
 const ROLE_OPTIONS = ["admin", "manager", "operator"];
+const PERMISSION_GROUPS: Array<{
+  key: string;
+  title: { es: string; en: string };
+  permissions: TenantPermissionCode[];
+}> = [
+  {
+    key: "users",
+    title: { es: "Usuarios", en: "Users" },
+    permissions: [
+      "tenant.users.read",
+      "tenant.users.create",
+      "tenant.users.update",
+      "tenant.users.change_status",
+      "tenant.users.delete",
+    ],
+  },
+  {
+    key: "business",
+    title: { es: "Core de negocio", en: "Business core" },
+    permissions: ["tenant.business_core.read", "tenant.business_core.manage"],
+  },
+  {
+    key: "finance",
+    title: { es: "Finanzas", en: "Finance" },
+    permissions: ["tenant.finance.read", "tenant.finance.create"],
+  },
+  {
+    key: "products",
+    title: { es: "Catálogo", en: "Catalog" },
+    permissions: ["tenant.products.read", "tenant.products.manage"],
+  },
+  {
+    key: "crm",
+    title: { es: "CRM", en: "CRM" },
+    permissions: ["tenant.crm.read", "tenant.crm.manage"],
+  },
+  {
+    key: "maintenance",
+    title: { es: "Mantenciones", en: "Maintenance" },
+    permissions: ["tenant.maintenance.read", "tenant.maintenance.manage"],
+  },
+  {
+    key: "taskops",
+    title: { es: "Tareas", en: "Tasks" },
+    permissions: [
+      "tenant.taskops.read",
+      "tenant.taskops.create_own",
+      "tenant.taskops.assign_others",
+      "tenant.taskops.manage",
+    ],
+  },
+  {
+    key: "techdocs",
+    title: { es: "Expediente técnico", en: "Technical dossier" },
+    permissions: ["tenant.techdocs.read", "tenant.techdocs.manage"],
+  },
+  {
+    key: "chat",
+    title: { es: "Chat interno", en: "Internal chat" },
+    permissions: ["tenant.chat.read", "tenant.chat.manage"],
+  },
+];
+
+function buildPermissionOverrideState(
+  grantedPermissions: string[] = [],
+  revokedPermissions: string[] = []
+): PermissionOverrideState {
+  const nextState: PermissionOverrideState = {};
+  for (const permission of TENANT_PERMISSION_CATALOG) {
+    if (grantedPermissions.includes(permission)) {
+      nextState[permission] = "grant";
+    } else if (revokedPermissions.includes(permission)) {
+      nextState[permission] = "revoke";
+    } else {
+      nextState[permission] = "inherit";
+    }
+  }
+  return nextState;
+}
+
+function buildPermissionOverridesPayload(state: PermissionOverrideState): {
+  granted_permissions: string[];
+  revoked_permissions: string[];
+} {
+  return {
+    granted_permissions: TENANT_PERMISSION_CATALOG.filter(
+      (permission) => state[permission] === "grant"
+    ),
+    revoked_permissions: TENANT_PERMISSION_CATALOG.filter(
+      (permission) => state[permission] === "revoke"
+    ),
+  };
+}
 
 function displayUserRole(value: string, language: "es" | "en"): string {
   return displayPlatformCode(value, language);
@@ -140,7 +242,8 @@ function getActionFeedbackLabel(scope: string, language: "es" | "en"): string {
 }
 
 export function TenantUsersPage() {
-  const { session, tenantInfo, effectiveTimeZone, refreshTenantInfo } = useTenantAuth();
+  const { session, tenantInfo, tenantUser, effectiveTimeZone, refreshTenantInfo } =
+    useTenantAuth();
   const { language } = useLanguage();
   const [usersResponse, setUsersResponse] = useState<TenantUsersResponse | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -155,12 +258,19 @@ export function TenantUsersPage() {
   const [role, setRole] = useState("operator");
   const [userTimeZone, setUserTimeZone] = useState("inherit");
   const [isActive, setIsActive] = useState(true);
+  const [permissionOverrides, setPermissionOverrides] = useState<PermissionOverrideState>(() =>
+    buildPermissionOverrideState()
+  );
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [tenantTimeZone, setTenantTimeZone] = useState(DEFAULT_TENANT_TIMEZONE);
 
   const users = usersResponse?.data || [];
   const tenantTimezoneValue = tenantInfo?.timezone || DEFAULT_TENANT_TIMEZONE;
+  const canCreateUsers = hasTenantPermission(tenantUser, "tenant.users.create");
+  const canUpdateUsers = hasTenantPermission(tenantUser, "tenant.users.update");
+  const canChangeUserStatus = hasTenantPermission(tenantUser, "tenant.users.change_status");
+  const canDeleteUsers = hasTenantPermission(tenantUser, "tenant.users.delete");
 
   const overview = useMemo(() => {
     return {
@@ -237,6 +347,7 @@ export function TenantUsersPage() {
     setRole("operator");
     setUserTimeZone("inherit");
     setIsActive(true);
+    setPermissionOverrides(buildPermissionOverrideState());
     setIsCreateOpen(false);
     setEditingUserId(null);
   }
@@ -254,6 +365,9 @@ export function TenantUsersPage() {
     setRole(user.role);
     setUserTimeZone(user.timezone || "inherit");
     setIsActive(user.is_active);
+    setPermissionOverrides(
+      buildPermissionOverrideState(user.granted_permissions, user.revoked_permissions)
+    );
     setIsCreateOpen(true);
   }
 
@@ -297,12 +411,14 @@ export function TenantUsersPage() {
 
     if (editingUserId !== null) {
       void runAction(`update-user-${editingUserId}`, async () => {
+        const permissionPayload = buildPermissionOverridesPayload(permissionOverrides);
         const response = await updateTenantUser(session.accessToken, editingUserId, {
           full_name: fullName.trim(),
           email: email.trim(),
           password: password.trim() ? password : null,
           role,
           timezone: userTimeZone === "inherit" ? null : userTimeZone,
+          ...permissionPayload,
         });
         resetCreateForm();
         return response;
@@ -311,6 +427,7 @@ export function TenantUsersPage() {
     }
 
     void runAction("create-user", async () => {
+      const permissionPayload = buildPermissionOverridesPayload(permissionOverrides);
       const response = await createTenantUser(session.accessToken, {
         full_name: fullName.trim(),
         email: email.trim(),
@@ -318,6 +435,7 @@ export function TenantUsersPage() {
         role,
         is_active: isActive,
         timezone: userTimeZone === "inherit" ? null : userTimeZone,
+        ...permissionPayload,
       });
       resetCreateForm();
       return response;
@@ -368,13 +486,15 @@ export function TenantUsersPage() {
         }
         actions={
           <AppToolbar compact>
-            <button
-              className="btn btn-primary"
-              type="button"
-              onClick={openCreateModal}
-            >
-              {language === "es" ? "Nuevo usuario" : "New user"}
-            </button>
+            {canCreateUsers ? (
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={openCreateModal}
+              >
+                {language === "es" ? "Nuevo usuario" : "New user"}
+              </button>
+            ) : null}
             <button className="btn btn-outline-secondary" type="button" onClick={handleHeaderReload}>
               {language === "es" ? "Recargar" : "Reload"}
             </button>
@@ -531,6 +651,59 @@ export function TenantUsersPage() {
                     ))}
                   </select>
                 </AppFormField>
+                <div className="tenant-users-permissions-editor">
+                  <div className="tenant-users-permissions-editor__header">
+                    <strong>
+                      {language === "es" ? "Permisos efectivos por usuario" : "Per-user effective permissions"}
+                    </strong>
+                    <div className="text-muted small">
+                      {language === "es"
+                        ? "Usa heredar para respetar el rol base, permitir para agregar acceso y bloquear para retirarlo aunque el rol lo entregue."
+                        : "Use inherit to keep the base role, grant to add access and revoke to remove it even if the role would allow it."}
+                    </div>
+                  </div>
+                  <div className="d-grid gap-3">
+                    {PERMISSION_GROUPS.map((group) => (
+                      <div key={group.key} className="tenant-users-permissions-editor__group">
+                        <div className="small fw-semibold mb-2">
+                          {group.title[language]}
+                        </div>
+                        <div className="d-grid gap-2">
+                          {group.permissions.map((permission) => (
+                            <div
+                              key={permission}
+                              className="tenant-users-permissions-editor__row"
+                            >
+                              <label className="form-label m-0">
+                                {getTenantPermissionLabel(permission, language)}
+                              </label>
+                              <select
+                                className="form-select"
+                                value={permissionOverrides[permission] || "inherit"}
+                                onChange={(event) =>
+                                  setPermissionOverrides((current) => ({
+                                    ...current,
+                                    [permission]: event.target.value as PermissionOverrideMode,
+                                  }))
+                                }
+                              >
+                                <option value="inherit">
+                                  {language === "es" ? "Heredar del rol" : "Inherit from role"}
+                                </option>
+                                <option value="grant">
+                                  {language === "es" ? "Permitir" : "Grant"}
+                                </option>
+                                <option value="revoke">
+                                  {language === "es" ? "Bloquear" : "Revoke"}
+                                </option>
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 {editingUserId === null ? (
                   <AppFormField label={language === "es" ? "Estado inicial" : "Initial status"}>
                     <select
@@ -705,6 +878,31 @@ export function TenantUsersPage() {
                   : getInheritedTimezoneLabel(tenantTimezoneValue, language),
             },
             {
+              key: "permissions",
+              header: language === "es" ? "Permisos" : "Permissions",
+              render: (row) => (
+                <div className="small">
+                  <div>
+                    {row.effective_permissions.length}{" "}
+                    {language === "es" ? "efectivos" : "effective"}
+                  </div>
+                  <div className="text-muted">
+                    {row.granted_permissions.length
+                      ? `${language === "es" ? "Permite" : "Grants"}: ${row.granted_permissions.length}`
+                      : language === "es"
+                        ? "Sin permisos extra"
+                        : "No extra grants"}
+                    {" · "}
+                    {row.revoked_permissions.length
+                      ? `${language === "es" ? "Bloquea" : "Revokes"}: ${row.revoked_permissions.length}`
+                      : language === "es"
+                        ? "Sin bloqueos"
+                        : "No revokes"}
+                  </div>
+                </div>
+              ),
+            },
+            {
               key: "is_active",
               header: language === "es" ? "Estado" : "Status",
               render: (row) => (
@@ -716,36 +914,42 @@ export function TenantUsersPage() {
               header: language === "es" ? "Acciones" : "Actions",
               render: (row) => (
                 <AppToolbar compact>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => openEditModal(row)}
-                    disabled={isActionSubmitting}
-                  >
-                    {language === "es" ? "Editar" : "Edit"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => handleToggleStatus(row)}
-                    disabled={isActionSubmitting}
-                  >
-                    {row.is_active
-                      ? language === "es"
-                        ? "Desactivar"
-                        : "Deactivate"
-                      : language === "es"
-                        ? "Activar"
-                        : "Activate"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => handleDeleteUser(row)}
-                    disabled={isActionSubmitting}
-                  >
-                    {language === "es" ? "Eliminar" : "Delete"}
-                  </button>
+                  {canUpdateUsers ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => openEditModal(row)}
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es" ? "Editar" : "Edit"}
+                    </button>
+                  ) : null}
+                  {canChangeUserStatus ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => handleToggleStatus(row)}
+                      disabled={isActionSubmitting}
+                    >
+                      {row.is_active
+                        ? language === "es"
+                          ? "Desactivar"
+                          : "Deactivate"
+                        : language === "es"
+                          ? "Activar"
+                          : "Activate"}
+                    </button>
+                  ) : null}
+                  {canDeleteUsers ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleDeleteUser(row)}
+                      disabled={isActionSubmitting}
+                    >
+                      {language === "es" ? "Eliminar" : "Delete"}
+                    </button>
+                  ) : null}
                 </AppToolbar>
               ),
             },

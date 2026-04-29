@@ -9,6 +9,7 @@ import { useTenantAuth } from "../../../../../store/tenant-auth-context";
 import type { ApiError } from "../../../../../types";
 import { TaskOpsModuleNav } from "../components/common/TaskOpsModuleNav";
 import { TaskOpsTaskModal } from "../components/common/TaskOpsTaskModal";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 import {
   getTaskOpsKanban,
   type TaskOpsKanbanColumn,
@@ -52,6 +53,7 @@ export function TaskOpsKanbanPage() {
   const canAssignOthers =
     permissionSet.has("tenant.taskops.assign_others") ||
     permissionSet.has("tenant.taskops.manage");
+  const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
 
   async function loadKanban() {
     if (!session?.accessToken) return;
@@ -176,6 +178,7 @@ export function TaskOpsKanbanPage() {
         taskId={null}
         currentUserId={tenantUser?.id ?? null}
         canAssignOthers={canAssignOthers}
+        canReadUsers={canReadUsers}
         initialStatus={createStatus}
         onClose={() => setIsCreateModalOpen(false)}
         onChanged={loadKanban}
@@ -187,6 +190,7 @@ export function TaskOpsKanbanPage() {
         taskId={modalTaskId}
         currentUserId={tenantUser?.id ?? null}
         canAssignOthers={canAssignOthers}
+        canReadUsers={canReadUsers}
         onClose={() => setModalTaskId(null)}
         onChanged={loadKanban}
       />

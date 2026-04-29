@@ -64,6 +64,7 @@ from app.common.auth.dependencies import (  # noqa: E402
     require_tenant_permission,
     require_tenant_admin,
 )
+from app.apps.tenant_modules.core.permissions import resolve_effective_permissions  # noqa: E402
 from app.common.db.session_manager import get_tenant_db  # noqa: E402
 from app.common.middleware.tenant_context_middleware import (  # noqa: E402
     AuthContextMiddleware,
@@ -151,6 +152,17 @@ class TenantAuthDependenciesTestCase(unittest.TestCase):
             checker(self._request(role="manager"))
 
         self.assertEqual(exc.exception.status_code, 403)
+
+    def test_resolve_effective_permissions_applies_grants_and_revokes(self) -> None:
+        permissions = resolve_effective_permissions(
+            "operator",
+            granted_permissions=["tenant.users.read", "tenant.finance.create"],
+            revoked_permissions=["tenant.finance.read"],
+        )
+
+        self.assertIn("tenant.users.read", permissions)
+        self.assertIn("tenant.finance.create", permissions)
+        self.assertNotIn("tenant.finance.read", permissions)
 
 
 class TenantSessionManagerTestCase(unittest.TestCase):

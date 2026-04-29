@@ -67,6 +67,7 @@ import {
   buildRescheduleVisitSyncPayload,
   getRescheduleVisitSummary,
 } from "../services/rescheduleVisitSync";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -255,8 +256,9 @@ type MaintenanceCalendarPageProps = {
 export function MaintenanceCalendarPage({
   renderAsGlobalAgenda = false,
 }: MaintenanceCalendarPageProps) {
-  const { session, effectiveTimeZone } = useTenantAuth();
+  const { session, tenantUser, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
+  const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
   const [workOrders, setWorkOrders] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
   const [organizations, setOrganizations] = useState<TenantBusinessOrganization[]>([]);
@@ -554,7 +556,9 @@ export function MaintenanceCalendarPage({
         getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
         getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false }),
         getTenantMaintenanceSchedules(session.accessToken, { includeInactive: true }),
-        getTenantUsers(session.accessToken),
+        canReadUsers
+          ? getTenantUsers(session.accessToken)
+          : Promise.resolve({ data: [] as TenantUsersItem[] }),
       ]);
       const workGroupMembersResponses = await Promise.all(
         workGroupsResponse.data.map((group) =>

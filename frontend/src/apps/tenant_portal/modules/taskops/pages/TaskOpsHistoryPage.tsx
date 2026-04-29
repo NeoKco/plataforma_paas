@@ -11,6 +11,7 @@ import type { ApiError } from "../../../../../types";
 import { TaskOpsModuleNav } from "../components/common/TaskOpsModuleNav";
 import { TaskOpsTaskModal } from "../components/common/TaskOpsTaskModal";
 import { getTaskOpsHistory, type TaskOpsTask } from "../services/taskopsService";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 function formatDateTime(value: string | null, language: "es" | "en") {
   if (!value) return "—";
@@ -44,6 +45,7 @@ export function TaskOpsHistoryPage() {
   const canAssignOthers =
     permissionSet.has("tenant.taskops.assign_others") ||
     permissionSet.has("tenant.taskops.manage");
+  const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
 
   async function loadRows(search = "") {
     if (!session?.accessToken) return;
@@ -175,6 +177,7 @@ export function TaskOpsHistoryPage() {
         taskId={modalTaskId}
         currentUserId={tenantUser?.id ?? null}
         canAssignOthers={canAssignOthers}
+        canReadUsers={canReadUsers}
         onClose={() => setModalTaskId(null)}
         onChanged={loadRows}
       />

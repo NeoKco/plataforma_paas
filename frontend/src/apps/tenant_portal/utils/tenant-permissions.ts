@@ -68,7 +68,13 @@ export function getTenantPermissionLabel(
 export function getTenantPermissionSet(
   user: TenantUserData | TenantUsersItem | null | undefined
 ): Set<string> {
-  return new Set(user?.effective_permissions ?? user?.permissions ?? []);
+  if (!user) {
+    return new Set();
+  }
+  if ("effective_permissions" in user) {
+    return new Set(user.effective_permissions ?? []);
+  }
+  return new Set(user.permissions ?? []);
 }
 
 export function hasTenantPermission(
@@ -77,4 +83,3 @@ export function hasTenantPermission(
 ): boolean {
   return getTenantPermissionSet(user).has(permission);
 }
-

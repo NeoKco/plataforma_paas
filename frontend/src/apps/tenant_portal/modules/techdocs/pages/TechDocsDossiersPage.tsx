@@ -49,6 +49,7 @@ import {
   type TechDocsSection,
   type TechDocsSectionWriteRequest,
 } from "../services/techdocsService";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 type DossierFormState = {
   client_id: string;
@@ -158,8 +159,9 @@ function formatBytes(value: number) {
 }
 
 export function TechDocsDossiersPage() {
-  const { session } = useTenantAuth();
+  const { session, tenantUser } = useTenantAuth();
   const { language } = useLanguage();
+  const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
   const [rows, setRows] = useState<TechDocsDossier[]>([]);
   const [detail, setDetail] = useState<TechDocsDossierDetail | null>(null);
   const [selectedDossierId, setSelectedDossierId] = useState<number | null>(null);
@@ -206,7 +208,9 @@ export function TechDocsDossiersPage() {
           includeArchived: true,
           q: query,
         }),
-        getTenantUsers(session.accessToken),
+        canReadUsers
+          ? getTenantUsers(session.accessToken)
+          : Promise.resolve({ data: [] as TenantUsersItem[] }),
         getTenantBusinessClients(session.accessToken, { includeInactive: true }),
         getTenantBusinessOrganizations(session.accessToken, { includeInactive: true }),
         getTenantBusinessSites(session.accessToken, { includeInactive: true }),

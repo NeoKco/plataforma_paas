@@ -79,6 +79,7 @@ import {
   buildRescheduleVisitSyncPayload,
   getRescheduleVisitSummary,
 } from "../services/rescheduleVisitSync";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 const ACTIVE_WORK_ORDER_STATUSES = new Set(["scheduled", "in_progress"]);
 
@@ -237,9 +238,10 @@ function isMembershipActive(member: {
 }
 
 export function MaintenanceWorkOrdersPage() {
-  const { session, effectiveTimeZone } = useTenantAuth();
+  const { session, tenantUser, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
+  const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<TenantMaintenanceWorkOrder[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
@@ -532,7 +534,9 @@ export function MaintenanceWorkOrdersPage() {
         getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
         getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false }),
         getTenantMaintenanceSchedules(session.accessToken, { includeInactive: true }),
-        getTenantUsers(session.accessToken),
+        canReadUsers
+          ? getTenantUsers(session.accessToken)
+          : Promise.resolve({ data: [] as TenantUsersItem[] }),
       ]);
       const workGroupMembersResponses = await Promise.all(
         workGroupsResponse.data.map((group) =>

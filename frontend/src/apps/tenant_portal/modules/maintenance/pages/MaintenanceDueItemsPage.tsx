@@ -75,6 +75,7 @@ import {
 } from "../services/assignmentCapability";
 import { stripLegacyVisibleText } from "../../../../../utils/legacyVisibleText";
 import { getVisibleAddressLabel } from "../../business_core/utils/addressPresentation";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 function buildDefaultScheduleForm(): TenantMaintenanceScheduleWriteRequest {
   return {
@@ -260,9 +261,10 @@ function isMembershipActive(member: {
 }
 
 export function MaintenanceDueItemsPage() {
-  const { session, effectiveTimeZone } = useTenantAuth();
+  const { session, tenantUser, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const accessToken = session?.accessToken ?? null;
+  const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
   const [rows, setRows] = useState<TenantMaintenanceDueItem[]>([]);
   const [schedules, setSchedules] = useState<TenantMaintenanceSchedule[]>([]);
   const [clients, setClients] = useState<TenantBusinessClient[]>([]);
@@ -663,7 +665,9 @@ export function MaintenanceDueItemsPage() {
         getTenantMaintenanceInstallations(session.accessToken, { includeInactive: false }),
         getTenantBusinessTaskTypes(session.accessToken, { includeInactive: false }),
         getTenantBusinessWorkGroups(session.accessToken, { includeInactive: false }),
-        getTenantUsers(session.accessToken),
+        canReadUsers
+          ? getTenantUsers(session.accessToken)
+          : Promise.resolve({ data: [] as TenantUsersItem[] }),
       ]);
       const workGroupMembersResponses = await Promise.all(
         workGroupsResponse.data.map((group) =>

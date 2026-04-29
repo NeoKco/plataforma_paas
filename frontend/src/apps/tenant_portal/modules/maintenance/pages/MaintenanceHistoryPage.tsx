@@ -78,6 +78,7 @@ import {
   getTenantMaintenanceSchedules,
   type TenantMaintenanceSchedule,
 } from "../services/schedulesService";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 function formatDateTime(
   value: string | null,
@@ -401,10 +402,11 @@ function isMembershipActive(member: {
 }
 
 export function MaintenanceHistoryPage() {
-  const { session, effectiveTimeZone } = useTenantAuth();
+  const { session, tenantUser, effectiveTimeZone } = useTenantAuth();
   const { language } = useLanguage();
   const navigate = useNavigate();
   const t = (es: string, en: string) => pickLocalizedText(language, { es, en });
+  const canReadUsers = hasTenantPermission(tenantUser, "tenant.users.read");
   const canReopenFromHistory = session?.role === "admin" || session?.role === "manager";
   const canAdjustCompletedAt = session?.role === "admin" || session?.role === "manager";
   const [rows, setRows] = useState<TenantMaintenanceHistoryWorkOrder[]>([]);
@@ -583,7 +585,9 @@ export function MaintenanceHistoryPage() {
           getTenantBusinessWorkGroups(session.accessToken, { includeInactive: true }),
           getTenantBusinessTaskTypes(session.accessToken, { includeInactive: true }),
           getTenantMaintenanceSchedules(session.accessToken, { includeInactive: true }),
-          getTenantUsers(session.accessToken),
+          canReadUsers
+            ? getTenantUsers(session.accessToken)
+            : Promise.resolve({ data: [] as TenantUsersItem[] }),
         ]);
       const workGroupMembersResponses = await Promise.all(
         workGroupsResponse.data.map((group) =>
