@@ -1,57 +1,65 @@
 import { NavLink } from "react-router-dom";
 import { useLanguage } from "../../../../../../store/language-context";
+import { useTenantAuth } from "../../../../../../store/tenant-auth-context";
 import { getFinanceModuleLabel } from "../../utils/presentation";
 import { FinanceIcon, type FinanceIconName } from "./FinanceIcon";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 
 export function FinanceModuleNav() {
   const { language } = useLanguage();
+  const { tenantUser } = useTenantAuth();
+  const canManageAllFinance = hasTenantPermission(tenantUser, "tenant.finance.manage");
   const navItems = [
     {
       to: "/tenant-portal/finance",
       label: getFinanceModuleLabel("transactions", language),
       icon: "transactions" as FinanceIconName,
     },
-    {
-      to: "/tenant-portal/finance/budgets",
-      label: getFinanceModuleLabel("budgets", language),
-      icon: "budgets" as FinanceIconName,
-    },
-    {
-      to: "/tenant-portal/finance/loans",
-      label: getFinanceModuleLabel("loans", language),
-      icon: "loans" as FinanceIconName,
-    },
-    {
-      to: "/tenant-portal/finance/calendar",
-      label: getFinanceModuleLabel("planning", language),
-      icon: "planning" as FinanceIconName,
-    },
-    {
-      to: "/tenant-portal/finance/reports",
-      label: getFinanceModuleLabel("reports", language),
-      icon: "reports" as FinanceIconName,
-    },
-    {
-      to: "/tenant-portal/finance/accounts",
-      label: getFinanceModuleLabel("accounts", language),
-      icon: "accounts" as FinanceIconName,
-    },
-    {
-      to: "/tenant-portal/finance/categories",
-      label: getFinanceModuleLabel("categories", language),
-      icon: "categories" as FinanceIconName,
-    },
-    {
-      to: "/tenant-portal/finance/tools",
-      label: getFinanceModuleLabel("catalogs", language),
-      icon: "catalogs" as FinanceIconName,
-    },
-    {
-      to: "/tenant-portal/finance/settings",
-      label: getFinanceModuleLabel("settings", language),
-      icon: "settings" as FinanceIconName,
-    },
   ];
+  if (canManageAllFinance) {
+    navItems.push(
+      {
+        to: "/tenant-portal/finance/budgets",
+        label: getFinanceModuleLabel("budgets", language),
+        icon: "budgets" as FinanceIconName,
+      },
+      {
+        to: "/tenant-portal/finance/loans",
+        label: getFinanceModuleLabel("loans", language),
+        icon: "loans" as FinanceIconName,
+      },
+      {
+        to: "/tenant-portal/finance/calendar",
+        label: getFinanceModuleLabel("planning", language),
+        icon: "planning" as FinanceIconName,
+      },
+      {
+        to: "/tenant-portal/finance/reports",
+        label: getFinanceModuleLabel("reports", language),
+        icon: "reports" as FinanceIconName,
+      },
+      {
+        to: "/tenant-portal/finance/accounts",
+        label: getFinanceModuleLabel("accounts", language),
+        icon: "accounts" as FinanceIconName,
+      },
+      {
+        to: "/tenant-portal/finance/categories",
+        label: getFinanceModuleLabel("categories", language),
+        icon: "categories" as FinanceIconName,
+      },
+      {
+        to: "/tenant-portal/finance/tools",
+        label: getFinanceModuleLabel("catalogs", language),
+        icon: "catalogs" as FinanceIconName,
+      },
+      {
+        to: "/tenant-portal/finance/settings",
+        label: getFinanceModuleLabel("settings", language),
+        icon: "settings" as FinanceIconName,
+      }
+    );
+  }
 
   return (
     <div className="finance-module-nav">

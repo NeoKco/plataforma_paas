@@ -22,6 +22,7 @@ import { displayPlatformCode } from "../../../../../utils/platform-labels";
 import type { ApiError } from "../../../../../types";
 import { FinanceHelpBubble } from "../components/common/FinanceHelpBubble";
 import { FinanceModuleNav } from "../components/common/FinanceModuleNav";
+import { hasTenantPermission } from "../../../utils/tenant-permissions";
 import {
   getTenantFinanceAccounts,
   type TenantFinanceAccount,
@@ -110,8 +111,9 @@ function buildDefaultFormState(timeZone?: string | null): TransactionFormState {
 }
 
 export function FinanceTransactionsPage() {
-  const { session, effectiveTimeZone } = useTenantAuth();
+  const { session, effectiveTimeZone, tenantUser } = useTenantAuth();
   const { language } = useLanguage();
+  const canManageAllFinance = hasTenantPermission(tenantUser, "tenant.finance.manage");
   const [searchParams] = useSearchParams();
   const [transactions, setTransactions] = useState<TenantFinanceTransaction[]>([]);
   const [summaryResponse, setSummaryResponse] =
@@ -360,7 +362,9 @@ export function FinanceTransactionsPage() {
       getTenantFinanceTransactions(session.accessToken, buildApiFilters(filters)),
       getTenantFinanceSummary(session.accessToken),
       getTenantFinanceUsage(session.accessToken),
-      getTenantFinanceAccountBalances(session.accessToken),
+      canManageAllFinance
+        ? getTenantFinanceAccountBalances(session.accessToken)
+        : Promise.resolve({ data: [] as TenantFinanceAccountBalance[] }),
       getTenantFinanceAccounts(session.accessToken, false),
       getTenantFinanceCategories(session.accessToken, { includeInactive: false }),
       getTenantFinanceTags(session.accessToken),
