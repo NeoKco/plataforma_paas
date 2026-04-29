@@ -3,6 +3,9 @@
 ## Última actualización
 
 - fecha: 2026-04-27
+- microajuste UX ya publicado en runtime:
+  - en `products > Catálogo`, el nombre del producto/servicio ya abre la misma vista rápida que la miniatura
+  - la apertura de ficha rápida ya no depende solo de acertarle a la foto
 - corte nuevo ya cerrado en repo y runtime:
   - `products > Catálogo` ya permite elegir la foto principal inicial dentro del mismo modal de alta
   - esa foto se previsualiza antes del primer guardado y se sube automáticamente al crear el artículo

@@ -1,8 +1,8 @@
 {
   "project": "platform_paas",
-  "updated_at": "2026-04-27T01:15:00-04:00",
+  "updated_at": "2026-04-27T01:28:00-04:00",
   "handoff_status": "active",
-  "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. En `products`, además del carril base `Ingesta > URL` IA-first, la galería comprimida y la importación legacy completa desde `ieris_app`, el catálogo principal ya usa modal para alta/edición con foto principal inicial, vista rápida que rehidrata la ficha real antes de resolver la imagen y validación runtime real de `production` con `missing_count=0` sobre las `117` fotos legacy importadas.",
+  "current_focus": "La PaaS ya deja `products`, `crm`, `taskops`, `techdocs` y `chat` cerrados para su alcance actual en repo y runtime. En `products`, además del carril base `Ingesta > URL` IA-first, la galería comprimida y la importación legacy completa desde `ieris_app`, el catálogo principal ya usa modal para alta/edición con foto principal inicial, vista rápida que rehidrata la ficha real antes de resolver la imagen y doble disparador de apertura rápida: miniatura o nombre del artículo.",
   "project_phase": "staging y production siguen auditados en verde para sus 4 tenants activos; el proyecto ya cuenta con ownership matrix, slice spec template, ADRs, estándar API, política de schema/migraciones, estrategia de entornos, política E2E, deploy repo->runtime, rollback, smoke base embebido, restore drills, seguridad runtime-only y observabilidad mínima persistida. El roadmap base ya quedó cerrado; la fase actual pasa a expansión de producto gobernada. `products` sigue siendo el módulo en foco porque ya cubre catálogo vivo, IA genérica, scheduler, migración/import legacy reproducible desde `ieris_app` y ahora una lectura visual más útil del catálogo importado.",
   "active_modules": [
     "platform-core",

@@ -1,5 +1,22 @@
 # HISTORIAL_ITERACIONES
 
+## 2026-04-27 - `products` deja el nombre del artículo como segundo disparador de la vista rápida
+
+Contexto:
+
+- después del fix de fotos, el usuario pidió que no fuera necesario pinchar solo la miniatura para abrir la ficha rápida
+
+Cambios:
+
+- frontend:
+  - [CRMProductsPage.tsx](/home/felipe/platform_paas/frontend/src/apps/tenant_portal/modules/crm/pages/CRMProductsPage.tsx)
+    - el nombre del producto/servicio ya abre la misma vista rápida que la miniatura
+
+Validación:
+
+- `cd frontend && npm run build` -> `OK`
+- frontend republicado en `staging` y `production`
+
 ## 2026-04-27 - `products` corrige la vista rápida de fotos y permite foto principal inicial en el alta
 
 Contexto:

@@ -387,7 +387,19 @@ export function CRMProductsPage() {
             header: language === "es" ? "Nombre" : "Name",
             render: (row) => (
               <div>
-                <strong>{row.name}</strong>
+                <button
+                  className="btn btn-link p-0 border-0 text-start"
+                  type="button"
+                  onClick={() => setQuickViewItem(row)}
+                  title={language === "es" ? "Abrir vista rápida" : "Open quick view"}
+                  style={{
+                    fontWeight: 700,
+                    color: "inherit",
+                    textDecoration: "none",
+                  }}
+                >
+                  {row.name}
+                </button>
                 <div className="text-muted small">{row.sku || "—"}</div>
                 <div className="text-muted small">
                   {row.images.length > 0
