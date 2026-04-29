@@ -153,11 +153,14 @@ def list_finance_entries(
     current_user=Depends(require_finance_read),
     tenant_db: Session = Depends(get_tenant_db),
 ) -> FinanceEntriesResponse:
-    entries = finance_service.list_entries_for_viewer(
-        tenant_db,
-        viewer_user_id=current_user["user_id"],
-        viewer_can_manage_all=can_manage_all_finance(current_user),
-    )
+    if can_manage_all_finance(current_user):
+        entries = finance_service.list_entries(tenant_db)
+    else:
+        entries = finance_service.list_entries_for_viewer(
+            tenant_db,
+            viewer_user_id=current_user["user_id"],
+            viewer_can_manage_all=False,
+        )
 
     return FinanceEntriesResponse(
         success=True,
